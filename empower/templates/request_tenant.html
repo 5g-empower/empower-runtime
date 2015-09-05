@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block js %}
+
+  <script type="text/javascript" src="/static/js/empower.ui.lib.js"></script>
+
+  <script type="text/javascript">
+
+    var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
+
+    function initialize() {
+    }
+
+  </script>
+{% end %}
+
+{% block navigation %}{% end %}
+
+{% block body %}
+
+  <h1>Request new Tenant</h1>
+  <table width="600px" class="dump" style="margin: 0 auto;">
+    <tr>
+      <th>Network name:</th>
+      <td><input autocapitalize="off" autocorrect="off" class="text-input" id="tenant_name" name="tenant_name" tabindex="2" type="text" size="50" /></td>
+    </tr>
+    <tr>
+      <th>Description:</th>
+      <td><input autocapitalize="off" autocorrect="off" class="text-input" id="desc" name="desc" tabindex="2" type="text" size="50" /></td>
+    </tr>
+  </table>
+  <br />
+  <table width="400px" style="margin: 0 auto; border: 0">
+    <tr>
+      <th>
+        <input type="submit" value="Request Tenant" tabindex="3" style="width: 100%" onClick="requestTenant()" />
+      </th>
+    </tr>
+  </table>
+
+{% end %}

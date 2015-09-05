@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block js %}
+
+  <script type="text/javascript" src="/static/js/empower.ui.lib.js"></script>
+  <script type="text/javascript" src="/static/js/scylla.ui.lib.js"></script>
+  <script type="text/javascript" src="/static/js/charybdis.ui.lib.js"></script>
+
+  <script type="text/javascript">
+
+  var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
+
+  function initialize() {
+    initTab()
+    {% if role == "admin" %}
+      runLoader(loadTenantsAdmin, '{{username}}')
+      runLoader(loadPendingTenantsAdmin, '{{username}}')
+      runLoader(loadUsers)
+      runLoader(loadCPPs)
+      runLoader(loadWTPs)
+      runLoader(loadMACs, 'allow')
+      runLoader(loadMACs, 'deny')
+      lvapsInterval = runLoader(loadLVAPs)
+      runLoader(loadComponents)
+      feedsInterval = runLoader(loadFeeds)
+    {% else %}
+      runLoader(loadTenantsUser, '{{username}}')
+      runLoader(loadPendingTenantsUser, '{{username}}')
+    {% end %}
+  }
+
+  </script>
+
+{% end %}
+
+{% block navigation %}
+    {% if role == "admin" %}
+      <div style="width: 1000px; margin-left: auto; margin-right: auto">
+        <div class="tabs segmentedControlBase">
+          <div class="button segmentedControl leftEnd tab"><span>Tenants</span></div>
+          <div class="button segmentedControl tab"><span id="nb_pending" /></div>
+          <div class="button segmentedControl tab"><span>Components</span></div>
+          <div class="button segmentedControl tab"><span>Feeds</span></div>
+          <div class="button segmentedControl tab"><span>LVAPs</span></div>
+          <div class="button segmentedControl tab"><span>CPPs</span></div>
+          <div class="button segmentedControl tab"><span>WTPs</span></div>
+          <div class="button segmentedControl tab"><span>ACL</span></div>
+          <div class="button segmentedControl rightEnd tab"><span>Users</span></div>
+        </div>
+      </div>
+    {% else %}
+      <div style="width: 450px; margin-left: auto; margin-right: auto">
+        <div class="tabs segmentedControlBase">
+          <div class="button segmentedControl leftEnd tab"><span>Tenants</span></div>
+          <div class="button segmentedControl rightEnd tab"><span id="nb_pending"/></div>
+        </div>
+      </div>
+    {% end %}
+{% end %}
+
+{% block body %}
+
+    {% if role == "admin" %}
+
+      <div class="tabPanels">
+
+        <div class="tabPanel">
+
+          <h1>Active Tenants</h1>
+
+          <table id="tenants" class="dump">
+            <tr>
+              <th width="24px">&nbsp;</th>
+              <th width="300px">UUID</th>
+              <th width="120px">Network Name</th>
+              <th width="150px">Devs</th>
+              <th width="100x">Owner</th>
+            </tr>
+            <tr>
+              <td colspan="5" align="center">Log as normal user to request new Tenant</td>
+            </tr>
+          </table>
+
+        </div>
+        <div class="tabPanel">
+
+          <h1>Pending requests</h1>
+
+          <table id="pending" class="dump">
+            <tr>
+              <th width="24px">&nbsp;</th>
+              <th width="300px">UUID</th>
+              <th width="120px">Network Name</th>
+              <th width="100px">Owner</th>
+            </tr>
+          </table>
+
+        </div>
+        <div class="tabPanel">
+
+          <h1>Components</h1>
+
+          <table id="components" class="dump">
+            <tr>
+              <th>Components</th>
+              <th>Ctrl</th>
+            </tr>
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addComponent()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+        <div class="tabPanel">
+
+          <h1>Power feeds</h1>
+
+          <table id="feeds" class="dump">
+            <tr>
+              <th width="24px" align="center">&nbsp;</th>
+              <th width="24px" align="center">&nbsp;</th>
+              <th width="24px" align="center">Id</th>
+              <th width="200px" align="center">Power</th>
+              <th width="230px">Last Update</th>
+              <th width="130px">Dev</th>
+              <th width="48px" align="center">Ctrl</th>
+            </tr>
+            <tr>
+              <td colspan="9" align="right"><a onClick="return addFeed()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Light Virtual Access Points</h1>
+
+          <table id="lvaps" class="dump">
+            <tr>
+              <th width="150px">Station</th>
+              <th width="150px">SSID</th>
+              <th width="150px">BSSID</th>
+              <th width="240px" colspan="2">WTP</th>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Click Packet Processors</h1>
+
+          <table id="cpps" width="500" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addCPP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Wireless Termination Points</h1>
+
+          <table id="wtps" width="500" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addWTP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Allow</h1>
+
+          <table id="allow" width="500" class="dump">
+            <tr>
+              <td colspan="2" align="right"><a onClick="return addMAC('allow', 'allow')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+          <h1>Deny</h1>
+
+          <table id="deny" width="500" class="dump">
+            <tr>
+              <td colspan="2" align="right"><a onClick="return addMAC('deny', 'deny')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Users</h1>
+
+          <table id="users" class="dump">
+            <tr>
+              <th width="24px" align="center">&nbsp;</th>
+              <th width="150px">User</th>
+              <th width="150px">Name</th>
+              <th width="150px">Surname</th>
+              <th width="50px">Role</th>
+              <th width="150px">E-Mail</th>
+            </tr>
+            <tr>
+              <td colspan="6" align="right"><a onClick="return addUser()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+      </div>
+
+    {% else %}
+
+      <div class="tabPanels">
+
+        <div class="tabPanel">
+
+          <h1>Active Tenants</h1>
+
+          <table id="tenants" class="dump">
+            <tr>
+              <th width="24px" align="center">&nbsp;</th>
+              <th width="300px">UUID</th>
+              <th width="120px">Network Name</th>
+              <th width="150px">Devs</th>
+              <th width="100x">Owner</th>
+            </tr>
+            <tr>
+              <td colspan="5" align="right"><a href="/request_tenant"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+        <div class="tabPanel">
+
+          <h1>Pending requests</h1>
+
+          <table id="pending" class="dump">
+            <tr>
+              <th width="24px">&nbsp;</th>
+              <th width="300px">UUID</th>
+              <th width="120px">Network Name</th>
+              <th width="100px">Owner</th>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Click Packet Processors</h1>
+
+          <table id="cpps" width="500" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addCPP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>Wireless Termination Points</h1>
+
+          <table id="wtps" width="500" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addWTP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+      </div>
+
+    {% end %}
+
+{% end %}

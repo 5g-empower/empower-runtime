@@ -1,0 +1,204 @@
+.loginBox {
+    margin: 0.5in auto;
+    color: #000;
+    width: 340px;
+    padding: 20px;
+    text-align: left;
+    background-color: #fff;
+    border: 3px solid #fff;
+    /* Do rounding (native in Firefox and Safari) */
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    -webkit-box-shadow: 0 0 30px 5px #333;
+    -moz-box-shadow: 0 0 30px 5px #333;
+}
+
+.loginBox img {
+    display: block;
+    margin: auto;
+}
+
+.toolBox {
+    margin: 0.2in auto;
+    color: #000;
+    width: 1200px;
+    padding: 10px;
+    text-align: left;
+    background-color: #fff;
+    border: 3px solid #fff;
+    /* Do rounding (native in Firefox and Safari) */
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    -webkit-box-shadow: 0 0 30px 5px #333;
+    -moz-box-shadow: 0 0 30px 5px #333;
+}
+
+.appicon {
+    width: 120px;
+}
+
+.ctrl {
+    width: 20px;
+}
+
+.errormessage {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 14pt;
+    padding: 4px;
+    text-align: center;
+    background-color: #fff;
+    border: 2px solid #f00;
+}
+
+.tiny {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 10pt;
+    padding: 0px;
+    text-align: center;
+}
+
+.box {
+    float: right;
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+}
+
+.box a {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+}
+
+h1 {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    font-weight: bold;
+    text-align: center;
+}
+
+.dump-centered {
+    text-align: center;
+    border: 0;
+}
+
+.dump-centered th, .dump-centered td {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    padding: 4px;
+}
+
+.dump {
+    border-style: solid;
+    border-collapse: collapse;
+    border: 1px solid #597883;
+}
+
+.dump th, .dump td {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    border-collapse: collapse;
+    border: 1px solid #597883;
+    padding: 4px;
+}
+
+html, body {
+    background-image: url(/static/images/pattern.jpg);
+}
+
+input {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    border: 1px solid #666;
+    padding: 4px;
+}
+
+ul, li {
+    list-style: none;
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    color: #666;
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    background-color: #fff;
+    padding: 10px;
+}
+
+.tabPanels .tabPanel {
+    display: none;
+}
+
+.tabPanels .tabPanel.selected {
+    display: block;
+}
+
+.tabPanels .tabPanel.selected table {
+    margin: 0 auto;
+    text-align: left;
+}
+
+.segmentedControlBase {
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-pack: justify;
+    -webkit-box-sizing: border-box;
+    display: -moz-box;
+    -moz-box-orient: horizontal;
+    -moz-box-pack: justify;
+    -moz-box-sizing: border-box;
+}
+
+.button.segmentedControl {
+    display: block;
+    -webkit-box-flex: 1;
+    -moz-box-flex: 1;
+    border: solid 1px #9a9a99;
+    border-left: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    text-align: center;
+    background-image: -webkit-gradient(linear, left top, left bottom,
+            from(#fbfbfb),
+            to(#bdbdbd));
+    background-image: -moz-linear-gradient(top,
+            #fbfbfb,
+            #bdbdbd);
+    color: #6b6b6b;
+    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-size: 12pt;
+    padding: 6px;
+}
+
+.button.segmentedControl:hover, .button.segmentedControl.hover, .button.segmentedControl.selected {
+    background-image: -webkit-gradient(linear, left top, left bottom,
+            from(#2a55b1),
+            to(#6297f2));
+    background-image: -moz-linear-gradient(top,
+            #2a55b1,
+            #6297f2);
+    color: #fff;
+    border-color: #193a7f;
+}
+
+.button.segmentedControl.leftEnd {
+    -webkit-border-top-left-radius: 6px;
+    -webkit-border-bottom-left-radius: 6px;
+    -moz-border-radius-topleft: 6px;
+    -moz-border-radius-bottomleft: 6px;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-left: solid 1px #9a9a99;
+}
+
+.button.segmentedControl.rightEnd {
+    -webkit-border-top-right-radius: 6px;
+    -webkit-border-bottom-right-radius: 6px;
+    -webkit-border-top-right-radius: 6px;
+    -webkit-border-bottom-right-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}

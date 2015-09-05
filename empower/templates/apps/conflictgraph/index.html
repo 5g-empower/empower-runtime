@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block js %}
+  <script type="text/javascript">
+  var tenant_id="{{tenant_id}}"
+  function initialize() {
+    initTab()
+  }
+  </script>
+{% end %}
+
+{% block navigation %}
+  <div style="width: 650px; margin-left: auto; margin-right: auto">
+    <div class="tabs segmentedControlBase">
+      <div class="button segmentedControl leftEnd tab"><span>CQM (2.4 GHz)</span></div>
+      <div class="button segmentedControl tab"><span>CQM (5 GHz)</span></div>
+      <div class="button segmentedControl tab"><span>IM (2.4 GHz)</span></div>
+      <div class="button segmentedControl rightEnd tab"><span>IM (5 GHz)</span></div>
+    </div>
+  </div>
+{% end %}
+
+{% block body %}
+  <div class="tabPanels">
+    <div class="tabPanel" onLoad="alert(ciao)">
+      <h1>Channel Quality Map (2.4 GHz)</h1>
+      <div id="cqm24"></div>
+    </div>
+    <div class="tabPanel">
+      <h1>Channel Quality Map (5 GHz)</h1>
+      <div id="cqm5"></div>
+    </div>
+    <div class="tabPanel">
+      <h1>Interference Map (2.4 GHz)</h1>
+      <div id="im24"></div>
+    </div>
+    <div class="tabPanel">
+      <h1>Interference Map (5 GHz)</h1>
+      <div id="im5"></div>
+    </div>
+  </div>
+{% end %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block js %}
+
+  <script type="text/javascript">
+
+  var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
+
+  function initialize() {}
+
+  function setField(field) {
+    document.getElementById(field).innerHTML = "<input onKeyPress=\"return submitOnEnter(this,event)\" id=\"input_"+field+"\" name=\""+field+"\" type=\"text\" />"
+    data = '{"version" : "1.0", "' + field + '" : "' + name + '"}'
+    document.getElementById("input_"+field).focus()
+  }
+
+  function submitOnEnter(myfield,e) {
+    var keycode;
+    if (window.event)
+      keycode = window.event.keyCode;
+    else if (e)
+      keycode = e.which;
+    else
+      return true;
+    if (keycode == 13) {
+        data = '{"version" : "1.0", "'+myfield.name+'" : "' + myfield.value + '"}'
+        $.ajax({
+            url: "/api/v1/accounts/{{username}}",
+            type: 'PUT',
+            dataType: 'json',
+            cache: false,
+            beforeSend: function (request) {
+                request.setRequestHeader("Authorization", BASE_AUTH);
+            },
+            data: data,
+            success: function (data) {
+                location.reload();
+            },
+        });
+        return false;
+    } else {
+      return true;
+    }
+  }
+
+  </script>
+
+{% end %}
+
+{% block navigation %}{% end %}
+
+{% block body %}
+
+    <h1>Profile</h1>
+
+      <ul>
+        <li>Username: <div class="box">{{username}}</div></li>
+        <li>Role: <div class="box">{{role}}</div></li>
+        <li>Name: <div id="name" class="box" onClick="setField('name')">{% if name %}{{ name }}{% else %} none {% end %}</div></li>
+        <li>Surname: <div id="surname" class="box" onClick="setField('surname')">{% if surname %}{{ surname }}{% else %} none {% end %}</div></li>
+        <li>E-Mail: <div id="email" class="box" onClick="setField('email')">{% if email %}{{ email }}{% else %} none {% end %}</div></li>
+      </ul>
+
+{% end %}
+

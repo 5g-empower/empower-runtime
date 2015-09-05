@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EmPOWER Runtime</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/empower.css" />
+  <script type="text/javascript" src="/static/js/jquery-2.1.4.min.js"></script>
+  {% block js %}{% end %}
+</head>
+<body>
+  <div class="toolBox">
+    <ul>
+      <li>
+        <a href="/"><img src="/static/images/empower_logo.png" alt="EmPOWER" height="60" title="EmPOWER" /></a>
+        <div class="box">Logged as: <a href="/profile">{{name}} {{surname}} ({{role}})</a> | <a href="/auth/logout">Logout</a></div>
+      </li>
+    </ul>
+    {% block navigation %}{% end %}
+    {% if error %}
+      <div class="errormessage">{{error}}</div>
+    {% end %}
+    {% block body %}{% end %}
+  </div>
+</body>
+</html>

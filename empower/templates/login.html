@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EmPOWER Runtime</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/empower.css" />
+</head>
+<body>
+  <div class="loginBox">
+    <img src="/static/images/empower_login.png" width="300" alt="EmPOWER Login" title="EmPOWER Login" />
+    {% if error %}
+      <div class="errormessage">{{error}}</div>
+    {% end %}
+    <form action="/auth/login/" method="post" id="login_form">
+      <ul>
+        <li>Username: <div class="box"><input autocapitalize="off" autocorrect="off" class="text-input" id="username" name="username" tabindex="1" type="text" value="" /></div></li>
+        <li>Password: <div class="box"><input class="text-input" id="password" name="password" tabindex="2" type="password" value="" /></div></li>
+        <li>&nbsp;<div class="box"><input id="signin-btn" type="submit" value="Login" tabindex="3" /></div></li>
+      </ul>
+    </form>
+  </div>
+</body>
+</html>
