@@ -83,7 +83,7 @@ class EmpowerRuntime(object):
         self.components = {}
         self.accounts = {}
         self.tenants = {}
-        self.lvnfs = {}
+        self.lvaps = {}
         self.wtps = {}
         self.cpps = {}
         self.feeds = {}
