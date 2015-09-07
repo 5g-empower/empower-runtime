@@ -234,3 +234,58 @@ function lvnfUp(idLvnf) {
 function lvnfDown(idLvnf) {
 
 }
+
+
+function selectCPP() {
+
+    $.getJSON("/api/v1/cpps",
+        function(data) {
+
+            tmp = "Select CPP: <select id=\"select_cpp\">"
+            for (var stream in data) {
+                tmp += "<option>" + data[stream].addr + "</option>"
+            }
+            tmp += "</select>"
+            tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addCPPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeCPPSelectBox()\" /></div>"
+
+            var table = document.getElementById("cpps");
+            var rowCount = table.rows.length - 1;
+            var row = table.deleteRow(rowCount);
+            var row = table.insertRow(rowCount);
+            var mac = row.insertCell(0);
+            mac.colSpan = 3
+            mac.innerHTML = tmp
+
+        });
+
+}
+
+function removeCPPSelectBox() {
+    var table = document.getElementById("cpps");
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return selectCPP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
+}
+
+function addCPPtoTenant() {
+    var select = document.getElementById('select_cpp');
+    $.ajax({
+        url: "/api/v1/tenants/" + tenant_id + "/cpps/" + select.value,
+        type: 'POST',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            removeCPPSelectBox()
+        },
+        error: function (data) {
+            removeCPPSelectBox()
+        },
+    });
+}

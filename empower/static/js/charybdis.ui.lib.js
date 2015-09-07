@@ -164,7 +164,7 @@ function removeWTPInputBox() {
     var mac = row.insertCell(0);
     mac.colSpan = 3
     mac.align = "right"
-    mac.innerHTML = "<a onClick=\"return addWTP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+    mac.innerHTML = "<a onClick=\"return addWTP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
 function removeMACInputBox(group) {
@@ -173,13 +173,9 @@ function removeMACInputBox(group) {
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    if (group === 'wtps') {
-        mac.colSpan = 3
-    } else {
-        mac.colSpan = 2
-    }
+    mac.colSpan = 2
     mac.align = "right"
-    mac.innerHTML = "<a onClick=\"return addMAC('" + group + "')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+    mac.innerHTML = "<a onClick=\"return addMAC('" + group + "')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
 function removeMAC(group, mac) {
@@ -502,4 +498,58 @@ function lvapUp(idLvap) {
 
 function lvapDown(idLvap) {
 
+}
+
+function selectWTP() {
+
+    $.getJSON("/api/v1/wtps",
+        function(data) {
+
+            tmp = "Select WTP: <select id=\"select_wtp\">"
+            for (var stream in data) {
+                tmp += "<option>" + data[stream].addr + "</option>"
+            }
+            tmp += "</select>"
+            tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addWTPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeWTPSelectBox()\" /></div>"
+
+            var table = document.getElementById("wtps");
+            var rowCount = table.rows.length - 1;
+            var row = table.deleteRow(rowCount);
+            var row = table.insertRow(rowCount);
+            var mac = row.insertCell(0);
+            mac.colSpan = 3
+            mac.innerHTML = tmp
+
+        });
+
+}
+
+function removeWTPSelectBox() {
+    var table = document.getElementById("wtps");
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return selectWTP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
+}
+
+function addWTPtoTenant() {
+    var select = document.getElementById('select_wtp');
+    $.ajax({
+        url: "/api/v1/tenants/" + tenant_id + "/wtps/" + select.value,
+        type: 'POST',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            removeWTPSelectBox()
+        },
+        error: function (data) {
+            removeWTPSelectBox()
+        },
+    });
 }

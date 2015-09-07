@@ -9,6 +9,7 @@
   <script type="text/javascript">
 
   var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
+  var tenant_id = "{{tenant.tenant_id}}"
 
   function initialize() {
       initTab()
@@ -57,7 +58,7 @@
 
       <table id="cpps" width="450px" class="dump">
         <tr>
-          <td colspan="3" align="right"><a onClick="return selectCPP('{{ tenant.tenant_id }}')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+          <td colspan="3" align="right"><a onClick="return selectCPP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
         </tr>
       </table>
 
@@ -69,7 +70,7 @@
 
       <table id="wtps" width="450px" class="dump">
         <tr>
-          <td colspan="3" align="right"><a onClick="return selectWTP('{{ tenant.tenant_id }}')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+          <td colspan="3" align="right"><a onClick="return selectWTP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
         </tr>
       </table>
 
