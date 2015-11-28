@@ -134,7 +134,7 @@ def _parse_args2(argv, _components, _components_order, _curargs, _options):
             _curargs[arg[0]] = arg[1]
 
 
-def _parse_args(argv, default=None):
+def _parse_args(argv, default=[]):
     """Parse command line arguments."""
 
     _components_order = []
