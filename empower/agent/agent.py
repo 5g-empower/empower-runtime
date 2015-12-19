@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" The Scylla Agent. """
+""" The EmPOWER Agent. """
 
 import re
 import sys
@@ -35,18 +35,19 @@ import _thread
 import time
 
 from uuid import UUID
+from argparse import ArgumentParser
+
+from empower.datatypes.etheraddress import EtherAddress
+from empower.core.jsonserializer import EmpowerEncoder
 from empower.agent.lvnf import get_hw_addr
 from empower.agent.lvnf import exec_cmd
+from empower.agent.lvnf import LVNF
 from empower.scylla.lvnfp import PT_STATUS_LVNF
 from empower.scylla.handlers import PT_READ_HANDLER_RESPONSE
 from empower.scylla.handlers import PT_WRITE_HANDLER_RESPONSE
-from argparse import ArgumentParser
-from empower.datatypes.etheraddress import EtherAddress
 from empower.scylla.lvnfp import PT_VERSION
 from empower.scylla.lvnfp import PT_HELLO
 from empower.scylla.lvnfp import PT_CAPS_RESPONSE
-from empower.core.jsonserializer import EmpowerEncoder
-from empower.agent.lvnf import LVNF
 from empower.scylla.image import Image
 
 BRIDGE = "br0"
@@ -105,19 +106,19 @@ class EmpowerAgent(websocket.WebSocketApp):
 
         self.__bridge = None
         self.__ctrl = None
-        self.addr = None
         self.__seq = 0
         self.__prefix = 0
+        self.__vnf_seq = 0
+        self.addr = None
         self.every = every
         self.functions = {}
-        self.__vnf_seq = 0
         self.lvnfs = {}
         self.downlink_bytes = 0
         self.uplink_bytes = 0
-
-        print("Initializing the Scylla Agent...")
         self.bridge = bridge
         self.ctrl = ctrl
+
+        print("Initializing the EmPOWER Agent...")
         print("Bridge %s (hwaddr=%s)" % (self.bridge, self.addr))
 
         for port in self.ports.values():
@@ -383,6 +384,7 @@ class EmpowerAgent(websocket.WebSocketApp):
                     lvnf_id=lvnf_id,
                     tenant_id=tenant_id,
                     image=image,
+                    bridge=self.bridge,
                     vnf_seq=self.vnf_seq)
 
         lvnf.start()

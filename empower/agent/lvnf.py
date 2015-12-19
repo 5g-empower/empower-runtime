@@ -160,10 +160,10 @@ def read_handler(host, port, handler):
 
 
 class LVNF():
-    """A Scylla Agent LVNF.
+    """A EmPOWER Agent LVNF.
 
     Attributes:
-        agent: pointer to the agent (ScyllaAgent)
+        agent: pointer to the agent (EmpowerAgent)
         lvnf_id: The virtual network lvnf id (UUID)
         tenant_id: This tenant id (UUID)
         vnf: The virtual network function as a click script (str)
@@ -176,12 +176,13 @@ class LVNF():
         ValueError: If any of the input parameters is invalid
     """
 
-    def __init__(self, agent, lvnf_id, tenant_id, image, vnf_seq):
+    def __init__(self, agent, lvnf_id, tenant_id, image, bridge, vnf_seq):
 
         self.agent = agent
         self.lvnf_id = lvnf_id
         self.tenant_id = tenant_id
         self.image = image
+        self.bridge = bridge
         self.vnf_seq = vnf_seq
         self.ctrl = 10000 + self.vnf_seq
         self.script = ""
@@ -194,7 +195,7 @@ class LVNF():
         for i in range(self.image.nb_ports):
 
             seq = self.vnf_seq
-            iface = "vnf%u-%u" % (seq, i)
+            iface = "vnf-%s-%u-%u" % (self.bridge, seq, i)
 
             self.ports[i] = {'iface': iface,
                              'hwaddr': None,
