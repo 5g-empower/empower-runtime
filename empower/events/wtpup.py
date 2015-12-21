@@ -25,16 +25,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Charybdis LVAP leave event module."""
+"""Charybdis WTP up event module."""
 
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
+from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
 from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.lvapp import PT_LVAP_LEAVE
+from empower.charybdis.lvapp import PT_CAPS_RESPONSE
 
 from empower.main import RUNTIME
 
@@ -42,25 +43,27 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class LVAPLeaveHandler(ModuleHandler):
+class WTPUpHandler(ModuleHandler):
     pass
 
 
-class LVAPLeave(Module):
+class WTPUp(Module):
     pass
 
 
-class LVAPLeaveWorker(ModuleWorker):
-    """ LvapUp worker. """
+class WTPUpWorker(ModuleWorker):
+    """WTPUp worker."""
 
-    MODULE_NAME = "lvapleave"
-    MODULE_HANDLER = LVAPLeaveHandler
-    MODULE_TYPE = LVAPLeave
+    MODULE_NAME = "wtpup"
+    MODULE_HANDLER = WTPUpHandler
+    MODULE_TYPE = WTPUp
 
-    def on_lvap_leave(self, lvap):
-        """ Handle an LVAL LEAVE event.
+    def on_wtp_up(self, caps_response):
+        """ Handle an CAPS_RESPONSE message.
+
         Args:
-            lvap, an LVAP object
+            caps_response, a CAPS_RESPONSE message
+
         Returns:
             None
         """
@@ -70,18 +73,22 @@ class LVAPLeaveWorker(ModuleWorker):
             if event.tenant_id not in RUNTIME.tenants:
                 return
 
-            lvaps = RUNTIME.tenants[event.tenant_id].lvaps
+            addr = caps_response.wtp
+            wtps = RUNTIME.tenants[event.tenant_id].wtps
 
-            if lvap.addr not in lvaps:
+            if addr not in wtps:
                 return
 
-            LOG.info("Event: LVAP Leave %s", lvap.addr)
+            wtp = wtps[addr]
+
+            LOG.info("Event: WTP Up %s", wtp.addr)
 
             if event.callback:
-                handle_callback(lvap, event)
+                handle_callback(wtp, event)
 
 
-bind_module(LVAPLeaveWorker)
+bind_module(WTPUpWorker)
+bind_module_app(WTPUpWorker)
 
 
 def launch():
@@ -90,7 +97,7 @@ def launch():
     lvap_server = RUNTIME.components[LVAPPServer.__module__]
     rest_server = RUNTIME.components[RESTServer.__module__]
 
-    worker = LVAPLeaveWorker(rest_server)
-    lvap_server.register_message(PT_LVAP_LEAVE, None, worker.on_lvap_leave)
+    worker = WTPUpWorker(rest_server)
+    lvap_server.register_message(PT_CAPS_RESPONSE, None, worker.on_wtp_up)
 
     return worker

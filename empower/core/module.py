@@ -154,14 +154,20 @@ def bind_module(worker):
     def remove(tenant_id, module_id):
         return base_module(worker, tenant_id, module_id)
 
-    def tenant_add(self, **kwargs):
-        return base_module(worker, self.tenant_id, **kwargs)
-
-    def tenant_remove(self, module_id):
-        return base_module(worker, self.tenant_id, module_id)
-
     setattr(this, worker.MODULE_NAME, add)
     setattr(this, 'remove_' + worker.MODULE_NAME, remove)
+
+
+def bind_module_app(worker):
+    """Bind primitive."""
+
+    def tenant_add(self, **kwargs):
+        return base_module(worker=worker, tenant_id=self.tenant_id, **kwargs)
+
+    def tenant_remove(self, module_id):
+        return base_module(worket=worker,
+                           tenant_id=self.tenant_id,
+                           module_id=module_id)
 
     setattr(EmpowerApp, worker.MODULE_NAME, tenant_add)
     setattr(EmpowerApp, 'remove_' + worker.MODULE_NAME, tenant_remove)

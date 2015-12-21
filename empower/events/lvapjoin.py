@@ -25,16 +25,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Scylla lvnf leave event module."""
+"""Charybdis LVAP join event module."""
 
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
+from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
-from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
-from empower.scylla.lvnfp import PT_LVNF_LEAVE
+from empower.charybdis.lvapp.lvappserver import LVAPPServer
+from empower.charybdis.lvapp import PT_LVAP_JOIN
 
 from empower.main import RUNTIME
 
@@ -42,54 +43,56 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class LVNFLeaveHandler(ModuleHandler):
+class LVAPJoinHandler(ModuleHandler):
     pass
 
 
-class LVNFLeave(Module):
+class LVAPJoin(Module):
     pass
 
 
-class LVNFLeaveWorker(ModuleWorker):
-    """LVNFLeave worker."""
+class LVAPJoinWorker(ModuleWorker):
+    """ LvapUp worker. """
 
-    MODULE_NAME = "lvnfleave"
-    MODULE_HANDLER = LVNFLeaveHandler
-    MODULE_TYPE = LVNFLeave
+    MODULE_NAME = "lvapjoin"
+    MODULE_HANDLER = LVAPJoinHandler
+    MODULE_TYPE = LVAPJoin
 
-    def on_lvnf_leave(self, lvnf):
-        """ Handle an kvnf leave event.
-
+    def on_lvap_join(self, lvap):
+        """ Handle an LVAL JOIN event.
         Args:
-            lvnf, an LVNF instance
-
+            lvap, an LVAP object
         Returns:
             None
         """
 
-        for event in list(self.modules.values()):
+        for event in self.modules.values():
 
-            tenant = RUNTIME.tenants[event.tenant_id]
+            if event.tenant_id not in RUNTIME.tenants:
+                return
 
-            if lvnf.lvnf_id not in tenant.lvnfs:
-                continue
+            lvaps = RUNTIME.tenants[event.tenant_id].lvaps
 
-            LOG.info("Event: LVNF Leave %s", lvnf.lvnf_id)
+            if lvap.addr not in lvaps:
+                return
+
+            LOG.info("Event: LVAP Join %s", lvap.addr)
 
             if event.callback:
-                handle_callback(lvnf, event)
+                handle_callback(lvap, event)
 
 
-bind_module(LVNFLeaveWorker)
+bind_module(LVAPJoinWorker)
+bind_module_app(LVAPJoinWorker)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvnf_server = RUNTIME.components[LVNFPServer.__module__]
+    lvap_server = RUNTIME.components[LVAPPServer.__module__]
     rest_server = RUNTIME.components[RESTServer.__module__]
 
-    worker = LVNFLeaveWorker(rest_server)
-    lvnf_server.register_message(PT_LVNF_LEAVE, None, worker.on_lvnf_leave)
+    worker = LVAPJoinWorker(rest_server)
+    lvap_server.register_message(PT_LVAP_JOIN, None, worker.on_lvap_join)
 
     return worker

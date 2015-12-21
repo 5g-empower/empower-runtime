@@ -25,17 +25,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Scylla CPP up event module."""
+"""Scylla lvnf leave event module."""
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
+from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
 from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
-from empower.scylla.lvnfp import PT_REGISTER
+from empower.scylla.lvnfp import PT_LVNF_LEAVE
 
 from empower.main import RUNTIME
 
@@ -43,26 +43,26 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class CPPUpHandler(ModuleHandler):
+class LVNFLeaveHandler(ModuleHandler):
     pass
 
 
-class CPPUp(Module):
+class LVNFLeave(Module):
     pass
 
 
-class CPPUpWorker(ModuleWorker):
-    """CPPUp worker."""
+class LVNFLeaveWorker(ModuleWorker):
+    """LVNFLeave worker."""
 
-    MODULE_NAME = "cppup"
-    MODULE_HANDLER = CPPUpHandler
-    MODULE_TYPE = CPPUp
+    MODULE_NAME = "lvnfleave"
+    MODULE_HANDLER = LVNFLeaveHandler
+    MODULE_TYPE = LVNFLeave
 
-    def on_cpp_up(self, register):
-        """ Handle an REGISTER message.
+    def on_lvnf_leave(self, lvnf):
+        """ Handle an kvnf leave event.
 
         Args:
-            register, a REGISTER message
+            lvnf, an LVNF instance
 
         Returns:
             None
@@ -70,22 +70,19 @@ class CPPUpWorker(ModuleWorker):
 
         for event in list(self.modules.values()):
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+            tenant = RUNTIME.tenants[event.tenant_id]
 
-            addr = EtherAddress(register['addr'])
-            cpps = RUNTIME.tenants[event.tenant_id].cpps
+            if lvnf.lvnf_id not in tenant.lvnfs:
+                continue
 
-            if addr not in cpps:
-                return
-
-            LOG.info("Event: CPP Up %s", addr)
+            LOG.info("Event: LVNF Leave %s", lvnf.lvnf_id)
 
             if event.callback:
-                handle_callback(cpps[addr], event)
+                handle_callback(lvnf, event)
 
 
-bind_module(CPPUpWorker)
+bind_module(LVNFLeaveWorker)
+bind_module_app(LVNFLeaveWorker)
 
 
 def launch():
@@ -94,7 +91,7 @@ def launch():
     lvnf_server = RUNTIME.components[LVNFPServer.__module__]
     rest_server = RUNTIME.components[RESTServer.__module__]
 
-    worker = CPPUpWorker(rest_server)
-    lvnf_server.register_message(PT_REGISTER, None, worker.on_cpp_up)
+    worker = LVNFLeaveWorker(rest_server)
+    lvnf_server.register_message(PT_LVNF_LEAVE, None, worker.on_lvnf_leave)
 
     return worker

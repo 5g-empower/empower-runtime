@@ -25,16 +25,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Charybdis WTP up event module."""
+"""Scylla CPP up event module."""
 
+from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
+from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
-from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.lvapp import PT_CAPS_RESPONSE
+from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
+from empower.scylla.lvnfp import PT_REGISTER
 
 from empower.main import RUNTIME
 
@@ -42,60 +44,59 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class WTPUpHandler(ModuleHandler):
+class CPPUpHandler(ModuleHandler):
     pass
 
 
-class WTPUp(Module):
+class CPPUp(Module):
     pass
 
 
-class WTPUpWorker(ModuleWorker):
-    """WTPUp worker."""
+class CPPUpWorker(ModuleWorker):
+    """CPPUp worker."""
 
-    MODULE_NAME = "wtpup"
-    MODULE_HANDLER = WTPUpHandler
-    MODULE_TYPE = WTPUp
+    MODULE_NAME = "cppup"
+    MODULE_HANDLER = CPPUpHandler
+    MODULE_TYPE = CPPUp
 
-    def on_wtp_up(self, caps_response):
-        """ Handle an CAPS_RESPONSE message.
+    def on_cpp_up(self, register):
+        """ Handle an REGISTER message.
 
         Args:
-            caps_response, a CAPS_RESPONSE message
+            register, a REGISTER message
 
         Returns:
             None
         """
 
-        for event in self.modules.values():
+        for event in list(self.modules.values()):
 
             if event.tenant_id not in RUNTIME.tenants:
                 return
 
-            addr = caps_response.wtp
-            wtps = RUNTIME.tenants[event.tenant_id].wtps
+            addr = EtherAddress(register['addr'])
+            cpps = RUNTIME.tenants[event.tenant_id].cpps
 
-            if addr not in wtps:
+            if addr not in cpps:
                 return
 
-            wtp = wtps[addr]
-
-            LOG.info("Event: WTP Up %s", wtp.addr)
+            LOG.info("Event: CPP Up %s", addr)
 
             if event.callback:
-                handle_callback(wtp, event)
+                handle_callback(cpps[addr], event)
 
 
-bind_module(WTPUpWorker)
+bind_module(CPPUpWorker)
+bind_module_app(CPPUpWorker)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
+    lvnf_server = RUNTIME.components[LVNFPServer.__module__]
     rest_server = RUNTIME.components[RESTServer.__module__]
 
-    worker = WTPUpWorker(rest_server)
-    lvap_server.register_message(PT_CAPS_RESPONSE, None, worker.on_wtp_up)
+    worker = CPPUpWorker(rest_server)
+    lvnf_server.register_message(PT_REGISTER, None, worker.on_cpp_up)
 
     return worker

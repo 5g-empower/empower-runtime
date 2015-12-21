@@ -25,17 +25,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Scylla CPP down event module."""
+"""Scylla lvnf join event module."""
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
+from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
 from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
-from empower.scylla.lvnfp import PT_BYE
+from empower.scylla.lvnfp import PT_LVNF_JOIN
 
 from empower.main import RUNTIME
 
@@ -43,26 +43,26 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class CPPDownHandler(ModuleHandler):
+class LVNFJoinHandler(ModuleHandler):
     pass
 
 
-class CPPDown(Module):
+class LVNFJoin(Module):
     pass
 
 
-class CPPDownWorker(ModuleWorker):
-    """CPPDown worker."""
+class LVNFJoinWorker(ModuleWorker):
+    """LVNFJoin worker."""
 
-    MODULE_NAME = "cppdown"
-    MODULE_HANDLER = CPPDownHandler
-    MODULE_TYPE = CPPDown
+    MODULE_NAME = "lvnfjoin"
+    MODULE_HANDLER = LVNFJoinHandler
+    MODULE_TYPE = LVNFJoin
 
-    def on_cpp_down(self, bye):
-        """ Handle an BYE message.
+    def on_lvnf_join(self, lvnf):
+        """ Handle an kvnf join event.
 
         Args:
-            bye, a BYE message
+            lvnf, an LVNF instance
 
         Returns:
             None
@@ -70,22 +70,19 @@ class CPPDownWorker(ModuleWorker):
 
         for event in list(self.modules.values()):
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+            tenant = RUNTIME.tenants[event.tenant_id]
 
-            addr = EtherAddress(bye['addr'])
-            cpps = RUNTIME.tenants[event.tenant_id].cpps
+            if lvnf.lvnf_id not in tenant.lvnfs:
+                continue
 
-            if addr not in cpps:
-                return
-
-            LOG.info("Event: CPP Down %s", addr)
+            LOG.info("Event: LVNF Join %s", lvnf.lvnf_id)
 
             if event.callback:
-                handle_callback(cpps[addr], event)
+                handle_callback(lvnf, event)
 
 
-bind_module(CPPDownWorker)
+bind_module(LVNFJoinWorker)
+bind_module_app(LVNFJoinWorker)
 
 
 def launch():
@@ -94,7 +91,7 @@ def launch():
     lvnf_server = RUNTIME.components[LVNFPServer.__module__]
     rest_server = RUNTIME.components[RESTServer.__module__]
 
-    worker = CPPDownWorker(rest_server)
-    lvnf_server.register_message(PT_BYE, None, worker.on_cpp_down)
+    worker = LVNFJoinWorker(rest_server)
+    lvnf_server.register_message(PT_LVNF_JOIN, None, worker.on_lvnf_join)
 
     return worker
