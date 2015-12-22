@@ -25,142 +25,23 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" The Agent LVNF. """
+"""The EmPOWER Agent LVNF."""
 
 import time
-import fcntl
-import socket
-import struct
 import subprocess
-import re
 import threading
 
-from empower.scylla.lvnf import PROCESS_DONE
-from empower.scylla.lvnf import PROCESS_RUNNING
-from empower.scylla.lvnf import PROCESS_STOPPED
-
-
-def get_hw_addr(ifname):
-    """Fetch hardware address from ifname.
-
-    Retrieve the hardware address of an interface.
-
-    Args:
-        ifname: the interface name as a string
-
-    Returns:
-        An EtherAddress object
-
-    Raises:
-        OSError: An error occured accessing the interface.
-    """
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    info = fcntl.ioctl(s.fileno(),
-                       0x8927,
-                       struct.pack('256s', ifname[:15].encode('utf-8')))
-
-    return ':'.join(['%02x' % char for char in info[18:24]])
-
-
-def exec_cmd(cmd, timeout=2):
-    """Execute command and return its output.
-
-    Raise:
-        IOError, if the timeout expired or if the command returned and error
-    """
-
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-
-    try:
-
-        output, errs = proc.communicate(timeout=timeout)
-
-    except subprocess.TimeoutExpired:
-
-        proc.kill()
-        output, errs = proc.communicate()
-
-        raise IOError("Unable to run %s: timeout expired" % " ".join(cmd))
-
-    if proc.returncode != 0:
-        msg = "Unable to run %s: %s" % (" ".join(cmd), errs.decode('utf-8'))
-        raise IOError(msg)
-
-    return output.decode('utf-8')
-
-
-def write_handler(host, port, handler, value):
-
-    sock = socket.socket()
-    sock.connect((host, port))
-
-    f = sock.makefile()
-    line = f.readline()
-
-    if line != "Click::ControlSocket/1.3\n":
-        raise ValueError("Unexpected reply: %s" % line)
-
-    cmd = "write %s %s\n" % (handler, value)
-    sock.send(cmd.encode("utf-8"))
-
-    line = f.readline()
-
-    regexp = '([0-9]{3}) (.*)'
-    match = re.match(regexp, line)
-
-    while not match:
-        line = f.readline()
-        match = re.match(regexp, line)
-
-    groups = match.groups()
-
-    return (int(groups[0]), groups[1])
-
-
-def read_handler(host, port, handler):
-
-    sock = socket.socket()
-    sock.connect((host, port))
-
-    f = sock.makefile()
-    line = f.readline()
-
-    if line != "Click::ControlSocket/1.3\n":
-            raise ValueError("Unexpected reply: %s" % line)
-
-    cmd = "read %s\n" % handler
-    sock.send(cmd.encode("utf-8"))
-
-    line = f.readline()
-
-    regexp = '([0-9]{3}) (.*)'
-    match = re.match(regexp, line)
-
-    while not match:
-        line = f.readline()
-        match = re.match(regexp, line)
-
-    groups = match.groups()
-
-    if int(groups[0]) == 200:
-
-        line = f.readline()
-        res = line.split(" ")
-
-        length = int(res[1])
-        data = f.read(length)
-
-        return (int(groups[0]), data)
-
-    return (int(groups[0]), line)
+from empower.agent.utils import read_handler
+from empower.agent.utils import write_handler
+from empower.agent.utils import exec_cmd
+from empower.agent.utils import get_hw_addr
+from empower.core.lvnf import PROCESS_DONE
+from empower.core.lvnf import PROCESS_RUNNING
+from empower.core.lvnf import PROCESS_STOPPED
 
 
 class LVNF():
-    """A EmPOWER Agent LVNF.
+    """An EmPOWER Agent LVNF.
 
     Attributes:
         agent: pointer to the agent (EmpowerAgent)

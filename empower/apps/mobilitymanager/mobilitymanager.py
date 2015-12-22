@@ -30,7 +30,7 @@
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.charybdis.resourcepool import ResourcePool
+from empower.core.resourcepool import ResourcePool
 
 import empower.logger
 LOG = empower.logger.get_logger()

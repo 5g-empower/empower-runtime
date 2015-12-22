@@ -25,10 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Charybdis Wireless Termination Point."""
+"""Wireless Termination Point."""
 
 from empower.core.pnfdev import BasePNFDev
-from empower.charybdis.resourcepool import ResourcePool
+from empower.core.resourcepool import ResourcePool
 
 
 class WTP(BasePNFDev):

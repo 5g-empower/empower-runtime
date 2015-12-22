@@ -35,19 +35,19 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.core.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
 from empower.datatypes.etheraddress import EtherAddress
-from empower.charybdis.lvapp.lvappconnection import LVAPPConnection
+from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.persistence.persistence import TblAllow
 from empower.persistence.persistence import TblDeny
-from empower.charybdis.wtp import WTP
-from empower.charybdis.lvapp import PT_TYPES
-from empower.charybdis.lvapp import PT_TYPES_HANDLERS
-from empower.charybdis.lvapp.aclhandler import AllowHandler
-from empower.charybdis.lvapp.aclhandler import DenyHandler
-from empower.charybdis.lvapp.lvaphandler import LVAPHandler
-from empower.charybdis.lvapp.tenantlvaphandler import TenantLVAPHandler
-from empower.charybdis.lvapp.tenantlvapporthandler import TenantLVAPPortHandler
-from empower.charybdis.lvapp.tenantlvapnexthandler import TenantLVAPNextHandler
+from empower.core.wtp import WTP
+from empower.lvapp import PT_TYPES
+from empower.lvapp import PT_TYPES_HANDLERS
+from empower.lvapp.aclhandler import AllowHandler
+from empower.lvapp.aclhandler import DenyHandler
+from empower.lvapp.lvaphandler import LVAPHandler
+from empower.lvapp.tenantlvaphandler import TenantLVAPHandler
+from empower.lvapp.tenantlvapporthandler import TenantLVAPPortHandler
+from empower.lvapp.tenantlvapnexthandler import TenantLVAPNextHandler
 
 from empower.main import RUNTIME
 
@@ -73,7 +73,7 @@ class WTPHandler(BasePNFDevHandler):
 
 
 class LVAPPServer(PNFPServer, TCPServer):
-    """Exposes the Charybdis LVAP API."""
+    """Exposes the LVAP API."""
 
     PNFDEV = WTP
     TBL_PNFDEV = TblWTP

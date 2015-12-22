@@ -25,12 +25,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""EmPOWER Port."""
+"""EmPOWER Radio Port."""
 
 from empower.datatypes.etheraddress import EtherAddress
 
-from empower.charybdis.resourcepool import build_block
-from empower.charybdis.resourcepool import ResourceBlock
+from empower.core.resourcepool import build_block
+from empower.core.resourcepool import ResourceBlock
 
 
 def build_port(block):

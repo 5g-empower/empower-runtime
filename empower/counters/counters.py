@@ -40,7 +40,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import handle_callback
-from empower.charybdis.lvapp import PT_VERSION
+from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
 

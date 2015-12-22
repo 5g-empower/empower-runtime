@@ -40,15 +40,15 @@ from construct import Bytes
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import bind_module
 from empower.core.restserver import RESTServer
-from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.triggers.triggers import TriggerWorker
-from empower.charybdis.triggers.triggers import Trigger
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.triggers.triggers import TriggerWorker
+from empower.triggers.triggers import Trigger
 from empower.core.module import ModuleHandler
-from empower.charybdis.lvapp import PT_VERSION
-from empower.charybdis.lvapp import PT_HELLO
-from empower.charybdis.lvapp import PT_BYE
-from empower.charybdis.lvapp import PT_LVAP_JOIN
-from empower.charybdis.lvapp import PT_LVAP_LEAVE
+from empower.lvapp import PT_VERSION
+from empower.lvapp import PT_HELLO
+from empower.lvapp import PT_BYE
+from empower.lvapp import PT_LVAP_JOIN
+from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
 

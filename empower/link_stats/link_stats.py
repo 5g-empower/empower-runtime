@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Link statistics module. """
+"""Link statistics module."""
 
 from construct import UBInt8
 from construct import Bytes
@@ -43,8 +43,8 @@ from empower.core.module import Module
 from empower.core.module import bind_module
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
-from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.lvapp import PT_VERSION
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
 

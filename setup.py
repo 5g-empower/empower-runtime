@@ -32,7 +32,7 @@ setup(name="empower-controller",
       description="EmPOWER Controller",
       author="Roberto Riggio",
       author_email="roberto.riggio@create-net.org",
-      url="https://bitbucket.org/rriggio/empower-controller",
+      url="https://github.com/rriggio/empower",
       long_description="EmPOWER is an SDN/NFV framework for Enterprise WLANs",
       packages=['empower'],
       )

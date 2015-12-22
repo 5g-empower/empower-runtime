@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Charybdis LVAPs Handerler. """
+"""LVAPs Handerler."""
 
 import tornado.web
 import tornado.httpserver
@@ -34,8 +34,8 @@ import json
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.restserver import EmpowerAPIHandler
-from empower.charybdis.resourcepool import ResourceBlock
-from empower.charybdis.resourcepool import ResourcePool
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
 

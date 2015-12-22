@@ -34,26 +34,26 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from empower.scylla.networkport import NetworkPort
+from empower.core.networkport import NetworkPort
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.scylla.lvnfp import PT_ADD_LVNF
-from empower.scylla.lvnfp import PT_DEL_LVNF
-from empower.scylla.lvnfp import PT_LVNF_JOIN
-from empower.scylla.lvnfp import PT_LVNF_LEAVE
-from empower.scylla.lvnfp import PT_BYE
-from empower.scylla.lvnfp import PT_REGISTER
-from empower.scylla.lvnfp import PT_VERSION
-from empower.scylla.lvnfp import PT_CAPS_REQUEST
-from empower.scylla.lvnf import LVNF
+from empower.lvnfp import PT_ADD_LVNF
+from empower.lvnfp import PT_DEL_LVNF
+from empower.lvnfp import PT_LVNF_JOIN
+from empower.lvnfp import PT_LVNF_LEAVE
+from empower.lvnfp import PT_BYE
+from empower.lvnfp import PT_REGISTER
+from empower.lvnfp import PT_VERSION
+from empower.lvnfp import PT_CAPS_REQUEST
+from empower.core.lvnf import LVNF
 from empower.core.virtualport import VirtualPort
-from empower.scylla.lvnf import PROCESS_RUNNING
-from empower.scylla.lvnf import PROCESS_STOPPED
-from empower.scylla.lvnf import PROCESS_DONE
-from empower.scylla.lvnf import PROCESS_M1
-from empower.scylla.lvnf import PROCESS_M2
-from empower.scylla.lvnf import PROCESS_M3
-from empower.scylla.image import Image
+from empower.core.lvnf import PROCESS_RUNNING
+from empower.core.lvnf import PROCESS_STOPPED
+from empower.core.lvnf import PROCESS_DONE
+from empower.core.lvnf import PROCESS_M1
+from empower.core.lvnf import PROCESS_M2
+from empower.core.lvnf import PROCESS_M3
+from empower.core.image import Image
 
 from empower.main import RUNTIME
 
@@ -317,13 +317,26 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         LOG.info("LVNF %s status update: %s" %
                  (lvnf_id, status_lvnf['process']))
 
+        # Add lvnf to tenant if not present
+        if lvnf_id not in tenant.lvnfs:
+
+            LOG.warning("LVNF %s not found, adding." % lvnf_id)
+
+            img_dict = status_lvnf['image']
+
+            image = Image(nb_ports=img_dict['nb_ports'],
+                          vnf=img_dict['vnf'],
+                          state_handlers=img_dict['state_handlers'],
+                          handlers=img_dict['handlers'])
+
+            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant_id, image, cpp)
+
+        lvnf = tenant.lvnfs[lvnf_id]
+
+        # Got a LVNF stop message, this could be due to a migration, i.e. the
+        # old LVNF being removed or as a response to a del_lvnf message from
+        # the controller.
         if status_lvnf['process'] == PROCESS_STOPPED:
-
-            # strange, got a process stopped from unknown lvnf
-            if lvnf_id not in tenant.lvnfs:
-                raise IOError("Unknown LVNF")
-
-            lvnf = tenant.lvnfs[lvnf_id]
 
             # this should not happen
             if lvnf.cpp != cpp:
@@ -352,21 +365,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
             return
 
-        # Add lvnf to tenant
-        if lvnf_id not in tenant.lvnfs:
-
-            LOG.warning("LVNF %s not found, adding." % lvnf_id)
-
-            img_dict = status_lvnf['image']
-
-            image = Image(nb_ports=img_dict['nb_ports'],
-                          vnf=img_dict['vnf'],
-                          state_handlers=img_dict['state_handlers'],
-                          handlers=img_dict['handlers'])
-
-            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant_id, image, cpp)
-
-        lvnf = tenant.lvnfs[lvnf_id]
+        # reset ports and returcode/message
         lvnf.ports = {}
         lvnf.returncode = None
         lvnf.message = None

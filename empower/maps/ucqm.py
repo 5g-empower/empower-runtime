@@ -29,11 +29,11 @@
 
 from empower.core.module import bind_module
 from empower.core.restserver import RESTServer
-from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.maps.maps import MapsHandler
-from empower.charybdis.maps.maps import MapsWorker
-from empower.charybdis.maps.maps import Maps
-from empower.charybdis.maps.maps import POLLER_RESP_MSG
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.maps.maps import MapsHandler
+from empower.maps.maps import MapsWorker
+from empower.maps.maps import Maps
+from empower.maps.maps import POLLER_RESP_MSG
 
 from empower.main import RUNTIME
 

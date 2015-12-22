@@ -35,8 +35,8 @@ import json
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.restserver import EmpowerAPIHandlerAdminUsers
-from empower.scylla.image import Image
-from empower.scylla.lvnf import LVNF
+from empower.core.image import Image
+from empower.core.lvnf import LVNF
 
 from empower.main import RUNTIME
 

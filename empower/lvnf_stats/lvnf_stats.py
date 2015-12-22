@@ -34,9 +34,9 @@ from empower.core.module import ModuleHandler
 from empower.core.module import Module
 from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.scylla.stats import PT_LVNF_STATS_REQUEST
-from empower.scylla.stats import PT_LVNF_STATS_RESPONSE
-from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
+from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
+from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
+from empower.lvnfp.lvnfpserver import LVNFPServer
 from empower.core.restserver import RESTServer
 
 from empower.main import RUNTIME

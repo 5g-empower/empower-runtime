@@ -28,11 +28,11 @@
 """EmPOWER Light Virtual Access Point (LVAP) class."""
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.charybdis.resourcepool import ResourcePool
-from empower.charybdis.resourcepool import ResourceBlock
-from empower.charybdis.radioport import RadioPort
-from empower.charybdis.radioport import DownlinkPort
-from empower.charybdis.radioport import UplinkPort
+from empower.core.resourcepool import ResourcePool
+from empower.core.resourcepool import ResourceBlock
+from empower.core.radioport import RadioPort
+from empower.core.radioport import DownlinkPort
+from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPort
 from empower.core.ryu import RyuFlowEntry
 

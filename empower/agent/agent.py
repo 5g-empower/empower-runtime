@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" The EmPOWER Agent. """
+"""The EmPOWER Agent."""
 
 import re
 import sys
@@ -42,13 +42,13 @@ from empower.core.jsonserializer import EmpowerEncoder
 from empower.agent.lvnf import get_hw_addr
 from empower.agent.lvnf import exec_cmd
 from empower.agent.lvnf import LVNF
-from empower.scylla.lvnfp import PT_STATUS_LVNF
-from empower.scylla.handlers import PT_READ_HANDLER_RESPONSE
-from empower.scylla.handlers import PT_WRITE_HANDLER_RESPONSE
-from empower.scylla.lvnfp import PT_VERSION
-from empower.scylla.lvnfp import PT_HELLO
-from empower.scylla.lvnfp import PT_CAPS_RESPONSE
-from empower.scylla.image import Image
+from empower.lvnfp import PT_VERSION
+from empower.lvnfp import PT_HELLO
+from empower.lvnfp import PT_CAPS_RESPONSE
+from empower.lvnfp import PT_STATUS_LVNF
+from empower.handlers import PT_READ_HANDLER_RESPONSE
+from empower.handlers import PT_WRITE_HANDLER_RESPONSE
+from empower.image import Image
 
 BRIDGE = "br0"
 DEFAULT_EVERY = 2

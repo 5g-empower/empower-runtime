@@ -42,13 +42,13 @@ from construct import SBInt32
 from construct import Sequence
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.charybdis.resourcepool import CQM
-from empower.charybdis.resourcepool import ResourceBlock
-from empower.charybdis.resourcepool import ResourcePool
+from empower.core.resourcepool import CQM
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
-from empower.charybdis.lvapp import PT_VERSION
+from empower.lvapp import PT_VERSION
 from empower.core.module import handle_callback
 
 from empower.main import RUNTIME

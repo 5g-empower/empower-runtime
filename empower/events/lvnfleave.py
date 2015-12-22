@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Scylla lvnf leave event module."""
+"""LVNF leave event module."""
 
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
@@ -34,8 +34,8 @@ from empower.core.module import bind_module
 from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
-from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
-from empower.scylla.lvnfp import PT_LVNF_LEAVE
+from empower.lvnfp.lvnfpserver import LVNFPServer
+from empower.lvnfp import PT_LVNF_LEAVE
 
 from empower.main import RUNTIME
 

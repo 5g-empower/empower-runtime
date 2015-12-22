@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Scylla CPP up event module."""
+"""CPP up event module."""
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
@@ -35,8 +35,8 @@ from empower.core.module import bind_module
 from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
-from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
-from empower.scylla.lvnfp import PT_REGISTER
+from empower.lvnfp.lvnfpserver import LVNFPServer
+from empower.lvnfp import PT_REGISTER
 
 from empower.main import RUNTIME
 

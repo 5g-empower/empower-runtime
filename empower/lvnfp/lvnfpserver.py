@@ -36,13 +36,13 @@ from empower.core.restserver import RESTServer
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.persistence.persistence import TblCPP
-from empower.scylla.lvnfp import PT_TYPES
-from empower.scylla.lvnfp import PT_TYPES_HANDLERS
-from empower.scylla.lvnfp.lvnfpmainhandler import LVNFPMainHandler
-from empower.scylla.lvnfp.tenantlvnfhandler import TenantLVNFHandler
-from empower.scylla.lvnfp.tenantlvnfporthandler import TenantLVNFPortHandler
-from empower.scylla.lvnfp.tenantlvnfnexthandler import TenantLVNFNextHandler
-from empower.scylla.cpp import CPP
+from empower.lvnfp import PT_TYPES
+from empower.lvnfp import PT_TYPES_HANDLERS
+from empower.lvnfp.lvnfpmainhandler import LVNFPMainHandler
+from empower.lvnfp.tenantlvnfhandler import TenantLVNFHandler
+from empower.lvnfp.tenantlvnfporthandler import TenantLVNFPortHandler
+from empower.lvnfp.tenantlvnfnexthandler import TenantLVNFNextHandler
+from empower.core.cpp import CPP
 
 from empower.main import RUNTIME
 
@@ -67,7 +67,7 @@ class CPPHandler(BasePNFDevHandler):
 
 
 class LVNFPServer(PNFPServer, tornado.web.Application):
-    """Exposes the Scylla LVNF API."""
+    """Exposes the EmPOWER LVNF API."""
 
     handlers = [LVNFPMainHandler]
 

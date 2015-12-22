@@ -34,9 +34,9 @@ from empower.core.module import ModuleHandler
 from empower.core.module import Module
 from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.scylla.handlers import PT_WRITE_HANDLER_REQUEST
-from empower.scylla.handlers import PT_WRITE_HANDLER_RESPONSE
-from empower.scylla.lvnfp.lvnfpserver import LVNFPServer
+from empower.handlers import PT_WRITE_HANDLER_REQUEST
+from empower.handlers import PT_WRITE_HANDLER_RESPONSE
+from empower.lvnfp.lvnfpserver import LVNFPServer
 from empower.core.restserver import RESTServer
 
 from empower.main import RUNTIME

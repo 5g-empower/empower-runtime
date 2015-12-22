@@ -30,11 +30,11 @@
 from empower.core.module import ModuleHandler
 from empower.core.module import bind_module
 from empower.core.restserver import RESTServer
-from empower.charybdis.lvapp.lvappserver import LVAPPServer
-from empower.charybdis.counters.counters import PT_STATS_RESPONSE
-from empower.charybdis.counters.counters import STATS_RESPONSE
-from empower.charybdis.counters.counters import CounterWorker
-from empower.charybdis.counters.counters import Counter
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.counters.counters import PT_STATS_RESPONSE
+from empower.counters.counters import STATS_RESPONSE
+from empower.counters.counters import CounterWorker
+from empower.counters.counters import Counter
 
 from empower.main import RUNTIME
 

@@ -25,6 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""Launch the EmPOWER runtime."""
+
 from empower.main import main
 
 
@@ -32,27 +34,27 @@ if __name__ == "__main__":
 
     # Default modules
     ARGVS = ['core.restserver',
-             'scylla.lvnfp.lvnfpserver',
-             'charybdis.lvapp.lvappserver',
+             'lvnfp.lvnfpserver',
+             'lvapp.lvappserver',
              'core.energinoserver',
-             'charybdis.link_stats.link_stats',
-             'charybdis.events.wtpdown',
-             'charybdis.events.wtpup',
-             'charybdis.events.lvapleave',
-             'charybdis.events.lvapjoin',
-             'charybdis.counters.packets_counter',
-             'charybdis.counters.bytes_counter',
-             'charybdis.maps.ucqm',
-             'charybdis.maps.ncqm',
-             'charybdis.triggers.rssi',
-             'charybdis.triggers.summary',
-             'scylla.events.cppdown',
-             'scylla.events.cppup',
-             'scylla.events.lvnfjoin',
-             'scylla.events.lvnfleave',
-             'scylla.handlers.read_handler',
-             'scylla.handlers.write_handler',
-             'scylla.stats.lvnf_stats',
+             'link_stats.link_stats',
+             'events.wtpdown',
+             'events.wtpup',
+             'events.lvapleave',
+             'events.lvapjoin',
+             'counters.packets_counter',
+             'counters.bytes_counter',
+             'maps.ucqm',
+             'maps.ncqm',
+             'triggers.rssi',
+             'triggers.summary',
+             'events.cppdown',
+             'events.cppup',
+             'events.lvnfjoin',
+             'events.lvnfleave',
+             'handlers.read_handler',
+             'handlers.write_handler',
+             'lvnf_stats.lvnf_stats',
              ]
 
     main(ARGVS)
