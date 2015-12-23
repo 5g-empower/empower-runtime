@@ -48,7 +48,7 @@ from empower.lvnfp import PT_CAPS_RESPONSE
 from empower.lvnfp import PT_STATUS_LVNF
 from empower.handlers import PT_READ_HANDLER_RESPONSE
 from empower.handlers import PT_WRITE_HANDLER_RESPONSE
-from empower.image import Image
+from empower.core.image import Image
 
 BRIDGE = "br0"
 DEFAULT_EVERY = 2
