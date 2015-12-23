@@ -3,7 +3,7 @@ google.load('visualization', '1', {
 });
 
 var options = {
-    width: '100%',
+    width: 1000,
     height: 240,
     interpolateNulls: true,
     hAxis: {
@@ -204,11 +204,11 @@ function wtpUp(idWtp) {
         $('<tr><td><img id="ap_status_' + idWtp.replace(/\:/g, '_') + '" width="70" src="/static/apps/joule/ap_on.png" /><p>' + idWtp + '<br /></td><td><div id="chart_clients_' + idWtp.replace(/\:/g, '_') + '" style="width: 100%; display: table;"><div style="display: table-row">No Clients</div></div></div></td><td><div id="chart_' + idWtp.replace(/\:/g, '_') + '"></div></td></tr>').hide().appendTo('#feeds > tbody:last').fadeIn(500);
         wtps[idWtp]['line'] = new google.visualization.LineChart(document.getElementById("chart_" + idWtp.replace(/\:/g, '_')));
     }
-    src = (!wtps[idWtp].connection) ? "static/ap_off.png" : "/static/apps/joule/ap_on.png"
+    src = (!wtps[idWtp].connection) ? "/static/apps/joule/ap_off.png" : "/static/apps/joule/ap_on.png"
     $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
 }
 
 function wtpDown(idWtp) {
-    src = (!wtps[idWtp].connection) ? "static/ap_off.png" : "/static/apps/joule/ap_on.png"
+    src = (!wtps[idWtp].connection) ? "/static/apps/joule/ap_off.png" : "/static/apps/joule/ap_on.png"
     $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
 }

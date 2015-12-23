@@ -204,10 +204,10 @@ class EmpowerRuntime(object):
         to_be_removed = []
 
         for module in self.components[name].modules.values():
-            to_be_removed.append((module.tenant_id, module.module_id))
+            to_be_removed.append(module.module_id)
 
         for remove in to_be_removed:
-            self.components[name].remove_module(remove[0], remove[1])
+            self.components[name].remove_module(remove)
 
         self.components[name].remove_handlers()
         del self.components[name]
@@ -362,4 +362,4 @@ class EmpowerRuntime(object):
                     to_be_removed.append(module.module_id)
 
             for module_id in to_be_removed:
-                component.remove_module(tenant_id, module_id)
+                component.remove_module(module_id)

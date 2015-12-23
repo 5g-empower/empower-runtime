@@ -29,6 +29,9 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.maps.ucqm import ucqm
+from empower.maps.ncqm import ncqm
+from empower.events.wtpup import wtpup
 
 
 class RSSITracker(EmpowerApp):
@@ -49,7 +52,7 @@ class RSSITracker(EmpowerApp):
     def __init__(self, pool, addrs, period):
         EmpowerApp.__init__(self, pool, period)
         self.addrs = addrs
-        self.wtpup(callback=self.wtp_up_callback)
+        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
@@ -59,19 +62,48 @@ class RSSITracker(EmpowerApp):
             if block.black_listed:
                 continue
 
-            self.ucqm(addrs=self.addrs,
-                      block=block,
-                      every=self.every,
-                      callback=self.ucqm_callback)
+            ucqm(addrs=self.addrs,
+                 block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.every,
+                 callback=self.ucqm_callback)
+
+            ncqm(addrs=self.addrs,
+                 block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.every,
+                 callback=self.ncqm_callback)
 
     def ucqm_callback(self, poller):
         """Called when a UCQM response is received from a WTP."""
 
         import time
 
-        filename = "%s_%u_%s.csv" % (poller.block.addr,
-                                     poller.block.channel,
-                                     poller.block.band)
+        filename = "ucqm_%s_%u_%s.csv" % (poller.block.addr,
+                                          poller.block.channel,
+                                          poller.block.band)
+
+        for addr in poller.maps.values():
+
+            line = "%f,%s,%.2f,%.2f,%u,%.2f,%.2f\n" % (time.time(),
+                                                       addr['addr'],
+                                                       addr['last_rssi_avg'],
+                                                       addr['last_rssi_std'],
+                                                       addr['last_packets'],
+                                                       addr['ewma_rssi'],
+                                                       addr['sma_rssi'])
+
+            with open(filename, 'a') as file_d:
+                file_d.write(line)
+
+    def ncqm_callback(self, poller):
+        """Called when a UCQM response is received from a WTP."""
+
+        import time
+
+        filename = "ncqm_%s_%u_%s.csv" % (poller.block.addr,
+                                          poller.block.channel,
+                                          poller.block.band)
 
         for addr in poller.maps.values():
 

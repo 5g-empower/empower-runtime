@@ -31,6 +31,9 @@ from empower.core.app import EmpowerApp
 from empower.core.app import EmpowerAppHandler
 from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
+from empower.maps.ucqm import ucqm
+from empower.maps.ncqm import ncqm
+from empower.events.wtpup import wtpup
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -66,7 +69,7 @@ class ConflictGraph(EmpowerApp):
         EmpowerApp.__init__(self, tenant_id, period)
         self.addrs = addrs
         self.conflicts = {'networks': [], 'stations': []}
-        self.wtpup(callback=self.wtp_up_callback)
+        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def to_dict(self):
 
@@ -82,15 +85,17 @@ class ConflictGraph(EmpowerApp):
             if block.black_listed:
                 continue
 
-            self.ucqm(addrs=self.addrs,
-                      block=block,
-                      every=self.every,
-                      callback=self.update_cm)
+            ucqm(addrs=self.addrs,
+                 block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.every,
+                 callback=self.update_cm)
 
-            self.ncqm(addrs=self.addrs,
-                      block=block,
-                      every=self.every,
-                      callback=self.update_cm)
+            ncqm(addrs=self.addrs,
+                 block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.every,
+                 callback=self.update_cm)
 
     def update_cm(self, poller):
         """Periodic job."""

@@ -29,6 +29,9 @@
 
 from empower.apps.pollers.poller import Poller
 from empower.core.app import DEFAULT_PERIOD
+from empower.events.lvapjoin import lvapjoin
+from empower.counters.packets_counter import packets_counter
+from empower.counters.bytes_counter import bytes_counter
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -49,21 +52,26 @@ class CountersPoller(Poller):
     """
 
     def __init__(self, tenant_id, filepath, polling, period):
+
         Poller.__init__(self, tenant_id, filepath, polling, period)
-        self.lvapjoin(callback=self.lvap_join_callback)
+
+        lvapjoin(tenant_id=self.tenant.tenant_id,
+                 callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        self.packets_counter(bins=[512, 1472, 8192],
-                             lvap=lvap.addr,
-                             every=self.polling,
-                             callback=self.packets_callback)
+        packets_counter(bins=[512, 1472, 8192],
+                        lvap=lvap.addr,
+                        tenant_id=self.tenant.tenant_id,
+                        every=self.polling,
+                        callback=self.bytes_callback)
 
-        self.bytes_counter(bins=[512, 1472, 8192],
-                           lvap=lvap.addr,
-                           every=self.polling,
-                           callback=self.bytes_callback)
+        bytes_counter(bins=[512, 1472, 8192],
+                      lvap=lvap.addr,
+                      tenant_id=self.tenant.tenant_id,
+                      every=self.polling,
+                      callback=self.bytes_callback)
 
     def packets_callback(self, stats):
         """ New stats available. """

@@ -32,6 +32,7 @@ import re
 from empower.core.app import EmpowerApp
 from empower.core.app import EmpowerAppHandler
 from empower.core.app import DEFAULT_PERIOD
+from empower.triggers.summary import summary
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -85,10 +86,11 @@ class UplinkStats(EmpowerApp):
              self.payload,
              self.pk_rate)
 
-        self.summary(lvaps=self.addrs,
-                     every=2000,
-                     rates=self.rates,
-                     callback=self.summary_callback)
+        summary(lvaps=self.addrs,
+                tenant_id=self.tenant.tenant_id,
+                every=2000,
+                rates=self.rates,
+                callback=self.summary_callback)
 
     def update_stats(self):
 

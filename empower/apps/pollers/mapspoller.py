@@ -29,6 +29,9 @@
 
 from empower.apps.pollers.poller import Poller
 from empower.core.app import DEFAULT_PERIOD
+from empower.events.wtpup import wtpup
+from empower.maps.ucqm import ucqm
+from empower.maps.ncqm import ncqm
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -50,7 +53,7 @@ class MapsPoller(Poller):
 
     def __init__(self, pool, filepath, polling, period):
         Poller.__init__(self, pool, filepath, polling, period)
-        self.wtpup(callback=self.wtp_up_callback)
+        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
         """ Called when a new WTP connects to the controller"""
@@ -60,13 +63,15 @@ class MapsPoller(Poller):
             if block.black_listed:
                 continue
 
-            self.ucqm(block=block,
-                      every=self.polling,
-                      callback=self.ucqm_callback)
+            ucqm(block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.polling,
+                 callback=self.ucqm_callback)
 
-            self.ncqm(block=block,
-                      every=self.polling,
-                      callback=self.ncqm_callback)
+            ncqm(block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=self.polling,
+                 callback=self.ncqm_callback)
 
     def ucqm_callback(self, ucqm):
         """ New stats available. """

@@ -31,7 +31,6 @@ from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
-from empower.core.module import bind_module_app
 from empower.core.module import handle_callback
 from empower.core.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
@@ -88,7 +87,6 @@ class WTPUpWorker(ModuleWorker):
 
 
 bind_module(WTPUpWorker)
-bind_module_app(WTPUpWorker)
 
 
 def launch():

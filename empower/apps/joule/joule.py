@@ -37,6 +37,8 @@ from empower.core.app import EmpowerApp
 from empower.core.app import EmpowerAppHandler
 from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
+from empower.events.lvapjoin import lvapjoin
+from empower.counters.packets_counter import packets_counter
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -108,7 +110,8 @@ class Joule(EmpowerApp):
 
         # register a trigger of all lvaps, in this way as soon a new lvap
         # joins the pool this module will be promptly notified.
-        self.lvapjoin(callback=self.lvap_join_callback)
+        lvapjoin(tenant_id=self.tenant.tenant_id,
+                 callback=self.lvap_join_callback)
 
         self.last = time.time()
 
@@ -155,9 +158,10 @@ class Joule(EmpowerApp):
         """ Handle RSSI trigger event. """
 
         # track packets and bytes counter for the new LVAP
-        packets_stats = self.packets_counter(bins=self.bins,
-                                             lvap=lvap.addr,
-                                             every=self.every)
+        packets_stats = packets_counter(bins=self.bins,
+                                        tenant_id=self.tenant.tenant_id,
+                                        lvap=lvap.addr,
+                                        every=self.every)
 
         self.stats[lvap.addr] = packets_stats
         self.power[lvap.addr] = 0.0

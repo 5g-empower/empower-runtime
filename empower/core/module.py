@@ -41,7 +41,6 @@ from multiprocessing.pool import ThreadPool
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.core.restserver import EmpowerAPIHandlerUsers
-from empower.core.app import EmpowerApp
 
 from empower.main import RUNTIME
 
@@ -112,10 +111,10 @@ def handle_callback(serializable, module):
 
     # if this was a one shot call then remove the module
     if module.every == -1:
-        module.worker.remove_module(module.tenant_id, module.module_id)
+        module.worker.remove_module(module.module_id)
 
 
-def base_module(worker, tenant_id, **kwargs):
+def base_add_module(worker, tenant_id, **kwargs):
     """Create a new module.
 
     Args:
@@ -132,14 +131,15 @@ def base_module(worker, tenant_id, **kwargs):
     kwargs['worker'] = worker
     kwargs['module_type'] = worker.MODULE_NAME
     new_module = worker.add_module(**kwargs)
+
     return new_module
 
 
-def base_remove_module(worker, tenant_id, module_id):
+def base_remove_module(worker, module_id):
     """Remove a module."""
 
     worker = RUNTIME.components[worker.__module__]
-    worker.remove_module(tenant_id, module_id)
+    worker.remove_module(module_id)
 
 
 def bind_module(worker):
@@ -149,28 +149,13 @@ def bind_module(worker):
     this = sys.modules[worker.__module__]
 
     def add(tenant_id, **kwargs):
-        return base_module(worker, tenant_id, **kwargs)
+        return base_add_module(worker, tenant_id, **kwargs)
 
     def remove(tenant_id, module_id):
-        return base_module(worker, tenant_id, module_id)
+        return base_remove_module(worker, module_id)
 
     setattr(this, worker.MODULE_NAME, add)
     setattr(this, 'remove_' + worker.MODULE_NAME, remove)
-
-
-def bind_module_app(worker):
-    """Bind primitive."""
-
-    def tenant_add(self, **kwargs):
-        return base_module(worker=worker, tenant_id=self.tenant_id, **kwargs)
-
-    def tenant_remove(self, module_id):
-        return base_module(worket=worker,
-                           tenant_id=self.tenant_id,
-                           module_id=module_id)
-
-    setattr(EmpowerApp, worker.MODULE_NAME, tenant_add)
-    setattr(EmpowerApp, 'remove_' + worker.MODULE_NAME, tenant_remove)
 
 
 class ModuleHandler(EmpowerAPIHandlerUsers):
@@ -268,11 +253,21 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         """
 
         try:
+
             if len(args) != 2:
                 raise ValueError("Invalid URL")
+
             tenant_id = UUID(args[0])
             module_id = int(args[1])
-            self.worker.remove_module(tenant_id, module_id)
+
+            module = self.worker.modules[module_id]
+
+            if module.tenant_id != tenant_id:
+                raise KeyError("Module %u not in tenant %s" % (module_id,
+                                                               tenant_id))
+
+            self.worker.remove_module(module_id)
+
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
@@ -533,12 +528,11 @@ class ModuleWorker(object):
         self.modules[module.module_id] = module
         return module
 
-    def remove_module(self, tenant_id, module_id):
+    def remove_module(self, module_id):
         """Remove a module.
 
         Args:
             tenant_id, the tenant id
-            module_id, the module id
 
         Returns:
             None
@@ -549,10 +543,6 @@ class ModuleWorker(object):
 
         if module_id not in self.modules:
             return
-
-        if self.modules[module_id].tenant_id != tenant_id:
-            raise KeyError("Module %u not found in tenant %s" % (module_id,
-                                                                 tenant_id))
 
         if self.modules[module_id].every >= 0:
             self.modules[module_id].stop()

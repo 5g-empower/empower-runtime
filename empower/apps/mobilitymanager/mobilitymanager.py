@@ -31,6 +31,9 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.core.resourcepool import ResourcePool
+from empower.triggers.rssi import rssi
+from empower.events.wtpup import wtpup
+from empower.maps.ucqm import ucqm
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -88,13 +91,14 @@ class MobilityManager(EmpowerApp):
         EmpowerApp.__init__(self, pool, period)
 
         # Register an RSSI trigger for all LVAPs
-        self.rssi(lvaps="ff:ff:ff:ff:ff:ff",
-                  relation='LT',
-                  value=-80,
-                  callback=self.low_rssi)
+        rssi(lvaps="ff:ff:ff:ff:ff:ff",
+             tenant_id=self.tenant.tenant_id,
+             relation='LT',
+             value=-80,
+             callback=self.low_rssi)
 
         # Register an wtp up event
-        self.wtpup(callback=self.wtp_up_callback)
+        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
@@ -104,7 +108,9 @@ class MobilityManager(EmpowerApp):
             if block.black_listed:
                 continue
 
-            self.ucqm(block=block, every=self.every)
+            ucqm(tenant_id=self.tenant.tenant_id,
+                 block=block,
+                 every=self.every)
 
     def low_rssi(self, trigger):
         """ Perform handover if an LVAP's rssi is

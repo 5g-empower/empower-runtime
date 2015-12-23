@@ -29,6 +29,13 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.events.wtpup import wtpup
+from empower.events.wtpdown import wtpdown
+from empower.events.cppup import cppup
+from empower.events.cppdown import cppdown
+from empower.events.lvapjoin import lvapjoin
+from empower.events.lvapleave import lvapleave
+
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -49,13 +56,26 @@ class EventsApp(EmpowerApp):
     """
 
     def __init__(self, tenant_id, period):
+
         super().__init__(tenant_id, period)
-        self.cppup(callback=self.cpp_up_callback)
-        self.cppdown(callback=self.cpp_down_callback)
-        self.wtpup(callback=self.wtp_up_callback)
-        self.wtpdown(callback=self.wtp_down_callback)
-        self.lvapjoin(callback=self.lvap_join_callback)
-        self.lvapleave(callback=self.lvap_leave_callback)
+
+        cppup(tenant_id=self.tenant.tenant_id,
+              callback=self.cpp_up_callback)
+
+        cppdown(tenant_id=self.tenant.tenant_id,
+                callback=self.cpp_down_callback)
+
+        wtpup(tenant_id=self.tenant.tenant_id,
+              callback=self.wtp_up_callback)
+
+        wtpdown(tenant_id=self.tenant.tenant_id,
+                callback=self.wtp_down_callback)
+
+        lvapjoin(tenant_id=self.tenant.tenant_id,
+                 callback=self.lvap_join_callback)
+
+        lvapleave(tenant_id=self.tenant.tenant_id,
+                  callback=self.lvap_leave_callback)
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP disassociates from a tennant."""
