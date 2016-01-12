@@ -221,7 +221,9 @@ class LVNF(object):
                      (self.lvnf_id, self.__migration_target.addr))
 
             self.__migration_target.\
-                connection.send_add_lvnf(self.image, self.lvnf_id)
+                connection.send_add_lvnf(self.image,
+                                         self.lvnf_id,
+                                         self.tenant_id)
 
             # Read state
             self.__migration_read_state()
@@ -236,7 +238,9 @@ class LVNF(object):
 
         # cpp was not set, and this is not a null assignment: just add lvnf
         if not self.cpp and cpp:
-            cpp.connection.send_add_lvnf(self.image, self.lvnf_id)
+            cpp.connection.send_add_lvnf(self.image,
+                                         self.lvnf_id,
+                                         self.tenant_id)
 
         # cpp was not set, and this is a null assignment: do nothing
         if not self.cpp and not cpp:
