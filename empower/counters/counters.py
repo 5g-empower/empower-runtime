@@ -222,5 +222,4 @@ class CounterWorker(ModuleWorker):
         counter.rx_samples = stats.stats[stats.nb_tx:-1]
 
         # call callback
-        if counter.callback:
-            handle_callback(counter, counter)
+        handle_callback(counter, counter)

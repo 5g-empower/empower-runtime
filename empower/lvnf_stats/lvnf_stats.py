@@ -105,14 +105,14 @@ class LVNFStatsWorker(ModuleWorker):
         stats.tic()
 
         if stats.tenant_id not in RUNTIME.tenants:
-            self.remove_module(stats.tenant_id, stats.module_id)
+            self.remove_module(stats.module_id)
             return
 
         tenant = RUNTIME.tenants[stats.tenant_id]
 
         if stats.lvnf_id not in tenant.lvnfs:
             LOG.error("LVNF %s not found." % stats.lvnf_id)
-            self.remove_module(stats.tenant_id, stats.module_id)
+            self.remove_module(stats.module_id)
             return
 
         lvnf = tenant.lvnfs[stats.lvnf_id]
@@ -153,8 +153,7 @@ class LVNFStatsWorker(ModuleWorker):
         stats.stats = stats_response['stats']
 
         # handle callback
-        if stats.callback:
-            handle_callback(stats, stats)
+        handle_callback(stats, stats)
 
 
 bind_module(LVNFStatsWorker)

@@ -76,8 +76,7 @@ class LVNFLeaveWorker(ModuleWorker):
 
             LOG.info("Event: LVNF Leave %s", lvnf.lvnf_id)
 
-            if event.callback:
-                handle_callback(lvnf, event)
+            handle_callback(lvnf, event)
 
 
 bind_module(LVNFLeaveWorker)

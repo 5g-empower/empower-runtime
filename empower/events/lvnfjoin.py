@@ -76,8 +76,7 @@ class LVNFJoinWorker(ModuleWorker):
 
             LOG.info("Event: LVNF Join %s", lvnf.lvnf_id)
 
-            if event.callback:
-                handle_callback(lvnf, event)
+            handle_callback(lvnf, event)
 
 
 bind_module(LVNFJoinWorker)

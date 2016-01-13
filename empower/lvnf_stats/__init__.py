@@ -27,5 +27,5 @@
 
 """Stats gathering module."""
 
-PT_LVNF_STATS_REQUEST = "stats_request"
-PT_LVNF_STATS_RESPONSE = "stats_response"
+PT_LVNF_STATS_REQUEST = "lvnf_stats_request"
+PT_LVNF_STATS_RESPONSE = "lvnf_stats_response"

@@ -338,16 +338,16 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         # the controller.
         if status_lvnf['process'] == PROCESS_STOPPED:
 
-            # this should not happen
-            if lvnf.cpp != cpp:
-                raise IOError("CPP mismatch")
-
             # A migration is undergoing, process stopped message must be
             # ignored otherwise the LVNF state will be lost. Just set lvnf
             # process property so migration can continue
             if lvnf.process == PROCESS_M2:
                 lvnf.process = PROCESS_STOPPED
                 return
+
+            # this should not happen
+            if lvnf.cpp != cpp:
+                raise IOError("CPP mismatch")
 
             # Stop messages must not arrive during migration
             if lvnf.process in [PROCESS_M1, PROCESS_M3]:

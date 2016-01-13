@@ -179,8 +179,7 @@ class LinkStatsWorker(ModuleWorker):
         counter.rates = {x[0]: x[1] for x in rates.rates}
 
         # call callback
-        if counter.callback:
-            handle_callback(counter, counter)
+        handle_callback(counter, counter)
 
 
 bind_module(LinkStatsWorker)

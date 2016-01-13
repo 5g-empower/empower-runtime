@@ -128,14 +128,14 @@ class ReadHandlerWorker(ModuleWorker):
         handler.tic()
 
         if handler.tenant_id not in RUNTIME.tenants:
-            self.remove_module(handler.tenant_id, handler.module_id)
+            self.remove_module(handler.module_id)
             return
 
         tenant = RUNTIME.tenants[handler.tenant_id]
 
         if handler.lvnf_id not in tenant.lvnfs:
             LOG.error("LVNF %s not found." % handler.lvnf_id)
-            self.remove_module(handler.tenant_id, handler.module_id)
+            self.remove_module(handler.module_id)
             return
 
         lvnf = tenant.lvnfs[handler.lvnf_id]
@@ -178,15 +178,14 @@ class ReadHandlerWorker(ModuleWorker):
         if handler_response['retcode'] != 200:
             error = handler_response['samples']
             LOG.error("Error while polling %s: %s" % (handler.handler, error))
-            self.remove_module(handler.tenant_id, handler.module_id)
+            self.remove_module(handler.module_id)
             return
 
         handler.retcode = handler_response['retcode']
         handler.samples = handler_response['samples']
 
         # handle callback
-        if handler.callback:
-            handle_callback(handler, handler)
+        handle_callback(handler, handler)
 
 
 bind_module(ReadHandlerWorker)

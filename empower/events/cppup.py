@@ -81,8 +81,7 @@ class CPPUpWorker(ModuleWorker):
 
             LOG.info("Event: CPP Up %s", addr)
 
-            if event.callback:
-                handle_callback(cpps[addr], event)
+            handle_callback(cpps[addr], event)
 
 
 bind_module(CPPUpWorker)

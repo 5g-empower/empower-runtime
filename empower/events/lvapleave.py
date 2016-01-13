@@ -77,8 +77,7 @@ class LVAPLeaveWorker(ModuleWorker):
 
             LOG.info("Event: LVAP Leave %s", lvap.addr)
 
-            if event.callback:
-                handle_callback(lvap, event)
+            handle_callback(lvap, event)
 
 
 bind_module(LVAPLeaveWorker)

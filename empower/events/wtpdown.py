@@ -79,8 +79,7 @@ class WTPDownWorker(ModuleWorker):
 
             LOG.info("Event: WTP Down %s", wtp.addr)
 
-            if event.callback:
-                handle_callback(wtp, event)
+            handle_callback(wtp, event)
 
 
 bind_module(WTPDownWorker)

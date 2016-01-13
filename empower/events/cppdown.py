@@ -79,10 +79,11 @@ class CPPDownWorker(ModuleWorker):
             if addr not in cpps:
                 return
 
-            LOG.info("Event: CPP Down %s", addr)
+            cpp = cpps[addr]
 
-            if event.callback:
-                handle_callback(cpps[addr], event)
+            LOG.info("Event: CPP Down %s", cpp.addr)
+
+            handle_callback(cpp, event)
 
 
 bind_module(CPPDownWorker)

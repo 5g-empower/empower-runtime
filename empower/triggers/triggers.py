@@ -176,5 +176,4 @@ class TriggerWorker(ModuleWorker):
         trigger.handle_trigger(message)
 
         # call callback
-        if trigger.callback:
-            handle_callback(trigger, trigger)
+        handle_callback(trigger, trigger)

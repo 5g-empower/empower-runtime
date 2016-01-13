@@ -338,5 +338,4 @@ class MapsWorker(ModuleWorker):
             map_entry[addr] = value
 
         # call callback
-        if poller.callback:
-            handle_callback(poller, poller)
+        handle_callback(poller, poller)

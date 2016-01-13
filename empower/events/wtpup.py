@@ -82,8 +82,7 @@ class WTPUpWorker(ModuleWorker):
 
             LOG.info("Event: WTP Up %s", wtp.addr)
 
-            if event.callback:
-                handle_callback(wtp, event)
+            handle_callback(wtp, event)
 
 
 bind_module(WTPUpWorker)
