@@ -45,11 +45,6 @@ class Image(object):
         self.handlers = {}
         self.state_handlers = []
 
-        # add standard input/output handlers
-        for i in range(0, self.nb_ports):
-            self.handlers['in_%u_count' % i] = 'in_%u.count' % i
-            self.handlers['out_%u_count' % i] = 'out_%u.count' % i
-
         # add vnf-specifc handlers
         for handler in handlers:
 
