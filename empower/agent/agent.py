@@ -525,7 +525,7 @@ def main(Agent=EmpowerAgent):
     parser = ArgumentParser(usage=usage)
 
     parser.add_argument("-o", "--ofctrl", dest="ofctrl", default=OF_CTRL,
-                        help="Controller address; default=%s" % OF_CTRL)
+                        help="OpenFlow Controller; default=%s" % OF_CTRL)
 
     parser.add_argument("-c", "--ctrl", dest="ctrl", default=CTRL_IP,
                         help="Controller address; default=%s" % CTRL_IP)
