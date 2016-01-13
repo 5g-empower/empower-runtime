@@ -46,14 +46,17 @@ from empower.lvnfp import PT_VERSION
 from empower.lvnfp import PT_HELLO
 from empower.lvnfp import PT_CAPS_RESPONSE
 from empower.lvnfp import PT_STATUS_LVNF
+from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
 from empower.handlers import PT_READ_HANDLER_RESPONSE
 from empower.handlers import PT_WRITE_HANDLER_RESPONSE
 from empower.core.image import Image
 
 BRIDGE = "br0"
 DEFAULT_EVERY = 2
-CTRL_IP = "192.168.100.158"
+CTRL_IP = "127.0.0.1"
 CTRL_PORT = 4422
+CLICK_LISTEN = 7000
+OF_CTRL = None
 
 
 def on_open(ws):
@@ -100,7 +103,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         vnf_seq: the next virtual tap interface id
     """
 
-    def __init__(self, url, ctrl, bridge, every):
+    def __init__(self, url, ctrl, bridge, every, listen):
 
         super().__init__(url)
 
@@ -111,6 +114,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         self.__vnf_seq = 0
         self.addr = None
         self.every = every
+        self.listen = listen
         self.functions = {}
         self.lvnfs = {}
         self.downlink_bytes = 0
@@ -203,11 +207,11 @@ class EmpowerAgent(websocket.WebSocketApp):
         lines = exec_cmd(cmd).split('\n')
 
         for line in lines:
-            regexp = 'vnf([0-9]*)-([0-9]*)'
+            regexp = 'vnf-([A-Za-z0-9]*)-([0-9]*)-([0-9]*)'
             match = re.match(regexp, line.strip())
             if match:
                 groups = match.groups()
-                iface = "vnf%s-%s" % groups
+                iface = "vnf-%s-%s-%s" % groups
                 print("Stale port found %s" % iface)
                 exec_cmd(["ovs-vsctl", "del-port", self.bridge, iface])
 
@@ -234,6 +238,10 @@ class EmpowerAgent(websocket.WebSocketApp):
             OSError: An error occured accessing the interface.
             FileNotFoundError: an OVS utility is not available.
         """
+
+        if not ctrl:
+            self.__ctrl = None
+            return
 
         cmd = ["ovs-vsctl", "set-controller", self.bridge, ctrl]
         exec_cmd(cmd)
@@ -351,6 +359,26 @@ class EmpowerAgent(websocket.WebSocketApp):
 
         self.__vnf_seq += 1
         return self.__vnf_seq
+
+    def _handle_lvnf_stats_request(self, message):
+        """Handle LVNF_STATS message.
+
+        Args:
+            message, a LVNF_STATS message
+        Returns:
+            None
+        """
+
+        self.dump_message(message)
+
+        lvnf_id = UUID(message['lvnf_id'])
+
+        if lvnf_id not in self.lvnfs:
+            raise KeyError("LVNF %s not found" % lvnf_id)
+
+        message['stats'] = self.lvnfs[lvnf_id].stats()
+
+        self.send_message(PT_LVNF_STATS_RESPONSE, message)
 
     def _handle_add_lvnf(self, message):
         """Handle ADD_LVNF message.
@@ -482,6 +510,9 @@ class EmpowerAgent(websocket.WebSocketApp):
     def send_status_lvnf(self, lvnf_id):
         """ Send STATUS FUNCTION message. """
 
+        if lvnf_id not in self.lvnfs:
+            raise KeyError("LVNF %s not found" % lvnf_id)
+
         status = self.lvnfs[lvnf_id].to_dict()
         self.send_message(PT_STATUS_LVNF, status)
 
@@ -492,6 +523,9 @@ def main(Agent=EmpowerAgent):
     usage = "%s [options]" % sys.argv[0]
 
     parser = ArgumentParser(usage=usage)
+
+    parser.add_argument("-o", "--ofctrl", dest="ofctrl", default=OF_CTRL,
+                        help="Controller address; default=%s" % OF_CTRL)
 
     parser.add_argument("-c", "--ctrl", dest="ctrl", default=CTRL_IP,
                         help="Controller address; default=%s" % CTRL_IP)
@@ -508,12 +542,14 @@ def main(Agent=EmpowerAgent):
     parser.add_argument("-e", "--every", dest="every", default=DEFAULT_EVERY,
                         help="Heartbeat (in s); default='%u'" % DEFAULT_EVERY)
 
+    parser.add_argument("-l", "--listen", dest="listen", default=CLICK_LISTEN,
+                        help="Click port; default=%u" % CLICK_LISTEN)
+
     (args, _) = parser.parse_known_args(sys.argv[1:])
 
     url = "%s://%s:%s/" % (args.transport, args.ctrl, args.port)
-    ctrl = "tcp:%s:%u" % (args.ctrl, 6633)
 
-    agent = Agent(url, ctrl, args.bridge, args.every)
+    agent = Agent(url, args.ofctrl, args.bridge, args.every, args.listen)
     agent.on_open = on_open
     agent.on_message = on_message
     agent.on_close = on_close

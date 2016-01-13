@@ -65,7 +65,7 @@ class LVNF():
         self.image = image
         self.bridge = bridge
         self.vnf_seq = vnf_seq
-        self.ctrl = 10000 + self.vnf_seq
+        self.ctrl = agent.listen + self.vnf_seq
         self.script = ""
         self.ports = {}
         self.process = None
@@ -84,12 +84,8 @@ class LVNF():
                              'ovs_port_id': None}
 
             self.script += "ControlSocket(TCP, %u);\n" % self.ctrl
-            self.script += "vnf_in_%u_%u :: FromHost(%s);\n" % (seq, i, iface)
-            self.script += "in_%u :: Counter();\n" % i
-            self.script += "vnf_in_%u_%u -> in_%u;\n" % (seq, i, i)
-            self.script += "vnf_out_%u_%u :: ToHost(%s);\n" % (seq, i, iface)
-            self.script += "out_%u :: Counter();\n" % i
-            self.script += "out_%u -> vnf_out_%u_%u;\n" % (i, seq, i)
+            self.script += "in_%u :: FromHost(%s);\n" % (i, iface)
+            self.script += "out_%u :: ToHost(%s);\n" % (i, iface)
 
         # append vnf
         self.script += self.image.vnf
@@ -122,7 +118,7 @@ class LVNF():
             ret = write_handler("127.0.0.1", self.ctrl, handler, value)
             return (ret[0], ret[1])
 
-    def run(self):
+    def init_lvnf(self):
         """Start LVNF."""
 
         print("Starting LVNF %s." % self.lvnf_id)
@@ -153,7 +149,7 @@ class LVNF():
         print("LVNF %s terminated with code %u" %
               (self.lvnf_id, self.process.returncode))
 
-        print("LVNF error: %s" % errs.decode("utf-8"))
+        print("LVNF error: \n%s" % errs.decode("utf-8"))
 
         self.message = errs.decode("utf-8")
 
@@ -206,7 +202,7 @@ class LVNF():
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
 
-        threading.Thread(target=self.run, args=()).start()
+        threading.Thread(target=self.init_lvnf, args=()).start()
 
     def stop(self):
         """Stop click daemon."""
@@ -263,6 +259,29 @@ class LVNF():
                 print("Unable to remove port %s" % iface)
 
         self.ports = {}
+
+    def stats(self):
+        """Return the LVNF statistics.
+
+        Returns the LVNF statistics, including CPU utilization, memory
+        utilization, and packet/bytes transmitted and received for each
+        port.
+        """
+
+        out = {}
+
+        path = "/sys/class/net/%s/statistics/%s"
+        fields = ["tx_packets", "rx_packets", "tx_bytes", "rx_bytes"]
+
+        for port in self.ports:
+            iface = self.ports[port]['iface']
+            out[iface] = {}
+            for field in fields:
+                full_path = path % (self.ports[port]['iface'], field)
+                f = open(full_path, 'r')
+                out[iface][field] = int(f.read())
+
+        return out
 
     def to_dict(self):
         """Return a JSON-serializable dictionary."""
