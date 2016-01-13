@@ -156,8 +156,6 @@ function enableMultipleUplinks() {
         }
     }
 
-    console.log(data)
-
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
         type: 'PUT',
@@ -482,11 +480,22 @@ function deployLvnf() {
     var keys = Object.keys(cpps);
     var addr = cpps[keys[0]].addr
 
+    vnf = "in_0 -> Classifier(12/bbbb) -> Strip(14) -> dupe::ScyllaWifiDupeFilter() -> WifiDecap() -> out_0"
+
+    image = {"nb_ports": 1,
+             "vnf": vnf,
+             "handlers": [["dupes_table", "dupe.dupes_table"]],
+             "state_handlers": []}
+
+    data = {"version": "1.0",
+            "image": image,
+            "addr": addr}
+
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + selectedLvnf,
         type: 'POST',
         dataType: 'json',
-        data: '{"version":"1.0","image_id":"'+imageId+'","addr":"'+addr+'"}',
+        data: JSON.stringify(data),
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
