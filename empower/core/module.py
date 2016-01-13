@@ -77,7 +77,7 @@ def on_complete(res):
 
 
 def handle_callback(serializable, module):
-    """Handle an module callback
+    """Handle an module callback.
 
     Args:
         serializable, an object implementing the to_dict() method
@@ -87,27 +87,32 @@ def handle_callback(serializable, module):
         None
     """
 
-    try:
+    # call callback if defined
+    if module.callback:
 
-        as_dict = serializable.to_dict()
-        as_json = json.dumps(as_dict, cls=EmpowerEncoder)
+        callback = module.callback
 
-        if isinstance(module.callback, types.FunctionType) or \
-           isinstance(module.callback, types.MethodType):
+        try:
 
-            module.callback(serializable)
+            as_dict = serializable.to_dict()
+            as_json = json.dumps(as_dict, cls=EmpowerEncoder)
 
-        elif isinstance(module.callback, list) and len(module.callback) == 2:
+            if isinstance(callback, types.FunctionType) or \
+               isinstance(callback, types.MethodType):
 
-            exec_xmlrpc(module.callback, (as_json, ))
+                callback(serializable)
 
-        else:
+            elif isinstance(callback, list) and len(callback) == 2:
 
-            raise TypeError("Invalid callback type")
+                exec_xmlrpc(callback, (as_json, ))
 
-    except Exception as ex:
+            else:
 
-        LOG.exception(ex)
+                raise TypeError("Invalid callback type")
+
+        except Exception as ex:
+
+            LOG.exception(ex)
 
     # if this was a one shot call then remove the module
     if module.every == -1:
