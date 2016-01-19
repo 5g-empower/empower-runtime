@@ -531,6 +531,7 @@ def main(Agent=EmpowerAgent):
                         help="Controller address; default=%s" % CTRL_IP)
 
     parser.add_argument("-p", "--port", dest="port", default=CTRL_PORT,
+                        type=int,
                         help="Controller port; default=%u" % CTRL_PORT)
 
     parser.add_argument("-b", "--bridge", dest="bridge", default=BRIDGE,
@@ -543,11 +544,12 @@ def main(Agent=EmpowerAgent):
                         help="Heartbeat (in s); default='%u'" % DEFAULT_EVERY)
 
     parser.add_argument("-l", "--listen", dest="listen", default=CLICK_LISTEN,
+                        type=int,
                         help="Click port; default=%u" % CLICK_LISTEN)
 
     (args, _) = parser.parse_known_args(sys.argv[1:])
 
-    url = "%s://%s:%s/" % (args.transport, args.ctrl, args.port)
+    url = "%s://%s:%u/" % (args.transport, args.ctrl, args.port)
 
     agent = Agent(url, args.ofctrl, args.bridge, args.every, args.listen)
     agent.on_open = on_open
