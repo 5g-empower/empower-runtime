@@ -40,6 +40,7 @@ from empower.persistence.persistence import TblWTP
 from empower.persistence.persistence import TblAllow
 from empower.persistence.persistence import TblDeny
 from empower.core.wtp import WTP
+from empower.core.acl import ACL
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
 from empower.lvapp.aclhandler import AllowHandler
@@ -89,8 +90,8 @@ class LVAPPServer(PNFPServer, TCPServer):
         self.listen(self.port)
 
         self.lvaps = {}
-        self.allowed = []
-        self.denied = []
+        self.allowed = {}
+        self.denied = {}
         self.__assoc_id = 0
 
         self.__load_acl()
@@ -110,16 +111,19 @@ class LVAPPServer(PNFPServer, TCPServer):
         """ Load ACL list. """
 
         for allow in Session().query(TblAllow).all():
+
             if allow.addr in self.allowed:
                 raise ValueError(allow.addr_str)
-            self.allowed.append(allow.addr)
+
+            acl = ACL(allow.addr, allow.label)
+            self.allowed[allow.addr] = acl
 
         for deny in Session().query(TblDeny).all():
             if deny.addr in self.denied:
                 raise ValueError(deny.addr_str)
             self.denied.append(deny.addr)
 
-    def add_allowed(self, sta_addr):
+    def add_allowed(self, sta_addr, label):
         """ Add entry to ACL. """
 
         allow = Session().query(TblAllow) \
@@ -129,12 +133,13 @@ class LVAPPServer(PNFPServer, TCPServer):
             raise ValueError(sta_addr)
 
         session = Session()
-        session.add(TblAllow(addr=sta_addr))
+        session.add(TblAllow(addr=sta_addr, label=label))
         session.commit()
 
-        self.allowed.append(sta_addr)
+        acl = ACL(sta_addr, label)
+        self.allowed[sta_addr] = acl
 
-        return sta_addr
+        return acl
 
     def remove_allowed(self, sta_addr):
         """ Remove entry from ACL. """
@@ -149,9 +154,9 @@ class LVAPPServer(PNFPServer, TCPServer):
         session.delete(allow)
         session.commit()
 
-        self.allowed.remove(sta_addr)
+        del self.allowed[sta_addr]
 
-    def add_denied(self, sta_addr):
+    def add_denied(self, sta_addr, label):
         """ Add entry to ACL. """
 
         deny = Session().query(TblDeny) \
@@ -161,12 +166,13 @@ class LVAPPServer(PNFPServer, TCPServer):
             raise ValueError(sta_addr)
 
         session = Session()
-        session.add(TblDeny(addr=sta_addr))
+        session.add(TblDeny(addr=sta_addr, label=label))
         session.commit()
 
-        self.denied.append(sta_addr)
+        acl = ACL(sta_addr, label)
+        self.denied[sta_addr] = acl
 
-        return sta_addr
+        return acl
 
     def remove_denied(self, sta_addr):
         """ Remove entry from ACL. """
@@ -181,7 +187,7 @@ class LVAPPServer(PNFPServer, TCPServer):
         session.delete(deny)
         session.commit()
 
-        self.denied.remove(sta_addr)
+        del self.denied[sta_addr]
 
     def is_allowed(self, src):
         """ Check if station is allowed. """

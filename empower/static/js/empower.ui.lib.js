@@ -1159,15 +1159,11 @@ function removeMAC(group, mac) {
     });
 }
 
-
 function registerMAC(group) {
     var mac = document.getElementById(group + "_mac").value;
+    var label = document.getElementById(group + "_label").value;
     url = "/api/v1/" + group
-    if (group == 'wtps') {
-        data = '{  "version" : "1.0", "wtp" : "' + mac + '" }'
-    } else {
-        data = '{  "version" : "1.0", "sta" : "' + mac + '" }'
-    }
+    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'"}'
     $.ajax({
         url: url,
         type: 'POST',
@@ -1209,7 +1205,7 @@ function addMAC(group) {
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 2
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"\" />&nbsp;<input autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
@@ -1242,19 +1238,9 @@ function loadMACs(group) {
                 var remove = row.insertCell(c++);
                 remove.align = "center"
                 remove.width = "24px"
-                remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeMAC('" + group + "','" + value + "')\" />"
-                if (group === 'wtps') {
-                    var flag = row.insertCell(c++);
-                    flag.align = "center"
-                    flag.width = "24px"
-                    if (data[stream]['connection']) {
-                        flag.innerHTML = "<img class=\"ctrl\" src=\"/static/images/flag_green.png\"  />"
-                    } else {
-                        flag.innerHTML = "<img class=\"ctrl\" src=\"/static/images/flag_red.png\"  />"
-                    }
-                }
+                remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeMAC('" + group + "','" + value.addr + "')\" />"
                 var mac = row.insertCell(c++);
-                mac.innerHTML = value
+                mac.innerHTML = value.addr + " " + value.label
             }
         },
     });

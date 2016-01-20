@@ -66,7 +66,7 @@ class ACLHandler(EmpowerAPIHandler):
             acl = getattr(self.server, self.STRUCT)
 
             if len(args) == 0:
-                self.write(json.dumps(acl, cls=EmpowerEncoder))
+                self.write(json.dumps(acl.values(), cls=EmpowerEncoder))
             else:
                 if EtherAddress(args[0]) in acl:
                     json.dumps(EtherAddress(args[0]), cls=EmpowerEncoder)
@@ -105,8 +105,13 @@ class ACLHandler(EmpowerAPIHandler):
             if "sta" not in request:
                 raise ValueError("missing sta element")
 
+            label = ""
+
+            if "label" in request:
+                label = request['label']
+
             func = getattr(self.server, 'add_%s' % self.STRUCT)
-            func(EtherAddress(request['sta']))
+            func(EtherAddress(request['sta']), label)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 

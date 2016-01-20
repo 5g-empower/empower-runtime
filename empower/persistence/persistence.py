@@ -215,6 +215,8 @@ class TblAllow(Base):
                   EtherAddress(),
                   primary_key=True)
 
+    label = Column(String)
+
 
 class TblDeny(Base):
     """ Deny table. """
@@ -224,6 +226,8 @@ class TblDeny(Base):
     addr = Column("addr",
                   EtherAddress(),
                   primary_key=True)
+
+    label = Column(String)
 
 
 Base.metadata.create_all(ENGINE)
