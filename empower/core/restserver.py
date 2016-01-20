@@ -512,7 +512,7 @@ class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
     HANDLERS = [r"/api/v1/components/?",
-                r"/api/v1/components/([a-zA-Z0-9:.]*)/?"]
+                r"/api/v1/components/([a-zA-Z0-9:\-.]*)/?"]
 
     def get(self, *args):
         """ Lists either all the components running in this controller or just
@@ -554,6 +554,53 @@ class ComponentsHandler(EmpowerAPIHandler):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
+    def put(self, *args):
+        """ Update a component.
+
+        Args:
+            component_id: the id of a component istance
+
+        Request:
+            version: protocol version (1.0)
+            params: dictionary of parametes supported by the component
+                    as reported by the GET request
+
+        Example URLs:
+
+            PUT /api/v1/empower.apps.mobilitymanager. \
+                mobilitymanager:52313ecb-9d00-4b7d-b873-b55d3d9ada26
+            {
+              "version" : 1.0,
+              "params" : { "every": 2000 }
+            }
+
+        """
+
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "params" not in request:
+                raise ValueError("missing params element")
+
+            app = RUNTIME.components[args[0]]
+
+            for param in request['params']:
+                setattr(app, param, request['params'][param])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
     def delete(self, *args, **kwargs):
         """ Unload a component.
 
@@ -581,7 +628,7 @@ class ComponentsHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
     def post(self, *args, **kwargs):
-        """ Update a component.
+        """ Add a component.
 
         Args:
             component_id: the id of a component istance
@@ -612,25 +659,11 @@ class ComponentsHandler(EmpowerAPIHandler):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "argv" in request:
+            argv = request['argv'].split(" ")
+            components, components_order = _parse_args(argv)
 
-                argv = request['argv'].split(" ")
-                components, components_order = _parse_args(argv)
-
-                if not _do_launch(components, components_order):
-                    raise ValueError("Invalid args")
-
-            else:
-
-                if "component" not in request:
-                    raise ValueError("missing component element")
-
-                if "params" not in request:
-                    raise ValueError("missing params element")
-
-                components = {request['component']: request['params']}
-
-                _do_launch(components, [request['component']])
+            if not _do_launch(components, components_order):
+                raise ValueError("Invalid args")
 
         except ValueError as ex:
             self.send_error(400, message=ex)

@@ -39,6 +39,9 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
+DEFAULT_LIMIT = -80
+
+
 def handover(lvap, wtps):
     """ Handover the LVAP to a WTP with
     an RSSI higher that -65dB. """
@@ -86,19 +89,39 @@ class MobilityManager(EmpowerApp):
 
     """
 
-    def __init__(self, pool, period):
+    def __init__(self, tenant, **kwargs):
 
-        EmpowerApp.__init__(self, pool, period)
+        self.__limit = DEFAULT_LIMIT
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
 
         # Register an RSSI trigger for all LVAPs
         rssi(lvaps="ff:ff:ff:ff:ff:ff",
              tenant_id=self.tenant.tenant_id,
              relation='LT',
-             value=-80,
+             value=self.limit,
              callback=self.low_rssi)
 
         # Register an wtp up event
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+
+    @property
+    def limit(self):
+        """Return loop period."""
+
+        return self.__limit
+
+    @limit.setter
+    def limit(self, value):
+        """Set limit."""
+
+        limit = int(value)
+
+        if limit > 0 or limit < -100:
+            raise ValueError("Invalid value for limit")
+
+        LOG.info("Setting limit %u dB" % value)
+        self.__limit = limit
 
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
@@ -128,7 +151,7 @@ class MobilityManager(EmpowerApp):
             handover(lvap, self.wtps())
 
 
-def launch(tenant, period=DEFAULT_PERIOD):
+def launch(tenant, limit=DEFAULT_LIMIT, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return MobilityManager(tenant, period)
+    return MobilityManager(tenant, every=period, limit=limit)

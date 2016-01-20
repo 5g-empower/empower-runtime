@@ -198,16 +198,26 @@ class EmpowerRuntime(object):
 
         LOG.info("Unregistering '%s'", name)
 
-        if not hasattr(self.components[name], 'modules'):
+        worker = self.components[name]
+
+        from empower.core.module import ModuleWorker
+        from empower.core.app import EmpowerApp
+
+        if not issubclass(type(worker), ModuleWorker) and \
+           not issubclass(type(worker), EmpowerApp):
+
             raise ValueError("Module %s cannot be removed", name)
 
-        to_be_removed = []
+        # if this was a worker then remove all modules
+        if issubclass(type(worker), ModuleWorker):
 
-        for module in self.components[name].modules.values():
-            to_be_removed.append(module.module_id)
+            to_be_removed = []
 
-        for remove in to_be_removed:
-            self.components[name].remove_module(remove)
+            for module in self.components[name].modules.values():
+                to_be_removed.append(module.module_id)
+
+            for remove in to_be_removed:
+                self.components[name].remove_module(remove)
 
         self.components[name].remove_handlers()
         del self.components[name]

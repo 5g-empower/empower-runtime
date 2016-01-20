@@ -38,6 +38,9 @@ from empower.core.restserver import BaseHandler
 
 from empower.main import RUNTIME
 
+import empower.logger
+LOG = empower.logger.get_logger()
+
 DEFAULT_PERIOD = 5000
 
 
@@ -104,14 +107,24 @@ class EmpowerApp(object):
     MODULE_HANDLER = None
     MODULE_HOME_HANDLER = None
 
-    def __init__(self, tenant_id, every, **kwargs):
+    def __init__(self, tenant_id, **kwargs):
 
-        self.tenant_id = tenant_id
-        self.every = every
+        self.__tenant_id = UUID(tenant_id)
+        self.__every = DEFAULT_PERIOD
         self.ui = None
         self.rest = None
+        self.params = []
 
         self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
+
+        self.add_handlers()
+
+        for param in kwargs:
+            if hasattr(self, param):
+                setattr(self, param, kwargs[param])
+                self.params.append(param)
+
+    def add_handlers(self):
 
         if self.MODULE_NAME and self.MODULE_HANDLER:
 
@@ -123,7 +136,6 @@ class EmpowerApp(object):
             self.rest = "/api/v1/tenants/%s/%s/?" % module
 
             rest_server = RUNTIME.components[RESTServer.__module__]
-
             rest_server.add_handler_class(self.MODULE_HANDLER, self)
 
         if self.MODULE_NAME and self.MODULE_HOME_HANDLER:
@@ -139,12 +151,12 @@ class EmpowerApp(object):
             self.ui = "/apps/tenants/%s/%s/?" % module
 
             rest_server = RUNTIME.components[RESTServer.__module__]
-
             rest_server.add_handler_class(self.MODULE_HOME_HANDLER, self)
 
-        for param in kwargs:
-            if hasattr(self, param):
-                setattr(self, param, kwargs[param])
+    def remove_handlers(self):
+        """Remove primitive handlers."""
+
+        return
 
     @property
     def tenant_id(self):
@@ -156,7 +168,7 @@ class EmpowerApp(object):
     def tenant_id(self, tenant_id):
         """Set tenant_id."""
 
-        self.__tenant_id = UUID(str(tenant_id))
+        raise ValueError("Cannot change tenant id at runtime")
 
     @property
     def tenant(self):
@@ -174,6 +186,7 @@ class EmpowerApp(object):
     def every(self, value):
         """Set loop period."""
 
+        LOG.info("Setting control loop interval to %u" % value)
         self.__every = int(value)
 
     def start(self):
@@ -190,10 +203,13 @@ class EmpowerApp(object):
         """Return JSON-serializable representation of the object."""
 
         params = {}
-        params['every'] = self.every
+
         params['tenant_id'] = self.tenant_id
         params['ui'] = self.ui
         params['rest'] = self.rest
+
+        for param in self.params:
+            params[param] = getattr(self, param)
 
         return params
 
