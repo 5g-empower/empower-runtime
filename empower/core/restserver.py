@@ -659,6 +659,9 @@ class ComponentsHandler(EmpowerAPIHandler):
             if "version" not in request:
                 raise ValueError("missing version element")
 
+            if "argv" not in request:
+                raise ValueError("missing argv element")
+
             argv = request['argv'].split(" ")
             components, components_order = _parse_args(argv)
 
