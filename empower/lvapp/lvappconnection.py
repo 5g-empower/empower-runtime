@@ -414,6 +414,8 @@ class LVAPPConnection(object):
         if not self.wtp:
             return
 
+        LOG.info("WTP disconnected: %s" % self.wtp.addr)
+
         # reset state
         self.wtp.last_seen = 0
         self.wtp.connection = None
@@ -426,7 +428,7 @@ class LVAPPConnection(object):
             if lvap.wtp == self.wtp:
                 to_be_removed.append(lvap)
 
-        for lvnf in to_be_removed:
+        for lvap in to_be_removed:
             LOG.info("LVAP LEAVE %s (%s)" % (lvap.addr, lvap.ssid))
             for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
                 handler(lvap)
@@ -579,9 +581,6 @@ class LVAPPConnection(object):
         # set ports
         lvap.set_ports()
 
-        # set openflow tables
-        lvap.set_tables()
-
         LOG.info("LVAP %s", lvap)
 
     def _handle_status_port(self, status):
@@ -630,9 +629,6 @@ class LVAPPConnection(object):
         port._rts_cts = int(status.rts_cts)
         port._mcs = set(status.mcs)
         port._tx_power = int(status.tx_power)
-
-        # set openflow tables
-        lvap.set_tables()
 
         LOG.info("Port: %s", port)
 
