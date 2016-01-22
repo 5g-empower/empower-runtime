@@ -39,7 +39,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-DEFAULT_LIMIT = -80
+DEFAULT_LIMIT = -70
 
 
 def handover(lvap, wtps):
@@ -55,7 +55,7 @@ def handover(lvap, wtps):
         pool = pool | wtp.supports
 
     # Select matching Resource Blocks
-    matches = pool & lvap.supports
+    matches = pool & lvap.scheduled_on
 
     # Filter Resource Blocks by RSSI
     valid = [block for block in matches
