@@ -219,6 +219,10 @@ class EmpowerRuntime(object):
             for remove in to_be_removed:
                 self.components[name].remove_module(remove)
 
+        # if this was an App then stop control loop
+        if issubclass(type(worker), EmpowerApp):
+            worker.stop()
+
         self.components[name].remove_handlers()
         del self.components[name]
 
