@@ -383,6 +383,8 @@ class LVAP(object):
             self.set_tables()
             return
 
+        # Remove all uplink and downlink blocks and start all over again
+
         # clear tables
         self.clear_tables()
 
