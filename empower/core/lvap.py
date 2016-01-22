@@ -375,14 +375,13 @@ class LVAP(object):
         current = ResourcePool(list(self.downlink.keys()) +
                                list(self.uplink.keys()))
 
-        # Like the null operation, just return
+        # Null operation, just return, but before re-send configuration
+        # commands (ports and of tables)
         if current == pool:
             self.set_ports()
             self.clear_tables()
             self.set_tables()
             return
-
-        # else remove all uplink and downlink blocks and start all over again
 
         # clear tables
         self.clear_tables()
