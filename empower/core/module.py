@@ -88,35 +88,32 @@ def handle_callback(serializable, module):
     """
 
     # call callback if defined
-    if module.callback:
+    if not module.callback:
+        return
 
-        callback = module.callback
+    callback = module.callback
 
-        try:
+    try:
 
-            as_dict = serializable.to_dict()
-            as_json = json.dumps(as_dict, cls=EmpowerEncoder)
+        as_dict = serializable.to_dict()
+        as_json = json.dumps(as_dict, cls=EmpowerEncoder)
 
-            if isinstance(callback, types.FunctionType) or \
-               isinstance(callback, types.MethodType):
+        if isinstance(callback, types.FunctionType) or \
+           isinstance(callback, types.MethodType):
 
-                callback(serializable)
+            callback(serializable)
 
-            elif isinstance(callback, list) and len(callback) == 2:
+        elif isinstance(callback, list) and len(callback) == 2:
 
-                exec_xmlrpc(callback, (as_json, ))
+            exec_xmlrpc(callback, (as_json, ))
 
-            else:
+        else:
 
-                raise TypeError("Invalid callback type")
+            raise TypeError("Invalid callback type")
 
-        except Exception as ex:
+    except Exception as ex:
 
-            LOG.exception(ex)
-
-    # if this was a one shot call then remove the module
-    if module.every == -1:
-        module.worker.remove_module(module.module_id)
+        LOG.exception(ex)
 
 
 def base_add_module(worker, tenant_id, **kwargs):
