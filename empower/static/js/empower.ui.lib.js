@@ -1019,7 +1019,7 @@ function loadWTPs(tenant_id) {
                         block = data[stream].supports[i]
                         mac.innerHTML += "(" + block.channel + ", " + block.band + ") "
                     }
-                    mac.innerHTML +="<br />at " + data[stream]['connection'][0] + ":" + data[stream]['connection'][1] + ", last seen: " + data[stream]['last_seen'] + "<br />"
+                    mac.innerHTML +="<br />at " + data[stream]['connection'][0] + ", last seen: " + data[stream]['last_seen'] + "<br />"
                     mac.innerHTML += "</div>"
                 } else {
                     mac.innerHTML += "<div class=\"details\" id=\"wtp_" + stream + "\">Disconnected</div>"
