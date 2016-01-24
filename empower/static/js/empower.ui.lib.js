@@ -721,7 +721,7 @@ function loadCPPs(tenant_id) {
                 var mac = row.insertCell(c++);
                 mac.innerHTML = data[stream]['label'] + " (" + value + ")"
                 if (data[stream]['connection']) {
-                    mac.innerHTML += "<div class=\"details\" id=\"cpp_" + stream + "\"><br />at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
+                    mac.innerHTML += "<div class=\"details\" id=\"cpp_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
                 } else {
                     mac.innerHTML += "<div class=\"details\" id=\"cpp_" + stream + "\">Disconnected</div>"
                 }
@@ -1019,7 +1019,7 @@ function loadWTPs(tenant_id) {
                         block = data[stream].supports[i]
                         mac.innerHTML += "(" + block.channel + ", " + block.band + ") "
                     }
-                    mac.innerHTML +="<br />at " + data[stream]['connection'][0] + ", last seen: " + data[stream]['last_seen'] + "<br />"
+                    mac.innerHTML +="at " + data[stream]['connection'][0] + ", last seen: " + data[stream]['last_seen'] + "<br />"
                     mac.innerHTML += "</div>"
                 } else {
                     mac.innerHTML += "<div class=\"details\" id=\"wtp_" + stream + "\">Disconnected</div>"
