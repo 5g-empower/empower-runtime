@@ -34,7 +34,7 @@ from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPort
-from empower.core.ryu import RyuFlowEntry
+from empower.core.intent import send_intent
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -179,32 +179,28 @@ class LVAP(object):
         # virtual ports (VNFs)
         self.__ports = {}
 
-    def set_tables(self):
-        """Set openflow tables."""
-
-        if not self.wtp:
-            return
-
-        ryu = RyuFlowEntry()
-
-        ryu.add_station_flows(self.addr,
-                              self.wtp.addr,
-                              self.ports[0].ovs_port_id)
-
-    def clear_tables(self):
-        """Clear openflow tables."""
-
-        if not self.wtp:
-            return
-
-        ryu = RyuFlowEntry()
-
-        ryu.remove_station_flows(self.addr, self.wtp.addr)
-
     def set_ports(self):
-        """Set virtual ports."""
+        """Set virtual ports.
 
-        self.__ports = {}
+        This method is called everytime an LVAP is moved to another WTP. More
+        preciselly it is called every time an assignment to the downlink
+        property is made.
+
+        Consider an SFC like this:
+
+        lvap[0][dl_src=11:22:33:44:55:66] -> [0] dupes
+
+        In this case all outgoing virtual links must be preserved. Virtual
+        links are deleted and then recreated in order to keep the system in
+        the correct state.
+
+        In the current draft implementation virtual links are not implemented.
+        """
+
+        # Save old VNF rules and remove flows
+        # TODO: Implement.
+
+        del self.__ports[0]
 
         if not self.wtp:
             return
@@ -220,11 +216,27 @@ class LVAP(object):
                                        hwaddr=port.hwaddr,
                                        iface=port.iface)
 
-            # these are used by the overridden dict methods
+            # these are needed because when assigning the next method of a
+            # virtual port I need to know to which port is the next method
+            # referring to, in order to dispatch the right commands to the
+            # OpenFlow controller. The lvap is needed because LWAPP
+            # encapsulation is done by the click agent.
             virtual_port.next.lvap = self
-            virtual_port.next.port = virtual_port
+            virtual_port.next.virtual_port = virtual_port
 
             self.__ports[0] = virtual_port
+
+            # send intent
+            intent = {'src_dpid': virtual_port.dpid,
+                      'src_port_id': virtual_port.ovs_port_id,
+                      'hwaddr': self.hwaddr}
+
+            send_intent(intent)
+
+            break
+
+        # Restore VNF rules back and add flows
+        # TODO: Implement.
 
     @property
     def ports(self):
@@ -247,6 +259,20 @@ class LVAP(object):
 
         if self._encap == encap:
             return
+
+        # if encap was set and the new encap is None, then clear ALL virtual
+        # links
+        if self._encap and not encap:
+
+            for tmp in self.ports[0].next:
+
+                key = {}
+
+                for token in tmp.split(";"):
+                    k, v = token.split("=")
+                    key[k] = v
+
+                del self.ports[0].next[key]
 
         self._encap = encap
 
@@ -379,36 +405,28 @@ class LVAP(object):
         # commands (ports and of tables)
         if current == pool:
             self.set_ports()
-            self.clear_tables()
-            self.set_tables()
             return
 
-        # Remove all uplink and downlink blocks and start all over again
-
-        # clear tables
-        self.clear_tables()
-
-        # downlink
+        # clear downlink blocks
         for block in list(self.downlink.keys()):
             del self.downlink[block]
 
-        # uplink
+        # clear uplink blocks
         for block in list(self.uplink.keys()):
             del self.uplink[block]
 
         # pick default resource block
         default_block = pool.pop()
 
-        # assign default port policy to downlink resource block
+        # assign default port policy to downlink resource block, this will
+        # trigger a send_add_lvap and a set_port (radio) message
         self.downlink[default_block] = RadioPort(self, default_block)
 
         # set ports
         self.set_ports()
 
-        # set openflow tables
-        self.set_tables()
-
-        # assign remaining blocks (if any) to the uplink
+        # assign remaining blocks (if any) to the uplink, this could
+        # trigger one or more send_add_lvap and a set_port (radio) messages
         for block in pool:
             self.uplink[block] = RadioPort(self, block)
 

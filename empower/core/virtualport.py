@@ -27,7 +27,7 @@
 
 """Virtual port."""
 
-from empower.datatypes.etheraddress import EtherAddress
+from empower.core.intent import send_intent
 
 
 class VirtualPort():
@@ -93,10 +93,6 @@ class VirtualPortProp(dict):
         # remove old entry
         dict.__delitem__(self, match)
 
-        # set flows
-        if hasattr(self, 'lvap') and self.lvap:
-            self.lvap.encap = EtherAddress("00:00:00:00:00:00")
-
     def __setitem__(self, key, value):
         """Set virtual port configuration.
 
@@ -112,18 +108,103 @@ class VirtualPortProp(dict):
         if not isinstance(value, VirtualPort):
             raise KeyError("Expected VirtualPort, got %s" % type(key))
 
-        match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
-
-        # the block is found, update the port
-        if self.__contains__(key):
-            self.__delitem__(key)
-
-        # update dict
-        dict.__setitem__(self, match, value)
-
         # set flows
-        if hasattr(self, 'lvap') and self.lvap:
-            self.lvap.encap = value.hwaddr
+        if hasattr(self, 'lvap'):
+
+            if self.lvap.encap:
+
+                # if encap is set, then clear ALL virtual links as set only
+                # the default virtual links
+                for tmp in dict(self):
+
+                    old_key = {}
+
+                    for token in tmp.split(";"):
+                        k, v = token.split("=")
+                        old_key[k] = v
+
+                    self.__delitem__(old_key)
+
+                # set downlink and uplink virtual link(s)
+                for port in self.lvap.downlink.values():
+
+                    for v_port in port.block.radio.ports.values():
+
+                        if v_port.iface != "empower0":
+                            continue
+
+                        dpid = v_port.dpid
+                        ovs_port_id = v_port.port_id
+                        hwaddr = v_port.hwaddr
+
+                        key = {}
+                        key['dl_src'] = hwaddr
+                        key['dl_dst'] = value.hwaddr
+
+                        match = ";".join(["%s=%s" % (k, v)
+                                          for k, v in key.items()])
+
+                        intent = {'src_dpid': dpid,
+                                  'src_port_id': ovs_port_id,
+                                  'hwaddr': self.lvap.hwaddr,
+                                  'dst_dpid': value.dpid,
+                                  'dst_port_id': value.ovs_port_id,
+                                  'match': match}
+
+                        send_intent(intent)
+
+                        dict.__setitem__(self, match, value)
+
+                        break
+
+                for port in self.uplink.values():
+
+                    for v_port in port.block.radio.ports.values():
+
+                        if v_port.iface != "empower0":
+                            continue
+
+                        dpid = v_port.dpid
+                        ovs_port_id = v_port.port_id
+                        hwaddr = v_port.hwaddr
+
+                        key = {}
+                        key['dl_src'] = hwaddr
+                        key['dl_dst'] = value.hwaddr
+
+                        match = ";".join(["%s=%s" % (k, v)
+                                          for k, v in key.items()])
+
+                        intent = {'src_dpid': dpid,
+                                  'src_port_id': ovs_port_id,
+                                  'dst_dpid': value.dpid,
+                                  'dst_port_id': value.ovs_port_id,
+                                  'match': match}
+
+                        send_intent(intent)
+
+                        dict.__setitem__(self, match, value)
+
+                        break
+
+            else:
+
+                # encap is not set
+
+                match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+
+                intent = {'src_dpid': dpid,
+                          'src_port_id': ovs_port_id,
+                          'hwaddr': self.lvap.hwaddr,
+                          'dst_dpid': value.dpid,
+                          'dst_port_id': value.ovs_port_id,
+                          'match': match}
+
+                send_intent(intent)
+
+                dict.__setitem__(self, match, value)
+
+                break
 
     def __getitem__(self, key):
 

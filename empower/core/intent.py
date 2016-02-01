@@ -25,36 +25,22 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""RYU Connector."""
+"""Virtual port."""
 
 import json
 import http.client
 
 from empower.core.jsonserializer import EmpowerEncoder
-from urllib.parse import urlparse
 
 import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class RyuFlowEntry():
+def send_intent(intent):
 
-    def __init__(self, server="localhost", port=8080):
+        body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-        self.server = server
-        self.port = port
-
-    def add_station_flows(self, lvap_addr, dpid, port_id):
-
-        match = {
-            "hwaddr": lvap_addr,
-            "src_dpid": dpid,
-            "src_port": port_id
-        }
-
-        LOG.info("LVAP %s is at %s / %u" % (lvap_addr, dpid, port_id))
-
-        body = json.dumps(match, indent=4, cls=EmpowerEncoder)
+        LOG.info("Sending intent: \n %s" % body)
 
         headers = {
             'Content-type': 'application/json',
@@ -63,7 +49,7 @@ class RyuFlowEntry():
 
         try:
 
-            conn = http.client.HTTPConnection(self.server, self.port)
+            conn = http.client.HTTPConnection("localhost", 8080)
             conn.request("POST", "/simpleswitch/vnfrule/", body, headers)
             response = conn.getresponse()
 
@@ -72,26 +58,6 @@ class RyuFlowEntry():
             conn.close()
 
             return response.getheader("Location", None)
-
-        except:
-
-            LOG.error("Connection refused.")
-
-    def remove_station_flows(self, location):
-
-        LOG.info("LVAP removing flows %s" % location)
-
-        try:
-
-            tokens = urlparse(location).path.split("/")
-
-            conn = http.client.HTTPConnection(self.server, self.port)
-            conn.request("DELETE", "/simpleswitch/vnfrule/%s" % tokens[-1])
-            response = conn.getresponse()
-
-            ret = (response.status, response.reason, response.read())
-            LOG.info("Result: %u %s" % (ret[0], ret[1]))
-            conn.close()
 
         except:
 

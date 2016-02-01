@@ -109,7 +109,9 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "wtp" not in request and "scheduled_on" not in request:
+            if "wtp" not in request and "scheduled_on" not in request and \
+               "encap" not in request:
+
                 raise ValueError("missing wtp/scheduled_on element")
 
             tenant_id = uuid.UUID(args[0])
