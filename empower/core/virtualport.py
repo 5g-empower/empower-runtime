@@ -152,7 +152,7 @@ class VirtualPortProp(dict):
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
-                                  'src_port_id': ovs_port_id,
+                                  'src_port': ovs_port_id,
                                   'hwaddr': self.lvap.addr,
                                   'match': match}
 
@@ -188,7 +188,7 @@ class VirtualPortProp(dict):
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
-                                  'src_port_id': ovs_port_id,
+                                  'src_port': ovs_port_id,
                                   'match': match}
 
                         if value:
@@ -229,7 +229,7 @@ class VirtualPortProp(dict):
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
-                                  'src_port_id': ovs_port_id,
+                                  'src_port': ovs_port_id,
                                   'hwaddr': self.lvap.addr,
                                   'match': match}
 
@@ -239,7 +239,7 @@ class VirtualPortProp(dict):
 
                         # remove virtual link
                         if self.__contains__(key):
-                            self.__delete__(key)
+                            self.__delitem__(key)
 
                         # add new virtual link
                         send_intent(intent)
@@ -269,7 +269,7 @@ class VirtualPortProp(dict):
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
-                                  'src_port_id': ovs_port_id,
+                                  'src_port': ovs_port_id,
                                   'match': match}
                         
                         if value:
@@ -278,7 +278,7 @@ class VirtualPortProp(dict):
 
                         # remove virtual link
                         if self.__contains__(key):
-                            self.__delete__(key)
+                            self.__delitem__(key)
 
                         # add new virtual link
                         send_intent(intent)

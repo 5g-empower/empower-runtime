@@ -84,10 +84,12 @@ def send_intent(intent):
             response = conn.getresponse()
 
             ret = (response.status, response.reason, response.read())
-            LOG.info("Result: %u %s" % (ret[0], ret[1]))
+            location = response.getheader("Location", None)
+
+            LOG.info("Result: %u %s (%s)" % (ret[0], ret[1], location))
             conn.close()
 
-            return response.getheader("Location", None)
+            return location
 
         except:
 
