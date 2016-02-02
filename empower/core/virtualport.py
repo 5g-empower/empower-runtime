@@ -175,7 +175,7 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port_id'] = value.ovs_port_id
+                            intent['dst_port'] = value.ovs_port_id
 
                         add_intent(intent)
 
@@ -208,7 +208,7 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port_id'] = value.ovs_port_id
+                            intent['dst_port'] = value.ovs_port_id
 
                         add_intent(intent)
 
@@ -247,7 +247,7 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port_id'] = value.ovs_port_id
+                            intent['dst_port'] = value.ovs_port_id
 
                         match = key_to_match(key)
 
@@ -285,7 +285,7 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port_id'] = value.ovs_port_id
+                            intent['dst_port'] = value.ovs_port_id
 
                         match = key_to_match(key)
 
