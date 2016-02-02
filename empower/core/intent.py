@@ -32,15 +32,45 @@ import http.client
 
 from empower.core.jsonserializer import EmpowerEncoder
 
+
 import empower.logger
 LOG = empower.logger.get_logger()
 
 
+def key_to_match(key):
+    """Convert a OF match in dictionary form to a string."""
+
+    match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+    return match
+
+
+def match_to_key(match):
+    """Convert a OF match string in dictionary form"""
+
+    key = {}
+
+    for token in match.split(";"):
+        k, v = token.split("=")
+        key[k] = v
+
+    return key
+
+
 def send_intent(intent):
+
+        key = match_to_key(intent['match'])
+
+        if 'dpid' in key:
+            del key['dpid']
+
+        if 'port_id' in key:
+            del key['port_id']
+
+        intent['match'] = key_to_match(key)
 
         body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-        LOG.info("Sending intent: \n %s" % body)
+        LOG.info("Sending intent:\n%s" % body)
 
         headers = {
             'Content-type': 'application/json',
@@ -62,3 +92,4 @@ def send_intent(intent):
         except:
 
             LOG.error("Connection refused.")
+

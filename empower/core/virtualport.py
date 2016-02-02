@@ -28,25 +28,9 @@
 """Virtual port."""
 
 from empower.core.intent import send_intent
-
-
-def key_to_match(key):
-    """Convert a OF match in dictionary form to a string."""
-
-    match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
-    return match
-
-
-def match_to_key(match):
-    """Convert a OF match string in dictionary form"""
-
-    key = {}
-
-    for token in match.split(";"):
-        k, v = token.split("=")
-        key[k] = v
-
-    return key
+from empower.core.intent import key_to_match
+from empower.core.intent import match_to_key
+from empower.datatypes.etheraddress import EtherAddress
 
 
 class VirtualPort():
@@ -131,18 +115,6 @@ class VirtualPortProp(dict):
         if value and not isinstance(value, VirtualPort):
             raise KeyError("Expected VirtualPort, got %s" % type(key))
 
-        if not value:
-
-            value_hwaddr = None
-            value_dpid = None
-            value_ovs_port_id = None
-
-        else:
-
-            value_hwaddr = value.hwaddr
-            value_dpid = value.dpid
-            value_ovs_port_id = value.ovs_port_id
-
         # set flows
         if hasattr(self, 'lvap'):
 
@@ -152,17 +124,10 @@ class VirtualPortProp(dict):
             # switches. Ignore totally the specified key and silently use as
             # key the LWAPP src and dst addresses. Notice that this will send
             # as many intents as the number of blocks.
-            if self.lvap.encap:
+            if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
 
-                for tmp in dict(self):
-
-                    old_key = {}
-
-                    for token in tmp.split(";"):
-                        k, v = token.split("=")
-                        old_key[k] = v
-
-                    self.__delitem__(old_key)
+                # remove old virtual links
+                # TODO: implement
 
                 # set downlink and uplink virtual link(s)
                 for r_port in self.lvap.downlink.values():
@@ -178,18 +143,22 @@ class VirtualPortProp(dict):
 
                         key = {}
                         key['dpid'] = dpid
-                        key['ovs_port_id'] = ovs_port_id
+                        key['port_id'] = ovs_port_id
                         key['dl_src'] = hwaddr
-                        key['dl_dst'] = value_hwaddr
+
+                        if value:
+                            key['dl_dst'] = value.hwaddr
 
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
-                                  'hwaddr': self.lvap.hwaddr,
-                                  'dst_dpid': value_dpid,
-                                  'dst_port_id': value_ovs_port_id,
+                                  'hwaddr': self.lvap.addr,
                                   'match': match}
+
+                        if value:
+                            intent['dst_dpid'] = value.dpid
+                            intent['dst_port_id'] = value.ovs_port_id
 
                         send_intent(intent)
 
@@ -212,15 +181,19 @@ class VirtualPortProp(dict):
                         key['dpid'] = dpid
                         key['port_id'] = ovs_port_id
                         key['dl_src'] = hwaddr
-                        key['dl_dst'] = value_hwaddr
+
+                        if value:
+                            key['dl_dst'] = value.hwaddr
 
                         match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
-                                  'dst_dpid': value_dpid,
-                                  'dst_port_id': value_ovs_port_id,
                                   'match': match}
+
+                        if value:
+                            intent['dst_dpid'] = value.dpid
+                            intent['dst_port_id'] = value.ovs_port_id
 
                         send_intent(intent)
 
@@ -247,7 +220,7 @@ class VirtualPortProp(dict):
                         hwaddr = v_port.hwaddr
 
                         # make sure that dl_src is specified
-                        key['dl_src'] = self.lvap.hwaddr
+                        key['dl_src'] = self.lvap.addr
 
                         # add dummy fields
                         key['dpid'] = dpid
@@ -257,10 +230,12 @@ class VirtualPortProp(dict):
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
-                                  'hwaddr': self.lvap.hwaddr,
-                                  'dst_dpid': value_dpid,
-                                  'dst_port_id': value_ovs_port_id,
+                                  'hwaddr': self.lvap.addr,
                                   'match': match}
+
+                        if value:
+                            intent['dst_dpid'] = value.dpid
+                            intent['dst_port_id'] = value.ovs_port_id
 
                         # remove virtual link
                         if self.__contains__(key):
@@ -285,7 +260,7 @@ class VirtualPortProp(dict):
                         hwaddr = v_port.hwaddr
 
                         # make sure that dl_src is specified
-                        key['dl_src'] = self.lvap.hwaddr
+                        key['dl_src'] = self.lvap.addr
 
                         # add dummy fields
                         key['dpid'] = dpid
@@ -295,9 +270,11 @@ class VirtualPortProp(dict):
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
-                                  'dst_dpid': value_dpid,
-                                  'dst_port_id': value_ovs_port_id,
                                   'match': match}
+                        
+                        if value:
+                            intent['dst_dpid'] = value.dpid
+                            intent['dst_port_id'] = value.ovs_port_id
 
                         # remove virtual link
                         if self.__contains__(key):

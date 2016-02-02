@@ -199,7 +199,8 @@ class LVAP(object):
         # Save virtual links
         # TODO: Implement.
 
-        del self.__ports[0]
+        if self.__ports:
+            del self.__ports[0]
 
         if not self.wtp:
             return
@@ -223,10 +224,13 @@ class LVAP(object):
             virtual_port.next.lvap = self
             virtual_port.next.virtual_port = virtual_port
 
+            self.__ports[0] = virtual_port
+
             break
 
         # Restore virtual links
         # TODO: Implement.
+        self.__ports[0].next[{}] = None
 
     @property
     def ports(self):
