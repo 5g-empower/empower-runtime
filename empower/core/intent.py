@@ -30,8 +30,10 @@
 import json
 import http.client
 
-from empower.core.jsonserializer import EmpowerEncoder
+from uuid import UUID
 
+from empower.core.jsonserializer import EmpowerEncoder
+from urllib.parse import urlparse
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -56,7 +58,7 @@ def match_to_key(match):
     return key
 
 
-def send_intent(intent):
+def add_intent(intent):
 
         key = match_to_key(intent['match'])
 
@@ -70,7 +72,7 @@ def send_intent(intent):
 
         body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-        LOG.info("Sending intent:\n%s" % body)
+        LOG.info("POST: %s\n%s" % ("/simpleswitch/vnfrule/", body))
 
         headers = {
             'Content-type': 'application/json',
@@ -82,16 +84,44 @@ def send_intent(intent):
             conn = http.client.HTTPConnection("localhost", 8080)
             conn.request("POST", "/simpleswitch/vnfrule/", body, headers)
             response = conn.getresponse()
-
-            ret = (response.status, response.reason, response.read())
-            location = response.getheader("Location", None)
-
-            LOG.info("Result: %u %s (%s)" % (ret[0], ret[1], location))
             conn.close()
 
-            return location
+            ret = (response.status, response.reason, response.read())
 
-        except:
+            if ret[0] == 201:
 
-            LOG.error("Connection refused.")
+                location = response.getheader("Location", None)
+                url = urlparse(location)
+                uuid = UUID(url.path.split("/")[-1])
+
+                LOG.info("Result: %u %s (%s)" % (ret[0], ret[1], uuid))
+
+                return uuid
+
+            LOG.info("Result: %u %s" % (ret[0], ret[1]))
+
+        except Exception as e:
+
+            LOG.exception(e)
+
+        return None
+
+def del_intent(uuid):
+
+        LOG.info("DELETE: %s" % uuid)
+
+        try:
+
+            conn = http.client.HTTPConnection("localhost", 8080)
+            conn.request("DELETE", "/simpleswitch/vnfrule/%s" % uuid)
+            response = conn.getresponse()
+
+            ret = (response.status, response.reason, response.read())
+
+            LOG.info("Result: %u %s" % (ret[0], ret[1]))
+            conn.close()
+
+        except Exception as e:
+
+            LOG.exception(e)
 

@@ -27,7 +27,8 @@
 
 """Virtual port."""
 
-from empower.core.intent import send_intent
+from empower.core.intent import add_intent
+from empower.core.intent import del_intent
 from empower.core.intent import key_to_match
 from empower.core.intent import match_to_key
 from empower.datatypes.etheraddress import EtherAddress
@@ -82,6 +83,10 @@ class VirtualPortProp(dict):
     not implemented yet.
     """
 
+    def __init__(self, *args):
+        dict.__init__(self, args)
+        self.__uuids__ = {}
+
     def __delitem__(self, key):
         """Clear virtual port configuration.
 
@@ -93,11 +98,16 @@ class VirtualPortProp(dict):
 
         match = key_to_match(key)
 
+        uuid = self.__uuids__[match]
+
         # remove virtual links
-        # TODO: Implement
+        del_intent(uuid)
 
         # remove old entry
         dict.__delitem__(self, match)
+
+        # remove meta-data
+        del self.__uuids__[match]
 
     def __setitem__(self, key, value):
         """Set virtual port configuration.
@@ -160,7 +170,7 @@ class VirtualPortProp(dict):
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port_id'] = value.ovs_port_id
 
-                        send_intent(intent)
+                        add_intent(intent)
 
                         dict.__setitem__(self, match, value)
 
@@ -193,9 +203,9 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port_id'] = value.ovs_port_id
+                            intent['dst_port'] = value.ovs_port_id
 
-                        send_intent(intent)
+                        add_intent(intent)
 
                         dict.__setitem__(self, match, value)
 
@@ -226,23 +236,24 @@ class VirtualPortProp(dict):
                         key['dpid'] = dpid
                         key['port_id'] = ovs_port_id
 
-                        match = key_to_match(key)
-
                         intent = {'src_dpid': dpid,
                                   'src_port': ovs_port_id,
                                   'hwaddr': self.lvap.addr,
-                                  'match': match}
+                                  'match': key_to_match(key)}
 
                         if value:
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port_id'] = value.ovs_port_id
+
+                        match = key_to_match(key)
 
                         # remove virtual link
                         if self.__contains__(key):
                             self.__delitem__(key)
 
                         # add new virtual link
-                        send_intent(intent)
+                        uuid = add_intent(intent)
+                        self.__uuids__[match] = uuid
 
                         dict.__setitem__(self, match, value)
 
@@ -281,7 +292,7 @@ class VirtualPortProp(dict):
                             self.__delitem__(key)
 
                         # add new virtual link
-                        send_intent(intent)
+                        add_intent(intent)
 
                         dict.__setitem__(self, match, value)
 
@@ -315,4 +326,7 @@ class VirtualPortProp(dict):
             raise KeyError("Expected dict, got %s" % type(key))
 
         match = key_to_match(key)
+
         return dict.__contains__(self, match)
+
+

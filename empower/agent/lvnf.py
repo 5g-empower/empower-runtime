@@ -240,6 +240,12 @@ class LVNF():
                     ovs_port_id = port['port_id']
                     break
 
+            print("Disabling flooding on port %u on bridge %s" %
+                  (ovs_port_id, self.agent.bridge))
+
+            exec_cmd(["ovs-ofctl", "mod-port", self.agent.bridge,
+                      ovs_port_id, 'no-flood'])
+
             self.ports[virtual_port_id]['hwaddr'] = get_hw_addr(iface)
             self.ports[virtual_port_id]['ovs_port_id'] = ovs_port_id
 

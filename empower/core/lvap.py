@@ -34,6 +34,8 @@ from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPort
+from empower.core.intent import match_to_key
+from empower.core.intent import key_to_match
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -196,10 +198,19 @@ class LVAP(object):
         In the current draft implementation virtual links are not implemented.
         """
 
-        # Save virtual links
+        # Save virtual links and delete them
         # TODO: Implement.
-
         if self.__ports:
+
+            to_be_removed = []
+
+            for match in self.__ports[0].next:
+                key = match_to_key(match)
+                to_be_removed.append(key)
+
+            for key in to_be_removed:
+                del self.__ports[0].next[key]
+
             del self.__ports[0]
 
         if not self.wtp:
