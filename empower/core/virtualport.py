@@ -137,24 +137,31 @@ class VirtualPortProp(dict):
             if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
 
                 # remove old virtual links
-                # TODO: implement
+                to_be_removed = []
 
-                # set downlink and uplink virtual link(s)
+                for match in self.keys():
+                    key = match_to_key(match)
+                    to_be_removed.append(key)
+
+                for key in to_be_removed:
+                    self.__delitem__(key)
+
+                # Set downlink and uplink virtual link(s)
+
+                # r_port is a RadioPort object
                 for r_port in self.lvap.downlink.values():
 
-                    for v_port in r_port.block.radio.ports.values():
+                    # n_port is a NetworkPort object
+                    for n_port in r_port.block.radio.ports.values():
 
-                        if v_port.iface != "empower0":
+                        if n_port.iface != "empower0":
                             continue
 
-                        dpid = v_port.dpid
-                        ovs_port_id = v_port.port_id
-                        hwaddr = v_port.hwaddr
-
+                        # ignore input key
                         key = {}
-                        key['dpid'] = dpid
-                        key['port_id'] = ovs_port_id
-                        key['dl_src'] = hwaddr
+                        key['dpid'] = n_port.dpid
+                        key['port_id'] = n_port.port_id
+                        key['dl_src'] = n_port.hwaddr
 
                         if value:
                             key['dl_dst'] = value.hwaddr
@@ -178,19 +185,17 @@ class VirtualPortProp(dict):
 
                 for r_port in self.lvap.uplink.values():
 
-                    for v_port in r_port.block.radio.ports.values():
+                    # n_port is a NetworkPort object
+                    for n_port in r_port.block.radio.ports.values():
 
-                        if v_port.iface != "empower0":
+                        if n_port.iface != "empower0":
                             continue
 
-                        dpid = v_port.dpid
-                        ovs_port_id = v_port.port_id
-                        hwaddr = v_port.hwaddr
-
+                        # ignore input key
                         key = {}
-                        key['dpid'] = dpid
-                        key['port_id'] = ovs_port_id
-                        key['dl_src'] = hwaddr
+                        key['dpid'] = n_port.dpid
+                        key['port_id'] = n_port.port_id
+                        key['dl_src'] = n_port.hwaddr
 
                         if value:
                             key['dl_dst'] = value.hwaddr
@@ -203,7 +208,7 @@ class VirtualPortProp(dict):
 
                         if value:
                             intent['dst_dpid'] = value.dpid
-                            intent['dst_port'] = value.ovs_port_id
+                            intent['dst_port_id'] = value.ovs_port_id
 
                         add_intent(intent)
 
@@ -217,27 +222,26 @@ class VirtualPortProp(dict):
             # of blocks.
             else:
 
-                # set downlink and uplink virtual link(s)
+                # Set downlink and uplink virtual link(s)
+
+                # r_port is a RadioPort object
                 for r_port in self.lvap.downlink.values():
 
-                    for v_port in r_port.block.radio.ports.values():
+                    # n_port is a NetworkPort object
+                    for n_port in r_port.block.radio.ports.values():
 
-                        if v_port.iface != "empower0":
+                        if n_port.iface != "empower0":
                             continue
-
-                        dpid = v_port.dpid
-                        ovs_port_id = v_port.port_id
-                        hwaddr = v_port.hwaddr
 
                         # make sure that dl_src is specified
                         key['dl_src'] = self.lvap.addr
 
                         # add dummy fields
-                        key['dpid'] = dpid
-                        key['port_id'] = ovs_port_id
+                        key['dpid'] = n_port.dpid
+                        key['port_id'] = n_port.port_id
 
-                        intent = {'src_dpid': dpid,
-                                  'src_port': ovs_port_id,
+                        intent = {'src_dpid': n_port.dpid,
+                                  'src_port': n_port.port_id,
                                   'hwaddr': self.lvap.addr,
                                   'match': key_to_match(key)}
 
@@ -259,40 +263,39 @@ class VirtualPortProp(dict):
 
                         break
 
+                # r_port is a RadioPort object
                 for r_port in self.lvap.uplink.values():
 
-                    for v_port in r_port.block.radio.ports.values():
+                    # n_port is a NetworkPort object
+                    for n_port in r_port.block.radio.ports.values():
 
-                        if v_port.iface != "empower0":
+                        if n_port.iface != "empower0":
                             continue
-
-                        dpid = v_port.dpid
-                        ovs_port_id = v_port.port_id
-                        hwaddr = v_port.hwaddr
 
                         # make sure that dl_src is specified
                         key['dl_src'] = self.lvap.addr
 
                         # add dummy fields
-                        key['dpid'] = dpid
-                        key['port_id'] = ovs_port_id
+                        key['dpid'] = n_port.dpid
+                        key['port_id'] = n_port.port_id
 
-                        match = key_to_match(key)
+                        intent = {'src_dpid': n_port.dpid,
+                                  'src_port': n_port.port_id,
+                                  'match': key_to_match(key)}
 
-                        intent = {'src_dpid': dpid,
-                                  'src_port': ovs_port_id,
-                                  'match': match}
-                        
                         if value:
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port_id'] = value.ovs_port_id
+
+                        match = key_to_match(key)
 
                         # remove virtual link
                         if self.__contains__(key):
                             self.__delitem__(key)
 
                         # add new virtual link
-                        add_intent(intent)
+                        uuid = add_intent(intent)
+                        self.__uuids__[match] = uuid
 
                         dict.__setitem__(self, match, value)
 

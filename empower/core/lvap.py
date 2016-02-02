@@ -192,10 +192,12 @@ class LVAP(object):
         lvap[0][dl_src=11:22:33:44:55:66] -> [0] dupes
 
         In this case all outgoing virtual links must be preserved. Virtual
-        links are deleted and then recreated in order to keep the system in
+        links should deleted and then recreated in order to keep the system in
         the correct state.
 
-        In the current draft implementation virtual links are not implemented.
+        In the current draft implementation virtual links are not restored.
+        Basically after an handover all virtual links must be reconfigured by
+        the application.
         """
 
         # Save virtual links and delete them
@@ -227,13 +229,10 @@ class LVAP(object):
                                        hwaddr=port.hwaddr,
                                        iface=port.iface)
 
-            # these are needed because when assigning the next method of a
-            # virtual port I need to know to which port is the next method
-            # referring to, in order to dispatch the right commands to the
-            # OpenFlow controller. The lvap is needed because LWAPP
-            # encapsulation is done by the click agent.
+            # These are needed because when assigning the next method of a
+            # virtual port I need to access the lvap configuration: encap, and
+            # downlinks/uplinks blocks
             virtual_port.next.lvap = self
-            virtual_port.next.virtual_port = virtual_port
 
             self.__ports[0] = virtual_port
 
