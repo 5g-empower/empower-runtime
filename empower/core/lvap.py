@@ -34,7 +34,6 @@ from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPort
-from empower.core.intent import send_intent
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -197,7 +196,7 @@ class LVAP(object):
         In the current draft implementation virtual links are not implemented.
         """
 
-        # Save old VNF rules and remove flows
+        # Save virtual links
         # TODO: Implement.
 
         del self.__ports[0]
@@ -224,18 +223,9 @@ class LVAP(object):
             virtual_port.next.lvap = self
             virtual_port.next.virtual_port = virtual_port
 
-            self.__ports[0] = virtual_port
-
-            # send intent
-            intent = {'src_dpid': virtual_port.dpid,
-                      'src_port_id': virtual_port.ovs_port_id,
-                      'hwaddr': self.hwaddr}
-
-            send_intent(intent)
-
             break
 
-        # Restore VNF rules back and add flows
+        # Restore virtual links
         # TODO: Implement.
 
     @property
@@ -259,20 +249,6 @@ class LVAP(object):
 
         if self._encap == encap:
             return
-
-        # if encap was set and the new encap is None, then clear ALL virtual
-        # links
-        if self._encap and not encap:
-
-            for tmp in self.ports[0].next:
-
-                key = {}
-
-                for token in tmp.split(";"):
-                    k, v = token.split("=")
-                    key[k] = v
-
-                del self.ports[0].next[key]
 
         self._encap = encap
 

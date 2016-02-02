@@ -30,6 +30,25 @@
 from empower.core.intent import send_intent
 
 
+def key_to_match(key):
+    """Convert a OF match in dictionary form to a string."""
+
+    match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+    return match
+
+
+def match_to_key(match):
+    """Convert a OF match string in dictionary form"""
+
+    key = {}
+
+    for token in match.split(";"):
+        k, v = token.split("=")
+        key[k] = v
+
+    return key
+
+
 class VirtualPort():
 
     def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
@@ -88,7 +107,10 @@ class VirtualPortProp(dict):
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
 
-        match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+        match = key_to_match(key)
+
+        # remove virtual links
+        # TODO: Implement
 
         # remove old entry
         dict.__delitem__(self, match)
@@ -97,24 +119,41 @@ class VirtualPortProp(dict):
         """Set virtual port configuration.
 
         Accepts as an input a dictionary with the openflow match rule for
-        this virtual port. Example:
+        the virtual port specified as value. Notice value could also be None
+        in case the chain consists just in an LVAP. Example:
 
-        key = {"dl_src"= "aa:bb:cc:dd:ee:ff"}
+        key = {"dl_src": "aa:bb:cc:dd:ee:ff"}
         """
 
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
 
-        if not isinstance(value, VirtualPort):
+        if value and not isinstance(value, VirtualPort):
             raise KeyError("Expected VirtualPort, got %s" % type(key))
+
+        if not value:
+
+            value_hwaddr = None
+            value_dpid = None
+            value_ovs_port_id = None
+
+        else:
+
+            value_hwaddr = value.hwaddr
+            value_dpid = value.dpid
+            value_ovs_port_id = value.ovs_port_id
 
         # set flows
         if hasattr(self, 'lvap'):
 
+            # if encap is set, then all outgoing traffic must go to THE SAME
+            # LVNF. This is because the outgoing traffic will be LWAPP
+            # encapsulated and as such cannot be handled anyway by OF
+            # switches. Ignore totally the specified key and silently use as
+            # key the LWAPP src and dst addresses. Notice that this will send
+            # as many intents as the number of blocks.
             if self.lvap.encap:
 
-                # if encap is set, then clear ALL virtual links as set only
-                # the default virtual links
                 for tmp in dict(self):
 
                     old_key = {}
@@ -126,9 +165,9 @@ class VirtualPortProp(dict):
                     self.__delitem__(old_key)
 
                 # set downlink and uplink virtual link(s)
-                for port in self.lvap.downlink.values():
+                for r_port in self.lvap.downlink.values():
 
-                    for v_port in port.block.radio.ports.values():
+                    for v_port in r_port.block.radio.ports.values():
 
                         if v_port.iface != "empower0":
                             continue
@@ -138,17 +177,18 @@ class VirtualPortProp(dict):
                         hwaddr = v_port.hwaddr
 
                         key = {}
+                        key['dpid'] = dpid
+                        key['ovs_port_id'] = ovs_port_id
                         key['dl_src'] = hwaddr
-                        key['dl_dst'] = value.hwaddr
+                        key['dl_dst'] = value_hwaddr
 
-                        match = ";".join(["%s=%s" % (k, v)
-                                          for k, v in key.items()])
+                        match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
                                   'hwaddr': self.lvap.hwaddr,
-                                  'dst_dpid': value.dpid,
-                                  'dst_port_id': value.ovs_port_id,
+                                  'dst_dpid': value_dpid,
+                                  'dst_port_id': value_ovs_port_id,
                                   'match': match}
 
                         send_intent(intent)
@@ -157,9 +197,9 @@ class VirtualPortProp(dict):
 
                         break
 
-                for port in self.uplink.values():
+                for r_port in self.lvap.uplink.values():
 
-                    for v_port in port.block.radio.ports.values():
+                    for v_port in r_port.block.radio.ports.values():
 
                         if v_port.iface != "empower0":
                             continue
@@ -169,16 +209,17 @@ class VirtualPortProp(dict):
                         hwaddr = v_port.hwaddr
 
                         key = {}
+                        key['dpid'] = dpid
+                        key['port_id'] = ovs_port_id
                         key['dl_src'] = hwaddr
-                        key['dl_dst'] = value.hwaddr
+                        key['dl_dst'] = value_hwaddr
 
-                        match = ";".join(["%s=%s" % (k, v)
-                                          for k, v in key.items()])
+                        match = key_to_match(key)
 
                         intent = {'src_dpid': dpid,
                                   'src_port_id': ovs_port_id,
-                                  'dst_dpid': value.dpid,
-                                  'dst_port_id': value.ovs_port_id,
+                                  'dst_dpid': value_dpid,
+                                  'dst_port_id': value_ovs_port_id,
                                   'match': match}
 
                         send_intent(intent)
@@ -187,26 +228,96 @@ class VirtualPortProp(dict):
 
                         break
 
+            # encap is not set, then all outgoing traffic can go to different
+            # LVNFs as specified by key. Remove only the key is it already
+            # exists. Notice that this will send as many intents as the number
+            # of blocks.
             else:
 
-                # encap is not set
+                # set downlink and uplink virtual link(s)
+                for r_port in self.lvap.downlink.values():
 
-                match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+                    for v_port in r_port.block.radio.ports.values():
 
-                intent = {'src_dpid': dpid,
-                          'src_port_id': ovs_port_id,
-                          'hwaddr': self.lvap.hwaddr,
-                          'dst_dpid': value.dpid,
-                          'dst_port_id': value.ovs_port_id,
-                          'match': match}
+                        if v_port.iface != "empower0":
+                            continue
 
-                send_intent(intent)
+                        dpid = v_port.dpid
+                        ovs_port_id = v_port.port_id
+                        hwaddr = v_port.hwaddr
 
-                dict.__setitem__(self, match, value)
+                        # make sure that dl_src is specified
+                        key['dl_src'] = self.lvap.hwaddr
 
-                break
+                        # add dummy fields
+                        key['dpid'] = dpid
+                        key['port_id'] = ovs_port_id
+
+                        match = key_to_match(key)
+
+                        intent = {'src_dpid': dpid,
+                                  'src_port_id': ovs_port_id,
+                                  'hwaddr': self.lvap.hwaddr,
+                                  'dst_dpid': value_dpid,
+                                  'dst_port_id': value_ovs_port_id,
+                                  'match': match}
+
+                        # remove virtual link
+                        if self.__contains__(key):
+                            self.__delete__(key)
+
+                        # add new virtual link
+                        send_intent(intent)
+
+                        dict.__setitem__(self, match, value)
+
+                        break
+
+                for r_port in self.lvap.uplink.values():
+
+                    for v_port in r_port.block.radio.ports.values():
+
+                        if v_port.iface != "empower0":
+                            continue
+
+                        dpid = v_port.dpid
+                        ovs_port_id = v_port.port_id
+                        hwaddr = v_port.hwaddr
+
+                        # make sure that dl_src is specified
+                        key['dl_src'] = self.lvap.hwaddr
+
+                        # add dummy fields
+                        key['dpid'] = dpid
+                        key['port_id'] = ovs_port_id
+
+                        match = key_to_match(key)
+
+                        intent = {'src_dpid': dpid,
+                                  'src_port_id': ovs_port_id,
+                                  'dst_dpid': value_dpid,
+                                  'dst_port_id': value_ovs_port_id,
+                                  'match': match}
+
+                        # remove virtual link
+                        if self.__contains__(key):
+                            self.__delete__(key)
+
+                        # add new virtual link
+                        send_intent(intent)
+
+                        dict.__setitem__(self, match, value)
+
+                        break
 
     def __getitem__(self, key):
+        """Return next virtual port.
+
+        Accepts as an input a dictionary with the openflow match rule for
+        the virtual port. Example:
+
+        key = {"dl_src": "aa:bb:cc:dd:ee:ff"}
+        """
 
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
@@ -215,6 +326,13 @@ class VirtualPortProp(dict):
         return dict.__getitem__(self, match)
 
     def __contains__(self, key):
+        """Check if entry exists.
+
+        Accepts as an input a dictionary with the openflow match rule for
+        the virtual port. Example:
+
+        key = {"dl_src": "aa:bb:cc:dd:ee:ff"}
+        """
 
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
