@@ -322,7 +322,7 @@ class VirtualPortProp(dict):
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
 
-        match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+        match = key_to_match(key)
         return dict.__getitem__(self, match)
 
     def __contains__(self, key):
@@ -337,5 +337,5 @@ class VirtualPortProp(dict):
         if not isinstance(key, dict):
             raise KeyError("Expected dict, got %s" % type(key))
 
-        match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+        match = key_to_match(key)
         return dict.__contains__(self, match)
