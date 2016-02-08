@@ -109,6 +109,10 @@ class VirtualPortProp(dict):
         # remove meta-data
         del self.__uuids__[match]
 
+    @property
+    def uuids(self):
+        return self.__uuids__
+
     def __setitem__(self, key, value):
         """Set virtual port configuration.
 
