@@ -34,6 +34,8 @@ import json
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.core.restserver import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
+from empower.core.intent import key_to_match
+from empower.core.intent import match_to_key
 
 from empower.main import RUNTIME
 
@@ -45,7 +47,9 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant/LVAP/Port/Next Handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/?"]
+                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
+                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:;=]*)/?"]
 
     def initialize(self, server):
         self.server = server
@@ -66,7 +70,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) != 3:
+            if len(args) < 3 or len(args) > 4:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -78,7 +82,20 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvap.ports[port_id]
 
-            self.write(json.dumps(port.next, cls=EmpowerEncoder))
+            output = {}
+
+            for match, v in port.next.items():
+
+                output[match] = v.to_dict()
+                output[match]['uuid'] = port.next.uuids[match]
+                output[match]['match'] = match_to_key(match)
+                output[match]['unparsed'] = match
+
+            if len(args) == 4:
+                self.write(json.dumps(output[args[3]], cls=EmpowerEncoder))
+            else:
+                self.write(json.dumps(output.values(), cls=EmpowerEncoder))
+
             self.set_status(200, None)
 
         except ValueError as ex:
@@ -138,8 +155,6 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
-        except OSError as ex:
-            self.send_error(500, message=ex)
 
         self.set_status(204, None)
 
@@ -153,9 +168,12 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports/1/next
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                   lvaps/00:14:d3:45:aa:5c/ports/1/next/
+                   dl_src=00:18:DE:CC:D3:40;dpid=00:0D:B9:2F:56:64;port_id=2
         """
+
+        print("ciao")
 
         try:
 
@@ -180,13 +198,12 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port = lvap.ports[port_id]
 
             match = request['match']
+
             del port.next[match]
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
-        except OSError as ex:
-            self.send_error(500, message=ex)
 
         self.set_status(204, None)
