@@ -42,7 +42,7 @@ LOG = empower.logger.get_logger()
 def key_to_match(key):
     """Convert a OF match in dictionary form to a string."""
 
-    match = ";".join(["%s=%s" % (k, v) for k, v in key.items()])
+    match = ";".join(["%s=%s" % x for x in sorted(key.items())])
     return match
 
 
