@@ -84,9 +84,9 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
             output = {}
 
-            for match, v in port.next.items():
+            for match, value in port.next.items():
 
-                output[match] = v.to_dict()
+                output[match] = value.to_dict() if value else {}
                 output[match]['uuid'] = port.next.uuids[match]
                 output[match]['match'] = match_to_key(match)
                 output[match]['unparsed'] = match
