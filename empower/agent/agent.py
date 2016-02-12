@@ -33,6 +33,7 @@ import json
 import websocket
 import _thread
 import time
+import logging
 
 from uuid import UUID
 from argparse import ArgumentParser
@@ -62,7 +63,7 @@ OF_CTRL = None
 def on_open(ws):
     """ Called when the web-socket is opened. """
 
-    print("Socket opened...")
+    logging.info("Socket opened...")
 
     def run(ws):
         if ws.sock and ws.sock.connected:
@@ -81,13 +82,13 @@ def on_message(ws, message):
         msg = json.loads(message)
         ws._handle_message(msg)
     except ValueError:
-        print("Invalid input: %s", message)
+        logging.info("Invalid input: %s", message)
 
 
 def on_close(ws):
     """ Called when the web-socket is closed. """
 
-    print("Socket closed...")
+    logging.info("Socket closed...")
 
 
 class EmpowerAgent(websocket.WebSocketApp):
@@ -122,13 +123,13 @@ class EmpowerAgent(websocket.WebSocketApp):
         self.bridge = bridge
         self.ctrl = ctrl
 
-        print("Initializing the EmPOWER Agent...")
-        print("Bridge %s (hwaddr=%s)" % (self.bridge, self.addr))
+        logging.info("Initializing the EmPOWER Agent...")
+        logging.info("Bridge %s (hwaddr=%s)" % (self.bridge, self.addr))
 
         for port in self.ports.values():
-            print("Port %u (iface=%s, hwaddr=%s)" % (port['port_id'],
-                                                     port['iface'],
-                                                     port['hwaddr']))
+            logging.info("Port %u (iface=%s, hwaddr=%s)" % (port['port_id'],
+                                                            port['iface'],
+                                                            port['hwaddr']))
 
     def shutdown(self):
         """Gracefully stop agent."""
@@ -201,7 +202,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         self.__bridge = bridge
 
         if not self.ports:
-            print("Warning, no ports available on bridge %s" % self.bridge)
+            logging.info("Warning, no ports available on bridge %s" % self.bridge)
 
         cmd = ["ovs-vsctl", "list-ports", self.bridge]
         lines = exec_cmd(cmd).split('\n')
@@ -212,7 +213,7 @@ class EmpowerAgent(websocket.WebSocketApp):
             if match:
                 groups = match.groups()
                 iface = "vnf-%s-%s-%s" % groups
-                print("Stale port found %s" % iface)
+                logging.info("Stale port found %s" % iface)
                 exec_cmd(["ovs-vsctl", "del-port", self.bridge, iface])
 
     @property
@@ -271,9 +272,9 @@ class EmpowerAgent(websocket.WebSocketApp):
             try:
                 handler(msg)
             except Exception as ex:
-                print(ex)
+                logging.info(ex)
         else:
-            print("Unknown message type: %s" % msg['type'])
+            logging.info("Unknown message type: %s" % msg['type'])
 
     def dump_message(self, message):
         """Dump a generic message.
@@ -292,7 +293,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         del message['seq']
 
         fields = ["%s=%s" % (k, v)for k, v in message.items()]
-        print("%s (%s)" % (header, ", ".join(fields)))
+        logging.info("%s (%s)" % (header, ", ".join(fields)))
 
     def _handle_error(self, error):
         """Handle ERROR message.
@@ -327,7 +328,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         message['seq'] = self.seq
         message['every'] = self.every
 
-        print("Sending %s seq %u" % (message['type'], message['seq']))
+        logging.info("Sending %s seq %u" % (message['type'], message['seq']))
         msg = json.dumps(message, cls=EmpowerEncoder)
         self.uplink_bytes += len(msg)
         self.send(json.dumps(message, cls=EmpowerEncoder))
@@ -396,7 +397,7 @@ class EmpowerAgent(websocket.WebSocketApp):
 
         if lvnf_id in self.lvnfs:
 
-            print("LVNF %s found, removing." % lvnf_id)
+            logging.info("LVNF %s found, removing." % lvnf_id)
 
             lvnf = self.lvnfs[lvnf_id]
             lvnf.stop()
@@ -524,6 +525,9 @@ def main(Agent=EmpowerAgent):
 
     parser = ArgumentParser(usage=usage)
 
+    parser.add_argument("-l", "--log", dest="log", default=None,
+                        help="Logfile; default=None")
+
     parser.add_argument("-o", "--ofctrl", dest="ofctrl", default=OF_CTRL,
                         help="OpenFlow Controller; default=%s" % OF_CTRL)
 
@@ -543,11 +547,16 @@ def main(Agent=EmpowerAgent):
     parser.add_argument("-e", "--every", dest="every", default=DEFAULT_EVERY,
                         help="Heartbeat (in s); default='%u'" % DEFAULT_EVERY)
 
-    parser.add_argument("-l", "--listen", dest="listen", default=CLICK_LISTEN,
+    parser.add_argument("-g", "--listen", dest="listen", default=CLICK_LISTEN,
                         type=int,
                         help="Click port; default=%u" % CLICK_LISTEN)
 
     (args, _) = parser.parse_known_args(sys.argv[1:])
+
+    if args.log:
+        logging.basicConfig(filename=args.log, level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.DEBUG)
 
     url = "%s://%s:%u/" % (args.transport, args.ctrl, args.port)
 
@@ -558,9 +567,9 @@ def main(Agent=EmpowerAgent):
 
     while True:
         try:
-            print("Trying to connect to controller %s" % agent.url)
+            logging.info("Trying to connect to controller %s" % agent.url)
             agent.run_forever()
-            print("Unable to connect, trying again in %us" % agent.every)
+            logging.info("Unable to connect, trying again in %us" % agent.every)
             time.sleep(agent.every)
         except KeyboardInterrupt:
             agent.shutdown()
