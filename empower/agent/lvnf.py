@@ -199,7 +199,8 @@ class LVNF():
         logging.info("Starting LVNF %s" % self.lvnf_id)
         logging.info(self)
 
-        self.process = subprocess.Popen(["click", "-e", self.script],
+        self.process = subprocess.Popen(["/usr/local/bin/click", "-e",
+                                        self.script],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
 
