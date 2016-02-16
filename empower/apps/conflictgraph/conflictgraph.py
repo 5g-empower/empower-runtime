@@ -142,4 +142,4 @@ class ConflictGraph(EmpowerApp):
 def launch(tenant, addrs="ff:ff:ff:ff:ff:ff", period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return ConflictGraph(tenant, addrs, period)
+    return ConflictGraph(tenant, addrs=addrs, every=period)
