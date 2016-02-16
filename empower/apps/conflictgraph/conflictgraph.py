@@ -65,10 +65,13 @@ class ConflictGraph(EmpowerApp):
     MODULE_HANDLER = ConflictGraphHandler
     MODULE_HOME_HANDLER = ConflictGraphHomeHandler
 
-    def __init__(self, tenant_id, addrs, period):
-        EmpowerApp.__init__(self, tenant_id, period)
-        self.addrs = addrs
+    def __init__(self, tenant, **kwargs):
+
+        self.addrs = None
         self.conflicts = {'networks': [], 'stations': []}
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
+
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def to_dict(self):
