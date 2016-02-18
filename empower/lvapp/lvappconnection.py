@@ -429,10 +429,11 @@ class LVAPPConnection(object):
                 to_be_removed.append(lvap)
 
         for lvap in to_be_removed:
-            LOG.info("LVAP LEAVE %s (%s)" % (lvap.addr, lvap.ssid))
+            LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
             for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
                 handler(lvap)
-            LOG.info("Deleting LVAP: %s" % lvap.addr)
+            LOG.info("Deleting LVAP: %s", lvap.addr)
+            lvap.clear_ports()
             del RUNTIME.lvaps[lvap.addr]
 
     def send_bye_message_to_self(self):

@@ -180,6 +180,23 @@ class LVAP(object):
         # virtual ports (VNFs)
         self.__ports = {}
 
+    def clear_ports(self):
+        """Clear LVAP ports."""
+
+        if not self.__ports:
+            return
+
+        to_be_removed = []
+
+        for match in self.__ports[0].next:
+            key = match_to_key(match)
+            to_be_removed.append(key)
+
+        for key in to_be_removed:
+            del self.__ports[0].next[key]
+
+        del self.__ports[0]
+
     def set_ports(self):
         """Set virtual ports.
 
@@ -202,18 +219,7 @@ class LVAP(object):
 
         # Save virtual links and delete them
         # TODO: Implement.
-        if self.__ports:
-
-            to_be_removed = []
-
-            for match in self.__ports[0].next:
-                key = match_to_key(match)
-                to_be_removed.append(key)
-
-            for key in to_be_removed:
-                del self.__ports[0].next[key]
-
-            del self.__ports[0]
+        self.clear_ports()
 
         if not self.wtp:
             return
