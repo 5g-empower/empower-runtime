@@ -133,6 +133,9 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             next_lvnf_id = uuid.UUID(request['next']['lvnf_id'])
             next_lvnf = tenant.lvnfs[next_lvnf_id]
 
+            if next_lvnf_id == lvnf_id:
+                raise ValueError("Loop detected")
+
             next_port_id = int(request['next']['port_id'])
             next_port = next_lvnf.ports[next_port_id]
 
