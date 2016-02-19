@@ -314,7 +314,7 @@ function lvnfUp(idLvnf) {
             },
             statusCode: {
                 201: function (data) {
-                    console.log("Handler dupes_table created")
+                    console.log("LVNF stats poller created")
                     setTimeout(function() {
                         lvnfStats();
                     }, AVERAGING_PERIOD)
