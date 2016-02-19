@@ -32,6 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
+from empower.persistence.persistence import TblBelongs
 from empower.persistence.persistence import TblPendingTenant
 from empower.core.account import Account
 from empower.core.tenant import Tenant
@@ -351,6 +352,17 @@ class EmpowerRuntime(object):
 
         if tenant_id not in self.tenants:
             raise KeyError(tenant_id)
+
+        tenant = self.tenants[tenant_id]
+
+        # remove pnfdev in this tenant
+        devs = Session().query(TblBelongs) \
+                        .filter(TblBelongs.tenant_id == tenant_id)
+
+        for dev in devs:
+            session = Session()
+            session.delete(dev)
+            session.commit()
 
         # remove tenant
         del self.tenants[tenant_id]
