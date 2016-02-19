@@ -260,6 +260,31 @@ function registerComponent() {
     });
 }
 
+function removeLVNF(lvnf_id, tenant) {
+    $.ajax({
+        url: '/api/v1/tenants/' + tenant + '/lvnfs/' + lvnf_id,
+        type: 'DELETE',
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            400: function () {
+                alert('Invalid args');
+            },
+            404: function () {
+                alert('Component not found');
+            },
+            405: function () {
+                alert('Module cannot be unloaded');
+            },
+            500: function () {
+                alert('Internal error');
+            }
+        }
+    });
+}
+
 function unregisterComponent(component) {
     $.ajax({
         url: '/api/v1/components/' + component,
@@ -1293,6 +1318,55 @@ function loadLVAPs(tenant) {
                 } else {
                     wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].scheduled_on[0].addr + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
                 }
+            }
+        },
+    });
+}
+
+function loadLVNFs(tenant) {
+    url = "/api/v1/tenants/" + tenant + "/lvnfs"
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('lvnfs');
+            for (i = table.rows.length - 1; i > 0; i--) {
+                table.deleteRow(i);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('lvnfs');
+                var rowCount = table.rows.length;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 6
+                mac.style.textAlign = "center"
+                mac.innerHTML = "No LVNFs available in this Tenant"
+            }
+            for (var stream in data) {
+                var table = document.getElementById('lvnfs');
+                var row = table.insertRow(table.rows.length);
+                var c = 0
+
+                var lvnf_id = row.insertCell(c++);
+                lvnf_id.innerHTML = data[stream].lvnf_id
+
+                var image = row.insertCell(c++);
+                image.innerHTML = data[stream].image.vnf
+
+                var status = row.insertCell(c++);
+                status.innerHTML = data[stream].process
+
+                var cpp = row.insertCell(c++);
+                cpp.innerHTML = data[stream].cpp.addr
+
+                var cppCtrl = row.insertCell(c++);
+                cppCtrl.id = "ctrl_" + data[stream].lvnf_id
+                cppCtrl.width = "24px"
+                cppCtrl.align = "center"
+                cppCtrl.innerHTML = "<a href=\"#\" onClick=\"removeLVNF('" + data[stream].lvnf_id + "','"+tenant+"')\"><img width=\"24\" src=\"/static/images/remove.png\" /></a>"
+
             }
         },
     });
