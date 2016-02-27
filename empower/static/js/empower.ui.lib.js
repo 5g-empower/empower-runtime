@@ -1570,3 +1570,163 @@ function addWTPtoTenant() {
         },
     });
 }
+
+oains = {}
+
+function loadOAINs(tenant_id) {
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/oains"
+    } else {
+        url = "/api/v1/oains"
+    }
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('oains');
+            var rowCount = table.rows.length - 1;
+            while (rowCount--) {
+                if (rowCount < 0) {
+                    break
+                }
+                table.deleteRow(rowCount);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('oains');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.style.textAlign = "center"
+                mac.innerHTML = "Empty"
+            }
+            for (var stream in data) {
+                value = data[stream].addr
+                var table = document.getElementById('oains');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var c = 0
+                var remove = row.insertCell(c++);
+                remove.align = "center"
+                remove.width = "24px"
+                if (tenant_id) {
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeOAIN('" + value + "', '" + tenant_id + "')\" />"
+                } else {
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeOAIN('" + value + "')\" />"
+                }
+                var flag = row.insertCell(c++);
+                flag.align = "center"
+                flag.width = "24px"
+                if (data[stream]['connection']) {
+                    flag.innerHTML = "<img class=\"ctrl\" src=\"/static/images/flag_green.png\"  />"
+                } else {
+                    flag.innerHTML = "<img class=\"ctrl\" src=\"/static/images/flag_red.png\"  />"
+                }
+                var mac = row.insertCell(c++);
+                mac.innerHTML = data[stream]['label'] + " (" + value + ")"
+                if (data[stream]['connection']) {
+                    mac.innerHTML += "<div class=\"details\" id=\"oain_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
+                } else {
+                    mac.innerHTML += "<div class=\"details\" id=\"oain_" + stream + "\">Disconnected</div>"
+                }
+            }
+        },
+    });
+}
+
+function removeOAIN(mac, tenant_id) {
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/oains/" + mac
+    } else {
+        url = "/api/v1/oains/" + mac
+    }
+    $.ajax({
+        url: url,
+        type: 'DELETE',
+        dataType: 'json',
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        success: function (data) {
+            loadOAINs()
+        },
+        statusCode: {
+            400: function () {
+                alert('Invalid MAC Address');
+            },
+            400: function () {
+                alert('Duplicate MAC Address');
+            },
+            500: function () {
+                alert('Empty MAC Address');
+            }
+        }
+    });
+}
+
+function registerOAIN(tenant_id) {
+    var mac = document.getElementById("oain_mac").value;
+    var label = document.getElementById("oain_label").value;
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/oains"
+    } else {
+        url = "/api/v1/oains"
+    }
+    data = '{  "version" : "1.0", "addr" : "' + mac + '", "label" : "' + label + '" }'
+    $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            201: function (data) {
+                var table = document.getElementById('oains');
+                var rowCount = table.rows.length - 1;
+                var row = table.deleteRow(rowCount);
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.align = "right"
+                mac.innerHTML = "<a onClick=\"return addOAIN()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+            },
+            400: function () {
+                alert('Invalid MAC Address');
+            },
+            409: function () {
+                alert('Duplicate MAC Address');
+            },
+            500: function () {
+                alert('Empty MAC Address');
+            }
+        }
+    });
+}
+
+function addOAIN() {
+    var table = document.getElementById('oains');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"oain_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic OAI Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"oain_label\" type=\"text\" value=\"Generic OAI Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerOAIN()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeOAINInputBox()\" /></div></li></ul>"
+    mac.colSpan = 3
+    mac.innerHTML = tmp
+}
+
+function removeOAINInputBox() {
+    var table = document.getElementById('oains');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return addOAIN()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+}

@@ -15,6 +15,7 @@
       runLoader(loadPendingTenantsAdmin, '{{username}}')
       runLoader(loadUsers)
       runLoader(loadCPPs)
+      runLoader(loadOAINs)
       runLoader(loadWTPs)
       runLoader(loadMACs, 'allow')
       runLoader(loadMACs, 'deny')
@@ -41,6 +42,7 @@
           <div class="button segmentedControl tab"><span>Feeds</span></div>
           <div class="button segmentedControl tab"><span>LVAPs</span></div>
           <div class="button segmentedControl tab"><span>CPPs</span></div>
+          <div class="button segmentedControl tab"><span>OAINs</span></div>
           <div class="button segmentedControl tab"><span>WTPs</span></div>
           <div class="button segmentedControl tab"><span>ACL</span></div>
           <div class="button segmentedControl rightEnd tab"><span>Users</span></div>
@@ -159,6 +161,18 @@
 
         <div class="tabPanel">
 
+          <h1>OpenAirInterface Nodes</h1>
+
+          <table id="oains" width="650" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addOAIN()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
           <h1>Wireless Termination Points</h1>
 
           <table id="wtps" width="650" class="dump">
@@ -255,6 +269,18 @@
           <table id="cpps" width="600" class="dump">
             <tr>
               <td colspan="3" align="right"><a onClick="return addCPP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>OpenAirInterface Nodes</h1>
+
+          <table id="oains" width="600" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addOAIN()"><img class="ctrl" src="/static/images/add.png" /></a></td>
             </tr>
           </table>
 

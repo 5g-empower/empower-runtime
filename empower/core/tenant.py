@@ -51,7 +51,8 @@ class Tenant(object):
                'lvaps',
                'lvnfs',
                'wtps',
-               'cpps']
+               'cpps',
+               'oains']
 
     def __init__(self, tenant_id, tenant_name, owner, desc):
         self.tenant_id = tenant_id
@@ -60,6 +61,7 @@ class Tenant(object):
         self.desc = desc
         self.wtps = {}
         self.cpps = {}
+        self.oains = {}
         self.lvaps = {}
         self.lvnfs = {}
 
