@@ -27,11 +27,14 @@
 
 """Application implementing an rssi tracker."""
 
+from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.maps.ucqm import ucqm
 from empower.maps.ncqm import ncqm
 from empower.events.wtpup import wtpup
+
+DEFAULT_ADDRESS = "ff:ff:ff:ff:ff:ff"
 
 
 class RSSITracker(EmpowerApp):
@@ -49,10 +52,22 @@ class RSSITracker(EmpowerApp):
 
     """
 
-    def __init__(self, pool, addrs, period):
-        EmpowerApp.__init__(self, pool, period)
-        self.addrs = addrs
+    def __init__(self, tenant, **kwargs):
+        self.__addrs = None
+        EmpowerApp.__init__(self, tenant, **kwargs)
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+
+    @property
+    def addrs(self):
+        """Return addrs."""
+
+        return self.__addrs
+
+    @addrs.setter
+    def addrs(self, value):
+        """Set addrs."""
+
+        self.__addrs = EtherAddress(value)
 
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
@@ -119,7 +134,7 @@ class RSSITracker(EmpowerApp):
                 file_d.write(line)
 
 
-def launch(tenant, addrs="ff:ff:ff:ff:ff:ff", period=DEFAULT_PERIOD):
+def launch(tenant, addrs=DEFAULT_ADDRESS, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return RSSITracker(tenant, addrs, period)
+    return RSSITracker(tenant, addrs=addrs, every=period)

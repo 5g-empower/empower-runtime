@@ -28,6 +28,7 @@
 """Radio Maps Poller App."""
 
 from empower.apps.pollers.poller import Poller
+from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
 from empower.events.wtpup import wtpup
 from empower.maps.ucqm import ucqm
@@ -51,8 +52,10 @@ class MapsPoller(Poller):
 
     """
 
-    def __init__(self, pool, filepath, polling, period):
-        Poller.__init__(self, pool, filepath, polling, period)
+    def __init__(self, tenant, **kwargs):
+
+        Poller.__init__(self, tenant, **kwargs)
+
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
@@ -84,7 +87,13 @@ class MapsPoller(Poller):
         LOG.info("New NCQM received from %s" % ucqm.block)
 
 
-def launch(tenant, filepath="./", polling=1000, period=DEFAULT_PERIOD):
+def launch(tenant,
+           filepath="./",
+           polling=DEFAULT_POLLING,
+           period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return MapsPoller(tenant, filepath, polling, period)
+    return MapsPoller(tenant,
+                      filepath=filepath,
+                      polling=polling,
+                      every=period)

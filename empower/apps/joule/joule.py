@@ -90,9 +90,7 @@ class Joule(EmpowerApp):
     MODULE_HANDLER = JouleHandler
     MODULE_HOME_HANDLER = JouleHomeHandler
 
-    def __init__(self, tenant, profile, period):
-
-        EmpowerApp.__init__(self, tenant, period)
+    def __init__(self, tenant, **kwargs):
 
         self.stats = {}
         self.prev_bins_tx = {}
@@ -100,9 +98,12 @@ class Joule(EmpowerApp):
         self.power = {}
         self.created = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.updated = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.profile = None
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
 
         # load joule profile
-        with open(os.path.expanduser(profile)) as json_data:
+        with open(os.path.expanduser(self.profile)) as json_data:
             self.profile = json.load(json_data)
 
         bins_with_eth = [x + 14 + 20 + 8 for x in self.profile['bins']]
@@ -246,4 +247,4 @@ class Joule(EmpowerApp):
 def launch(tenant, profile=DEFAULT_PROFILE, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Joule(tenant, profile, period)
+    return Joule(tenant, profile=profile, every=period)

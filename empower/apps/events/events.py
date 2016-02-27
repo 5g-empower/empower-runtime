@@ -55,9 +55,9 @@ class EventsApp(EmpowerApp):
 
     """
 
-    def __init__(self, tenant_id, period):
+    def __init__(self, tenant, **kwargs):
 
-        super().__init__(tenant_id, period)
+        EmpowerApp.__init__(self, tenant, **kwargs)
 
         cppup(tenant_id=self.tenant.tenant_id,
               callback=self.cpp_up_callback)
@@ -116,4 +116,4 @@ class EventsApp(EmpowerApp):
 def launch(tenant, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return EventsApp(tenant, period)
+    return EventsApp(tenant, every=period)

@@ -28,6 +28,7 @@
 """Counters Poller Apps."""
 
 from empower.apps.pollers.poller import Poller
+from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
 from empower.events.lvapjoin import lvapjoin
 from empower.counters.packets_counter import packets_counter
@@ -51,9 +52,9 @@ class CountersPoller(Poller):
 
     """
 
-    def __init__(self, tenant_id, filepath, polling, period):
+    def __init__(self, tenant, **kwargs):
 
-        Poller.__init__(self, tenant_id, filepath, polling, period)
+        Poller.__init__(self, tenant, **kwargs)
 
         lvapjoin(tenant_id=self.tenant.tenant_id,
                  callback=self.lvap_join_callback)
@@ -65,7 +66,7 @@ class CountersPoller(Poller):
                         lvap=lvap.addr,
                         tenant_id=self.tenant.tenant_id,
                         every=self.polling,
-                        callback=self.bytes_callback)
+                        callback=self.packets_callback)
 
         bytes_counter(bins=[512, 1472, 8192],
                       lvap=lvap.addr,
@@ -84,7 +85,13 @@ class CountersPoller(Poller):
         LOG.info("New stats (bytes) received from %s" % stats.lvap)
 
 
-def launch(tenant, filepath="./", polling=1000, period=DEFAULT_PERIOD):
+def launch(tenant,
+           filepath="./",
+           polling=DEFAULT_POLLING,
+           period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return CountersPoller(tenant, filepath, polling, period)
+    return CountersPoller(tenant,
+                          filepath=filepath,
+                          polling=polling,
+                          every=period)

@@ -32,6 +32,8 @@ import psutil
 
 from empower.core.app import EmpowerApp
 
+DEFAULT_POLLING = 1000
+
 
 class Poller(EmpowerApp):
     """Base EmPOWER poller application. Use it to stress-test pollers.
@@ -45,13 +47,25 @@ class Poller(EmpowerApp):
 
     """
 
-    def __init__(self, pool, filepath, polling, period):
-
-        EmpowerApp.__init__(self, pool, period)
+    def __init__(self, tenant, **kwargs):
 
         self.last = time.time()
-        self.filepath = filepath
-        self.polling = int(polling)
+        self.__polling = DEFAULT_POLLING
+        self.filepath = "./",
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
+
+    @property
+    def polling(self):
+        """Return polling."""
+
+        return self.__polling
+
+    @polling.setter
+    def polling(self, value):
+        """Set polling."""
+
+        self.__polling = int(value)
 
     def loop(self):
         """ Periodic job. """

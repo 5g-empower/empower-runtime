@@ -47,10 +47,10 @@ class PowerTracker(EmpowerApp):
 
     """
 
-    def __init__(self, pool, filename, period):
+    def __init__(self, tenant, **kwargs):
 
-        EmpowerApp.__init__(self, pool, period)
-        self.filename = filename
+        self.filename = "./powertracker.csv"
+        EmpowerApp.__init__(self, tenant, **kwargs)
 
     def loop(self):
         """ Periodic job. """
@@ -71,4 +71,4 @@ class PowerTracker(EmpowerApp):
 def launch(tenant, filename="./powertracker.csv", period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return PowerTracker(tenant, filename, period)
+    return PowerTracker(tenant, filename=filename, every=period)

@@ -28,6 +28,7 @@
 """Link Statistics Poller Apps."""
 
 from empower.apps.pollers.poller import Poller
+from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
 from empower.events.lvapjoin import lvapjoin
 from empower.link_stats.link_stats import link_stats
@@ -50,9 +51,9 @@ class LinkStatsPoller(Poller):
 
     """
 
-    def __init__(self, tenant_id, filepath, polling, period):
+    def __init__(self, tenant, **kwargs):
 
-        Poller.__init__(self, tenant_id, filepath, polling, period)
+        Poller.__init__(self, tenant, **kwargs)
 
         lvapjoin(tenant_id=self.tenant.tenant_id,
                  callback=self.lvap_join_callback)
@@ -71,7 +72,14 @@ class LinkStatsPoller(Poller):
         LOG.info("New link stats received from %s" % counter.lvap)
 
 
-def launch(tenant, filepath="./", polling=1000, period=DEFAULT_PERIOD):
+def launch(tenant,
+           filepath="./",
+           polling=DEFAULT_POLLING,
+           period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return LinkStatsPoller(tenant, filepath, polling, period)
+
+    return LinkStatsPoller(tenant,
+                           filepath=filepath,
+                           polling=polling,
+                           every=period)

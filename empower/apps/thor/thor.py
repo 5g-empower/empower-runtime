@@ -63,11 +63,30 @@ class Thor(EmpowerApp):
     MODULE_HANDLER = ThorHandler
     MODULE_HOME_HANDLER = ThorHomeHandler
 
-    def __init__(self, tenant, period=None, max_lvaps_per_wtp=2):
+    def __init__(self, tenant, **kwargs):
 
-        EmpowerApp.__init__(self, tenant, period)
-        self.max_lvaps_per_wtp = int(max_lvaps_per_wtp)
+        self.__max_lvaps_per_wtp = 2
         self.idle_cycles = {}
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
+
+    @property
+    def max_lvaps_per_wtp(self):
+        """Return max_lvaps_per_wtp."""
+
+        return self.__max_lvaps_per_wtp
+
+    @max_lvaps_per_wtp.setter
+    def max_lvaps_per_wtp(self, value):
+        """Set max_lvaps_per_wtp."""
+
+        max_lvaps_per_wtp = int(value)
+
+        if max_lvaps_per_wtp < 1:
+            raise ValueError("Invalid value for max_lvaps_per_wtp")
+
+        LOG.info("Setting max_lvaps_per_wtp to %u" % value)
+        self.__max_lvaps_per_wtp = max_lvaps_per_wtp
 
     def loop(self):
         """ Periodic job. """
@@ -129,7 +148,7 @@ class Thor(EmpowerApp):
                     self.idle_cycles[wtp] = self.idle_cycles[wtp] + 1
 
 
-def launch(tenant, period=DEFAULT_PERIOD, max_lvaps_per_wtp=2):
+def launch(tenant, max_lvaps_per_wtp=2, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Thor(tenant, period, max_lvaps_per_wtp)
+    return Thor(tenant, max_lvaps_per_wtp=max_lvaps_per_wtp, every=period)

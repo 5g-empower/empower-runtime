@@ -54,13 +54,37 @@ class PingPong(EmpowerApp):
 
     """
 
-    def __init__(self, tenant, lvap_addr=DEFAULT_LVAP,
-                 wtp_addrs=DEFAULT_WTPS, period=None):
+    def __init__(self, tenant, **kwargs):
 
-        EmpowerApp.__init__(self, tenant, period)
-        self.lvap_addr = EtherAddress(lvap_addr)
-        self.wtp_addrs = [EtherAddress(x) for x in wtp_addrs.split(",")]
+        self.__lvap_addr = None
+        self.__wtp_addrs = []
         self.idx = 0
+
+        EmpowerApp.__init__(self, tenant, **kwargs)
+
+    @property
+    def wtp_addrs(self):
+        """Return wtp_addrs."""
+
+        return self.__wtp_addrs
+
+    @wtp_addrs.setter
+    def wtp_addrs(self, value):
+        """Set wtp_addrs."""
+
+        self.__wtp_addrs = [EtherAddress(x) for x in value.split(",")]
+
+    @property
+    def lvap_addr(self):
+        """Return lvap_addr."""
+
+        return self.__lvap_addr
+
+    @lvap_addr.setter
+    def lvap_addr(self, value):
+        """Set lvap_addr."""
+
+        self.__lvap_addr = EtherAddress(value)
 
     def loop(self):
         """ Periodic job. """
@@ -89,4 +113,4 @@ def launch(tenant, lvap=DEFAULT_LVAP,
 
     """ Initialize the module. """
 
-    return PingPong(tenant, lvap, wtps, period)
+    return PingPong(tenant, lvap_addr=lvap, wtp_addrs=wtps, every=period)

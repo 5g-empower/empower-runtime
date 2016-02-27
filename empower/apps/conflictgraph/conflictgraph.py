@@ -34,9 +34,12 @@ from empower.core.app import DEFAULT_PERIOD
 from empower.maps.ucqm import ucqm
 from empower.maps.ncqm import ncqm
 from empower.events.wtpup import wtpup
+from empower.datatypes.etheraddress import EtherAddress
 
 import empower.logger
 LOG = empower.logger.get_logger()
+
+DEFAULT_ADDRS = "ff:ff:ff:ff:ff:ff"
 
 
 class ConflictGraphHandler(EmpowerAppHandler):
@@ -67,12 +70,24 @@ class ConflictGraph(EmpowerApp):
 
     def __init__(self, tenant, **kwargs):
 
-        self.addrs = None
+        self.__addrs = EtherAddress(DEFAULT_ADDRS)
         self.conflicts = {'networks': [], 'stations': []}
 
         EmpowerApp.__init__(self, tenant, **kwargs)
 
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+
+    @property
+    def addrs(self):
+        """Return adres period."""
+
+        return self.__addrs
+
+    @addrs.setter
+    def addrs(self, value):
+        """Set addrs."""
+
+        self.__addrs = EtherAddress(value)
 
     def to_dict(self):
 
@@ -100,7 +115,7 @@ class ConflictGraph(EmpowerApp):
                  every=self.every,
                  callback=self.update_cm)
 
-    def update_cm(self, poller):
+    def update_cm(self, _):
         """Periodic job."""
 
         # Initialize conflict map
@@ -139,7 +154,7 @@ class ConflictGraph(EmpowerApp):
                     self.conflicts['networks'].append((src, dst))
 
 
-def launch(tenant, addrs="ff:ff:ff:ff:ff:ff", period=DEFAULT_PERIOD):
+def launch(tenant, addrs=DEFAULT_ADDRS, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
     return ConflictGraph(tenant, addrs=addrs, every=period)
