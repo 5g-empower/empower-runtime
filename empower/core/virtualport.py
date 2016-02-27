@@ -175,6 +175,7 @@ class VirtualPortProp(dict):
                         intent = {'src_dpid': dpid,
                                   'src_port': ovs_port_id,
                                   'hwaddr': self.lvap.addr,
+                                  'downlink': True,
                                   'match': match}
 
                         if value:
@@ -208,6 +209,8 @@ class VirtualPortProp(dict):
 
                         intent = {'src_dpid': dpid,
                                   'src_port': ovs_port_id,
+                                  'hwaddr': self.lvap.addr,
+                                  'downlink': False,
                                   'match': match}
 
                         if value:
@@ -221,7 +224,7 @@ class VirtualPortProp(dict):
                         break
 
             # encap is not set, then all outgoing traffic can go to different
-            # LVNFs as specified by key. Remove only the key is it already
+            # LVNFs as specified by key. Remove only the key if it already
             # exists. Notice that this will send as many intents as the number
             # of blocks.
             else:
@@ -244,16 +247,17 @@ class VirtualPortProp(dict):
                         key['dpid'] = n_port.dpid
                         key['port_id'] = n_port.port_id
 
+                        match = key_to_match(key)
+
                         intent = {'src_dpid': n_port.dpid,
                                   'src_port': n_port.port_id,
                                   'hwaddr': self.lvap.addr,
-                                  'match': key_to_match(key)}
+                                  'downlink': True,
+                                  'match': match}
 
                         if value:
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port'] = value.ovs_port_id
-
-                        match = key_to_match(key)
 
                         # remove virtual link
                         if self.__contains__(key):
@@ -283,15 +287,17 @@ class VirtualPortProp(dict):
                         key['dpid'] = n_port.dpid
                         key['port_id'] = n_port.port_id
 
+                        match = key_to_match(key)
+
                         intent = {'src_dpid': n_port.dpid,
                                   'src_port': n_port.port_id,
-                                  'match': key_to_match(key)}
+                                  'hwaddr': self.lvap.addr,
+                                  'downlink': False,
+                                  'match': match}
 
                         if value:
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port'] = value.ovs_port_id
-
-                        match = key_to_match(key)
 
                         # remove virtual link
                         if self.__contains__(key):

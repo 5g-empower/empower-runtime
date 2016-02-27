@@ -418,13 +418,13 @@ class LVAP(object):
         # trigger a send_add_lvap and a set_port (radio) message
         self.downlink[default_block] = RadioPort(self, default_block)
 
-        # set ports
-        self.set_ports()
-
         # assign remaining blocks (if any) to the uplink, this could
         # trigger one or more send_add_lvap and a set_port (radio) messages
         for block in pool:
             self.uplink[block] = RadioPort(self, block)
+
+        # set ports
+        self.set_ports()
 
     @property
     def uplink(self):

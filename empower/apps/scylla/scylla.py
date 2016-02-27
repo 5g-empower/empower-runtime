@@ -51,4 +51,4 @@ class Scylla(EmpowerApp):
 def launch(tenant, period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Scylla(tenant, period)
+    return Scylla(tenant, every=period)

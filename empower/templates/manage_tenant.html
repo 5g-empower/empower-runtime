@@ -13,6 +13,8 @@
       initTab()
       runLoader(loadCPPs, '{{tenant.tenant_id}}')
       runLoader(loadWTPs, '{{tenant.tenant_id}}')
+      runLoader(loadLVNFs, '{{tenant.tenant_id}}')
+      runLoader(loadLVAPs, '{{tenant.tenant_id}}')
   }
 
   </script>
@@ -23,6 +25,8 @@
 <div style="width: 1000px; margin-left: auto; margin-right: auto">
   <div class="tabs segmentedControlBase">
     <div class="button segmentedControl leftEnd tab"><span>Details: {{ tenant.tenant_name }}</span></div>
+    <div class="button segmentedControl tab"><span>LVAPs</span></div>
+    <div class="button segmentedControl tab"><span>LVNFs</span></div>
     <div class="button segmentedControl tab"><span>CPPs</span></div>
     <div class="button segmentedControl rightEnd tab"><span>WTPs</span></div>
   </div>
@@ -45,6 +49,36 @@
         <tr>
           <td>{{ tenant.tenant_id }}</td>
           <td>{{ tenant.desc }}</td>
+        </tr>
+      </table>
+
+    </div>
+
+        <div class="tabPanel">
+
+          <h1>Light Virtual Access Points</h1>
+
+          <table id="lvaps" class="dump">
+            <tr>
+              <th width="150px">Station</th>
+              <th width="150px">SSID</th>
+              <th width="150px">BSSID</th>
+              <th width="240px" colspan="2">WTP</th>
+            </tr>
+          </table>
+
+        </div>
+
+    <div class="tabPanel">
+
+      <h1>Light Virtual Network Functions</h1>
+
+      <table id="lvnfs" class="dump">
+        <tr>
+          <th width="350px">UUID</th>
+          <th width="400px">Image</th>
+          <th width="100px">Status</th>
+          <th width="100px" colspan="2">CPP</th>
         </tr>
       </table>
 
