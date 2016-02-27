@@ -28,19 +28,18 @@
 """Exposes a RESTful interface for EmPOWER."""
 
 import json
-import base64
-import re
 import tornado.web
 import tornado.httpserver
 
 from uuid import UUID
+from tornado.web import MissingArgumentError
 
 from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.core.jsonserializer import EmpowerEncoder
-
-from tornado.web import MissingArgumentError
-
+from empower.restserver.apihandlers import EmpowerAPIHandler
+from empower.restserver.aclhandler import AllowHandler
+from empower.restserver.aclhandler import DenyHandler
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
@@ -182,135 +181,6 @@ class ManageTenantHandler(BaseHandler):
                     tenant=tenant)
 
 
-class EmpowerAPIHandler(tornado.web.RequestHandler):
-
-    """ Base class for all the REST call. """
-
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_ADMIN],
-              'PUT': [ROLE_ADMIN],
-              'DELETE': [ROLE_ADMIN]}
-
-    def initialize(self, server=None):
-        self.server = server
-
-    def write_error(self, code, message=None, **kwargs):
-        self.set_header('Content-Type', 'application/json')
-        if message:
-            out = {"message": "%d: %s (%s)" % (code,
-                                               self._reason,
-                                               str(message))}
-            self.finish(json.dumps(out))
-        else:
-            out = {"message": "%d: %s" % (code, self._reason)}
-            self.finish(json.dumps(out))
-
-    def write_as_json(self, value):
-
-        self.write(json.dumps(value, cls=EmpowerEncoder))
-
-    def prepare(self):
-
-        self.set_header('Content-Type', 'application/json')
-
-        if not self.RIGHTS[self.request.method]:
-            return
-
-        auth_header = self.request.headers.get('Authorization')
-
-        if auth_header is None or not auth_header.startswith('Basic '):
-            self.set_header('WWW-Authenticate', 'Basic realm=Restricted')
-            self.send_error(401)
-            return
-
-        auth_bytes = bytes(auth_header[6:], 'utf-8')
-        auth_decoded = base64.b64decode(auth_bytes).decode()
-        username, password = auth_decoded.split(':', 2)
-
-        # account does not exists
-        if not RUNTIME.check_permission(username, password):
-            self.send_error(401)
-            return
-
-        self.account = RUNTIME.get_account(username)
-
-        if self.account.role in self.RIGHTS[self.request.method]:
-
-            if self.account.role == ROLE_ADMIN:
-                return
-
-            if self.account.role == ROLE_USER:
-
-                if self.request.uri.startswith("/api/v1/accounts"):
-
-                    pattern = re.compile("/api/v1/accounts/([a-zA-Z0-9:-]*)/?")
-                    match = pattern.match(self.request.uri)
-
-                    if match and match.group(1):
-                        if match.group(1) in RUNTIME.accounts:
-                            account = RUNTIME.accounts[match.group(1)]
-                            if self.account.username == account.username:
-                                return
-                            else:
-                                self.send_error(401)
-                                return
-
-                    return
-
-                if self.request.uri.startswith("/api/v1/pending"):
-                    pattern = re.compile("/api/v1/pending/([a-zA-Z0-9-]*)/?")
-                    match = pattern.match(self.request.uri)
-                    if match and match.group(1):
-                        try:
-                            tenant_id = UUID(match.group(1))
-                        except:
-                            self.send_error(400)
-                            return
-                        pending = RUNTIME.load_pending_tenant(tenant_id)
-                        if pending:
-                            if self.account.username == pending.owner:
-                                return
-                            self.send_error(401)
-                            return
-
-                    return
-
-                if self.request.uri.startswith("/api/v1/tenants"):
-
-                    pattern = re.compile("/api/v1/tenants/([a-zA-Z0-9-]*)/?")
-                    match = pattern.match(self.request.uri)
-
-                    if match and match.group(1):
-                        tenant_id = UUID(match.group(1))
-                        if tenant_id in RUNTIME.tenants:
-                            tenant = RUNTIME.tenants[tenant_id]
-                            if self.account.username == tenant.owner:
-                                return
-                            self.send_error(401)
-                            return
-
-                    return
-
-        self.send_error(401)
-        return
-
-
-class EmpowerAPIHandlerUsers(EmpowerAPIHandler):
-    """Base class for User REST handlers."""
-
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_USER],
-              'PUT': [ROLE_USER],
-              'DELETE': [ROLE_USER]}
-
-
-class EmpowerAPIHandlerAdminUsers(EmpowerAPIHandler):
-    """Base class for Admin/User REST handlers."""
-
-    RIGHTS = {'GET': None,
-              'PUT': [ROLE_ADMIN, ROLE_USER],
-              'POST': [ROLE_ADMIN, ROLE_USER],
-              'DELETE': [ROLE_ADMIN, ROLE_USER]}
 
 
 class AccountsHandler(EmpowerAPIHandler):
@@ -953,7 +823,9 @@ class RESTServer(tornado.web.Application):
                 AccountsHandler,
                 ComponentsHandler,
                 PendingTenantHandler,
-                TenantHandler]
+                TenantHandler,
+                AllowHandler,
+                DenyHandler]
 
     parms = {
         "template_path": settings.TEMPLATE_PATH,

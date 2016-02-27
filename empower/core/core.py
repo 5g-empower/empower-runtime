@@ -35,6 +35,9 @@ from empower.persistence.persistence import TblAccount
 from empower.persistence.persistence import TblPendingTenant
 from empower.core.account import Account
 from empower.core.tenant import Tenant
+from empower.core.acl import ACL
+from empower.persistence.persistence import TblAllow
+from empower.persistence.persistence import TblDeny
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -86,7 +89,10 @@ class EmpowerRuntime(object):
         self.lvaps = {}
         self.wtps = {}
         self.cpps = {}
+        self.oains = {}
         self.feeds = {}
+        self.allowed = {}
+        self.denied = {}
 
         LOG.info("Starting EmPOWER Runtime")
 
@@ -97,6 +103,7 @@ class EmpowerRuntime(object):
 
         self.__load_accounts()
         self.__load_tenants()
+        self.__load_acl()
 
     def __load_accounts(self):
         """Load accounts table."""
@@ -123,6 +130,98 @@ class EmpowerRuntime(object):
                        tenant.tenant_name,
                        tenant.owner,
                        tenant.desc)
+
+    def __load_acl(self):
+        """ Load ACL list. """
+
+        for allow in Session().query(TblAllow).all():
+
+            if allow.addr in self.allowed:
+                raise ValueError(allow.addr_str)
+
+            acl = ACL(allow.addr, allow.label)
+            self.allowed[allow.addr] = acl
+
+        for deny in Session().query(TblDeny).all():
+            if deny.addr in self.denied:
+                raise ValueError(deny.addr_str)
+            self.denied[deny.addr] = acl
+
+    def add_allowed(self, sta_addr, label):
+        """ Add entry to ACL. """
+
+        allow = Session().query(TblAllow) \
+                         .filter(TblAllow.addr == sta_addr) \
+                         .first()
+        if allow:
+            raise ValueError(sta_addr)
+
+        session = Session()
+        session.add(TblAllow(addr=sta_addr, label=label))
+        session.commit()
+
+        acl = ACL(sta_addr, label)
+        self.allowed[sta_addr] = acl
+
+        return acl
+
+    def remove_allowed(self, sta_addr):
+        """ Remove entry from ACL. """
+
+        allow = Session().query(TblAllow) \
+                         .filter(TblAllow.addr == sta_addr) \
+                         .first()
+        if not allow:
+            raise KeyError(sta_addr)
+
+        session = Session()
+        session.delete(allow)
+        session.commit()
+
+        del self.allowed[sta_addr]
+
+    def add_denied(self, sta_addr, label):
+        """ Add entry to ACL. """
+
+        deny = Session().query(TblDeny) \
+                        .filter(TblDeny.addr == sta_addr) \
+                        .first()
+        if deny:
+            raise ValueError(sta_addr)
+
+        session = Session()
+        session.add(TblDeny(addr=sta_addr, label=label))
+        session.commit()
+
+        acl = ACL(sta_addr, label)
+        self.denied[sta_addr] = acl
+
+        return acl
+
+    def remove_denied(self, sta_addr):
+        """ Remove entry from ACL. """
+
+        deny = Session().query(TblDeny) \
+                        .filter(TblDeny.addr == sta_addr) \
+                        .first()
+        if not deny:
+            raise KeyError(sta_addr)
+
+        session = Session()
+        session.delete(deny)
+        session.commit()
+
+        del self.denied[sta_addr]
+
+    def is_allowed(self, src):
+        """ Check if station is allowed. """
+
+        return (self.allowed and src in self.allowed) or not self.allowed
+
+    def is_denied(self, src):
+        """ Check if station is denied. """
+
+        return self.denied and src in self.denied
 
     def create_account(self, username, password, role, name, surname, email):
         """Create a new account."""

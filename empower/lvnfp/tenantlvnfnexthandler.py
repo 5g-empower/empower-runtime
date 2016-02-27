@@ -32,7 +32,7 @@ import tornado.web
 import json
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 
 from empower.main import RUNTIME
 

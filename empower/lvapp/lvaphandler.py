@@ -33,7 +33,7 @@ import json
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.restserver import EmpowerAPIHandler
+from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
 

@@ -37,8 +37,8 @@ from uuid import UUID
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandler
-from empower.core.restserver import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandler
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.persistence.persistence import TblBelongs
 
 from empower.main import RUNTIME
@@ -288,6 +288,7 @@ class PNFPServer():
 
     def __init__(self, pt_types, pt_types_handlers):
 
+        self.port = None
         self.__load_pnfdevs()
         self.__load_belongs()
         self.pt_types = pt_types

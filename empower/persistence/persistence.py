@@ -206,6 +206,14 @@ class TblWTP(TblPNFDev):
     }
 
 
+class TblOAIN(TblPNFDev):
+    """ OAI Node. """
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'oains'
+    }
+
+
 class TblAllow(Base):
     """ Allow table. """
 

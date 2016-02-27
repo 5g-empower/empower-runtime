@@ -25,51 +25,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Network channel quality map module."""
+"""OAI Node."""
 
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.maps.maps import MapsHandler
-from empower.maps.maps import MapsWorker
-from empower.maps.maps import Maps
-from empower.maps.maps import POLLER_RESP_MSG
-
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
+from empower.core.pnfdev import BasePNFDev
 
 
-class NCQM(Maps):
-    pass
+class OAIN(BasePNFDev):
+    """A Wireless Termination Point.
 
+    Attributes:
+        addr: This PNFDev MAC address (EtherAddress)
+        label: A human-radable description of this PNFDev (str)
+        connection: Signalling channel connection (BasePNFPMainHandler)
+        last_seen: Sequence number of the last hello message received (int)
+        last_seen_ts: Timestamp of the last hello message received (int)
+        feed: The power consumption monitoring feed (Feed)
+        seq: Next sequence number (int)
+        every: update period (in ms)
+        uplink_bytes: signalling channel uplink bytes
+        uplink_bit_rate: signalling channel uplink bit rate
+        downlink_bytes: signalling channel downlink bytes
+        downlink_bit_rate: signalling channel downlink bit rate
+        ports: OVS ports
+        supports: set of resource blocks supported by the WTP
+    """
 
-class NCQMHandler(MapsHandler):
-    pass
-
-
-class NCQMWorker(MapsWorker):
-
-    MODULE_NAME = "ncqm"
-    MODULE_HANDLER = NCQMHandler
-    MODULE_TYPE = NCQM
-
-    POLLER_REQ_MSG_TYPE = 0x27
-    POLLER_RESP_MSG_TYPE = 0x28
-
-bind_module(NCQMWorker)
-
-
-def launch():
-    """ Initialize the module. """
-
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = NCQMWorker(rest_server)
-    lvap_server.register_message(worker.POLLER_RESP_MSG_TYPE,
-                                 POLLER_RESP_MSG,
-                                 worker.handle_poller_response)
-
-    return worker
+    ALIAS = "oains"
+    SOLO = "oain"

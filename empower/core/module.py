@@ -40,7 +40,7 @@ from tornado.ioloop import IOLoop
 from multiprocessing.pool import ThreadPool
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandlerUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
 from empower.main import RUNTIME
 

@@ -33,10 +33,11 @@ from empower.main import main
 if __name__ == "__main__":
 
     # Default modules
-    ARGVS = ['core.restserver',
+    ARGVS = ['restserver.restserver',
              'lvnfp.lvnfpserver',
              'lvapp.lvappserver',
-             'core.energinoserver',
+             'oaip.oaipserver',
+             'energinoserver.energinoserver',
              'link_stats.link_stats',
              'events.wtpdown',
              'events.wtpup',

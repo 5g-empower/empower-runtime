@@ -33,7 +33,9 @@ import json
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.restserver import EmpowerAPIHandler
+from empower.restserver.restserver import EmpowerAPIHandler
+
+from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -63,7 +65,7 @@ class ACLHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid URL")
 
-            acl = getattr(self.server, self.STRUCT)
+            acl = getattr(RUNTIME, self.STRUCT)
 
             if len(args) == 0:
                 self.write(json.dumps(acl.values(), cls=EmpowerEncoder))
@@ -110,7 +112,7 @@ class ACLHandler(EmpowerAPIHandler):
             if "label" in request:
                 label = request['label']
 
-            func = getattr(self.server, 'add_%s' % self.STRUCT)
+            func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
             func(EtherAddress(request['sta']), label)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
@@ -137,7 +139,7 @@ class ACLHandler(EmpowerAPIHandler):
         try:
             if len(args) != 1:
                 raise ValueError("Invalid URL")
-            func = getattr(self.server, 'remove_%s' % self.STRUCT)
+            func = getattr(RUNTIME, 'remove_%s' % self.STRUCT)
             func(EtherAddress(args[0]))
         except KeyError as ex:
             self.send_error(404, message=ex)

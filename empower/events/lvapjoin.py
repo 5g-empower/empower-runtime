@@ -32,7 +32,7 @@ from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvapp import PT_LVAP_JOIN
 

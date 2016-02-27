@@ -34,7 +34,7 @@ import json
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.restserver import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.core.image import Image
 from empower.core.lvnf import LVNF
 

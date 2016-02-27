@@ -32,9 +32,9 @@ import json
 
 from uuid import UUID
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandlerUsers
-from empower.core.restserver import RESTServer
-from empower.core.restserver import BaseHandler
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
+from empower.restserver.restserver import RESTServer
+from empower.restserver.restserver import BaseHandler
 
 from empower.main import RUNTIME
 

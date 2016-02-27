@@ -34,47 +34,40 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
 from empower.datatypes.etheraddress import EtherAddress
-from empower.lvapp.lvappconnection import LVAPPConnection
-from empower.persistence.persistence import TblWTP
-from empower.core.wtp import WTP
+from empower.oaip.oaipconnection import OAIPConnection
+from empower.persistence.persistence import TblOAIN
+from empower.core.oain import OAIN
 
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
-from empower.restserver.aclhandler import AllowHandler
-from empower.restserver.aclhandler import DenyHandler
-from empower.lvapp.lvaphandler import LVAPHandler
-from empower.lvapp.tenantlvaphandler import TenantLVAPHandler
-from empower.lvapp.tenantlvapporthandler import TenantLVAPPortHandler
-from empower.lvapp.tenantlvapnexthandler import TenantLVAPNextHandler
 
 from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
 
-DEFAULT_PORT = 4433
-BASE_MAC = EtherAddress("00:1b:b3:00:00:00")
+DEFAULT_PORT = 9933
 
 
-class TenantWTPHandler(BaseTenantPNFDevHandler):
-    """TenantWTPHandler Handler."""
+class TenantOAINHandler(BaseTenantPNFDevHandler):
+    """TenantOAIN Handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/wtps/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/wtps/([a-zA-Z0-9:]*)/?"]
-
-
-class WTPHandler(BasePNFDevHandler):
-    """WTP Handler."""
-
-    HANDLERS = [(r"/api/v1/wtps/?"),
-                (r"/api/v1/wtps/([a-zA-Z0-9:]*)/?")]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/oains/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/oains/([a-zA-Z0-9:]*)/?"]
 
 
-class LVAPPServer(PNFPServer, TCPServer):
-    """Exposes the LVAP API."""
+class OAINHandler(BasePNFDevHandler):
+    """OAIN Handler."""
 
-    PNFDEV = WTP
-    TBL_PNFDEV = TblWTP
+    HANDLERS = [(r"/api/v1/oains/?"),
+                (r"/api/v1/oains/([a-zA-Z0-9:]*)/?")]
+
+
+class OAIPServer(PNFPServer, TCPServer):
+    """Exposes the OAIP API."""
+
+    PNFDEV = OAIN
+    TBL_PNFDEV = TblOAIN
 
     def __init__(self, port, pt_types, pt_types_handlers):
 
@@ -86,42 +79,19 @@ class LVAPPServer(PNFPServer, TCPServer):
 
         self.listen(self.port)
 
-        self.lvaps = {}
-        self.__assoc_id = 0
-
     def handle_stream(self, stream, address):
         LOG.info('Incoming connection from %r', address)
-        self.connection = LVAPPConnection(stream, address, server=self)
-
-    @property
-    def assoc_id(self):
-        """ Return next association id. """
-
-        self.__assoc_id += 1
-        return self.__assoc_id
-
-    def generate_bssid(self, sta_mac):
-        """ Generate a new BSSID address. """
-
-        base = str(BASE_MAC).split(":")[0:3]
-        sta = str(sta_mac).split(":")[3:6]
-        return EtherAddress(":".join(base + sta))
+        self.connection = OAIPConnection(stream, address, server=self)
 
 
 def launch(port=DEFAULT_PORT):
     """Start LVAPP Server Module."""
 
-    server = LVAPPServer(int(port), PT_TYPES, PT_TYPES_HANDLERS)
+    server = OAIPServer(int(port), PT_TYPES, PT_TYPES_HANDLERS)
 
     rest_server = RUNTIME.components[RESTServer.__module__]
-    rest_server.add_handler_class(TenantWTPHandler, server)
-    rest_server.add_handler_class(WTPHandler, server)
-    rest_server.add_handler_class(AllowHandler, server)
-    rest_server.add_handler_class(DenyHandler, server)
-    rest_server.add_handler_class(LVAPHandler, server)
-    rest_server.add_handler_class(TenantLVAPHandler, server)
-    rest_server.add_handler_class(TenantLVAPPortHandler, server)
-    rest_server.add_handler_class(TenantLVAPNextHandler, server)
+    rest_server.add_handler_class(TenantOAINHandler, server)
+    rest_server.add_handler_class(OAINHandler, server)
 
-    LOG.info("LVAP Server available at %u", server.port)
+    LOG.info("OAI Server available at %u", server.port)
     return server

@@ -32,7 +32,7 @@ import tornado.web
 import json
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.intent import key_to_match
 from empower.core.intent import match_to_key

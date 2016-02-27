@@ -39,10 +39,10 @@ from empower.persistence.persistence import TblFeed
 from empower.persistence.persistence import TblPNFDev
 from empower.persistence import Session
 from empower.core.feed import Feed
-from empower.core.restserver import EmpowerAPIHandler
+from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.restserver import RESTServer
-from empower.core.restserver import exceptions
+from empower.restserver.restserver import RESTServer
+from empower.restserver.restserver import exceptions
 
 from empower.main import RUNTIME
 

@@ -31,7 +31,7 @@ import json
 import uuid
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.core.restserver import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
 
 from empower.main import RUNTIME

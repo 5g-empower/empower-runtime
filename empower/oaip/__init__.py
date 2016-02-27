@@ -25,51 +25,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Network channel quality map module."""
+""" OAI Server module. """
 
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.maps.maps import MapsHandler
-from empower.maps.maps import MapsWorker
-from empower.maps.maps import Maps
-from empower.maps.maps import POLLER_RESP_MSG
-
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class NCQM(Maps):
-    pass
+from construct import Sequence
+from construct import Array
+from construct import Struct
+from construct import UBInt8
+from construct import UBInt16
+from construct import UBInt32
+from construct import Bytes
+from construct import Range
+from construct import BitStruct
+from construct import Bit
+from construct import Padding
 
 
-class NCQMHandler(MapsHandler):
-    pass
+PT_VERSION = 0x00
+
+PT_BYE = 0x00
+PT_REGISTER = 0xFF
+PT_HELLO = 0x01
+
+HEADER = Struct("header", UBInt8("version"), UBInt8("type"), UBInt16("length"))
+
+HELLO = Struct("hello", UBInt8("version"),
+               UBInt8("type"),
+               UBInt16("length"),
+               UBInt32("seq"),
+               UBInt32("period"),
+               Bytes("wtp", 6),
+               UBInt32("uplink_bytes"),
+               UBInt32("downlink_bytes"),
+               Bytes("ssid", lambda ctx: ctx.length - 26))
 
 
-class NCQMWorker(MapsWorker):
+PT_TYPES = {PT_BYE: None,
+            PT_REGISTER: None,
+            PT_HELLO: HELLO}
 
-    MODULE_NAME = "ncqm"
-    MODULE_HANDLER = NCQMHandler
-    MODULE_TYPE = NCQM
-
-    POLLER_REQ_MSG_TYPE = 0x27
-    POLLER_RESP_MSG_TYPE = 0x28
-
-bind_module(NCQMWorker)
-
-
-def launch():
-    """ Initialize the module. """
-
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = NCQMWorker(rest_server)
-    lvap_server.register_message(worker.POLLER_RESP_MSG_TYPE,
-                                 POLLER_RESP_MSG,
-                                 worker.handle_poller_response)
-
-    return worker
+PT_TYPES_HANDLERS = {PT_BYE: [],
+                     PT_REGISTER: [],
+                     PT_HELLO: []}

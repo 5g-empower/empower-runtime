@@ -28,7 +28,7 @@
 """User channel quality map module."""
 
 from empower.core.module import bind_module
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.maps.maps import MapsHandler
 from empower.maps.maps import MapsWorker

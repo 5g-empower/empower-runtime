@@ -29,7 +29,7 @@
 
 from empower.core.module import ModuleHandler
 from empower.core.module import bind_module
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.counters.counters import PT_STATS_RESPONSE
 from empower.counters.counters import STATS_RESPONSE

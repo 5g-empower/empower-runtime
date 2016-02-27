@@ -39,7 +39,7 @@ from construct import Bytes
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import bind_module
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.triggers.triggers import TriggerWorker
 from empower.triggers.triggers import Trigger

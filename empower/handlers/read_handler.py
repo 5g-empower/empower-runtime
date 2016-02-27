@@ -37,7 +37,7 @@ from empower.core.module import handle_callback
 from empower.handlers import PT_READ_HANDLER_REQUEST
 from empower.handlers import PT_READ_HANDLER_RESPONSE
 from empower.lvnfp.lvnfpserver import LVNFPServer
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 
 from empower.main import RUNTIME
 

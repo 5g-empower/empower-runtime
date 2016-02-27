@@ -34,7 +34,7 @@ import uuid
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.restserver import EmpowerAPIHandlerUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
 

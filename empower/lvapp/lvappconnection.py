@@ -250,10 +250,10 @@ class LVAPPConnection(object):
         if sta in RUNTIME.lvaps:
             return
 
-        if not self.server.is_allowed(sta):
+        if not RUNTIME.is_allowed(sta):
             return
 
-        if self.server.is_denied(sta):
+        if RUNTIME.is_denied(sta):
             return
 
         if request.ssid == b'':
@@ -334,11 +334,11 @@ class LVAPPConnection(object):
 
         lvap = RUNTIME.lvaps[sta]
 
-        if not self.server.is_allowed(sta):
+        if not RUNTIME.is_allowed(sta):
             LOG.info("Auth request from %s ignored (white list)", sta)
             return
 
-        if self.server.is_denied(sta):
+        if RUNTIME.is_denied(sta):
             LOG.info("Auth request from %s ignored (black list)", sta)
             return
 
@@ -373,11 +373,11 @@ class LVAPPConnection(object):
 
         lvap = RUNTIME.lvaps[sta]
 
-        if not self.server.is_allowed(sta):
+        if not RUNTIME.is_allowed(sta):
             LOG.info("Assoc request from %s ignored (white list)", sta)
             return
 
-        if self.server.is_denied(sta):
+        if RUNTIME.is_denied(sta):
             LOG.info("Assoc request from %s ignored (black list)", sta)
             return
 

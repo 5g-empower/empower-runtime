@@ -32,7 +32,7 @@ import tornado.ioloop
 import tornado.websocket
 
 from empower.core.pnfpserver import PNFPServer
-from empower.core.restserver import RESTServer
+from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.persistence.persistence import TblCPP
