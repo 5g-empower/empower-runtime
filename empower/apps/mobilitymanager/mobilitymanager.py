@@ -29,6 +29,8 @@
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
+from empower.core.app import EmpowerAppHandler
+from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
 from empower.core.resourcepool import ResourcePool
 from empower.triggers.rssi import rssi
@@ -75,6 +77,14 @@ def handover(lvap, wtps):
         port.mcs = [6, 12]
 
 
+class MobilityManagerHandler(EmpowerAppHandler):
+    pass
+
+
+class MobilityManagerHomeHandler(EmpowerAppHomeHandler):
+    pass
+
+
 class MobilityManager(EmpowerApp):
     """Basic mobility manager.
 
@@ -88,6 +98,10 @@ class MobilityManager(EmpowerApp):
         ./empower-runtime.py apps.mobilitymanager.mobilitymanager:$ID
 
     """
+
+    MODULE_NAME = "mobilitymanager"
+    MODULE_HANDLER = MobilityManagerHandler
+    MODULE_HOME_HANDLER = MobilityManagerHomeHandler
 
     def __init__(self, tenant, **kwargs):
 
