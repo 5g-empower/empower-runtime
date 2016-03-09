@@ -41,7 +41,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-DEFAULT_LIMIT = -70
+DEFAULT_LIMIT = -99
 
 
 def handover(lvap, wtps):
@@ -61,7 +61,7 @@ def handover(lvap, wtps):
 
     # Filter Resource Blocks by RSSI
     valid = [block for block in matches
-             if block.ucqm[lvap.addr]['ewma_rssi'] >= -65]
+             if block.ucqm[lvap.addr]['ewma_rssi'] >= -55]
 
     # Perform the handover
     new_block = valid.pop() if valid else None

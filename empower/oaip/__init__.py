@@ -42,21 +42,16 @@ from construct import Padding
 
 PT_VERSION = 0x00
 
-PT_BYE = 0x00
+PT_HELLO = 0x00
+PT_BYE = 0x01
 PT_REGISTER = 0xFF
-PT_HELLO = 0x01
+
 
 HEADER = Struct("header", UBInt8("version"), UBInt8("type"), UBInt16("length"))
 
-HELLO = Struct("hello", UBInt8("version"),
-               UBInt8("type"),
-               UBInt16("length"),
-               UBInt32("seq"),
-               UBInt32("period"),
-               Bytes("wtp", 6),
-               UBInt32("uplink_bytes"),
-               UBInt32("downlink_bytes"),
-               Bytes("ssid", lambda ctx: ctx.length - 26))
+HELLO = Struct("hello", UBInt32("version"),
+               UBInt32("type"),
+               UBInt32("xid"))
 
 
 PT_TYPES = {PT_BYE: None,
