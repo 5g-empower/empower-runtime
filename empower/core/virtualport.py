@@ -98,16 +98,13 @@ class VirtualPortProp(dict):
 
         match = key_to_match(key)
 
-        uuid = self.__uuids__[match]
-
         # remove virtual links
-        del_intent(uuid)
+        if match in self.__uuids__:
+            del_intent(self.__uuids__[match])
+            del self.__uuids__[match]
 
         # remove old entry
         dict.__delitem__(self, match)
-
-        # remove meta-data
-        del self.__uuids__[match]
 
     @property
     def uuids(self):
@@ -172,8 +169,8 @@ class VirtualPortProp(dict):
 
                         match = key_to_match(key)
 
-                        intent = {'src_dpid': dpid,
-                                  'src_port': ovs_port_id,
+                        intent = {'src_dpid': n_port.dpid,
+                                  'src_port': n_port.port_id,
                                   'hwaddr': self.lvap.addr,
                                   'downlink': True,
                                   'match': match}
@@ -207,8 +204,8 @@ class VirtualPortProp(dict):
 
                         match = key_to_match(key)
 
-                        intent = {'src_dpid': dpid,
-                                  'src_port': ovs_port_id,
+                        intent = {'src_dpid': n_port.dpid,
+                                  'src_port': n_port.port_id,
                                   'hwaddr': self.lvap.addr,
                                   'downlink': False,
                                   'match': match}
