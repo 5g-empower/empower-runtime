@@ -246,7 +246,8 @@ class LVAP(object):
 
         # Restore virtual links
         # TODO: Implement.
-        self.__ports[0].next[{}] = None
+        if self.__ports:
+            self.__ports[0].next[{}] = None
 
     @property
     def ports(self):
