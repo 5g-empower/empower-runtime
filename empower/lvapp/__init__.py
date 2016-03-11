@@ -73,8 +73,7 @@ HELLO = Struct("hello", UBInt8("version"),
                UBInt32("period"),
                Bytes("wtp", 6),
                UBInt32("uplink_bytes"),
-               UBInt32("downlink_bytes"),
-               Bytes("ssid", lambda ctx: ctx.length - 26))
+               UBInt32("downlink_bytes"))
 
 PROBE_REQUEST = Struct("probe_request", UBInt8("version"),
                        UBInt8("type"),

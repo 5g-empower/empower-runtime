@@ -646,7 +646,7 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Hello from unknown WTP (%s)", (wtp_addr))
+            LOG.info("Caps response from unknown WTP (%s)", (wtp_addr))
             return
 
         LOG.info("Received caps response from %s",
