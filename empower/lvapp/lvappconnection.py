@@ -158,7 +158,7 @@ class LVAPPConnection(object):
         self._trigger_message(hdr.type)
         self._wait()
 
-    def _trigger_message(self, msg_type, callback_data=None):
+    def _trigger_message(self, msg_type):
 
         if msg_type not in self.server.pt_types:
 
@@ -283,19 +283,19 @@ class LVAPPConnection(object):
         RUNTIME.lvaps[sta] = lvap
 
         # TODO: This should be built starting from the probe request
-        lvap.supports.add(ResourceBlock(lvap, 1, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 2, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 3, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 4, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 5, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 6, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 7, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 8, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 9, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 10, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 11, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 36, BT_L20, False))
-        lvap.supports.add(ResourceBlock(lvap, 48, BT_L20, False))
+        lvap.supports.add(ResourceBlock(lvap, 1, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 2, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 3, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 4, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 5, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 6, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 7, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 8, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 9, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 10, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 11, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 36, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, 48, BT_L20))
 
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
         requested = ResourcePool()
@@ -486,19 +486,19 @@ class LVAPPConnection(object):
             lvap = LVAP(sta_addr, bssid_addr)
 
             # TODO: This should be built starting from the status message
-            lvap.supports.add(ResourceBlock(lvap, 1, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 2, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 3, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 4, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 5, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 6, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 7, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 8, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 9, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 10, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 11, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 36, BT_L20, False))
-            lvap.supports.add(ResourceBlock(lvap, 48, BT_L20, False))
+            lvap.supports.add(ResourceBlock(lvap, 1, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 2, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 3, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 4, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 5, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 6, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 7, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 8, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 9, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 10, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 11, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 36, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, 48, BT_L20))
 
             RUNTIME.lvaps[sta_addr] = lvap
 
@@ -654,13 +654,8 @@ class LVAPPConnection(object):
 
         for block in caps.blocks:
 
-            if block[2].blacklisted:
-                black_listed = True
-            else:
-                black_listed = False
-
-            rb = ResourceBlock(wtp, block[0], block[1], black_listed)
-            wtp.supports.add(rb)
+            r_block = ResourceBlock(wtp, block[0], block[1])
+            wtp.supports.add(r_block)
 
         for port in caps.ports:
 

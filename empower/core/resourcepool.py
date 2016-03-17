@@ -122,9 +122,7 @@ class ResourcePool(set):
         for rblock in self:
             for rblock_other in other:
                 if rblock.channel == rblock_other.channel and \
-                   rblock.band == rblock_other.band and \
-                   not rblock.black_listed and \
-                   not rblock_other.black_listed:
+                   rblock.band == rblock_other.band:
 
                     result.add(rblock)
         return result
@@ -134,8 +132,7 @@ class ResourcePool(set):
         for rblock in self:
             result.add(rblock)
         for rblock in other:
-            if not rblock.black_listed:
-                result.add(rblock)
+            result.add(rblock)
         return result
 
 
@@ -151,7 +148,6 @@ class ResourceBlock(object):
         radio: The WTP or the LVAP at which this resource block is available
         channel: The channel id
         band: The band type (0=L20, 1=HT20, 2=HT40)
-        black_listed: The blck availability
         ucqm: User interference matrix group. Rssi values to LVAPs.
         ncqm: Network interference matrix group. Rssi values to WTPs.
         supports: list of MCS supported in this Resource Block as
@@ -160,12 +156,11 @@ class ResourceBlock(object):
           an 11n device it will report [0, 1, 2, 3, 4, 5, 6, 7]
     """
 
-    def __init__(self, radio, channel, band, black_listed=False):
+    def __init__(self, radio, channel, band):
 
-        self.radio = radio
-        self.channel = channel
-        self.band = band
-        self.black_listed = black_listed
+        self._radio = radio
+        self._channel = channel
+        self._band = band
         self.ucqm = CQM()
         self.ncqm = CQM()
 
@@ -246,8 +241,7 @@ class ResourceBlock(object):
                 'supports': sorted(self.supports),
                 'band': BANDS[self.band],
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
-                'ncqm': {str(k): v for k, v in self.ncqm.items()},
-                'black_listed': self.black_listed}
+                'ncqm': {str(k): v for k, v in self.ncqm.items()}}
 
     def __hash__(self):
 
@@ -263,7 +257,5 @@ class ResourceBlock(object):
                 other.band == self.band)
 
     def __repr__(self):
-        return "(%s, %u, %s, %s)" % (self.radio.addr,
-                                     self.channel,
-                                     BANDS[self.band],
-                                     str(self.black_listed))
+        return "(%s, %u, %s)" % (self.radio.addr, self.channel,
+                                 BANDS[self.band])

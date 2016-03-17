@@ -338,5 +338,3 @@ class VirtualPortProp(dict):
         match = key_to_match(key)
 
         return dict.__contains__(self, match)
-
-
