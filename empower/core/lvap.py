@@ -35,7 +35,6 @@ from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPort
 from empower.core.intent import match_to_key
-from empower.core.intent import key_to_match
 
 import empower.logger
 LOG = empower.logger.get_logger()

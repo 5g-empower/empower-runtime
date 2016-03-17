@@ -130,7 +130,8 @@ class EmpowerRuntime(object):
                 Tenant(tenant.tenant_id,
                        tenant.tenant_name,
                        tenant.owner,
-                       tenant.desc)
+                       tenant.desc,
+                       tenant.bssid_type)
 
     def __load_acl(self):
         """ Load ACL list. """
@@ -345,7 +346,8 @@ class EmpowerRuntime(object):
 
         return True
 
-    def add_tenant(self, owner, desc, tenant_name, tenant_id=None):
+    def add_tenant(self, owner, desc, tenant_name, bssid_type,
+                   tenant_id=None):
         """Create new Tenant."""
 
         if tenant_id in self.tenants:
@@ -359,11 +361,13 @@ class EmpowerRuntime(object):
                 request = TblTenant(tenant_id=tenant_id,
                                     tenant_name=tenant_name,
                                     owner=owner,
-                                    desc=desc)
+                                    desc=desc,
+                                    bssid_type=bssid_type)
             else:
                 request = TblTenant(owner=owner,
                                     tenant_name=tenant_name,
-                                    desc=desc)
+                                    desc=desc,
+                                    bssid_type=bssid_type)
 
             session.add(request)
             session.commit()
@@ -376,7 +380,8 @@ class EmpowerRuntime(object):
             Tenant(request.tenant_id,
                    request.tenant_name,
                    self.accounts[owner].username,
-                   desc)
+                   desc,
+                   request.bssid_type)
 
         return request.tenant_id
 
@@ -399,7 +404,8 @@ class EmpowerRuntime(object):
         else:
             return Session().query(TblPendingTenant).all()
 
-    def request_tenant(self, owner, desc, tenant_name, tenant_id=None):
+    def request_tenant(self, owner, desc, tenant_name, bssid_type,
+                       tenant_id=None):
         """Request new Tenant."""
 
         if tenant_id in self.tenants:
@@ -416,11 +422,13 @@ class EmpowerRuntime(object):
                 request = TblPendingTenant(tenant_id=tenant_id,
                                            owner=owner,
                                            tenant_name=tenant_name,
-                                           desc=desc)
+                                           desc=desc,
+                                           bssid_type=bssid_type)
             else:
                 request = TblPendingTenant(owner=owner,
                                            tenant_name=tenant_name,
-                                           desc=desc)
+                                           desc=desc,
+                                           bssid_type=bssid_type)
 
             session.add(request)
             session.commit()

@@ -60,6 +60,9 @@ PT_SET_PORT = 0x13
 PT_STATUS_PORT = 0x14
 PT_CAPS_REQUEST = 0x15
 PT_CAPS_RESPONSE = 0x16
+PT_ADD_VAP = 0x31
+PT_DEL_VAP = 0x32
+PT_STATUS_VAP = 0x33
 
 HEADER = Struct("header", UBInt8("version"), UBInt8("type"), UBInt16("length"))
 
@@ -208,6 +211,25 @@ STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("nb_mcses"),
                      Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
 
+ADD_VAP = Struct("add_vap", UBInt8("version"),
+                 UBInt8("type"),
+                 UBInt16("length"),
+                 UBInt32("seq"),
+                 UBInt8("channel"),
+                 UBInt8("band"),
+                 Bytes("net_bssid", 6),
+                 Bytes("ssid", lambda ctx: ctx.length - 16))
+
+STATUS_VAP = Struct("status_vap", UBInt8("version"),
+                    UBInt8("type"),
+                    UBInt16("length"),
+                    UBInt32("seq"),
+                    Bytes("wtp", 6),
+                    UBInt8("channel"),
+                    UBInt8("band"),
+                    Bytes("bssid", 6),
+                    Bytes("ssid", lambda ctx: ctx.length - 22))
+
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
             PT_LVAP_JOIN: None,
@@ -225,7 +247,8 @@ PT_TYPES = {PT_BYE: None,
             PT_CAPS_REQUEST: CAPS_REQUEST,
             PT_CAPS_RESPONSE: CAPS_RESPONSE,
             PT_SET_PORT: SET_PORT,
-            PT_STATUS_PORT: STATUS_PORT}
+            PT_STATUS_PORT: STATUS_PORT,
+            PT_STATUS_VAP: STATUS_VAP}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -244,4 +267,5 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_CAPS_REQUEST: [],
                      PT_CAPS_RESPONSE: [],
                      PT_SET_PORT: [],
-                     PT_STATUS_PORT: []}
+                     PT_STATUS_PORT: [],
+                     PT_STATUS_VAP: []}

@@ -60,11 +60,18 @@ from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PROBE_RESPONSE
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
+from empower.core.vap import VAP
+from empower.lvapp import PT_ADD_VAP
+from empower.lvapp import ADD_VAP
+from empower.core.tenant import T_TYPE_SHARED
+from empower.core.tenant import T_TYPE_UNIQUE
 
 from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
+
+BASE_MAC = EtherAddress("00:1b:b3:00:00:00")
 
 
 class LVAPPConnection(object):
@@ -276,7 +283,7 @@ class LVAPPConnection(object):
 
         # spawn new LVAP
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
-        bssid = self.server.generate_bssid(sta)
+        bssid = self.server.generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, bssid)
         lvap._ssids = ssids
 
@@ -435,6 +442,16 @@ class LVAPPConnection(object):
             LOG.info("Deleting LVAP: %s", lvap.addr)
             lvap.clear_ports()
             del RUNTIME.lvaps[lvap.addr]
+
+        # remove hosted VAPs
+        to_be_removed = []
+        for vap in RUNTIME.vaps.values():
+            if vap.wtp == self.wtp:
+                to_be_removed.append(vap)
+
+        for vap in to_be_removed:
+            LOG.info("Deleting VAP: %s", vap.bssid)
+            del RUNTIME.vaps[vap.bssid]
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
@@ -638,7 +655,7 @@ class LVAPPConnection(object):
         Args:
             caps, a CAPS_RESPONSE message
         Returns:
-            None`
+            None
         """
 
         wtp_addr = EtherAddress(caps.wtp)
@@ -667,6 +684,39 @@ class LVAPPConnection(object):
                                        iface=iface)
 
             wtp.ports[network_port.port_id] = network_port
+
+        # Upon connection to the controller, the WTP must be provided
+        # with the list of shared VAP
+
+        for tenant in RUNTIME.tenants.values():
+
+            # tenant does not use shared VAPs
+            if tenant.bssid_type == T_TYPE_UNIQUE:
+                continue
+
+            # wtp not in this tenant
+            if wtp_addr not in tenant.wtps:
+                continue
+
+            tenant_id = tenant.tenant_id
+
+            tokens = [tenant_id.hex[0:12][i:i+2] for i in range(0, 12, 2)]
+
+            base_bssid = EtherAddress(':'.join(tokens))
+
+            for block in wtp.supports:
+
+                net_bssid = self.server.generate_bssid(base_bssid, wtp_addr)
+
+                # vap has already been created
+                if net_bssid in RUNTIME.vaps:
+                    continue
+
+                vap = VAP(net_bssid, tenant.tenant_name, block)
+
+                self.send_add_vap(vap)
+                RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
+                break
 
     def _handle_interference_map(self, interference_map):
         """Handle an incoming INTERFERENCE_MAP message.
@@ -699,6 +749,32 @@ class LVAPPConnection(object):
                 if sta in RUNTIME.lvaps or sta in RUNTIME.wtps:
                     block.rssi_to[sta] = entry[1]
 
+    def send_add_vap(self, vap):
+        """Send a ADD_VAP message.
+        Args:
+            vap: an VAP object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        add_vap = Container(version=PT_VERSION,
+                            type=PT_ADD_VAP,
+                            length=16,
+                            seq=self.wtp.seq,
+                            channel=vap.channel,
+                            band=vap.band,
+                            net_bssid=vap.net_bssid.to_raw(),
+                            ssid=vap.tenant_ssid.encode())
+
+        add_vap.length = add_vap.length + len(vap.tenant_ssid)
+        LOG.info("Add vap bssid %s band %s channel %d ssid %s",
+                 vap.net_bssid, vap.band, vap.channel, vap.tenant_ssid)
+
+        msg = ADD_VAP.build(add_vap)
+        self.stream.write(msg)
+
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
         Args:
@@ -718,6 +794,43 @@ class LVAPPConnection(object):
 
         msg = CAPS_REQUEST.build(caps_req)
         self.stream.write(msg)
+
+    def _handle_status_vap(self, status):
+        """Handle an incoming STATUS_VAP message.
+        Args:
+            status, a STATUS_VAP message
+        Returns:
+            None
+        """
+
+        wtp_addr = EtherAddress(status.wtp)
+
+        try:
+            wtp = RUNTIME.wtps[wtp_addr]
+        except KeyError:
+            LOG.info("VAP Status from unknown WTP %s", (wtp_addr))
+            return
+
+        if not wtp.connection:
+            LOG.info("VAP Status from disconnected WTP %s", (wtp_addr))
+            return
+
+        bssid_addr = EtherAddress(status.bssid)
+
+        vap = None
+        block = ResourceBlock(wtp, status.channel, status.band)
+        ssid = status.ssid
+
+        LOG.info("VAP %s status update block %s",
+                 bssid_addr,
+                 block)
+
+        # If the VAP does not exists, then create a new one
+        if bssid_addr not in RUNTIME.vaps:
+            RUNTIME.vaps[bssid_addr] = VAP(bssid_addr, ssid, block)
+
+        vap = RUNTIME.vaps[bssid_addr]
+        LOG.info("VAP %s", vap)
 
     def send_assoc_response(self, lvap):
         """Send a ASSOC_RESPONSE message.

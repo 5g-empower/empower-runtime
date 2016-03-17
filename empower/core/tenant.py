@@ -30,6 +30,9 @@
 from empower.persistence.persistence import TblBelongs
 from empower.persistence import Session
 
+T_TYPE_SHARED = "shared"
+T_TYPE_UNIQUE = "unique"
+
 
 class Tenant(object):
     """Tenant object representing a network slice.
@@ -42,28 +45,32 @@ class Tenant(object):
         tenant_id: The tenant identifier
         owner: The username of the user that requested this pool
         desc: Human readable description
+        bssid_type: shared (VAP) or unique (LVAP)
     """
 
     TO_DICT = ['tenant_id',
                'tenant_name',
                'owner',
                'desc',
+               'bssid_type',
                'lvaps',
                'lvnfs',
                'wtps',
                'cpps',
                'oains']
 
-    def __init__(self, tenant_id, tenant_name, owner, desc):
+    def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type):
         self.tenant_id = tenant_id
         self.tenant_name = tenant_name
         self.owner = owner
         self.desc = desc
+        self.bssid_type = bssid_type
         self.wtps = {}
         self.cpps = {}
         self.oains = {}
         self.lvaps = {}
         self.lvnfs = {}
+        self.vaps = {}
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """
