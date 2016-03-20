@@ -43,6 +43,8 @@ from empower.restserver.aclhandler import DenyHandler
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
+from empower.core.tenant import T_TYPES
+from empower.core.tenant import T_TYPE_UNIQUE
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -625,7 +627,12 @@ class PendingTenantHandler(EmpowerAPIHandler):
                 raise ValueError("missing tenant_name element")
 
             if "bssid_type" not in request:
-                raise ValueError("missing bssid_type element")
+                bssid_type = T_TYPE_UNIQUE
+            else:
+                bssid_type = request['bssid_type']
+
+            if bssid_type not in T_TYPES:
+                raise ValueError("invalid bssid_type %s" % bssid_type)
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
@@ -635,7 +642,7 @@ class PendingTenantHandler(EmpowerAPIHandler):
             RUNTIME.request_tenant(self.account.username,
                                    request['desc'],
                                    request['tenant_name'],
-                                   request['bssid_type'],
+                                   bssid_type,
                                    tenant_id)
 
             self.set_header("Location", "/api/v1/pendig/%s" % tenant_id)
@@ -764,7 +771,12 @@ class TenantHandler(EmpowerAPIHandler):
                 raise ValueError("missing tenant_name element")
 
             if "bssid_type" not in request:
-                raise ValueError("missing bssid_type element")
+                bssid_type = T_TYPE_UNIQUE
+            else:
+                bssid_type = request['bssid_type']
+
+            if bssid_type not in T_TYPES:
+                raise ValueError("invalid bssid_type %s" % bssid_type)
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
@@ -774,7 +786,7 @@ class TenantHandler(EmpowerAPIHandler):
             RUNTIME.add_tenant(request['owner'],
                                request['desc'],
                                request['tenant_name'],
-                               request['bssid_type'],
+                               bssid_type,
                                tenant_id)
 
             self.set_header("Location", "/api/v1/tenants/%s" % tenant_id)

@@ -44,42 +44,50 @@ class VAP(object):
 
     """
 
-    def __init__(self, net_bssid_addr, net_ssid, block):
+    def __init__(self, bssid, block, wtp, tenant):
 
         # read only params
-        self.net_bssid = net_bssid_addr
-        self.tenant_ssid = net_ssid
+        self.bssid = bssid
+        self.ssid = tenant.tenant_name
         self.channel = block.channel
         self.band = block.band
+        self.wtp = wtp
+        self.tenant_id = tenant.tenant_id
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
 
-        return {'net_bssid': self.net_bssid,
-                'ssid': self.tenant_ssid,
+        return {'bssid': self.bssid,
+                'ssid': self.ssid,
                 'channel': self.channel,
-                'band': self.band}
+                'band': self.band,
+                'wtp': self.wtp,
+                'tenant_id': self.tenant_id}
 
     def __str__(self):
 
         accum = []
-        accum.append("net_bssid ")
-        accum.append(str(self.net_bssid))
+        accum.append("bssid ")
+        accum.append(str(self.bssid))
         accum.append(" ssid ")
-        accum.append(str(self.tenant_ssid))
+        accum.append(str(self.ssid))
         accum.append(" channel ")
         accum.append(str(self.channel))
         accum.append(" band ")
         accum.append(str(self.band))
+        accum.append(" wtp ")
+        accum.append(str(self.wtp.addr))
+        accum.append(" tenant_id ")
+        accum.append(str(self.tenant_id))
 
         return ''.join(accum)
 
     def __hash__(self):
-        return hash(self.net_bssid)
+        return hash(self.bssid)
 
     def __eq__(self, other):
         if isinstance(other, VAP):
-            return self.net_bssid == other.net_bssid
+            return self.bssid == other.bssid
         return False
 
     def __ne__(self, other):

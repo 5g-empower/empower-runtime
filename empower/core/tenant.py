@@ -32,6 +32,7 @@ from empower.persistence import Session
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
+T_TYPES = [T_TYPE_SHARED, T_TYPE_UNIQUE]
 
 
 class Tenant(object):

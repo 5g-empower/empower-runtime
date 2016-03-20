@@ -443,15 +443,16 @@ class LVAPPConnection(object):
             lvap.clear_ports()
             del RUNTIME.lvaps[lvap.addr]
 
-        # remove hosted VAPs
+        # remove hosted vaps
         to_be_removed = []
-        for vap in RUNTIME.vaps.values():
-            if vap.wtp == self.wtp:
-                to_be_removed.append(vap)
+        for tenant in RUNTIME.tenants.values():
+            for vap in tenant.vaps.values():
+                if vap.wtp == self.wtp:
+                    to_be_removed.append(vap)
 
         for vap in to_be_removed:
             LOG.info("Deleting VAP: %s", vap.bssid)
-            del RUNTIME.vaps[vap.bssid]
+            del RUNTIME.tenants[vap.tenant_id].vaps[vap.bssid]
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
@@ -699,9 +700,7 @@ class LVAPPConnection(object):
                 continue
 
             tenant_id = tenant.tenant_id
-
             tokens = [tenant_id.hex[0:12][i:i+2] for i in range(0, 12, 2)]
-
             base_bssid = EtherAddress(':'.join(tokens))
 
             for block in wtp.supports:
@@ -709,10 +708,10 @@ class LVAPPConnection(object):
                 net_bssid = self.server.generate_bssid(base_bssid, wtp_addr)
 
                 # vap has already been created
-                if net_bssid in RUNTIME.vaps:
+                if net_bssid in RUNTIME.tenants[tenant_id].vaps:
                     continue
 
-                vap = VAP(net_bssid, tenant.tenant_name, block)
+                vap = VAP(net_bssid, block, wtp, tenant)
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
@@ -765,12 +764,12 @@ class LVAPPConnection(object):
                             seq=self.wtp.seq,
                             channel=vap.channel,
                             band=vap.band,
-                            net_bssid=vap.net_bssid.to_raw(),
-                            ssid=vap.tenant_ssid.encode())
+                            net_bssid=vap.bssid.to_raw(),
+                            ssid=vap.ssid.encode())
 
-        add_vap.length = add_vap.length + len(vap.tenant_ssid)
+        add_vap.length = add_vap.length + len(vap.ssid)
         LOG.info("Add vap bssid %s band %s channel %d ssid %s",
-                 vap.net_bssid, vap.band, vap.channel, vap.tenant_ssid)
+                 vap.bssid, vap.band, vap.channel, vap.ssid)
 
         msg = ADD_VAP.build(add_vap)
         self.stream.write(msg)
@@ -816,20 +815,33 @@ class LVAPPConnection(object):
             return
 
         bssid_addr = EtherAddress(status.bssid)
+        ssid = SSID(status.ssid)
+        tenant_id = None
+
+        for tenant in RUNTIME.tenants.values():
+            if SSID(tenant.tenant_name) == ssid:
+                tenant_id = tenant.tenant_id
+                break
+
+        if not tenant_id:
+            LOG.info("VAP %s from unknown tenant %s", bssid_addr,
+                     ssid)
+            return
+
+        tenant = RUNTIME.tenants[tenant_id]
 
         vap = None
         block = ResourceBlock(wtp, status.channel, status.band)
         ssid = status.ssid
 
-        LOG.info("VAP %s status update block %s",
-                 bssid_addr,
-                 block)
+        LOG.info("VAP %s status update block %s", bssid_addr, block)
 
         # If the VAP does not exists, then create a new one
-        if bssid_addr not in RUNTIME.vaps:
-            RUNTIME.vaps[bssid_addr] = VAP(bssid_addr, ssid, block)
+        if bssid_addr not in tenant.vaps:
+            tenant.vaps[bssid_addr] = \
+                VAP(bssid_addr, block, wtp, tenant)
 
-        vap = RUNTIME.vaps[bssid_addr]
+        vap = tenant.vaps[bssid_addr]
         LOG.info("VAP %s", vap)
 
     def send_assoc_response(self, lvap):
