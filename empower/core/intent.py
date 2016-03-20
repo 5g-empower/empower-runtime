@@ -101,13 +101,19 @@ def add_intent(intent):
 
         LOG.info("Result: %u %s", ret[0], ret[1])
 
-    except Exception as e:
+    except ConnectionRefusedError:
 
-        LOG.exception(e)
+        LOG.error("Intent interface not found")
 
     return None
 
+
 def del_intent(uuid):
+    """Remove intent."""
+
+    if not uuid:
+        LOG.warning("UUID not specified")
+        return
 
     LOG.info("DELETE: %s", uuid)
 
@@ -122,6 +128,6 @@ def del_intent(uuid):
         LOG.info("Result: %u %s", ret[0], ret[1])
         conn.close()
 
-    except Exception as e:
+    except ConnectionRefusedError:
 
-        LOG.exception(e)
+        LOG.error("Intent interface not found")

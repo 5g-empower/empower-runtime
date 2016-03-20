@@ -1318,8 +1318,10 @@ function loadLVAPs(tenant) {
                 sta.innerHTML = data[stream].addr
                 var ssid = row.insertCell(c++);
                 ssid.innerHTML = data[stream].ssid
-                var bssid = row.insertCell(c++);
-                bssid.innerHTML = data[stream].bssid
+                var net_bssid = row.insertCell(c++);
+                net_bssid.innerHTML = data[stream].net_bssid
+                var lvap_bssid = row.insertCell(c++);
+                lvap_bssid.innerHTML = data[stream].lvap_bssid
                 var wtpField = row.insertCell(c++);
                 wtpField.innerHTML = data[stream].wtp.addr + " (" + data[stream].scheduled_on[0].channel + ", " + data[stream].scheduled_on[0].band + ")"
                 wtpField.id = "field_" + data[stream].addr

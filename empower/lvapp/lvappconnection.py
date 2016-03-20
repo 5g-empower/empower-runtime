@@ -283,8 +283,8 @@ class LVAPPConnection(object):
 
         # spawn new LVAP
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
-        bssid = self.server.generate_bssid(BASE_MAC, sta)
-        lvap = LVAP(sta, bssid)
+        net_bssid = self.server.generate_bssid(BASE_MAC, sta)
+        lvap = LVAP(sta, net_bssid, net_bssid)
         lvap._ssids = ssids
 
         RUNTIME.lvaps[sta] = lvap
@@ -500,8 +500,9 @@ class LVAPPConnection(object):
         # If the LVAP does not exists, then create a new one
         if sta_addr not in RUNTIME.lvaps:
 
-            bssid_addr = EtherAddress(status.bssid)
-            lvap = LVAP(sta_addr, bssid_addr)
+            net_bssid_addr = EtherAddress(status.net_bssid)
+            lvap_bssid_addr = EtherAddress(status.lvap_bssid)
+            lvap = LVAP(sta_addr, net_bssid_addr, lvap_bssid_addr)
 
             # TODO: This should be built starting from the status message
             lvap.supports.add(ResourceBlock(lvap, 1, BT_L20))
@@ -547,7 +548,7 @@ class LVAPPConnection(object):
                 lvap._uplink.setitem(block, RadioPort(lvap, block))
 
         except ValueError:
-            LOG.error("Error while importing block %s, removing." % (block,))
+            LOG.error("Error while importing block %s, removing.", block)
             block.radio.connection.send_del_lvap(lvap)
             return
 
@@ -647,7 +648,6 @@ class LVAPPConnection(object):
         port._no_ack = bool(status.flags.no_ack)
         port._rts_cts = int(status.rts_cts)
         port._mcs = set(status.mcs)
-        port._tx_power = int(status.tx_power)
 
         LOG.info("Port: %s", port)
 
@@ -935,11 +935,10 @@ class LVAPPConnection(object):
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
-                             length=20 + len(port.mcs),
+                             length=19 + len(port.mcs),
                              seq=self.wtp.seq,
                              flags=flags,
                              sta=port.lvap.addr.to_raw(),
-                             tx_power=port.tx_power,
                              rts_cts=port.rts_cts,
                              nb_mcses=len(port.mcs),
                              mcs=sorted(list(port.mcs)))
@@ -963,7 +962,7 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=32,
+                             length=38,
                              seq=self.wtp.seq,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
@@ -971,7 +970,8 @@ class LVAPPConnection(object):
                              band=block.band,
                              sta=lvap.addr.to_raw(),
                              encap=lvap.encap.to_raw(),
-                             bssid=lvap.bssid.to_raw(),
+                             net_bssid=lvap.net_bssid.to_raw(),
+                             lvap_bssid=lvap.lvap_bssid.to_raw(),
                              ssids=[])
 
         if lvap.ssid:
