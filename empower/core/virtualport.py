@@ -162,7 +162,7 @@ class VirtualPortProp(dict):
                         key = {}
                         key['dpid'] = n_port.dpid
                         key['port_id'] = n_port.port_id
-                        key['dl_src'] = n_port.hwaddr
+                        key['dl_src'] = n_port.dpid
 
                         if value:
                             key['dl_dst'] = value.hwaddr
