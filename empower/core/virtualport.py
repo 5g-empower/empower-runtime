@@ -179,7 +179,9 @@ class VirtualPortProp(dict):
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port'] = value.ovs_port_id
 
-                        add_intent(intent)
+                        # add new virtual link
+                        uuid = add_intent(intent)
+                        self.__uuids__[match] = uuid
 
                         dict.__setitem__(self, match, value)
 
@@ -214,7 +216,9 @@ class VirtualPortProp(dict):
                             intent['dst_dpid'] = value.dpid
                             intent['dst_port'] = value.ovs_port_id
 
-                        add_intent(intent)
+                        # add new virtual link
+                        uuid = add_intent(intent)
+                        self.__uuids__[match] = uuid
 
                         dict.__setitem__(self, match, value)
 

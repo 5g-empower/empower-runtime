@@ -321,8 +321,6 @@ class LVAPPConnection(object):
             None
         """
 
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXxxxxXXXXXXX")
-
         wtp_addr = EtherAddress(request.wtp)
 
         try:
