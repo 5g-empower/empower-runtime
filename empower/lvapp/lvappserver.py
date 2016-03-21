@@ -44,6 +44,7 @@ from empower.restserver.aclhandler import AllowHandler
 from empower.restserver.aclhandler import DenyHandler
 from empower.lvapp.lvaphandler import LVAPHandler
 from empower.lvapp.tenantlvaphandler import TenantLVAPHandler
+from empower.lvapp.tenantvaphandler import TenantVAPHandler
 from empower.lvapp.tenantlvapporthandler import TenantLVAPPortHandler
 from empower.lvapp.tenantlvapnexthandler import TenantLVAPNextHandler
 
@@ -53,7 +54,6 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 4433
-BASE_MAC = EtherAddress("00:1b:b3:00:00:00")
 
 
 class TenantWTPHandler(BaseTenantPNFDevHandler):
@@ -100,10 +100,10 @@ class LVAPPServer(PNFPServer, TCPServer):
         self.__assoc_id += 1
         return self.__assoc_id
 
-    def generate_bssid(self, sta_mac):
+    def generate_bssid(self, base_mac, sta_mac):
         """ Generate a new BSSID address. """
 
-        base = str(BASE_MAC).split(":")[0:3]
+        base = str(base_mac).split(":")[0:3]
         sta = str(sta_mac).split(":")[3:6]
         return EtherAddress(":".join(base + sta))
 
@@ -120,6 +120,7 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(DenyHandler, server)
     rest_server.add_handler_class(LVAPHandler, server)
     rest_server.add_handler_class(TenantLVAPHandler, server)
+    rest_server.add_handler_class(TenantVAPHandler, server)
     rest_server.add_handler_class(TenantLVAPPortHandler, server)
     rest_server.add_handler_class(TenantLVAPNextHandler, server)
 

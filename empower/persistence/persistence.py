@@ -134,6 +134,7 @@ class TblPendingTenant(Base):
     tenant_name = Column(String, unique=True)
     desc = Column(String)
     owner = Column(String)
+    bssid_type = Column(String)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the request """
@@ -141,7 +142,8 @@ class TblPendingTenant(Base):
         return {'tenant_id': self.tenant_id,
                 'owner': self.owner,
                 'tenant_name': self.tenant_name,
-                'desc': self.desc}
+                'desc': self.desc,
+                'bssid_type': self.bssid_type}
 
 
 class TblTenant(Base):
@@ -156,6 +158,7 @@ class TblTenant(Base):
     tenant_name = Column(String, unique=True)
     desc = Column(String)
     owner = Column(String)
+    bssid_type = Column(String)
 
 
 class TblPNFDev(Base):

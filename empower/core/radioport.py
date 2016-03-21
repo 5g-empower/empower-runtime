@@ -83,7 +83,6 @@ class RadioPort():
       lvap, an LVAP object
       block, the block that this port is configuring
       no_ack, do not wait for ACKs when transmitting to this LVAP
-      tx_power, the tx power to be used
       rts_cts, use RTS/CTS when transmitting to this LVAP
       mcs, supported mcs-es.
     """
@@ -93,7 +92,6 @@ class RadioPort():
         self._lvap = lvap
         self._block = block
         self._no_ack = False
-        self._tx_power = 30
         self._rts_cts = 2346
         self._mcs = set()
 
@@ -101,7 +99,6 @@ class RadioPort():
         """ Return a JSON-serializable dictionary representing the Port """
 
         return {'no_ack': self.no_ack,
-                'tx_power': self.tx_power,
                 'mcs': self.mcs,
                 'rts_cts': self.rts_cts}
 
@@ -128,23 +125,6 @@ class RadioPort():
         """ Set the LVAP. """
 
         self._block = block
-
-    @property
-    def tx_power(self):
-        """ Get tx power. """
-
-        return self._tx_power
-
-    @tx_power.setter
-    def tx_power(self, tx_power):
-        """ Set the tx power. """
-
-        if tx_power == self._tx_power:
-            return
-
-        self._tx_power = tx_power
-
-        self.block.radio.connection.send_set_port(self)
 
     @property
     def mcs(self):
@@ -197,10 +177,6 @@ class RadioPort():
 
         self.block.radio.connection.send_set_port(self)
 
-    def __hash__(self):
-
-        return (hash(self.lvap) + hash(self.no_ack) + hash(self.rts_cts))
-
     def __eq__(self, other):
 
         return (other.lvap == self.lvap and
@@ -212,11 +188,8 @@ class RadioPort():
         no_ack = ", NO_ACK" if self.no_ack else ""
         mcs = ', '.join([str(x) for x in sorted(list(self.mcs))])
 
-        out = "(%s, tx power %u, mcs [%s], rts/cts %u%s)" % (self.lvap.addr,
-                                                             self.tx_power,
-                                                             mcs,
-                                                             self.rts_cts,
-                                                             no_ack)
+        out = "(%s, mcs [%s], rts/cts %u%s)" % (self.lvap.addr, mcs,
+                                                self.rts_cts, no_ack)
 
         return out
 

@@ -364,6 +364,8 @@ function loadPendingTenants(username, admin) {
                 tenant_name.innerHTML = data[stream].tenant_name
                 var status = row.insertCell(3);
                 status.innerHTML = data[stream].owner
+                var bssid_type = row.insertCell(4);
+                bssid_type.innerHTML = data[stream].bssid_type
             }
         },
     });
@@ -378,19 +380,19 @@ function acceptTenant(tenant_id) {
         },
         cache: false,
         success: function (data) {
-            createTenant(data.tenant_id, data.tenant_name, data.owner, data.desc)
+            createTenant(data.tenant_id, data.tenant_name, data.owner, data.desc, data.bssid_type)
         },
         error: function (data) {
         },
     });
 }
 
-function createTenant(tenant_id, tenant_name, owner, desc) {
+function createTenant(tenant_id, tenant_name, owner, desc, bssid_type) {
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id,
         type: 'POST',
         dataType: 'json',
-        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'" }',
+        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'" }',
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
@@ -407,11 +409,21 @@ function requestTenant(pending) {
 
     desc = document.getElementById('desc').value;
     tenant_name = document.getElementById('tenant_name').value;
+    var bssid_values = document.getElementsByName('bssid_type');
+    for (var i = 0; i < bssid_values.length; i++)
+    {
+        if (bssid_values[i].checked)
+        {
+            bssid_type = bssid_values[i].value;
+            break;
+        }
+    }
 
     var request = {
         "version": "1.0",
         "tenant_name": tenant_name,
-        "desc": desc
+        "desc": desc,
+        "bssid_type": bssid_type
     }
 
     $.ajax({
@@ -538,6 +550,8 @@ function loadTenants(username, admin) {
                 }
                 var status = row.insertCell(4);
                 status.innerHTML = data[stream].owner
+                var bssid_type = row.insertCell(5);
+                bssid_type.innerHTML = data[stream].bssid_type
             }
         },
     });
@@ -1304,8 +1318,10 @@ function loadLVAPs(tenant) {
                 sta.innerHTML = data[stream].addr
                 var ssid = row.insertCell(c++);
                 ssid.innerHTML = data[stream].ssid
-                var bssid = row.insertCell(c++);
-                bssid.innerHTML = data[stream].bssid
+                var net_bssid = row.insertCell(c++);
+                net_bssid.innerHTML = data[stream].net_bssid
+                var lvap_bssid = row.insertCell(c++);
+                lvap_bssid.innerHTML = data[stream].lvap_bssid
                 var wtpField = row.insertCell(c++);
                 wtpField.innerHTML = data[stream].wtp.addr + " (" + data[stream].scheduled_on[0].channel + ", " + data[stream].scheduled_on[0].band + ")"
                 wtpField.id = "field_" + data[stream].addr

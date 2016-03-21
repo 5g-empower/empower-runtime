@@ -52,76 +52,82 @@ def match_to_key(match):
     key = {}
 
     for token in match.split(";"):
-        k, v = token.split("=")
-        key[k] = v
+        key_t, value_t = token.split("=")
+        key[key_t] = value_t
 
     return key
 
 
 def add_intent(intent):
+    """Create new intent."""
 
-        key = match_to_key(intent['match'])
+    key = match_to_key(intent['match'])
 
-        if 'dpid' in key:
-            del key['dpid']
+    if 'dpid' in key:
+        del key['dpid']
 
-        if 'port_id' in key:
-            del key['port_id']
+    if 'port_id' in key:
+        del key['port_id']
 
-        intent['match'] = key
+    intent['match'] = key
 
-        body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
+    body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-        LOG.info("POST: %s\n%s" % ("/empower/vnfrule/", body))
+    LOG.info("POST: %s\n%s", "/empower/vnfrule/", body)
 
-        headers = {
-            'Content-type': 'application/json',
-            'Accept': 'application/json',
-        }
+    headers = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+    }
 
-        try:
+    try:
 
-            conn = http.client.HTTPConnection("localhost", 8080)
-            conn.request("POST", "/empower/vnfrule/", body, headers)
-            response = conn.getresponse()
-            conn.close()
+        conn = http.client.HTTPConnection("localhost", 8080)
+        conn.request("POST", "/empower/vnfrule/", body, headers)
+        response = conn.getresponse()
+        conn.close()
 
-            ret = (response.status, response.reason, response.read())
+        ret = (response.status, response.reason, response.read())
 
-            if ret[0] == 201:
+        if ret[0] == 201:
 
-                location = response.getheader("Location", None)
-                url = urlparse(location)
-                uuid = UUID(url.path.split("/")[-1])
+            location = response.getheader("Location", None)
+            url = urlparse(location)
+            uuid = UUID(url.path.split("/")[-1])
 
-                LOG.info("Result: %u %s (%s)" % (ret[0], ret[1], uuid))
+            LOG.info("Result: %u %s (%s)", ret[0], ret[1], uuid)
 
-                return uuid
+            return uuid
 
-            LOG.info("Result: %u %s" % (ret[0], ret[1]))
+        LOG.info("Result: %u %s", ret[0], ret[1])
 
-        except Exception as e:
+    except ConnectionRefusedError:
 
-            LOG.exception(e)
+        LOG.error("Intent interface not found")
 
-        return None
+    return None
+
 
 def del_intent(uuid):
+    """Remove intent."""
 
-        LOG.info("DELETE: %s" % uuid)
+    if not uuid:
+        LOG.warning("UUID not specified")
+        return
 
-        try:
+    LOG.info("DELETE: %s", uuid)
 
-            conn = http.client.HTTPConnection("localhost", 8080)
-            conn.request("DELETE", "/empower/vnfrule/%s" % uuid)
-            response = conn.getresponse()
+    try:
 
-            ret = (response.status, response.reason, response.read())
+        conn = http.client.HTTPConnection("localhost", 8080)
+        conn.request("DELETE", "/empower/vnfrule/%s" % uuid)
+        response = conn.getresponse()
 
-            LOG.info("Result: %u %s" % (ret[0], ret[1]))
-            conn.close()
+        ret = (response.status, response.reason, response.read())
 
-        except Exception as e:
+        LOG.info("Result: %u %s", ret[0], ret[1])
+        conn.close()
 
-            LOG.exception(e)
+    except ConnectionRefusedError:
 
+        LOG.error("Intent interface not found")

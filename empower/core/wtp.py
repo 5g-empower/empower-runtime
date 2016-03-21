@@ -62,5 +62,5 @@ class WTP(BasePNFDev):
         """Return a JSON-serializable dictionary representing the CPP."""
 
         out = super().to_dict()
-        out['supports'] = [x for x in self.supports if not x.black_listed]
+        out['supports'] = self.supports
         return out

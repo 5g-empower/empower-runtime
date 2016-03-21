@@ -43,6 +43,8 @@ from empower.restserver.aclhandler import DenyHandler
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
+from empower.core.tenant import T_TYPES
+from empower.core.tenant import T_TYPE_UNIQUE
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -600,6 +602,7 @@ class PendingTenantHandler(EmpowerAPIHandler):
             owner: the username of the requester
             tenant_id: the network name
             desc: a description for the new tenant
+            bssid_type: shared or unique
 
         Example URLs:
 
@@ -621,18 +624,26 @@ class PendingTenantHandler(EmpowerAPIHandler):
                 raise ValueError("missing desc element")
 
             if "tenant_name" not in request:
-                raise ValueError("missing desc element")
+                raise ValueError("missing tenant_name element")
+
+            if "bssid_type" not in request:
+                bssid_type = T_TYPE_UNIQUE
+            else:
+                bssid_type = request['bssid_type']
+
+            if bssid_type not in T_TYPES:
+                raise ValueError("invalid bssid_type %s" % bssid_type)
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
             else:
                 tenant_id = None
 
-            tenant_id = \
-                RUNTIME.request_tenant(self.account.username,
-                                       request['desc'],
-                                       request['tenant_name'],
-                                       tenant_id)
+            RUNTIME.request_tenant(self.account.username,
+                                   request['desc'],
+                                   request['tenant_name'],
+                                   bssid_type,
+                                   tenant_id)
 
             self.set_header("Location", "/api/v1/pendig/%s" % tenant_id)
 
@@ -732,6 +743,7 @@ class TenantHandler(EmpowerAPIHandler):
             owner: the username of the requester
             tenant_id: the network name
             desc: a description for the new tenant
+            bssid_type: shared or unique
 
         Example URLs:
 
@@ -758,16 +770,24 @@ class TenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
+            if "bssid_type" not in request:
+                bssid_type = T_TYPE_UNIQUE
+            else:
+                bssid_type = request['bssid_type']
+
+            if bssid_type not in T_TYPES:
+                raise ValueError("invalid bssid_type %s" % bssid_type)
+
             if len(args) == 1:
                 tenant_id = UUID(args[0])
             else:
                 tenant_id = None
 
-            tenant_id = \
-                RUNTIME.add_tenant(request['owner'],
-                                   request['desc'],
-                                   request['tenant_name'],
-                                   tenant_id)
+            RUNTIME.add_tenant(request['owner'],
+                               request['desc'],
+                               request['tenant_name'],
+                               bssid_type,
+                               tenant_id)
 
             self.set_header("Location", "/api/v1/tenants/%s" % tenant_id)
 
