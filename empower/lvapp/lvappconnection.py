@@ -321,6 +321,8 @@ class LVAPPConnection(object):
             None
         """
 
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXxxxxXXXXXXX")
+
         wtp_addr = EtherAddress(request.wtp)
 
         try:
@@ -451,8 +453,8 @@ class LVAPPConnection(object):
                     to_be_removed.append(vap)
 
         for vap in to_be_removed:
-            LOG.info("Deleting VAP: %s", vap.bssid)
-            del RUNTIME.tenants[vap.tenant_id].vaps[vap.bssid]
+            LOG.info("Deleting VAP: %s", vap.net_bssid)
+            del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid_addrbssid]
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
@@ -814,7 +816,7 @@ class LVAPPConnection(object):
             LOG.info("VAP Status from disconnected WTP %s", (wtp_addr))
             return
 
-        bssid_addr = EtherAddress(status.bssid)
+        net_bssid_addr = EtherAddress(status.net_bssid)
         ssid = SSID(status.ssid)
         tenant_id = None
 
@@ -824,8 +826,7 @@ class LVAPPConnection(object):
                 break
 
         if not tenant_id:
-            LOG.info("VAP %s from unknown tenant %s", bssid_addr,
-                     ssid)
+            LOG.info("VAP %s from unknown tenant %s", net_bssid_addr, ssid)
             return
 
         tenant = RUNTIME.tenants[tenant_id]
@@ -834,14 +835,14 @@ class LVAPPConnection(object):
         block = ResourceBlock(wtp, status.channel, status.band)
         ssid = status.ssid
 
-        LOG.info("VAP %s status update block %s", bssid_addr, block)
+        LOG.info("VAP %s status update block %s", net_bssid_addr, block)
 
         # If the VAP does not exists, then create a new one
-        if bssid_addr not in tenant.vaps:
-            tenant.vaps[bssid_addr] = \
-                VAP(bssid_addr, block, wtp, tenant)
+        if net_bssid_addr not in tenant.vaps:
+            tenant.vaps[net_bssid_addr] = \
+                VAP(net_bssid_addr, block, wtp, tenant)
 
-        vap = tenant.vaps[bssid_addr]
+        vap = tenant.vaps[net_bssid_addr]
         LOG.info("VAP %s", vap)
 
     def send_assoc_response(self, lvap):
