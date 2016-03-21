@@ -764,12 +764,12 @@ class LVAPPConnection(object):
                             seq=self.wtp.seq,
                             channel=vap.channel,
                             band=vap.band,
-                            net_bssid=vap.bssid.to_raw(),
+                            net_bssid=vap.net_bssid.to_raw(),
                             ssid=vap.ssid.encode())
 
         add_vap.length = add_vap.length + len(vap.ssid)
         LOG.info("Add vap bssid %s band %s channel %d ssid %s",
-                 vap.bssid, vap.band, vap.channel, vap.ssid)
+                 vap.net_bssid, vap.band, vap.channel, vap.ssid)
 
         msg = ADD_VAP.build(add_vap)
         self.stream.write(msg)
