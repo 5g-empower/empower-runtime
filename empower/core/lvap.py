@@ -149,7 +149,7 @@ class LVAP(object):
 
         # lvap bssid, this is the bssid to which the client is currently
         # attached
-        self.lvap_bssid = lvap_bssid_addr
+        self._lvap_bssid = lvap_bssid_addr
 
         # the following parameters are only updated upon RX of a lvap status
         # update message from an agent
@@ -301,6 +301,31 @@ class LVAP(object):
             return
 
         self._assoc_id = assoc_id
+
+        for port in self.downlink.values():
+            port.block.radio.connection.send_add_lvap(port.lvap,
+                                                      port.block,
+                                                      self.downlink.SET_MASK)
+
+        for port in self.uplink.values():
+            port.block.radio.connection.send_add_lvap(port.lvap,
+                                                      port.block,
+                                                      self.uplink.SET_MASK)
+
+    @property
+    def lvap_bssid(self):
+        """Get the lvap_bssid."""
+
+        return self._lvap_bssid
+
+    @lvap_bssid.setter
+    def lvap_bssid(self, lvap_bssid):
+        """Set the assoc id."""
+
+        if self._lvap_bssid == lvap_bssid:
+            return
+
+        self._lvap_bssid = lvap_bssid
 
         for port in self.downlink.values():
             port.block.radio.connection.send_add_lvap(port.lvap,

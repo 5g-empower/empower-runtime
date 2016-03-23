@@ -218,8 +218,8 @@ class LVAPPConnection(object):
 
         # If this is a new connection, then send caps request
         if not wtp.connection:
-            # set wtp before connection because it is used when the connection
-            # attribute of the PNFDev object is set
+            # set wtp before connection because it is used when the
+            # connection attribute of the PNFDev object is set
             self.wtp = wtp
             wtp.connection = self
             self.send_caps_request()
@@ -231,6 +231,37 @@ class LVAPPConnection(object):
         wtp.downlink_bytes = hello.downlink_bytes
 
         wtp.last_seen_ts = time.time()
+
+        # Upon connection to the controller, the WTP must be provided
+        # with the list of shared VAP
+
+        for tenant in RUNTIME.tenants.values():
+
+            # tenant does not use shared VAPs
+            if tenant.bssid_type == T_TYPE_UNIQUE:
+                continue
+
+            # wtp not in this tenant
+            if wtp_addr not in tenant.wtps:
+                continue
+
+            tenant_id = tenant.tenant_id
+            tokens = [tenant_id.hex[0:12][i:i+2] for i in range(0, 12, 2)]
+            base_bssid = EtherAddress(':'.join(tokens))
+
+            for block in wtp.supports:
+
+                net_bssid = self.server.generate_bssid(base_bssid, wtp_addr)
+
+                # vap has already been created
+                if net_bssid in RUNTIME.tenants[tenant_id].vaps:
+                    continue
+
+                vap = VAP(net_bssid, block, wtp, tenant)
+
+                self.send_add_vap(vap)
+                RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
+                break
 
     def _handle_probe_request(self, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -273,6 +304,8 @@ class LVAPPConnection(object):
         ssids = set()
 
         for tenant in RUNTIME.tenants.values():
+            if tenant.bssid_type == T_TYPE_SHARED:
+                continue
             for wtp_in_tenant in tenant.wtps.values():
                 if wtp_addr == wtp_in_tenant.addr:
                     ssids.add(SSID(tenant.tenant_name))
@@ -334,6 +367,7 @@ class LVAPPConnection(object):
             return
 
         sta = EtherAddress(request.sta)
+        bssid = EtherAddress(request.bssid)
 
         if sta not in RUNTIME.lvaps:
             LOG.info("Auth request from unknown LVAP %s", sta)
@@ -349,7 +383,32 @@ class LVAPPConnection(object):
             LOG.info("Auth request from %s ignored (black list)", sta)
             return
 
-        LOG.info("Auth request from %s, sending auth response", sta)
+        LOG.info("Auth request from %s for BSSID %s", sta, bssid)
+
+        lvap_bssid = None
+
+        # look for bssid in shared tenants
+        for tenant_id in RUNTIME.tenants:
+            tenant = RUNTIME.tenants[tenant_id]
+            if tenant.bssid_type == T_TYPE_UNIQUE:
+                continue
+            for vap_id in tenant.vaps:
+                if bssid == vap_id:
+                    lvap_bssid = vap_id
+
+        # otherwise this must be the lvap unique bssid
+        if lvap.net_bssid == bssid:
+            lvap_bssid = lvap.net_bssid
+
+        if not lvap_bssid:
+            LOG.info("Auth request from unknown BSSID: %s ", bssid)
+            return
+
+        # this will trigger an add lvap message to update the bssid
+        lvap.lvap_bssid = lvap_bssid
+
+        LOG.info("Auth request from %s, sending auth response"
+                 " as BSSID %s", sta, lvap_bssid)
         self.send_auth_response(lvap)
 
     def _handle_assoc_request(self, request):
@@ -389,16 +448,29 @@ class LVAPPConnection(object):
             return
 
         ssid = SSID(request.ssid.decode('UTF-8'))
+        bssid = EtherAddress(request.bssid)
 
-        matches = [x for x in RUNTIME.tenants.values()
-                   if SSID(x.tenant_name) == ssid]
+        LOG.info("Assoc request sta %s ssid %s bssid %s", sta, ssid, bssid)
 
-        if not matches:
-            LOG.info("Assoc request to unknown SSID: %s ", request.ssid)
-            return
+        tenant_name = None
+
+        # look for ssid in shared tenants
+        for tenant_id in RUNTIME.tenants:
+
+            tenant = RUNTIME.tenants[tenant_id]
+
+            if tenant.bssid_type == T_TYPE_UNIQUE:
+                continue
+
+            if bssid in tenant.vaps and ssid == SSID(tenant.tenant_name):
+                tenant_name = tenant.tenant_name
+
+        # otherwise this must be the lvap unique bssid
+        if lvap.net_bssid == bssid and ssid in lvap.ssids:
+            tenant_name = ssid
 
         # this will trigger an add lvap message to update the ssid
-        lvap.ssid = ssid
+        lvap.ssid = SSID(tenant_name)
 
         # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
@@ -421,7 +493,7 @@ class LVAPPConnection(object):
         if not self.wtp:
             return
 
-        LOG.info("WTP disconnected: %s" % self.wtp.addr)
+        LOG.info("WTP disconnected: %s", self.wtp.addr)
 
         # reset state
         self.wtp.last_seen = 0
@@ -452,7 +524,7 @@ class LVAPPConnection(object):
 
         for vap in to_be_removed:
             LOG.info("Deleting VAP: %s", vap.net_bssid)
-            del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid_addrbssid]
+            del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
@@ -686,37 +758,6 @@ class LVAPPConnection(object):
 
             wtp.ports[network_port.port_id] = network_port
 
-        # Upon connection to the controller, the WTP must be provided
-        # with the list of shared VAP
-
-        for tenant in RUNTIME.tenants.values():
-
-            # tenant does not use shared VAPs
-            if tenant.bssid_type == T_TYPE_UNIQUE:
-                continue
-
-            # wtp not in this tenant
-            if wtp_addr not in tenant.wtps:
-                continue
-
-            tenant_id = tenant.tenant_id
-            tokens = [tenant_id.hex[0:12][i:i+2] for i in range(0, 12, 2)]
-            base_bssid = EtherAddress(':'.join(tokens))
-
-            for block in wtp.supports:
-
-                net_bssid = self.server.generate_bssid(base_bssid, wtp_addr)
-
-                # vap has already been created
-                if net_bssid in RUNTIME.tenants[tenant_id].vaps:
-                    continue
-
-                vap = VAP(net_bssid, block, wtp, tenant)
-
-                self.send_add_vap(vap)
-                RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
-                break
-
     def _handle_interference_map(self, interference_map):
         """Handle an incoming INTERFERENCE_MAP message.
         Args:
@@ -874,9 +915,10 @@ class LVAPPConnection(object):
 
         response = Container(version=PT_VERSION,
                              type=PT_AUTH_RESPONSE,
-                             length=14,
+                             length=20,
                              seq=self.wtp.seq,
-                             sta=lvap.addr.to_raw())
+                             sta=lvap.addr.to_raw(),
+                             bssid=lvap.lvap_bssid.to_raw())
 
         msg = AUTH_RESPONSE.build(response)
         self.stream.write(msg)
@@ -988,7 +1030,8 @@ class LVAPPConnection(object):
             add_lvap.ssids.append(tmp)
             add_lvap.length = add_lvap.length + len(b_ssid) + 1
 
-        LOG.info("Add lvap %s block %s mask %s" % (lvap.addr, block, set_mask))
+        LOG.info("Add lvap %s block %s mask %s",
+                 lvap.addr, block, set_mask)
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)

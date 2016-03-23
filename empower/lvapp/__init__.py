@@ -99,13 +99,15 @@ AUTH_REQUEST = Struct("auth_request", UBInt8("version"),
                       UBInt16("length"),
                       UBInt32("seq"),
                       Bytes("wtp", 6),
-                      Bytes("sta", 6))
+                      Bytes("sta", 6),
+                      Bytes("bssid", 6))
 
 AUTH_RESPONSE = Struct("auth_response", UBInt8("version"),
                        UBInt8("type"),
                        UBInt16("length"),
                        UBInt32("seq"),
-                       Bytes("sta", 6))
+                       Bytes("sta", 6),
+                       Bytes("bssid", 6))
 
 ASSOC_REQUEST = \
     Struct("assoc_request", UBInt8("version"),
@@ -114,7 +116,8 @@ ASSOC_REQUEST = \
            UBInt32("seq"),
            Bytes("wtp", 6),
            Bytes("sta", 6),
-           Bytes("ssid", lambda ctx: ctx.length - 20))
+           Bytes("bssid", 6),
+           Bytes("ssid", lambda ctx: ctx.length - 26))
 
 ASSOC_RESPONSE = Struct("assoc_response", UBInt8("version"),
                         UBInt8("type"),
