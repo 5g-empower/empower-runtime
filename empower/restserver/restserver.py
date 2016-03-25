@@ -31,9 +31,8 @@ import json
 import tornado.web
 import tornado.httpserver
 
-from uuid import UUID
 from tornado.web import MissingArgumentError
-
+from uuid import UUID
 from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.core.jsonserializer import EmpowerEncoder
