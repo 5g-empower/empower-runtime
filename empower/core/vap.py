@@ -49,8 +49,7 @@ class VAP(object):
         # read only params
         self.net_bssid = net_bssid
         self.ssid = tenant.tenant_name
-        self.channel = block.channel
-        self.band = block.band
+        self.block = block
         self.wtp = wtp
         self.tenant_id = tenant.tenant_id
 
@@ -59,8 +58,7 @@ class VAP(object):
 
         return {'net_bssid': self.net_bssid,
                 'ssid': self.ssid,
-                'channel': self.channel,
-                'band': self.band,
+                'block': self.block,
                 'wtp': self.wtp,
                 'tenant_id': self.tenant_id}
 
@@ -71,10 +69,8 @@ class VAP(object):
         accum.append(str(self.net_bssid))
         accum.append(" ssid ")
         accum.append(str(self.ssid))
-        accum.append(" channel ")
-        accum.append(str(self.channel))
-        accum.append(" band ")
-        accum.append(str(self.band))
+        accum.append(" block ")
+        accum.append(str(self.block))
         accum.append(" wtp ")
         accum.append(str(self.wtp.addr))
         accum.append(" tenant_id ")

@@ -86,8 +86,10 @@ def build_block(block):
         from empower.main import RUNTIME
 
         wtp = RUNTIME.wtps[EtherAddress(block[0])]
-        band = REVERSE_BANDS[block[2]]
-        requested = ResourceBlock(wtp, block[1], band, False)
+        hwaddr = EtherAddress(block[1])
+        channel = block[2]
+        band = REVERSE_BANDS[block[3]]
+        requested = ResourceBlock(wtp, hwaddr, channel, band)
 
     else:
 
@@ -125,6 +127,7 @@ class ResourcePool(set):
                    rblock.band == rblock_other.band:
 
                     result.add(rblock)
+
         return result
 
     def __or__(self, other):
@@ -146,6 +149,7 @@ class ResourceBlock(object):
 
     Attributes:
         radio: The WTP or the LVAP at which this resource block is available
+        hwaddr: the mac address of the wireless interface
         channel: The channel id
         band: The band type (0=L20, 1=HT20, 2=HT40)
         ucqm: User interference matrix group. Rssi values to LVAPs.
@@ -156,20 +160,23 @@ class ResourceBlock(object):
           an 11n device it will report [0, 1, 2, 3, 4, 5, 6, 7]
     """
 
-    def __init__(self, radio, channel, band):
+    def __init__(self, radio, hwaddr, channel, band):
 
         self._radio = radio
+        self._hwaddr = hwaddr
         self._channel = channel
         self._band = band
         self.ucqm = CQM()
         self.ncqm = CQM()
 
-        if self.band == BT_L20:
-            self._supports = set([6, 12, 18, 36, 54])
-        elif self.band == BT_HT20:
+        if self.band == BT_HT20:
             self._supports = set([0, 1, 2, 3, 4, 5, 6, 7])
         else:
-            self._supports = set([1, 2, 5.5, 11])
+            if self.channel > 14:
+                self._supports = set([6, 9, 12, 18, 24, 36, 48, 54])
+            else:
+                self._supports = \
+                    set([1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54])
 
     @property
     def addr(self):
@@ -201,6 +208,18 @@ class ResourceBlock(object):
 
         for supported in supports:
             self._supports.add(int(supported))
+
+    @property
+    def hwaddr(self):
+        """ Return the hwaddr. """
+
+        return self._hwaddr
+
+    @hwaddr.setter
+    def hwaddr(self, hwaddr):
+        """ Set the hwaddr. """
+
+        self._hwaddr = hwaddr
 
     @property
     def band(self):
@@ -237,6 +256,7 @@ class ResourceBlock(object):
         Pool """
 
         return {'addr': self.radio.addr,
+                'hwaddr': self.hwaddr,
                 'channel': self.channel,
                 'supports': sorted(self.supports),
                 'band': BANDS[self.band],
@@ -245,7 +265,8 @@ class ResourceBlock(object):
 
     def __hash__(self):
 
-        return hash(self.radio.addr) + hash(self.channel) + hash(self.band)
+        return hash(self.radio.addr) + hash(self.hwaddr) + \
+            hash(self.channel) + hash(self.band)
 
     def __eq__(self, other):
 
@@ -253,9 +274,10 @@ class ResourceBlock(object):
             return False
 
         return (other.radio == self.radio and
+                other.hwaddr == self.hwaddr and
                 other.channel == self.channel and
                 other.band == self.band)
 
     def __repr__(self):
-        return "(%s, %u, %s)" % (self.radio.addr, self.channel,
-                                 BANDS[self.band])
+        return "(%s, %s, %u, %s)" % (self.radio.addr, self.hwaddr,
+                                     self.channel, BANDS[self.band])

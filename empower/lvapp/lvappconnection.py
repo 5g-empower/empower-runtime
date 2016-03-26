@@ -323,23 +323,26 @@ class LVAPPConnection(object):
         RUNTIME.lvaps[sta] = lvap
 
         # TODO: This should be built starting from the probe request
-        lvap.supports.add(ResourceBlock(lvap, 1, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 2, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 3, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 4, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 5, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 6, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 7, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 8, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 9, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 10, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 11, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 36, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, 48, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 1, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 2, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 3, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 4, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 5, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 6, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 7, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 8, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 9, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 10, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 11, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 36, BT_L20))
+        lvap.supports.add(ResourceBlock(lvap, sta, 48, BT_L20))
 
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
         requested = ResourcePool()
-        requested.add(ResourceBlock(wtp, request.channel, request.band))
+        hwaddr = EtherAddress(request.hwaddr)
+        channel = request.channel
+        band = request.band
+        requested.add(ResourceBlock(wtp, hwaddr, channel, band))
 
         lvap.scheduled_on = wtp.supports & requested
 
@@ -562,7 +565,8 @@ class LVAPPConnection(object):
         set_mask = bool(status.flags.set_mask)
 
         lvap = None
-        block = ResourceBlock(wtp, status.channel, status.band)
+        hwaddr = EtherAddress(status.hwaddr)
+        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
         LOG.info("LVAP %s status update block %s mask %s",
                  sta_addr,
@@ -577,19 +581,19 @@ class LVAPPConnection(object):
             lvap = LVAP(sta_addr, net_bssid_addr, lvap_bssid_addr)
 
             # TODO: This should be built starting from the status message
-            lvap.supports.add(ResourceBlock(lvap, 1, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 2, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 3, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 4, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 5, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 6, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 7, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 8, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 9, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 10, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 11, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 36, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, 48, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 1, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 2, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 3, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 4, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 5, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 6, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 7, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 8, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 9, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 10, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 11, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 36, BT_L20))
+            lvap.supports.add(ResourceBlock(lvap, sta_addr, 48, BT_L20))
 
             RUNTIME.lvaps[sta_addr] = lvap
 
@@ -696,14 +700,16 @@ class LVAPPConnection(object):
             return
 
         sta_addr = EtherAddress(status.sta)
+        hwaddr = EtherAddress(status.hwaddr)
 
-        LOG.info("Port status update for %s from %s channel %u band %s",
+        LOG.info("Port status for %s from %s hwaddr %s channel %u band %s",
                  sta_addr,
                  wtp_addr,
+                 hwaddr,
                  status.channel,
                  status.band)
 
-        block = ResourceBlock(wtp, status.channel, status.band)
+        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
         try:
             lvap = RUNTIME.lvaps[sta_addr]
@@ -744,7 +750,9 @@ class LVAPPConnection(object):
 
         for block in caps.blocks:
 
-            r_block = ResourceBlock(wtp, block[0], block[1])
+            hwaddr = EtherAddress(block[0])
+
+            r_block = ResourceBlock(wtp, hwaddr, block[1], block[2])
             wtp.supports.add(r_block)
 
         for port in caps.ports:
@@ -801,16 +809,17 @@ class LVAPPConnection(object):
 
         add_vap = Container(version=PT_VERSION,
                             type=PT_ADD_VAP,
-                            length=16,
+                            length=22,
                             seq=self.wtp.seq,
-                            channel=vap.channel,
-                            band=vap.band,
+                            hwaddr=vap.block.hwaddr.to_raw(),
+                            channel=vap.block.channel,
+                            band=vap.block.band,
                             net_bssid=vap.net_bssid.to_raw(),
                             ssid=vap.ssid.encode())
 
         add_vap.length = add_vap.length + len(vap.ssid)
-        LOG.info("Add vap bssid %s band %s channel %d ssid %s",
-                 vap.net_bssid, vap.band, vap.channel, vap.ssid)
+        LOG.info("Add vap bssid %s ssid %s block %s",
+                 vap.net_bssid, vap.ssid, vap.block)
 
         msg = ADD_VAP.build(add_vap)
         self.stream.write(msg)
@@ -871,7 +880,8 @@ class LVAPPConnection(object):
         tenant = RUNTIME.tenants[tenant_id]
 
         vap = None
-        block = ResourceBlock(wtp, status.channel, status.band)
+        hwaddr = EtherAddress(status.hwaddr)
+        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
         ssid = status.ssid
 
         LOG.info("VAP %s status update block %s", net_bssid_addr, block)
@@ -1003,10 +1013,11 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=38,
+                             length=44,
                              seq=self.wtp.seq,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
+                             hwaddr=block.hwaddr.to_raw(),
                              channel=block.channel,
                              band=block.band,
                              sta=lvap.addr.to_raw(),
