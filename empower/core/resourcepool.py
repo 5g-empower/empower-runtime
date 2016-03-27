@@ -173,10 +173,12 @@ class ResourceBlock(object):
             self._supports = set([0, 1, 2, 3, 4, 5, 6, 7])
         else:
             if self.channel > 14:
-                self._supports = set([6, 9, 12, 18, 24, 36, 48, 54])
+                self._supports = \
+                    set([6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0])
             else:
                 self._supports = \
-                    set([1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54])
+                    set([1.0, 2.0, 5.5, 11.0,
+                         6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0])
 
     @property
     def addr(self):

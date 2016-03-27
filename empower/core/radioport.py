@@ -31,6 +31,7 @@ from empower.datatypes.etheraddress import EtherAddress
 
 from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
 
 
 def build_port(block):
@@ -93,7 +94,9 @@ class RadioPort():
         self._block = block
         self._no_ack = False
         self._rts_cts = 2346
-        self._mcs = set()
+
+        match = (lvap.supports & ResourcePool([block])).pop()
+        self._mcs = block.supports & match.supports
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """

@@ -251,7 +251,8 @@ class LVAPPConnection(object):
 
             for block in wtp.supports:
 
-                net_bssid = self.server.generate_bssid(base_bssid, wtp_addr)
+                net_bssid = \
+                    self.server.generate_bssid(base_bssid, block.hwaddr)
 
                 # vap has already been created
                 if net_bssid in RUNTIME.tenants[tenant_id].vaps:
@@ -261,7 +262,6 @@ class LVAPPConnection(object):
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
-                break
 
     def _handle_probe_request(self, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -701,31 +701,28 @@ class LVAPPConnection(object):
 
         sta_addr = EtherAddress(status.sta)
         hwaddr = EtherAddress(status.hwaddr)
+        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
-        LOG.info("Port status for %s from %s hwaddr %s channel %u band %s",
+        LOG.info("Port status for %s from %s block %s",
                  sta_addr,
                  wtp_addr,
-                 hwaddr,
-                 status.channel,
-                 status.band)
-
-        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
+                 block)
 
         try:
             lvap = RUNTIME.lvaps[sta_addr]
         except KeyError:
-            LOG.error("Invalid LVAP %s, ignoring" % sta_addr)
+            LOG.error("Invalid LVAP %s, ignoring", sta_addr)
             return
 
         try:
             port = lvap.downlink[block]
         except KeyError:
-            LOG.error("Invalid Block %s, ignoring" % block)
+            LOG.error("Invalid Block %s, ignoring", block)
             return
 
         port._no_ack = bool(status.flags.no_ack)
         port._rts_cts = int(status.rts_cts)
-        port._mcs = set(status.mcs)
+        port._mcs = set([float(x)/2 for x in status.mcs])
 
         LOG.info("Port: %s", port)
 
@@ -983,6 +980,7 @@ class LVAPPConnection(object):
         """
 
         flags = Container(no_ack=port.no_ack)
+        rates = sorted([int(x*2) for x in port.mcs])
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
@@ -991,8 +989,8 @@ class LVAPPConnection(object):
                              flags=flags,
                              sta=port.lvap.addr.to_raw(),
                              rts_cts=port.rts_cts,
-                             nb_mcses=len(port.mcs),
-                             mcs=sorted(list(port.mcs)))
+                             nb_mcses=len(rates),
+                             mcs=rates)
 
         msg = SET_PORT.build(set_port)
         self.stream.write(msg)
