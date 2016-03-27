@@ -72,6 +72,7 @@ POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt32("seq"),
                         UBInt32("poller_id"),
                         Bytes("addrs", 6),
+                        Bytes("hwaddr", 6),
                         UBInt8("channel"),
                         UBInt8("band"))
 
@@ -81,6 +82,7 @@ POLLER_RESP_MSG = Struct("poller_response", UBInt8("version"),
                          UBInt32("seq"),
                          UBInt32("poller_id"),
                          Bytes("wtp", 6),
+                         Bytes("hwaddr", 6),
                          UBInt8("channel"),
                          UBInt8("band"),
                          UBInt16("nb_entries"),
@@ -98,8 +100,8 @@ class Maps(Module):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
-               self.addrs == other.addrs and \
-               self.block == other.block
+            self.addrs == other.addrs and \
+            self.block == other.block
 
     @property
     def addrs(self):
@@ -188,11 +190,12 @@ class Maps(Module):
 
         req = Container(version=PT_VERSION,
                         type=self.worker.POLLER_REQ_MSG_TYPE,
-                        length=20,
+                        length=26,
                         seq=wtp.seq,
                         poller_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
                         addrs=target.to_raw(),
+                        hwaddr=block.hwaddr.to_raw(),
                         channel=block.channel,
                         band=block.band)
 
@@ -302,8 +305,9 @@ class MapsWorker(ModuleWorker):
             return
 
         wtp = RUNTIME.wtps[wtp_addr]
+        hwaddr = EtherAddress(message.hwaddr)
         incoming = ResourcePool()
-        incoming.add(ResourceBlock(wtp, message.channel, message.band))
+        incoming.add(ResourceBlock(wtp, hwaddr, message.channel, message.band))
 
         matching = (wtp.supports & incoming).pop()
 

@@ -74,9 +74,6 @@ class RSSITracker(EmpowerApp):
 
         for block in wtp.supports:
 
-            if block.black_listed:
-                continue
-
             ucqm(addrs=self.addrs,
                  block=block,
                  tenant_id=self.tenant.tenant_id,

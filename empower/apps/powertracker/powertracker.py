@@ -58,6 +58,8 @@ class PowerTracker(EmpowerApp):
         power = 0.0
 
         for wtp in self.wtps():
+            if not wtp.feed:
+                continue
             for datastream in wtp.feed.datastreams.values():
                 if datastream['id'] == 'power':
                     power += datastream['current_value']

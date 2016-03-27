@@ -198,7 +198,7 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Hello from unknown WTP (%s)", (wtp_addr))
+            LOG.info("Hello from unknown WTP (%s)", wtp_addr)
             return
 
         LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
@@ -276,7 +276,7 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Probe request from unknown WTP (%s)", (wtp_addr))
+            LOG.info("Probe request from unknown WTP (%s)", wtp_addr)
             return
 
         if not wtp.connection:
@@ -294,11 +294,12 @@ class LVAPPConnection(object):
         if RUNTIME.is_denied(sta):
             return
 
+        ssid = SSID(request.ssid)
+
         if request.ssid == b'':
             LOG.info("Probe request from %s ssid %s", sta, "Broadcast")
         else:
-            LOG.info("Probe request from %s ssid %s", sta,
-                     SSID(request.ssid))
+            LOG.info("Probe request from %s ssid %s", sta, ssid)
 
         # generate list of available SSIDs
         ssids = set()
@@ -386,8 +387,6 @@ class LVAPPConnection(object):
             LOG.info("Auth request from %s ignored (black list)", sta)
             return
 
-        LOG.info("Auth request from %s for BSSID %s", sta, bssid)
-
         lvap_bssid = None
 
         # look for bssid in shared tenants
@@ -404,14 +403,13 @@ class LVAPPConnection(object):
             lvap_bssid = lvap.net_bssid
 
         if not lvap_bssid:
-            LOG.info("Auth request from unknown BSSID: %s ", bssid)
             return
 
         # this will trigger an add lvap message to update the bssid
         lvap.lvap_bssid = lvap_bssid
 
-        LOG.info("Auth request from %s, sending auth response"
-                 " as BSSID %s", sta, lvap_bssid)
+        LOG.info("Auth request from %s for BSSID %s, replying", sta, bssid)
+
         self.send_auth_response(lvap)
 
     def _handle_assoc_request(self, request):
@@ -453,8 +451,6 @@ class LVAPPConnection(object):
         ssid = SSID(request.ssid.decode('UTF-8'))
         bssid = EtherAddress(request.bssid)
 
-        LOG.info("Assoc request sta %s ssid %s bssid %s", sta, ssid, bssid)
-
         tenant_name = None
 
         # look for ssid in shared tenants
@@ -478,10 +474,8 @@ class LVAPPConnection(object):
         # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
 
-        LOG.info("Assoc request sta %s assoc id %u ssid %s, sending response",
-                 lvap.addr,
-                 lvap.assoc_id,
-                 lvap.ssid)
+        LOG.info("Assoc request sta %s ssid %s bssid %s assoc id %u, replying",
+                 lvap.addr, lvap.ssid, lvap.lvap_bssid, lvap.assoc_id)
 
         self.send_assoc_response(lvap)
 
@@ -511,10 +505,9 @@ class LVAPPConnection(object):
                 to_be_removed.append(lvap)
 
         for lvap in to_be_removed:
-            LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
+            LOG.info("Deleting LVAP: %s", lvap.addr)
             for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
                 handler(lvap)
-            LOG.info("Deleting LVAP: %s", lvap.addr)
             lvap.clear_ports()
             del RUNTIME.lvaps[lvap.addr]
 
@@ -554,11 +547,11 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Status from unknown WTP %s", (wtp_addr))
+            LOG.info("Status from unknown WTP %s", wtp_addr)
             return
 
         if not wtp.connection:
-            LOG.info("Status from disconnected WTP %s", (wtp_addr))
+            LOG.info("Status from disconnected WTP %s", wtp_addr)
             return
 
         sta_addr = EtherAddress(status.sta)
@@ -568,10 +561,8 @@ class LVAPPConnection(object):
         hwaddr = EtherAddress(status.hwaddr)
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
-        LOG.info("LVAP %s status update block %s mask %s",
-                 sta_addr,
-                 block,
-                 set_mask)
+        LOG.info("LVAP status update for %s from %s block %s",
+                 sta_addr, wtp_addr, block)
 
         # If the LVAP does not exists, then create a new one
         if sta_addr not in RUNTIME.lvaps:
@@ -606,7 +597,7 @@ class LVAPPConnection(object):
         match = wtp.supports & pool
 
         if not match:
-            LOG.error("Incoming block is invalid")
+            LOG.error("Incoming block %s is invalid", block)
             return
 
         # this will try to updated the lvap object with the resource block
@@ -638,7 +629,7 @@ class LVAPPConnection(object):
         if lvap.ssid:
 
             # Raise LVAP leave event
-            LOG.info("LVAP LEAVE %s (%s)" % (lvap.addr, lvap.ssid))
+            LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
             for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
                 handler(lvap)
 
@@ -646,8 +637,8 @@ class LVAPPConnection(object):
             for tenant in RUNTIME.tenants.values():
                 if lvap.ssid == SSID(tenant.tenant_name):
                     if lvap.addr in tenant.lvaps:
-                        LOG.info("Removing %s from tenant %s" %
-                                 (lvap.addr, tenant.tenant_name))
+                        LOG.info("Removing %s from tenant %s",
+                                 lvap.addr, tenant.tenant_name)
                         del tenant.lvaps[lvap.addr]
                         break
 
@@ -662,8 +653,8 @@ class LVAPPConnection(object):
             for tenant in RUNTIME.tenants.values():
                 if lvap.ssid == SSID(tenant.tenant_name):
                     if lvap.addr not in tenant.lvaps:
-                        LOG.info("Adding %s to tenant %s" %
-                                 (lvap.addr, tenant.tenant_name))
+                        LOG.info("Adding %s to tenant %s",
+                                 lvap.addr, tenant.tenant_name)
                         tenant.lvaps[lvap.addr] = lvap
 
             # Raise LVAP join event
@@ -677,7 +668,7 @@ class LVAPPConnection(object):
         # set ports
         lvap.set_ports()
 
-        LOG.info("LVAP %s", lvap)
+        LOG.info("LVAP status %s", lvap)
 
     def _handle_status_port(self, status):
         """Handle an incoming PORT message.
@@ -692,11 +683,11 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Status from unknown WTP %s", (wtp_addr))
+            LOG.info("Status from unknown WTP %s", wtp_addr)
             return
 
         if not wtp.connection:
-            LOG.info("Status from disconnected WTP %s", (wtp_addr))
+            LOG.info("Status from disconnected WTP %s", wtp_addr)
             return
 
         sta_addr = EtherAddress(status.sta)
@@ -704,9 +695,7 @@ class LVAPPConnection(object):
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
         LOG.info("Port status for %s from %s block %s",
-                 sta_addr,
-                 wtp_addr,
-                 block)
+                 sta_addr, wtp_addr, block)
 
         try:
             lvap = RUNTIME.lvaps[sta_addr]
@@ -724,7 +713,7 @@ class LVAPPConnection(object):
         port._rts_cts = int(status.rts_cts)
         port._mcs = set([float(x)/2 for x in status.mcs])
 
-        LOG.info("Port: %s", port)
+        LOG.info("Port status %s", port)
 
     def _handle_caps_response(self, caps):
         """Handle an incoming CAPS_RESPONSE message.
@@ -739,11 +728,10 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Caps response from unknown WTP (%s)", (wtp_addr))
+            LOG.info("Caps response from unknown WTP (%s)", wtp_addr)
             return
 
-        LOG.info("Received caps response from %s",
-                 EtherAddress(caps.wtp))
+        LOG.info("Received caps response from %s", wtp_addr)
 
         for block in caps.blocks:
 
@@ -776,11 +764,11 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("Status from unknown WTP %s", (wtp_addr))
+            LOG.info("Status from unknown WTP %s", wtp_addr)
             return
 
         if not wtp.connection:
-            LOG.info("Status from disconnected WTP %s", (wtp_addr))
+            LOG.info("Status from disconnected WTP %s", wtp_addr)
             return
 
         LOG.info("Received interference map from %s", wtp.addr)
@@ -815,8 +803,7 @@ class LVAPPConnection(object):
                             ssid=vap.ssid.encode())
 
         add_vap.length = add_vap.length + len(vap.ssid)
-        LOG.info("Add vap bssid %s ssid %s block %s",
-                 vap.net_bssid, vap.ssid, vap.block)
+        LOG.info("Add vap %s", vap)
 
         msg = ADD_VAP.build(add_vap)
         self.stream.write(msg)
@@ -854,11 +841,11 @@ class LVAPPConnection(object):
         try:
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
-            LOG.info("VAP Status from unknown WTP %s", (wtp_addr))
+            LOG.info("VAP Status from unknown WTP %s", wtp_addr)
             return
 
         if not wtp.connection:
-            LOG.info("VAP Status from disconnected WTP %s", (wtp_addr))
+            LOG.info("VAP Status from disconnected WTP %s", wtp_addr)
             return
 
         net_bssid_addr = EtherAddress(status.net_bssid)
@@ -889,7 +876,7 @@ class LVAPPConnection(object):
                 VAP(net_bssid_addr, block, wtp, tenant)
 
         vap = tenant.vaps[net_bssid_addr]
-        LOG.info("VAP %s", vap)
+        LOG.info("VAP status %s", vap)
 
     def send_assoc_response(self, lvap):
         """Send a ASSOC_RESPONSE message.
@@ -965,7 +952,6 @@ class LVAPPConnection(object):
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw())
 
-        LOG.info("Del lvap %s from wtp %s" % (lvap.addr, self.wtp.addr))
         msg = DEL_LVAP.build(del_lvap)
         self.stream.write(msg)
 
@@ -1038,9 +1024,6 @@ class LVAPPConnection(object):
             tmp = Container(length=len(b_ssid), ssid=b_ssid)
             add_lvap.ssids.append(tmp)
             add_lvap.length = add_lvap.length + len(b_ssid) + 1
-
-        LOG.info("Add lvap %s block %s mask %s",
-                 lvap.addr, block, set_mask)
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)

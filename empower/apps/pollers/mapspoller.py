@@ -63,9 +63,6 @@ class MapsPoller(Poller):
 
         for block in wtp.supports:
 
-            if block.black_listed:
-                continue
-
             ucqm(block=block,
                  tenant_id=self.tenant.tenant_id,
                  every=self.polling,

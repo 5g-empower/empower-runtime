@@ -142,9 +142,6 @@ class MobilityManager(EmpowerApp):
 
         for block in wtp.supports:
 
-            if block.black_listed:
-                continue
-
             ucqm(tenant_id=self.tenant.tenant_id,
                  block=block,
                  every=self.every)
