@@ -782,52 +782,6 @@ class LVAPPConnection(object):
                 if sta in RUNTIME.lvaps or sta in RUNTIME.wtps:
                     block.rssi_to[sta] = entry[1]
 
-    def send_add_vap(self, vap):
-        """Send a ADD_VAP message.
-        Args:
-            vap: an VAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
-
-        add_vap = Container(version=PT_VERSION,
-                            type=PT_ADD_VAP,
-                            length=22,
-                            seq=self.wtp.seq,
-                            hwaddr=vap.block.hwaddr.to_raw(),
-                            channel=vap.block.channel,
-                            band=vap.block.band,
-                            net_bssid=vap.net_bssid.to_raw(),
-                            ssid=vap.ssid.encode())
-
-        add_vap.length = add_vap.length + len(vap.ssid)
-        LOG.info("Add vap %s", vap)
-
-        msg = ADD_VAP.build(add_vap)
-        self.stream.write(msg)
-
-    def send_caps_request(self):
-        """Send a CAPS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            TypeError: if sta is not an EtherAddress object.
-        """
-
-        caps_req = Container(version=PT_VERSION,
-                             type=PT_CAPS_REQUEST,
-                             length=10,
-                             seq=self.wtp.seq)
-
-        LOG.info("Sending caps request to %s", self.wtp.addr)
-
-        msg = CAPS_REQUEST.build(caps_req)
-        self.stream.write(msg)
-
     def _handle_status_vap(self, status):
         """Handle an incoming STATUS_VAP message.
         Args:
@@ -877,6 +831,52 @@ class LVAPPConnection(object):
 
         vap = tenant.vaps[net_bssid_addr]
         LOG.info("VAP status %s", vap)
+
+    def send_add_vap(self, vap):
+        """Send a ADD_VAP message.
+        Args:
+            vap: an VAP object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        add_vap = Container(version=PT_VERSION,
+                            type=PT_ADD_VAP,
+                            length=22,
+                            seq=self.wtp.seq,
+                            hwaddr=vap.block.hwaddr.to_raw(),
+                            channel=vap.block.channel,
+                            band=vap.block.band,
+                            net_bssid=vap.net_bssid.to_raw(),
+                            ssid=vap.ssid.encode())
+
+        add_vap.length = add_vap.length + len(vap.ssid)
+        LOG.info("Add vap %s", vap)
+
+        msg = ADD_VAP.build(add_vap)
+        self.stream.write(msg)
+
+    def send_caps_request(self):
+        """Send a CAPS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            TypeError: if sta is not an EtherAddress object.
+        """
+
+        caps_req = Container(version=PT_VERSION,
+                             type=PT_CAPS_REQUEST,
+                             length=10,
+                             seq=self.wtp.seq)
+
+        LOG.info("Sending caps request to %s", self.wtp.addr)
+
+        msg = CAPS_REQUEST.build(caps_req)
+        self.stream.write(msg)
 
     def send_assoc_response(self, lvap):
         """Send a ASSOC_RESPONSE message.
