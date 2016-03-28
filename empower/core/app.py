@@ -156,7 +156,7 @@ class EmpowerApp(object):
     def remove_handlers(self):
         """Remove primitive handlers."""
 
-        return
+        pass
 
     @property
     def tenant_id(self):
