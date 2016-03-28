@@ -55,6 +55,7 @@ class LQM(dict):
 
 
 class NetworkPort():
+    """Network Port."""
 
     def __init__(self, dpid, port_id, hwaddr, iface):
 
@@ -65,6 +66,7 @@ class NetworkPort():
         self.lqm = LQM()
 
     def to_dict(self):
+        """Return JSON representation of the object."""
 
         return {'dpid': self.dpid,
                 'port_id': self.port_id,
