@@ -125,6 +125,7 @@ class EmpowerApp(object):
                 self.params.append(param)
 
     def add_handlers(self):
+        """Add primitives handlers."""
 
         if self.MODULE_NAME and self.MODULE_HANDLER:
 
