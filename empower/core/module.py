@@ -321,18 +321,26 @@ class Module(object):
 
     @property
     def tenant_id(self):
+        """Return tenant id."""
+
         return self.__tenant_id
 
     @tenant_id.setter
     def tenant_id(self, value):
+        """ Set tenant id."""
+
         self.__tenant_id = UUID(str(value))
 
     @property
     def every(self):
+        """Return every."""
+
         return self.__every
 
     @every.setter
     def every(self, value):
+        """Set every."""
+
         self.__every = int(value)
 
     def to_dict(self):
