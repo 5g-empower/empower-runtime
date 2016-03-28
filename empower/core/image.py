@@ -44,11 +44,15 @@ class Image(object):
         self.vnf = vnf
         self.handlers = {}
         self.state_handlers = []
+        self.add_handlers(handlers)
+        self.add_state_handlers(state_handlers)
 
-        # add vnf-specifc handlers
+    def add_handlers(self, handlers):
+        """add vnf-specifc handlers."""
+
         for handler in handlers:
 
-            if type(handler) is not list:
+            if isinstance(handler, list):
                 raise ValueError("list expected")
 
             if len(handler) != 2:
@@ -56,7 +60,9 @@ class Image(object):
 
             self.handlers[handler[0]] = handler[1]
 
-        # add state handlers
+    def add_handlers(self, state_handlers):
+        """Add state handlers."""
+
         for state_handler in state_handlers:
 
             if state_handler not in self.handlers:
