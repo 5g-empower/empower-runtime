@@ -31,12 +31,13 @@ import time
 import re
 import json
 import types
-import tornado.web
-import tornado.httpserver
 import xmlrpc.client
 
-from uuid import UUID
+import tornado.web
+import tornado.httpserver
 from tornado.ioloop import IOLoop
+
+from uuid import UUID
 from multiprocessing.pool import ThreadPool
 
 from empower.core.jsonserializer import EmpowerEncoder
@@ -48,7 +49,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-_workers = ThreadPool(10)
+_WORKERS = ThreadPool(10)
 
 
 def exec_xmlrpc(callback, args=()):
@@ -67,7 +68,7 @@ def run_background(func, callback, args=(), kwds={}):
     def _callback(result):
         IOLoop.instance().add_callback(lambda: callback(result))
 
-    _workers.apply_async(func, args, kwds, _callback)
+    _WORKERS.apply_async(func, args, kwds, _callback)
 
 
 def on_complete(res):
@@ -151,9 +152,13 @@ def bind_module(worker):
     this = sys.modules[worker.__module__]
 
     def add(tenant_id, **kwargs):
+        """Callback method for adding a module."""
+
         return base_add_module(worker, tenant_id, **kwargs)
 
-    def remove(tenant_id, module_id):
+    def remove(module_id):
+        """Callback method for removing a module."""
+
         return base_remove_module(worker, module_id)
 
     setattr(this, worker.MODULE_NAME, add)
@@ -301,6 +306,7 @@ class Module(object):
         self.__callback = None
         self.__profiler = None
         self.__last_poll = None
+        self.__worker = None
 
     def tic(self):
         """Start profiling."""
@@ -380,10 +386,12 @@ class Module(object):
         return hash(str(self.tenant_id) + str(self.module_id))
 
     def __eq__(self, other):
+
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
-                   self.tenant_id == other.tenant_id and \
-                   self.every == other.every
+                self.tenant_id == other.tenant_id and \
+                self.every == other.every
+
         return False
 
     def __ne__(self, other):
@@ -435,13 +443,13 @@ class ModuleWorker(object):
     def add_handlers(self):
         """Add primitive handlers."""
 
-        a = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?" % self.MODULE_NAME
-        b = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?" % \
+        add = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?" % self.MODULE_NAME
+        add_name = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?" % \
             self.MODULE_NAME
 
         handlers = [
-            (a, self.MODULE_HANDLER),
-            (b, self.MODULE_HANDLER),
+            (add, self.MODULE_HANDLER),
+            (add_name, self.MODULE_HANDLER),
         ]
 
         self.rest_server.add_handlers(r".*$", handlers)
@@ -449,12 +457,12 @@ class ModuleWorker(object):
     def remove_handlers(self):
         """Remove primitive handlers."""
 
-        a = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?$" % self.MODULE_NAME
-        b = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?$" % \
+        remove = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?$" % self.MODULE_NAME
+        remove_name = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?$" % \
             self.MODULE_NAME
 
-        re_a = re.compile(a)
-        re_b = re.compile(b)
+        re_a = re.compile(remove)
+        re_b = re.compile(remove_name)
 
         def determine(spec, re_a, re_b, module_handler):
             return not (spec.handler_class == module_handler and

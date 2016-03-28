@@ -32,8 +32,8 @@ import http.client
 
 from uuid import UUID
 
-from empower.core.jsonserializer import EmpowerEncoder
 from urllib.parse import urlparse
+from empower.core.jsonserializer import EmpowerEncoder
 
 import empower.logger
 LOG = empower.logger.get_logger()

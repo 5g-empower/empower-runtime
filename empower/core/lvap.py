@@ -27,7 +27,6 @@
 
 """EmPOWER Light Virtual Access Point (LVAP) class."""
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.core.resourcepool import ResourcePool
 from empower.core.resourcepool import ResourceBlock
 from empower.core.radioport import RadioPort
@@ -160,7 +159,7 @@ class LVAP(object):
         # will then dispatch an add lvap message in order to propagate the
         # change to the agent
         self._ssids = []
-        self._encap = EtherAddress("00:00:00:00:00:00")
+        self._encap = None
 
         # the following parameters can be updated by both agent and
         # controller. The controller sets them when a client successfully
@@ -268,9 +267,6 @@ class LVAP(object):
     @encap.setter
     def encap(self, encap):
         """ Set the encap. """
-
-        if encap is None:
-            encap = EtherAddress("00:00:00:00:00:00")
 
         if self._encap == encap:
             return

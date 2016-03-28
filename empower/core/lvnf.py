@@ -145,6 +145,7 @@ class LVNF(object):
         self.__migration_queue = {}
         self.__migration_target = None
         self.__migration_profiler = 0
+        self.last_delta = None
 
         # bind handlers methods to object instance
         for key in self.image.handlers:
@@ -197,11 +198,11 @@ class LVNF(object):
         # If cpp is set, and this is not a null assignment then start migration
         if self.cpp and cpp:
 
-            LOG.info("LVNF %s start migration..." % self.lvnf_id)
+            LOG.info("LVNF %s start migration...", self.lvnf_id)
 
             # Set process status to MIGRATING
-            LOG.info("LVNF %s migration: transitioning to state %s." %
-                     (self.lvnf_id, PROCESS_M1))
+            LOG.info("LVNF %s migration: transitioning to state %s.",
+                     self.lvnf_id, PROCESS_M1)
 
             self.process = PROCESS_M1
 
@@ -264,8 +265,8 @@ class LVNF(object):
             if value == PROCESS_RUNNING:
 
                 # setting migrated state
-                LOG.info("LVNF %s migration: transitioning to state %s." %
-                         (self.lvnf_id, PROCESS_M2))
+                LOG.info("LVNF %s migration: transitioning to state %s.",
+                         self.lvnf_id, PROCESS_M2)
 
                 self.__process = PROCESS_M2
 

@@ -995,6 +995,11 @@ class LVAPPConnection(object):
                           associated=lvap.association_state,
                           set_mask=set_mask)
 
+        encap = EtherAddress("00:00:00:00:00:00")
+
+        if lvap.encap:
+            encap = lvap.encap
+
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
                              length=44,
@@ -1005,7 +1010,7 @@ class LVAPPConnection(object):
                              channel=block.channel,
                              band=block.band,
                              sta=lvap.addr.to_raw(),
-                             encap=lvap.encap.to_raw(),
+                             encap=encap.to_raw(),
                              net_bssid=lvap.net_bssid.to_raw(),
                              lvap_bssid=lvap.lvap_bssid.to_raw(),
                              ssids=[])
