@@ -51,7 +51,7 @@ class CQM(dict):
     when the key is missing."""
 
     def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __getitem__(self, key):
 
@@ -73,6 +73,7 @@ class CQM(dict):
 
 
 def build_block(block):
+    """Build a new resource block from another block or from a tuple."""
 
     if isinstance(block, ResourceBlock):
 

@@ -329,7 +329,7 @@ class Module(object):
     def tenant_id(self, value):
         """ Set tenant id."""
 
-        self.__tenant_id = UUID(str(value))
+        self.__tenant_id = value
 
     @property
     def every(self):

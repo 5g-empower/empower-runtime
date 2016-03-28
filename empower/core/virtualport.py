@@ -100,8 +100,8 @@ class VirtualPortProp(dict):
     not implemented yet.
     """
 
-    def __init__(self, *args):
-        super().__init__(self, args)
+    def __init__(self):
+        super().__init__()
         self.__uuids__ = {}
 
     def __delitem__(self, key):
@@ -164,8 +164,8 @@ class VirtualPortProp(dict):
 class VirtualPortPropLvap(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
-    def __init__(self, *args):
-        super().__init__(self, args)
+    def __init__(self):
+        super().__init__()
         self.lvap = None
 
     def __setitem__(self, key, value):
@@ -371,6 +371,6 @@ class VirtualPortPropLvap(VirtualPortProp):
 class VirtualPortPropLvnf(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
-    def __init__(self, *args):
-        super().__init__(self, args)
+    def __init__(self):
+        super().__init__()
         self.lvnf = None

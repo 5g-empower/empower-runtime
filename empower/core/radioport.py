@@ -27,35 +27,9 @@
 
 """EmPOWER Radio Port."""
 
-from empower.datatypes.etheraddress import EtherAddress
-
 from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
-
-
-def build_port(block):
-
-    if isinstance(block, RadioPort):
-
-        requested = block
-
-    elif isinstance(block, tuple):
-
-        if len(tuple) < 1:
-            raise ValueError("Invalid tuple")
-
-        from empower.main import RUNTIME
-
-        lvap = RUNTIME.lvaps[EtherAddress(block[0])]
-        requested = RadioPort(lvap)
-
-    else:
-
-        raise ValueError("Expected ResourceBlock or tuple, got %s",
-                         type(block))
-
-    return requested
 
 
 class RadioPort():
@@ -233,7 +207,6 @@ class RadioPortProp(dict):
         """Notice this will set the item without sending out any message."""
 
         key = build_block(key)
-        value = build_port(value)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
@@ -261,7 +234,6 @@ class RadioPortProp(dict):
     def __setitem__(self, key, value):
 
         key = build_block(key)
-        value = build_port(value)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
