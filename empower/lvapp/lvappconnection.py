@@ -468,6 +468,11 @@ class LVAPPConnection(object):
         if lvap.net_bssid == bssid and ssid in lvap.ssids:
             tenant_name = ssid
 
+        if not tenant_name:
+            LOG.info("Assoc request sta %s for ssid %s bssid %s, ignoring",
+                     lvap.addr, lvap.ssid, lvap.lvap_bssid)
+            return
+
         # this will trigger an add lvap message to update the ssid
         lvap.ssid = SSID(tenant_name)
 
@@ -561,8 +566,7 @@ class LVAPPConnection(object):
         hwaddr = EtherAddress(status.hwaddr)
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
-        LOG.info("LVAP status update for %s from %s block %s",
-                 sta_addr, wtp_addr, block)
+        LOG.info("LVAP status update from %s", sta_addr)
 
         # If the LVAP does not exists, then create a new one
         if sta_addr not in RUNTIME.lvaps:
@@ -694,8 +698,7 @@ class LVAPPConnection(object):
         hwaddr = EtherAddress(status.hwaddr)
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
-        LOG.info("Port status for %s from %s block %s",
-                 sta_addr, wtp_addr, block)
+        LOG.info("Port status from %s", sta_addr)
 
         try:
             lvap = RUNTIME.lvaps[sta_addr]
