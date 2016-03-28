@@ -111,7 +111,7 @@ class EmpowerApp(object):
 
         self.__tenant_id = UUID(tenant_id)
         self.__every = DEFAULT_PERIOD
-        self.ui = None
+        self.ui_url = None
         self.rest = None
         self.params = []
 
@@ -148,7 +148,7 @@ class EmpowerApp(object):
             self.MODULE_HOME_HANDLER.HANDLERS.\
                 append(r"/apps/tenants/%s/%s/?" % module)
 
-            self.ui = "/apps/tenants/%s/%s/?" % module
+            self.ui_url = "/apps/tenants/%s/%s/?" % module
 
             rest_server = RUNTIME.components[RESTServer.__module__]
             rest_server.add_handler_class(self.MODULE_HOME_HANDLER, self)
@@ -163,12 +163,6 @@ class EmpowerApp(object):
         """Return tenant_id."""
 
         return self.__tenant_id
-
-    @tenant_id.setter
-    def tenant_id(self, tenant_id):
-        """Set tenant_id."""
-
-        raise ValueError("Cannot change tenant id at runtime")
 
     @property
     def tenant(self):
@@ -186,7 +180,7 @@ class EmpowerApp(object):
     def every(self, value):
         """Set loop period."""
 
-        LOG.info("Setting control loop interval to %u" % value)
+        LOG.info("Setting control loop interval to %u", value)
         self.__every = int(value)
 
     def start(self):
@@ -205,7 +199,7 @@ class EmpowerApp(object):
         params = {}
 
         params['tenant_id'] = self.tenant_id
-        params['ui'] = self.ui
+        params['ui_url'] = self.ui_url
         params['rest'] = self.rest
 
         for param in self.params:
