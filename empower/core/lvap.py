@@ -32,7 +32,7 @@ from empower.core.resourcepool import ResourceBlock
 from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
-from empower.core.virtualport import VirtualPort
+from empower.core.virtualport import VirtualPortLvap
 from empower.core.intent import match_to_key
 
 import empower.logger
@@ -232,11 +232,11 @@ class LVAP(object):
             if port.iface != "empower0":
                 continue
 
-            virtual_port = VirtualPort(dpid=self.wtp.addr,
-                                       ovs_port_id=port.port_id,
-                                       virtual_port_id=0,
-                                       hwaddr=port.hwaddr,
-                                       iface=port.iface)
+            virtual_port = VirtualPortLvap(dpid=self.wtp.addr,
+                                           ovs_port_id=port.port_id,
+                                           virtual_port_id=0,
+                                           hwaddr=port.hwaddr,
+                                           iface=port.iface)
 
             # These are needed because when assigning the next method of a
             # virtual port I need to access the lvap configuration: encap, and
