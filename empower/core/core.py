@@ -496,3 +496,12 @@ class EmpowerRuntime(object):
 
             for module_id in to_be_removed:
                 component.remove_module(module_id)
+
+    def load_tenant(self, tenant_name):
+        """Load tenant from network name."""
+
+        for tenant in self.tenants.values():
+            if SSID(tenant.tenant_name) == tenant_name:
+                return tenant
+
+        return None
