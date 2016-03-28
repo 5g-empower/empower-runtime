@@ -30,7 +30,6 @@
 import tornado.ioloop
 import json
 
-from uuid import UUID
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.restserver.restserver import RESTServer
@@ -109,7 +108,7 @@ class EmpowerApp(object):
 
     def __init__(self, tenant_id, **kwargs):
 
-        self.__tenant_id = UUID(tenant_id)
+        self.__tenant_id = tenant_id
         self.__every = DEFAULT_PERIOD
         self.ui_url = None
         self.rest = None
