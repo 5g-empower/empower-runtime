@@ -60,7 +60,7 @@ class Image(object):
 
             self.handlers[handler[0]] = handler[1]
 
-    def add_handlers(self, state_handlers):
+    def add_state_handlers(self, state_handlers):
         """Add state handlers."""
 
         for state_handler in state_handlers:
