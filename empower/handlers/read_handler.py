@@ -134,7 +134,7 @@ class ReadHandlerWorker(ModuleWorker):
         tenant = RUNTIME.tenants[handler.tenant_id]
 
         if handler.lvnf_id not in tenant.lvnfs:
-            LOG.error("LVNF %s not found." % handler.lvnf_id)
+            LOG.error("LVNF %s not found.", handler.lvnf_id)
             self.remove_module(handler.module_id)
             return
 
@@ -177,7 +177,7 @@ class ReadHandlerWorker(ModuleWorker):
         # update this object
         if handler_response['retcode'] != 200:
             error = handler_response['samples']
-            LOG.error("Error while polling %s: %s" % (handler.handler, error))
+            LOG.error("Error while polling %s: %s", handler.handler, error)
             self.remove_module(handler.module_id)
             return
 

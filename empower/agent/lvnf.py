@@ -105,7 +105,7 @@ class LVNF():
     def write_handler(self, handler, value):
         """Write the handler(s) and return a tuple (code, message)."""
 
-        if type(value) is list:
+        if isinstance(value, list):
 
             for entry in value:
                 ret = write_handler("127.0.0.1", self.ctrl, handler, entry)
@@ -122,7 +122,7 @@ class LVNF():
     def init_lvnf(self):
         """Start LVNF."""
 
-        logging.info("Starting LVNF %s." % self.lvnf_id)
+        logging.info("Starting LVNF %s.", self.lvnf_id)
 
         try:
 
@@ -130,8 +130,8 @@ class LVNF():
 
         except subprocess.TimeoutExpired:
 
-            logging.info("LVNF %s is running pid %u" %
-                  (self.lvnf_id, self.process.pid))
+            logging.info("LVNF %s is running pid %u", self.lvnf_id,
+                         self.process.pid)
 
             # add interfaces
             self.add_ifaces()
@@ -147,10 +147,10 @@ class LVNF():
 
             return
 
-        logging.info("LVNF %s terminated with code %u" %
-                     (self.lvnf_id, self.process.returncode))
+        logging.info("LVNF %s terminated with code %u", self.lvnf_id,
+                     self.process.returncode)
 
-        logging.info("LVNF error: \n%s" % errs.decode("utf-8"))
+        logging.info("LVNF error: \n%s", errs.decode("utf-8"))
 
         self.message = errs.decode("utf-8")
 
@@ -166,7 +166,7 @@ class LVNF():
 
             if self.process.returncode is not None:
 
-                logging.info("LVNF %s: process is not running." % self.lvnf_id)
+                logging.info("LVNF %s: process is not running.", self.lvnf_id)
 
                 try:
                     outs, errs = self.process.communicate(timeout=0.5)
@@ -177,7 +177,7 @@ class LVNF():
                 logging.info("LVNF %s terminated with code %u" %
                              (self.lvnf_id, self.process.returncode))
 
-                logging.info("LVNF error: %s" % errs.decode("utf-8"))
+                logging.info("LVNF error: %s", errs.decode("utf-8"))
 
                 self.message = errs.decode("utf-8")
 
@@ -191,25 +191,25 @@ class LVNF():
 
             time.sleep(2)
 
-        logging.info("Terminating LVNF %s heartbeat" % self.lvnf_id)
+        logging.info("Terminating LVNF %s heartbeat", self.lvnf_id)
 
     def start(self):
         """Start click daemon."""
 
-        logging.info("Starting LVNF %s" % self.lvnf_id)
+        logging.info("Starting LVNF %s", self.lvnf_id)
         logging.info(self)
 
-        self.process = subprocess.Popen(["/usr/local/bin/click", "-e",
-                                        self.script],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
+        self.process = \
+            subprocess.Popen(["/usr/local/bin/click", "-e", self.script],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
 
         threading.Thread(target=self.init_lvnf, args=()).start()
 
     def stop(self):
         """Stop click daemon."""
 
-        logging.info("Stopping LVNF %s" % self.lvnf_id)
+        logging.info("Stopping LVNF %s", self.lvnf_id)
 
         # stop heartbeat thread
         if self.thread:
@@ -221,7 +221,7 @@ class LVNF():
         self.process = None
         self.remove_ifaces()
 
-        logging.info("LVNF %s stopped" % self.lvnf_id)
+        logging.info("LVNF %s stopped", self.lvnf_id)
 
     def add_ifaces(self):
         """Add ifaces to bridge."""
@@ -230,8 +230,8 @@ class LVNF():
 
             iface = self.ports[virtual_port_id]['iface']
 
-            logging.info("Adding virtual port %u (%s) to bridge %s" %
-                         (virtual_port_id, iface, self.agent.bridge))
+            logging.info("Adding virtual port %u (%s) to bridge %s",
+                         virtual_port_id, iface, self.agent.bridge)
 
             exec_cmd(["ifconfig", iface, "up"])
             exec_cmd(["ovs-vsctl", "add-port", self.agent.bridge, iface])
@@ -242,8 +242,8 @@ class LVNF():
                     ovs_port_id = port['port_id']
                     break
 
-            logging.info("Disabling flooding on port %u on bridge %s" %
-                         (ovs_port_id, self.agent.bridge))
+            logging.info("Disabling flooding on port %u on bridge %s",
+                         ovs_port_id, self.agent.bridge)
 
             exec_cmd(["ovs-ofctl", "mod-port", self.agent.bridge,
                       str(ovs_port_id), 'no-flood'])
@@ -258,13 +258,13 @@ class LVNF():
 
             iface = self.ports[virtual_port_id]['iface']
 
-            logging.info("Removing virtual port %u (%s) from bridge %s" %
-                         (virtual_port_id, iface, self.agent.bridge))
+            logging.info("Removing virtual port %u (%s) from bridge %s",
+                         virtual_port_id, iface, self.agent.bridge)
 
             try:
                 exec_cmd(["ovs-vsctl", "del-port", self.agent.bridge, iface])
             except OSError:
-                logging.info("Unable to remove port %s" % iface)
+                logging.info("Unable to remove port %s", iface)
 
         self.ports = {}
 
@@ -286,8 +286,8 @@ class LVNF():
             out[iface] = {}
             for field in fields:
                 full_path = path % (self.ports[port]['iface'], field)
-                f = open(full_path, 'r')
-                out[iface][field] = int(f.read())
+                f_stats = open(full_path, 'r')
+                out[iface][field] = int(f_stats.read())
 
         return out
 

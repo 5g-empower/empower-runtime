@@ -49,9 +49,9 @@ def get_hw_addr(ifname):
         OSError: An error occured accessing the interface.
     """
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    info = fcntl.ioctl(s.fileno(),
+    info = fcntl.ioctl(sock.fileno(),
                        0x8927,
                        struct.pack('256s', ifname[:15].encode('utf-8')))
 
@@ -88,12 +88,13 @@ def exec_cmd(cmd, timeout=2):
 
 
 def write_handler(host, port, handler, value):
+    """Write to a click handler."""
 
     sock = socket.socket()
     sock.connect((host, port))
 
-    f = sock.makefile()
-    line = f.readline()
+    f_hand = sock.makefile()
+    line = f_hand.readline()
 
     if line != "Click::ControlSocket/1.3\n":
         raise ValueError("Unexpected reply: %s" % line)
@@ -101,13 +102,13 @@ def write_handler(host, port, handler, value):
     cmd = "write %s %s\n" % (handler, value)
     sock.send(cmd.encode("utf-8"))
 
-    line = f.readline()
+    line = f_hand.readline()
 
     regexp = '([0-9]{3}) (.*)'
     match = re.match(regexp, line)
 
     while not match:
-        line = f.readline()
+        line = f_hand.readline()
         match = re.match(regexp, line)
 
     groups = match.groups()
@@ -116,37 +117,38 @@ def write_handler(host, port, handler, value):
 
 
 def read_handler(host, port, handler):
+    """Read a click handler."""
 
     sock = socket.socket()
     sock.connect((host, port))
 
-    f = sock.makefile()
-    line = f.readline()
+    f_hand = sock.makefile()
+    line = f_hand.readline()
 
     if line != "Click::ControlSocket/1.3\n":
-            raise ValueError("Unexpected reply: %s" % line)
+        raise ValueError("Unexpected reply: %s" % line)
 
     cmd = "read %s\n" % handler
     sock.send(cmd.encode("utf-8"))
 
-    line = f.readline()
+    line = f_hand.readline()
 
     regexp = '([0-9]{3}) (.*)'
     match = re.match(regexp, line)
 
     while not match:
-        line = f.readline()
+        line = f_hand.readline()
         match = re.match(regexp, line)
 
     groups = match.groups()
 
     if int(groups[0]) == 200:
 
-        line = f.readline()
+        line = f_hand.readline()
         res = line.split(" ")
 
         length = int(res[1])
-        data = f.read(length)
+        data = f_hand.read(length)
 
         return (int(groups[0]), data)
 

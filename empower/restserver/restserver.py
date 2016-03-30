@@ -55,6 +55,8 @@ def exceptions(method):
     """Decorator catching the most common exceptions."""
 
     def magic(self, *args, **kwargs):
+        """Perform basic exception catching in rest calls."""
+
         try:
             method(self, *args, **kwargs)
         except KeyError as ex:
@@ -180,8 +182,6 @@ class ManageTenantHandler(BaseHandler):
                     role=account.role,
                     error=error,
                     tenant=tenant)
-
-
 
 
 class AccountsHandler(EmpowerAPIHandler):

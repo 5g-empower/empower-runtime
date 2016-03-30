@@ -64,9 +64,9 @@ class WriteHandler(Module):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
-               self.lvnf_id == other.lvnf_id and \
-               self.handler == other.handler and \
-               self.value == other.value
+            self.lvnf_id == other.lvnf_id and \
+            self.handler == other.handler and \
+            self.value == other.value
 
     @property
     def handler(self):
@@ -134,7 +134,7 @@ class WriteHandlerWorker(ModuleWorker):
         tenant = RUNTIME.tenants[handler.tenant_id]
 
         if handler.lvnf_id not in tenant.lvnfs:
-            LOG.error("LVNF %s not found." % handler.lvnf_id)
+            LOG.error("LVNF %s not found.", handler.lvnf_id)
             self.remove_module(handler.module_id)
             return
 

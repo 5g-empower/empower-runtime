@@ -66,6 +66,8 @@ def on_open(ws):
     logging.info("Socket opened...")
 
     def run(ws):
+        """Start hello messages."""
+
         if ws.sock and ws.sock.connected:
             ws.send_hello()
             time.sleep(ws.every)
@@ -124,12 +126,11 @@ class EmpowerAgent(websocket.WebSocketApp):
         self.ctrl = ctrl
 
         logging.info("Initializing the EmPOWER Agent...")
-        logging.info("Bridge %s (hwaddr=%s)" % (self.bridge, self.addr))
+        logging.info("Bridge %s (hwaddr=%s)", self.bridge, self.addr)
 
         for port in self.ports.values():
-            logging.info("Port %u (iface=%s, hwaddr=%s)" % (port['port_id'],
-                                                            port['iface'],
-                                                            port['hwaddr']))
+            logging.info("Port %u (iface=%s, hwaddr=%s)",
+                         port['port_id'], port['iface'], port['hwaddr'])
 
     def shutdown(self):
         """Gracefully stop agent."""
@@ -164,9 +165,9 @@ class EmpowerAgent(websocket.WebSocketApp):
 
         for line in lines:
             regexp = '([0-9]*)\((.*)\): addr:([0-9a-fA-F:]*)'
-            m = re.match(regexp, line.strip())
-            if m:
-                groups = m.groups()
+            mat = re.match(regexp, line.strip())
+            if mat:
+                groups = mat.groups()
                 ports[int(groups[0])] = {'port_id': int(groups[0]),
                                          'iface': groups[1],
                                          'hwaddr': EtherAddress(groups[2])}
@@ -202,7 +203,8 @@ class EmpowerAgent(websocket.WebSocketApp):
         self.__bridge = bridge
 
         if not self.ports:
-            logging.info("Warning, no ports available on bridge %s" % self.bridge)
+            logging.info("Warning, no ports available on bridge %s",
+                         self.bridge)
 
         cmd = ["ovs-vsctl", "list-ports", self.bridge]
         lines = exec_cmd(cmd).split('\n')
@@ -213,7 +215,7 @@ class EmpowerAgent(websocket.WebSocketApp):
             if match:
                 groups = match.groups()
                 iface = "vnf-%s-%s-%s" % groups
-                logging.info("Stale port found %s" % iface)
+                logging.info("Stale port found %s", iface)
                 exec_cmd(["ovs-vsctl", "del-port", self.bridge, iface])
 
     @property
@@ -274,7 +276,7 @@ class EmpowerAgent(websocket.WebSocketApp):
             except Exception as ex:
                 logging.info(ex)
         else:
-            logging.info("Unknown message type: %s" % msg['type'])
+            logging.info("Unknown message type: %s", msg['type'])
 
     def dump_message(self, message):
         """Dump a generic message.
@@ -293,7 +295,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         del message['seq']
 
         fields = ["%s=%s" % (k, v)for k, v in message.items()]
-        logging.info("%s (%s)" % (header, ", ".join(fields)))
+        logging.info("%s (%s)", header, ", ".join(fields))
 
     def _handle_error(self, error):
         """Handle ERROR message.
@@ -328,7 +330,7 @@ class EmpowerAgent(websocket.WebSocketApp):
         message['seq'] = self.seq
         message['every'] = self.every
 
-        logging.info("Sending %s seq %u" % (message['type'], message['seq']))
+        logging.info("Sending %s seq %u", message['type'], message['seq'])
         msg = json.dumps(message, cls=EmpowerEncoder)
         self.uplink_bytes += len(msg)
         self.send(json.dumps(message, cls=EmpowerEncoder))
@@ -397,7 +399,7 @@ class EmpowerAgent(websocket.WebSocketApp):
 
         if lvnf_id in self.lvnfs:
 
-            logging.info("LVNF %s found, removing." % lvnf_id)
+            logging.info("LVNF %s found, removing.", lvnf_id)
 
             lvnf = self.lvnfs[lvnf_id]
             lvnf.stop()
@@ -567,9 +569,9 @@ def main(Agent=EmpowerAgent):
 
     while True:
         try:
-            logging.info("Trying to connect to controller %s" % agent.url)
+            logging.info("Trying to connect to controller %s", agent.url)
             agent.run_forever()
-            logging.info("Unable to connect, trying again in %us" % agent.every)
+            logging.info("Unable to connect, trying again in %us", agent.every)
             time.sleep(agent.every)
         except KeyboardInterrupt:
             agent.shutdown()

@@ -44,7 +44,6 @@ LOG = empower.logger.get_logger()
 
 
 class EmpowerAPIHandler(tornado.web.RequestHandler):
-
     """ Base class for all the REST call. """
 
     RIGHTS = {'GET': None,
@@ -53,6 +52,8 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
               'DELETE': [ROLE_ADMIN]}
 
     def initialize(self, server=None):
+        """Set pointer to actual rest server."""
+
         self.server = server
 
     def write_error(self, code, message=None, **kwargs):
@@ -67,10 +68,12 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
             self.finish(json.dumps(out))
 
     def write_as_json(self, value):
+        """Return reply as a json document."""
 
         self.write(json.dumps(value, cls=EmpowerEncoder))
 
     def prepare(self):
+        """Prepare to handler reply."""
 
         self.set_header('Content-Type', 'application/json')
 
