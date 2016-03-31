@@ -35,6 +35,8 @@ import inspect
 import types
 import tornado.ioloop
 
+from uuid import UUID
+
 from empower.core.core import EmpowerRuntime
 
 RUNTIME = None
@@ -82,8 +84,8 @@ class EmpowerOptions(Options):
 
     def _set_log_config(self, given_name, name, value):
         if value is True:
-            p = os.path.dirname(os.path.realpath(__file__))
-            value = os.path.join(p, "..", "logging.cfg")
+            log_p = os.path.dirname(os.path.realpath(__file__))
+            value = os.path.join(log_p, "..", "logging.cfg")
         self.log_config = value
 
     @classmethod
@@ -116,7 +118,7 @@ are up to the module.
 """
 
 
-def _parse_args2(argv, _components, _components_order, _curargs, _options):
+def _parse_args2(argv, _components, _components_order, _curargs):
     """Parse command line arguments."""
 
     for arg in argv:
@@ -134,7 +136,7 @@ def _parse_args2(argv, _components, _components_order, _curargs, _options):
             _curargs[arg[0]] = arg[1]
 
 
-def _parse_args(argv, default=[]):
+def _parse_args(argv, default=None):
     """Parse command line arguments."""
 
     _components_order = []
@@ -143,8 +145,10 @@ def _parse_args(argv, default=[]):
     _curargs = {}
     _options = _curargs
 
-    _parse_args2(default, _components, _components_order, _curargs, _options)
-    _parse_args2(argv, _components, _components_order, _curargs, _options)
+    if default:
+        _parse_args2(default, _components, _components_order, _curargs)
+
+    _parse_args2(argv, _components, _components_order, _curargs)
 
     _OPTIONS.process_options(_options)
 
@@ -168,7 +172,7 @@ def _do_launch(components, components_order):
         launch = "launch"
         name = component_name[0]
 
-        name, module, members = modules[name]
+        name, _, members = modules[name]
         func = None
 
         if launch not in members:
@@ -188,7 +192,7 @@ def _do_launch(components, components_order):
         try:
 
             if len(component_name) == 2:
-                tenant = component_name[1]
+                tenant = UUID(component_name[1])
                 params['tenant'] = tenant
                 RUNTIME.register("%s:%s" % (name, tenant), func, params)
             else:

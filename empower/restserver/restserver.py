@@ -347,8 +347,6 @@ class AccountsHandler(EmpowerAPIHandler):
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
 
         self.set_status(204, None)
 
@@ -541,8 +539,8 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        #except KeyError as ex:
+        #    self.send_error(404, message=ex)
 
         self.set_status(201, None)
 
