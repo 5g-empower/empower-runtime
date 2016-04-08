@@ -501,7 +501,7 @@ class EmpowerRuntime(object):
         """Load tenant from network name."""
 
         for tenant in self.tenants.values():
-            if SSID(tenant.tenant_name) == tenant_name:
+            if tenant.tenant_name == tenant_name:
                 return tenant
 
         return None

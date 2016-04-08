@@ -29,6 +29,7 @@
 
 import uuid
 import empower.datatypes.etheraddress as etheraddress
+import empower.datatypes.ssid as ssid
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey
@@ -97,6 +98,35 @@ class EtherAddress(TypeDecorator):
         return False
 
 
+class SSID(TypeDecorator):
+    """EtherAddress type."""
+
+    impl = Unicode
+
+    def __init__(self):
+        self.impl.length = 30
+        TypeDecorator.__init__(self, length=self.impl.length)
+
+    def process_bind_param(self, value, dialect=None):
+
+        if value and isinstance(value, ssid.SSID):
+            return value
+        elif value and not isinstance(value, ssid.SSID):
+            raise ValueError('value %s is not a valid SSID' % value)
+        else:
+            return None
+
+    def process_result_value(self, value, dialect=None):
+
+        if value:
+            return ssid.SSID(value)
+        else:
+            return None
+
+    def is_mutable(self):
+        return False
+
+
 class TblFeed(Base):
     """ Energino Feeds Table. """
 
@@ -131,7 +161,7 @@ class TblPendingTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    tenant_name = Column(String, unique=True)
+    tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
     bssid_type = Column(String)
@@ -155,7 +185,7 @@ class TblTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    tenant_name = Column(String, unique=True)
+    tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
     bssid_type = Column(String)

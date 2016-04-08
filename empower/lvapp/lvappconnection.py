@@ -65,6 +65,7 @@ from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
+from empower.core.utils import generate_bssid
 
 from empower.main import RUNTIME
 
@@ -251,8 +252,7 @@ class LVAPPConnection(object):
 
             for block in wtp.supports:
 
-                net_bssid = \
-                    self.server.generate_bssid(base_bssid, block.hwaddr)
+                net_bssid = generate_bssid(base_bssid, block.hwaddr)
 
                 # vap has already been created
                 if net_bssid in RUNTIME.tenants[tenant_id].vaps:
@@ -309,7 +309,7 @@ class LVAPPConnection(object):
                 continue
             for wtp_in_tenant in tenant.wtps.values():
                 if wtp_addr == wtp_in_tenant.addr:
-                    ssids.add(SSID(tenant.tenant_name))
+                    ssids.add(tenant.tenant_name)
 
         if not ssids:
             LOG.info("No SSIDs available at this WTP")
@@ -317,7 +317,7 @@ class LVAPPConnection(object):
 
         # spawn new LVAP
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
-        net_bssid = self.server.generate_bssid(BASE_MAC, sta)
+        net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
         lvap._ssids = ssids
 
@@ -461,7 +461,7 @@ class LVAPPConnection(object):
             if tenant.bssid_type == T_TYPE_UNIQUE:
                 continue
 
-            if bssid in tenant.vaps and ssid == SSID(tenant.tenant_name):
+            if bssid in tenant.vaps and ssid == tenant.tenant_name:
                 tenant_name = tenant.tenant_name
 
         # otherwise this must be the lvap unique bssid
@@ -474,7 +474,7 @@ class LVAPPConnection(object):
             return
 
         # this will trigger an add lvap message to update the ssid
-        lvap.ssid = SSID(tenant_name)
+        lvap.tenant = RUNTIME.load_tenant(tenant_name)
 
         # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
@@ -638,36 +638,28 @@ class LVAPPConnection(object):
                 handler(lvap)
 
             # removing LVAP from tenant, need first to look for right tenant
-            for tenant in RUNTIME.tenants.values():
-                if lvap.ssid == SSID(tenant.tenant_name):
-                    if lvap.addr in tenant.lvaps:
-                        LOG.info("Removing %s from tenant %s",
-                                 lvap.addr, tenant.tenant_name)
-                        del tenant.lvaps[lvap.addr]
-                        break
+            if lvap.addr in lvap.tenant.lvaps:
+                LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
+                del lvap.tenant.lvaps[lvap.addr]
 
-        lvap._ssid = None
+        lvap._tenant = None
 
         if ssids[0]:
 
-            # setting ssid without seding out add lvap message
-            lvap._ssid = ssids[0]
+            # setting tenant without seding out add lvap message
+            lvap._tenant = RUNTIME.load_tenant(ssids[0])
 
-            # adding LVAP to tenant, need first to look for right tenant
-            for tenant in RUNTIME.tenants.values():
-                if lvap.ssid == SSID(tenant.tenant_name):
-                    if lvap.addr not in tenant.lvaps:
-                        LOG.info("Adding %s to tenant %s",
-                                 lvap.addr, tenant.tenant_name)
-                        tenant.lvaps[lvap.addr] = lvap
+            # adding LVAP to tenant
+            LOG.info("Adding %s to tenant %s", lvap.addr, ssids[0])
+            lvap.tenant.lvaps[lvap.addr] = lvap
 
             # Raise LVAP join event
-            LOG.info("LVAP JOIN %s (%s)" % (lvap.addr, lvap.ssid))
+            LOG.info("LVAP JOIN %s (%s)", lvap.addr, lvap.ssid)
             for handler in self.server.pt_types_handlers[PT_LVAP_JOIN]:
                 handler(lvap)
 
         # update remaining ssids
-        lvap._ssids = [SSID(x) for x in ssids[1:]]
+        lvap._ssids = ssids[1:]
 
         # set ports
         lvap.set_ports()
@@ -810,7 +802,7 @@ class LVAPPConnection(object):
         tenant_id = None
 
         for tenant in RUNTIME.tenants.values():
-            if SSID(tenant.tenant_name) == ssid:
+            if tenant.tenant_name == ssid:
                 tenant_id = tenant.tenant_id
                 break
 
@@ -853,7 +845,7 @@ class LVAPPConnection(object):
                             channel=vap.block.channel,
                             band=vap.block.band,
                             net_bssid=vap.net_bssid.to_raw(),
-                            ssid=vap.ssid.encode())
+                            ssid=vap.ssid.to_raw())
 
         add_vap.length = add_vap.length + len(vap.ssid)
         LOG.info("Add vap %s", vap)

@@ -34,6 +34,7 @@ from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPortLvap
 from empower.core.intent import match_to_key
+from empower.core.utils import generate_bssid
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -165,7 +166,7 @@ class LVAP(object):
         # controller. The controller sets them when a client successfully
         # associate. The agent sets them upon disassociation.
         self._assoc_id = 0
-        self._ssid = None
+        self._tenant = None
 
         # only one block supported, default block points to this
         self._downlink = DownlinkPort()
@@ -346,19 +347,28 @@ class LVAP(object):
         self._ssids = ssids
 
     @property
+    def tenant(self):
+        """ Get the tenant assigned to this LVAP. """
+
+        return self._tenant
+
+    @property
     def ssid(self):
         """ Get the SSID assigned to this LVAP. """
 
-        return self._ssid
+        if not self._tenant:
+            return None
 
-    @ssid.setter
-    def ssid(self, ssid):
+        return self._tenant.tenant_name
+
+    @tenant.setter
+    def tenant(self, tenant):
         """ Set the SSID. """
 
-        if self._ssid == ssid:
+        if self._tenant == tenant:
             return
 
-        self._ssid = ssid
+        self._tenant = tenant
 
         for port in self.downlink.values():
             port.block.radio.connection.send_add_lvap(port.lvap,
@@ -427,6 +437,26 @@ class LVAP(object):
 
         # pick default resource block
         default_block = pool.pop()
+
+        # if lvap_bssid is different from net_bssid, then the lvap is
+        # associated to a shared tenant. I need to reset auth and assoc flags
+        # before moving the lvap.
+        if self._lvap_bssid and self._lvap_bssid != self.net_bssid:
+
+            # check if a VAP is available at target block
+            base_bssid = self._tenant.get_prefix()
+            net_bssid = generate_bssid(base_bssid, default_block.hwaddr)
+
+            # if not ignore request
+            if net_bssid not in self._tenant.vaps:
+                self.set_ports()
+                return
+
+            # otherwise reset lvap
+            self._tenant = None
+            self.association_state = False
+            self.authentication_state = False
+            self._assoc_id = 0
 
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message

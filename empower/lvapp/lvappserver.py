@@ -100,13 +100,6 @@ class LVAPPServer(PNFPServer, TCPServer):
         self.__assoc_id += 1
         return self.__assoc_id
 
-    def generate_bssid(self, base_mac, sta_mac):
-        """ Generate a new BSSID address. """
-
-        base = str(base_mac).split(":")[0:3]
-        sta = str(sta_mac).split(":")[3:6]
-        return EtherAddress(":".join(base + sta))
-
 
 def launch(port=DEFAULT_PORT):
     """Start LVAPP Server Module."""

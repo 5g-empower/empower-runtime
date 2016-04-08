@@ -68,6 +68,9 @@ class SSID(object):
     def __str__(self):
         return self.to_str()
 
+    def __len__(self):
+        return len(self.ssid)
+
     def __hash__(self):
         return hash(self.ssid)
 
