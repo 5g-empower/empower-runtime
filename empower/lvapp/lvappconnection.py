@@ -389,19 +389,26 @@ class LVAPPConnection(object):
 
         lvap_bssid = None
 
-        # look for bssid in shared tenants
-        for tenant_id in RUNTIME.tenants:
-            tenant = RUNTIME.tenants[tenant_id]
-            if tenant.bssid_type == T_TYPE_UNIQUE:
-                continue
-            for vap_id in tenant.vaps:
-                if bssid == vap_id:
-                    lvap_bssid = vap_id
-
-        # otherwise this must be the lvap unique bssid
+        # the request bssid is the lvap's unique bssid
         if lvap.net_bssid == bssid:
+
             lvap_bssid = lvap.net_bssid
 
+        # else if is a shared bssid
+        else:
+
+            shared_tenants = [x for x in RUNTIME.tenants.values()
+                              if x.bssid_type == T_TYPE_SHARED]
+
+            wtp = RUNTIME.wtps[wtp_addr]
+
+            # look for bssid in shared tenants
+            for tenant in shared_tenants:
+                if bssid in tenant.vaps and tenant.vaps[bssid].wtp == wtp:
+                    lvap_bssid = bssid
+                    break
+
+        # invalid bssid, ignore request
         if not lvap_bssid:
             return
 

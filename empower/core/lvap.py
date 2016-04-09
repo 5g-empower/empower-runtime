@@ -35,6 +35,7 @@ from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPortLvap
 from empower.core.intent import match_to_key
 from empower.core.utils import generate_bssid
+from empower.core.tenant import T_TYPE_SHARED
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -438,17 +439,25 @@ class LVAP(object):
         # pick default resource block
         default_block = pool.pop()
 
-        # if lvap_bssid is different from net_bssid, then the lvap is
-        # associated to a shared tenant. I need to reset auth and assoc flags
-        # before moving the lvap.
-        if self._lvap_bssid and self._lvap_bssid != self.net_bssid:
+        # If lvap is associated to a shared tenant. I need to reset the lvap
+        # before moving it.
+        if self._tenant and self._tenant.bssid_type == T_TYPE_SHARED:
 
-            # check if a VAP is available at target block
+            # check if tenant is available at target block
             base_bssid = self._tenant.get_prefix()
             net_bssid = generate_bssid(base_bssid, default_block.hwaddr)
 
             # if not ignore request
             if net_bssid not in self._tenant.vaps:
+                LOG.error("VAP %s not found on tenant %s", net_bssid,
+                          self._tenant.tenant_name)
+                self.set_ports()
+                return
+
+            # check if vap is available at target block
+            if net_bssid != self._tenant.vaps[net_bssid].net_bssid:
+                LOG.error("VAP %s not available at target block %s",
+                          net_bssid, default_block)
                 self.set_ports()
                 return
 
@@ -457,6 +466,11 @@ class LVAP(object):
             self.association_state = False
             self.authentication_state = False
             self._assoc_id = 0
+            self._lvap_bssid = net_bssid
+
+        else:
+
+            self._lvap_bssid = self.net_bssid
 
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message
