@@ -110,7 +110,7 @@ class SSID(TypeDecorator):
     def process_bind_param(self, value, dialect=None):
 
         if value and isinstance(value, ssid.SSID):
-            return value
+            return value.to_raw()
         elif value and not isinstance(value, ssid.SSID):
             raise ValueError('value %s is not a valid SSID' % value)
         else:

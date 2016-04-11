@@ -44,6 +44,7 @@ from empower.main import _parse_args
 from empower.main import RUNTIME
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
+from empower.datatypes.ssid import SSID
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -636,9 +637,11 @@ class PendingTenantHandler(EmpowerAPIHandler):
             else:
                 tenant_id = None
 
+            tenant_name = SSID(request['tenant_name'])
+
             RUNTIME.request_tenant(self.account.username,
                                    request['desc'],
-                                   request['tenant_name'],
+                                   tenant_name,
                                    bssid_type,
                                    tenant_id)
 
@@ -780,9 +783,11 @@ class TenantHandler(EmpowerAPIHandler):
             else:
                 tenant_id = None
 
+            tenant_name = SSID(request['tenant_name'])
+
             RUNTIME.add_tenant(request['owner'],
                                request['desc'],
-                               request['tenant_name'],
+                               tenant_name,
                                bssid_type,
                                tenant_id)
 
