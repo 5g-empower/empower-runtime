@@ -184,8 +184,8 @@ function loadComponents() {
                 var row = table.insertRow(rowCount);
                 var c = 0
                 var components = row.insertCell(c++);
-                if (data[stream]['ui']){
-                    components.innerHTML = '<a href="'+data[stream]['ui']+'" target="_blank">'+stream+'</a>'
+                if (data[stream]['ui_url']){
+                    components.innerHTML = '<a href="'+data[stream]['ui_url']+'" target="_blank">'+stream+'</a>'
                     } else {
                     components.innerHTML = stream
                 }
