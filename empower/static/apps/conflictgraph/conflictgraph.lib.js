@@ -34,18 +34,21 @@ function updateCm(data, channel, element) {
 
     for (i in data['conflicts'].networks) {
 
-        src = data[0].networks[i][0]
-        dst = data[0].networks[i][1]
+        src = data['conflicts'].networks[i][0]
+        dst = data['conflicts'].networks[i][1]
 
-        if (src.block.channel != channel) {
-            continue
-        }
+        for (j in src.scheduled_on) {
+            block = src.scheduled_on[j]
+            if (block.channel != channel) {
+                continue
+            }
+         }
 
-        id_src = src.bssid + "->" + src.addr
-        id_dst = dst.addr + "->" + dst.bssid
+        id_src = src.wtp.addr + "->" + src.addr
+        id_dst = dst.addr + "->" + dst.wtp.addr
 
-    	addNodeIfMissing(found, nodes, id_src)
-    	addNodeIfMissing(found, nodes, id_dst)
+        addNodeIfMissing(found, nodes, id_src)
+        addNodeIfMissing(found, nodes, id_dst)
 
         edges.push({
             from: id_src,
@@ -57,18 +60,21 @@ function updateCm(data, channel, element) {
 
     for (i in data['conflicts'].stations) {
 
-        src = data[0].networks[i][0]
-        dst = data[0].networks[i][1]
+        src = data['conflicts'].stations[i][0]
+        dst = data['conflicts'].stations[i][1]
 
-        if (src.block.channel != channel) {
-            continue
-        }
+        for (j in src.scheduled_on) {
+            block = src.scheduled_on[j]
+            if (block.channel != channel) {
+                continue
+            }
+         }
 
-        id_src = src.addr + "->" + src.bssid
-        id_dst = dst.addr + "->" + dst.bssid
+        id_src = src.addr + "->" + src.wtp.addr
+        id_dst = dst.addr + "->" + dst.wtp.addr
 
-    addNodeIfMissing(found, nodes, id_src)
-    addNodeIfMissing(found, nodes, id_dst)
+        addNodeIfMissing(found, nodes, id_src)
+        addNodeIfMissing(found, nodes, id_dst)
 
         edges.push({
             from: id_src,
