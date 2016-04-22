@@ -133,22 +133,26 @@ class ConflictGraph(EmpowerApp):
                 # in the conflict map (for both clients
                 # and access points)
 
-                if src.addr in dst.block().uim:
-                    LOG.info("(%s, %s) -> (%s, %s)",
-                             src.addr,
-                             src.bssid,
-                             dst.addr,
-                             dst.bssid)
-                    self.conflict['stations'].append((src, dst))
+                for blk in dst.scheduled_on:
 
-                if src.bssid in dst.block().nim or \
-                   src.block() == dst.block():
-                    LOG.info("(%s, %s) -> (%s, %s)",
-                             src.bssid,
-                             src.addr,
-                             dst.addr,
-                             dst.bssid)
-                    self.conflicts['networks'].append((src, dst))
+                    if src.addr in blk.ucqm:
+
+                        LOG.info("(%s, %s) -> (%s, %s)",
+                                 src.addr,
+                                 src.wtp,
+                                 dst.addr,
+                                 dst.wtp)
+                        self.conflicts['stations'].append((src, dst))
+
+                    if src.lvap_bssid in blk.ncqm or \
+                       src.wtp == dst.wtp:
+
+                        LOG.info("(%s, %s) -> (%s, %s)",
+                                 src.wtp,
+                                 src.addr,
+                                 dst.addr,
+                                 dst.wtp)
+                        self.conflicts['networks'].append((src, dst))
 
 
 def launch(tenant, addrs=DEFAULT_ADDRS, period=DEFAULT_PERIOD):
