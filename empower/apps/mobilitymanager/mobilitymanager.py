@@ -61,10 +61,10 @@ def handover(lvap, wtps):
 
     # Filter Resource Blocks by RSSI
     valid = [block for block in matches
-             if block.ucqm[lvap.addr]['ewma_rssi'] >= -55]
+             if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
 
     # Perform the handover
-    new_block = valid.pop() if valid else None
+    new_block = max(valid, key=lambda item: item[0])[1] if valid else None
     LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
     lvap.scheduled_on = new_block
 
