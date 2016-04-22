@@ -79,13 +79,12 @@ class TenantLVNFPortHandler(EmpowerAPIHandlerAdminUsers):
             lvnf = tenant.lvnfs[lvnf_id]
 
             if len(args) == 2:
-                self.write(json.dumps(lvnf.ports.values(),
-                                      cls=EmpowerEncoder))
+                self.write_as_json(lvnf.ports.values())
                 self.set_status(200, None)
             else:
                 port_id = int(args[2])
                 port = lvnf.ports[port_id]
-                self.write(json.dumps(port, cls=EmpowerEncoder))
+                self.write_as_json(port)
                 self.set_status(200, None)
 
         except ValueError as ex:

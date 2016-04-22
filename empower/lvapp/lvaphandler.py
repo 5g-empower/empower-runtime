@@ -29,9 +29,7 @@
 
 import tornado.web
 import tornado.httpserver
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.core.resourcepool import ResourceBlock
@@ -64,12 +62,10 @@ class LVAPHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid URL")
             if len(args) == 0:
-                self.write(json.dumps(RUNTIME.lvaps.values(),
-                                      cls=EmpowerEncoder))
+                self.write_as_json(RUNTIME.lvaps.values())
             else:
                 lvap = EtherAddress(args[0])
-                self.write(json.dumps(RUNTIME.lvaps[lvap],
-                                      cls=EmpowerEncoder))
+                self.write_as_json(RUNTIME.lvaps[lvap])
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:

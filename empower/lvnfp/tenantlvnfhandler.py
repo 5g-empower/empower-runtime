@@ -30,9 +30,7 @@
 import uuid
 import tornado.web
 import tornado.httpserver
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.core.image import Image
@@ -77,13 +75,12 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             tenant = RUNTIME.tenants[tenant_id]
 
             if len(args) == 1:
-                self.write(json.dumps(tenant.lvnfs.values(),
-                                      cls=EmpowerEncoder))
+                self.write_as_json(tenant.lvnfs.values())
                 self.set_status(200, None)
             else:
                 lvnf_id = uuid.UUID(args[1])
                 lvnf = tenant.lvnfs[lvnf_id]
-                self.write(json.dumps(lvnf, cls=EmpowerEncoder))
+                self.write_as_json(lvnf)
                 self.set_status(200, None)
 
         except ValueError as ex:

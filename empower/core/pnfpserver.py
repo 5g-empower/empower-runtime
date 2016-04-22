@@ -27,7 +27,6 @@
 
 """PNF Protocol Server."""
 
-import json
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
@@ -36,7 +35,6 @@ from uuid import UUID
 
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.persistence.persistence import TblBelongs
@@ -73,11 +71,10 @@ class BasePNFDevHandler(EmpowerAPIHandler):
                 raise ValueError("Invalid url")
 
             if len(args) == 0:
-                self.write(json.dumps(self.server.pnfdevs.values(),
-                                      cls=EmpowerEncoder))
+                self.write_as_json(self.server.pnfdevs.values())
             else:
                 pnfdev = self.server.pnfdevs[EtherAddress(args[0])]
-                self.write(json.dumps(pnfdev, cls=EmpowerEncoder))
+                self.write_as_json(pnfdev)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -193,17 +190,12 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
             tenant_pnfdevs = getattr(tenant, self.server.PNFDEV.ALIAS)
 
             if len(args) == 1:
-
-                self.write(json.dumps(tenant_pnfdevs.values(),
-                                      cls=EmpowerEncoder))
-
+                self.write_as_json(tenant_pnfdevs.values())
                 self.set_status(200, None)
-
             else:
-
                 addr = EtherAddress(args[1])
                 pnfdev = tenant_pnfdevs[addr]
-                self.write(json.dumps(pnfdev, cls=EmpowerEncoder))
+                self.write_as_json(pnfdev)
                 self.set_status(200, None)
 
         except ValueError as ex:

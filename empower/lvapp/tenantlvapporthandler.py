@@ -27,10 +27,8 @@
 
 """LVAP Port Handler."""
 
-import json
 import uuid
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
 
@@ -80,13 +78,12 @@ class TenantLVAPPortHandler(EmpowerAPIHandlerAdminUsers):
             lvap = tenant.lvaps[lvap_id]
 
             if len(args) == 2:
-                self.write(json.dumps(lvap.ports.values(),
-                                      cls=EmpowerEncoder))
+                self.write_as_json(lvap.ports.values())
                 self.set_status(200, None)
             else:
                 port_id = int(args[2])
                 port = lvap.ports[port_id]
-                self.write(json.dumps(port, cls=EmpowerEncoder))
+                self.write_as_json(port)
                 self.set_status(200, None)
 
         except ValueError as ex:

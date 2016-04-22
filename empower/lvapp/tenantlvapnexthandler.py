@@ -29,12 +29,9 @@
 
 import uuid
 import tornado.web
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.intent import key_to_match
 from empower.core.intent import match_to_key
 
 from empower.main import RUNTIME
@@ -92,9 +89,9 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
                 output[match]['unparsed'] = match
 
             if len(args) == 4:
-                self.write(json.dumps(output[args[3]], cls=EmpowerEncoder))
+                self.write_as_json(output[args[3]])
             else:
-                self.write(json.dumps(output.values(), cls=EmpowerEncoder))
+                self.write_as_json(output.values())
 
             self.set_status(200, None)
 

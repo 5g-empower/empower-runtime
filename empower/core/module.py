@@ -188,14 +188,10 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
             resp = {k: v for k, v in self.worker.modules.items()
                     if v.tenant_id == tenant_id}
             if len(args) == 1:
-                self.write(json.dumps(resp.values(),
-                                      sort_keys=True,
-                                      cls=EmpowerEncoder))
+                self.write_as_json(resp.values())
             else:
                 module_id = int(args[1])
-                self.write(json.dumps(resp[module_id],
-                                      sort_keys=True,
-                                      cls=EmpowerEncoder))
+                self.write_as_json(resp[module_id])
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:

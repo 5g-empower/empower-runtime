@@ -29,10 +29,8 @@
 
 import tornado.web
 import tornado.httpserver
-import json
 import uuid
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.core.resourcepool import ResourceBlock
@@ -72,10 +70,10 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
             lvaps = tenant.lvaps
 
             if len(args) == 1:
-                self.write(json.dumps(lvaps.values(), cls=EmpowerEncoder))
+                self.write_as_json(lvaps.values())
             else:
                 lvap = EtherAddress(args[1])
-                self.write(json.dumps(lvaps[lvap], cls=EmpowerEncoder))
+                self.write_as_json(lvaps[lvap])
 
         except KeyError as ex:
             self.send_error(404, message=ex)

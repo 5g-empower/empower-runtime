@@ -27,10 +27,8 @@
 
 """VAPs Handerler."""
 
-import json
 import uuid
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
@@ -68,10 +66,10 @@ class TenantVAPHandler(EmpowerAPIHandlerUsers):
             vaps = tenant.vaps
 
             if len(args) == 1:
-                self.write(json.dumps(vaps.values(), cls=EmpowerEncoder))
+                self.write_as_json(vaps.values())
             else:
                 vap = EtherAddress(args[1])
-                self.write(json.dumps(vaps[vap], cls=EmpowerEncoder))
+                self.write_as_json(vaps[vap])
 
         except KeyError as ex:
             self.send_error(404, message=ex)

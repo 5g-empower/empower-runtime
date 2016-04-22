@@ -29,9 +29,7 @@
 
 import tornado.web
 import tornado.httpserver
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.restserver import EmpowerAPIHandler
 
@@ -68,10 +66,10 @@ class ACLHandler(EmpowerAPIHandler):
             acl = getattr(RUNTIME, self.STRUCT)
 
             if len(args) == 0:
-                self.write(json.dumps(acl.values(), cls=EmpowerEncoder))
+                self.write_as_json(acl.values())
             else:
                 if EtherAddress(args[0]) in acl:
-                    json.dumps(EtherAddress(args[0]), cls=EmpowerEncoder)
+                    self.write_as_json(EtherAddress(args[0]))
                 else:
                     raise KeyError(EtherAddress(args[0]))
 

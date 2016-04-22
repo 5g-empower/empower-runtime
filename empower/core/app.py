@@ -84,7 +84,7 @@ class EmpowerAppHandler(EmpowerAPIHandlerUsers):
         """
 
         try:
-            self.write(json.dumps(self.server.to_dict(), cls=EmpowerEncoder))
+            self.write_as_json(self.server.to_dict())
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:

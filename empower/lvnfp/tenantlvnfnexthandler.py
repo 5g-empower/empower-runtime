@@ -29,9 +29,7 @@
 
 import uuid
 import tornado.web
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 
 from empower.main import RUNTIME
@@ -80,7 +78,7 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvnf.ports[port_id]
 
-            self.write(json.dumps(port.next, cls=EmpowerEncoder))
+            self.write_as_json(port.next)
             self.set_status(200, None)
 
         except ValueError as ex:

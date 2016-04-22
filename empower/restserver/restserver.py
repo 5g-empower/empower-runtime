@@ -218,9 +218,9 @@ class AccountsHandler(EmpowerAPIHandler):
             for account in RUNTIME.accounts:
                 accounts[account] = RUNTIME.accounts[account].to_dict()
             if len(args) == 0:
-                self.write(json.dumps(accounts, cls=EmpowerEncoder))
+                self.write_as_json(accounts)
             else:
-                self.write(json.dumps(accounts[args[0]], cls=EmpowerEncoder))
+                self.write_as_json(accounts[args[0]])
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
@@ -415,9 +415,9 @@ class ComponentsHandler(EmpowerAPIHandler):
                     componets[component] = {}
 
             if len(args) == 0:
-                self.write(json.dumps(componets, cls=EmpowerEncoder))
+                self.write_as_json(componets)
             else:
-                self.write(json.dumps(componets[args[0]], cls=EmpowerEncoder))
+                self.write_as_json(componets[args[0]])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -540,8 +540,8 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        #except KeyError as ex:
-        #    self.send_error(404, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
 
         self.set_status(201, None)
 
@@ -579,11 +579,11 @@ class PendingTenantHandler(EmpowerAPIHandler):
                     pendings = RUNTIME.load_pending_tenants(user)
                 else:
                     pendings = RUNTIME.load_pending_tenants()
-                self.write(json.dumps(pendings, cls=EmpowerEncoder))
+                self.write_as_json(pendings)
             else:
                 tenant_id = UUID(args[0])
                 pending = RUNTIME.load_pending_tenant(tenant_id)
-                self.write(json.dumps(pending, cls=EmpowerEncoder))
+                self.write_as_json(pending)
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
@@ -720,13 +720,13 @@ class TenantHandler(EmpowerAPIHandler):
                 user = self.get_argument("user", default=None)
                 if user:
                     filtered = [x for x in tenants if x.owner == user]
-                    self.write(json.dumps(filtered, cls=EmpowerEncoder))
+                    self.write_as_json(filtered)
                 else:
-                    self.write(json.dumps(tenants, cls=EmpowerEncoder))
+                    self.write_as_json(tenants)
             else:
                 tenant_id = UUID(args[0])
                 tenant = RUNTIME.tenants[tenant_id]
-                self.write(json.dumps(tenant, cls=EmpowerEncoder))
+                self.write_as_json(tenant)
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
