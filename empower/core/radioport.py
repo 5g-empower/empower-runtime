@@ -31,6 +31,22 @@ from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
 
+TX_MCAST_LEGACY = 0x0
+TX_MCAST_DMS = 0x1
+TX_MCAST_UR = 0x2
+
+TX_MCAST_LEGACY_H = 'legacy'
+TX_MCAST_DMS_H = 'dms'
+TX_MCAST_UR_H = 'ur'
+
+TX_MCAST = {TX_MCAST_LEGACY: TX_MCAST_LEGACY_H,
+            TX_MCAST_DMS: TX_MCAST_DMS_H,
+            TX_MCAST_UR: TX_MCAST_UR_H}
+
+REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
+                    TX_MCAST_DMS_H: TX_MCAST_DMS,
+                    TX_MCAST_UR_H: TX_MCAST_UR}
+
 
 class RadioPort():
     """RadioPort class.
@@ -68,6 +84,8 @@ class RadioPort():
         self._block = block
         self._no_ack = False
         self._rts_cts = 2346
+        self._tx_mcast = TX_MCAST_LEGACY
+        self._ur_mcast_count = 3
 
         match = (lvap.supports & ResourcePool([block])).pop()
         self._mcs = block.supports & match.supports
@@ -77,7 +95,9 @@ class RadioPort():
 
         return {'no_ack': self.no_ack,
                 'mcs': self.mcs,
-                'rts_cts': self.rts_cts}
+                'rts_cts': self.rts_cts,
+                'tx_mcast': TX_MCAST[self.tx_mcast],
+                'ur_mcast_count': self._ur_mcast_count}
 
     @property
     def lvap(self):
@@ -154,19 +174,57 @@ class RadioPort():
 
         self.block.radio.connection.send_set_port(self)
 
+    @property
+    def tx_mcast(self):
+        """ Get tx_mcast. """
+
+        return self._tx_mcast
+
+    @tx_mcast.setter
+    def tx_mcast(self, tx_mcast):
+        """ Set tx_mcast. """
+
+        if tx_mcast == self._tx_mcast:
+            return
+
+        if tx_mcast not in TX_MCAST:
+            raise ValueError("Invalid tx mast %s" % tx_mcast)
+
+        self._tx_mcast = tx_mcast
+
+        self.block.radio.connection.send_set_port(self)
+
+    @property
+    def ur_mcast_count(self):
+        """ Get ur_mcast_count. """
+
+        return self._ur_mcast_count
+
+    @ur_mcast_count.setter
+    def ur_mcast_count(self, ur_mcast_count):
+        """ Set tx_mcast. """
+
+        if ur_mcast_count == self._ur_mcast_count:
+            return
+
+        self._tx_mcast = int(ur_mcast_count)
+
+        self.block.radio.connection.send_set_port(self)
+
     def __eq__(self, other):
 
-        return (other.lvap == self.lvap and
-                other.no_ack == self.no_ack and
-                other.rts_cts == self.rts_cts)
+        return other.lvap == self.lvap
 
     def __repr__(self):
 
-        no_ack = ", NO_ACK" if self.no_ack else ""
+        no_ack = self.no_ack
         mcs = ', '.join([str(x) for x in sorted(list(self.mcs))])
+        tx_mcast = TX_MCAST[self.tx_mcast]
+        ur_mcast_count = self._ur_mcast_count
 
-        out = "(%s, mcs [%s], rts/cts %u%s)" % (self.lvap.addr, mcs,
-                                                self.rts_cts, no_ack)
+        out = "(%s, mcs [%s], rts/cts %u, ack %s, mcast %s, ur %u)" % \
+            (self.lvap.addr, mcs, self.rts_cts, str(no_ack), tx_mcast,
+             ur_mcast_count)
 
         return out
 

@@ -64,13 +64,15 @@ def handover(lvap, wtps):
              if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
 
     # Perform the handover
-    new_block = max(valid, key=lambda item: item[0])[1] if valid else None
-    LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
-    lvap.scheduled_on = new_block
+    #new_block = max(valid, key=lambda item: item[0])[1] if valid else None
+    #LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
+    #lvap.scheduled_on = new_block
 
     # Set port
     for block in lvap.scheduled_on:
+        print(block)
         port = lvap.scheduled_on[block]
+        print(port)
         port.no_ack = True
         port.tx_power = 20
         port.rts_cts = 3500

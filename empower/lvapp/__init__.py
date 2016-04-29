@@ -200,8 +200,13 @@ SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt32("seq"),
                   BitStruct("flags", Padding(15),
                             Bit("no_ack")),
+                  Bytes("hwaddr", 6),
+                  UBInt8("channel"),
+                  UBInt8("band"),
                   Bytes("sta", 6),
                   UBInt16("rts_cts"),
+                  UBInt8("tx_mcast"),
+                  UBInt8("ur_mcast_count"),
                   UBInt8("nb_mcses"),
                   Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
 
@@ -217,6 +222,8 @@ STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("channel"),
                      UBInt8("band"),
                      UBInt16("rts_cts"),
+                     UBInt8("tx_mcast"),
+                     UBInt8("ur_mcast_count"),
                      UBInt8("nb_mcses"),
                      Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
 

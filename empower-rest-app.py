@@ -23,7 +23,6 @@ import base64
 import json
 
 from xmlrpc.server import SimpleXMLRPCServer
-from http.client import HTTPSConnection
 from http.client import HTTPConnection
 from argparse import ArgumentParser
 
@@ -35,9 +34,11 @@ XMLRPC_URL = None
 TENANT_ID = None
 
 
-def convert(f):
+def convert(func):
+    """Decorator converting a function arguments from json to python."""
 
     def new_f(*args, **kwargs):
+        """New fuction after the conversion has been done."""
 
         new_args = []
         new_kwargs = {}
@@ -48,9 +49,9 @@ def convert(f):
         for kwarg in kwargs:
             new_kwargs[kwarg] = json.loads(kwargs[kwarg])
 
-        f(*new_args, **new_kwargs)
+        func(*new_args, **new_kwargs)
 
-    new_f.__name__ = f.__name__
+    new_f.__name__ = func.__name__
 
     return new_f
 
@@ -60,8 +61,6 @@ def get_connection(args):
 
     if args.transport == "http":
         connection = HTTPConnection(args.host, args.port)
-    elif args.transport == "https":
-        connection = HTTPSConnection(args.host, args.port)
     else:
         raise ValueError("transport not supported: %s" % args.transport)
 
@@ -96,9 +95,9 @@ def execute(connection, headers, cmd, data=None):
 
 
 def synch_callback(url):
+    """Synchonized callback defined on the control with the local ones."""
 
     cmd = ('GET', url)
-
     response, body = execute(CONNECTION, HEADERS, cmd)
 
     if response[0] != 200:
@@ -113,13 +112,12 @@ def synch_callback(url):
 
 
 def cpp_up(callback):
+    """CPP Up primitive."""
 
     SERVER.register_function(callback)
     data = {"version": "1.0", "callback": (XMLRPC_URL, callback.__name__)}
-
     cmd = ('POST', '/api/v1/tenants/%s/cppup' % TENANT_ID)
-
-    response, body = execute(CONNECTION, HEADERS, cmd, data)
+    response, _ = execute(CONNECTION, HEADERS, cmd, data)
 
     if response[0] != 201:
         print("%s %s" % response)
@@ -128,6 +126,7 @@ def cpp_up(callback):
 
 @convert
 def cpp_up_callback(cpp):
+    """Called when a CPP is coming online."""
 
     print("CPP %s is up" % cpp['addr'])
 

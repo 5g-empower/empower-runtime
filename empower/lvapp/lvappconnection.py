@@ -714,6 +714,8 @@ class LVAPPConnection(object):
         port._no_ack = bool(status.flags.no_ack)
         port._rts_cts = int(status.rts_cts)
         port._mcs = set([float(x)/2 for x in status.mcs])
+        port._tx_mcast = int(status.tx_mcast)
+        port._ur_mcast_count = int(status.ur_mcast_count)
 
         LOG.info("Port status %s", port)
 
@@ -972,11 +974,16 @@ class LVAPPConnection(object):
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
-                             length=19 + len(port.mcs),
+                             length=29 + len(port.mcs),
                              seq=self.wtp.seq,
                              flags=flags,
                              sta=port.lvap.addr.to_raw(),
+                             hwaddr=port.block.hwaddr.to_raw(),
+                             channel=port.block.channel,
+                             band=port.block.band,
                              rts_cts=port.rts_cts,
+                             tx_mcast=port.tx_mcast,
+                             ur_mcast_count=port.ur_mcast_count,
                              nb_mcses=len(rates),
                              mcs=rates)
 
