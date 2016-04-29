@@ -36,6 +36,9 @@ from empower.core.resourcepool import ResourcePool
 from empower.triggers.rssi import rssi
 from empower.events.wtpup import wtpup
 from empower.maps.ucqm import ucqm
+from empower.core.radioport import TX_MCAST_LEGACY
+from empower.core.radioport import TX_MCAST_DMS
+from empower.core.radioport import TX_MCAST_UR
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -63,20 +66,20 @@ def handover(lvap, wtps):
     valid = [block for block in matches
              if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
 
-    # Perform the handover
-    #new_block = max(valid, key=lambda item: item[0])[1] if valid else None
-    #LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
-    #lvap.scheduled_on = new_block
+    if not valid:
+        return
+
+    new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['ewma_rssi'])
+    LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
+    lvap.scheduled_on = new_block
 
     # Set port
     for block in lvap.scheduled_on:
-        print(block)
         port = lvap.scheduled_on[block]
-        print(port)
         port.no_ack = True
-        port.tx_power = 20
         port.rts_cts = 3500
         port.mcs = [6, 12]
+        port.tx_mcast = TX_MCAST_DMS
 
 
 class MobilityManagerHandler(EmpowerAppHandler):

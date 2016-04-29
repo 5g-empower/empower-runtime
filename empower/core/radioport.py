@@ -133,11 +133,7 @@ class RadioPort():
     def mcs(self, mcs):
         """ Set the list of MCS. """
 
-        if self._block.supports & set(mcs) == self._mcs:
-            return
-
         self._mcs = self._block.supports & set(mcs)
-
         self.block.radio.connection.send_set_port(self)
 
     @property
@@ -150,11 +146,7 @@ class RadioPort():
     def no_ack(self, no_ack):
         """ Set no ack flag. """
 
-        if no_ack == self._no_ack:
-            return
-
         self._no_ack = True if no_ack else False
-
         self.block.radio.connection.send_set_port(self)
 
     @property
@@ -167,11 +159,7 @@ class RadioPort():
     def rts_cts(self, rts_cts):
         """ Set rts_cts flag. """
 
-        if rts_cts == self._rts_cts:
-            return
-
         self._rts_cts = rts_cts
-
         self.block.radio.connection.send_set_port(self)
 
     @property
@@ -184,14 +172,10 @@ class RadioPort():
     def tx_mcast(self, tx_mcast):
         """ Set tx_mcast. """
 
-        if tx_mcast == self._tx_mcast:
-            return
-
         if tx_mcast not in TX_MCAST:
             raise ValueError("Invalid tx mast %s" % tx_mcast)
 
         self._tx_mcast = tx_mcast
-
         self.block.radio.connection.send_set_port(self)
 
     @property
@@ -204,11 +188,7 @@ class RadioPort():
     def ur_mcast_count(self, ur_mcast_count):
         """ Set tx_mcast. """
 
-        if ur_mcast_count == self._ur_mcast_count:
-            return
-
-        self._tx_mcast = int(ur_mcast_count)
-
+        self._ur_mcast_count = 5#int(ur_mcast_count)
         self.block.radio.connection.send_set_port(self)
 
     def __eq__(self, other):
