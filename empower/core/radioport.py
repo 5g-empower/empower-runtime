@@ -29,23 +29,6 @@
 
 from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
-
-TX_MCAST_LEGACY = 0x0
-TX_MCAST_DMS = 0x1
-TX_MCAST_UR = 0x2
-
-TX_MCAST_LEGACY_H = 'legacy'
-TX_MCAST_DMS_H = 'dms'
-TX_MCAST_UR_H = 'ur'
-
-TX_MCAST = {TX_MCAST_LEGACY: TX_MCAST_LEGACY_H,
-            TX_MCAST_DMS: TX_MCAST_DMS_H,
-            TX_MCAST_UR: TX_MCAST_UR_H}
-
-REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
-                    TX_MCAST_DMS_H: TX_MCAST_DMS,
-                    TX_MCAST_UR_H: TX_MCAST_UR}
 
 
 class RadioPort():
@@ -73,31 +56,19 @@ class RadioPort():
 
       lvap, an LVAP object
       block, the block that this port is configuring
-      no_ack, do not wait for ACKs when transmitting to this LVAP
-      rts_cts, use RTS/CTS when transmitting to this LVAP
-      mcs, supported mcs-es.
     """
 
     def __init__(self, lvap, block):
 
         self._lvap = lvap
         self._block = block
-        self._no_ack = False
-        self._rts_cts = 2346
-        self._tx_mcast = TX_MCAST_LEGACY
-        self._ur_mcast_count = 3
-
-        match = (lvap.supports & ResourcePool([block])).pop()
-        self._mcs = block.supports & match.supports
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
         return {'no_ack': self.no_ack,
                 'mcs': self.mcs,
-                'rts_cts': self.rts_cts,
-                'tx_mcast': TX_MCAST[self.tx_mcast],
-                'ur_mcast_count': self._ur_mcast_count}
+                'rts_cts': self.rts_cts}
 
     @property
     def lvap(self):
@@ -119,7 +90,7 @@ class RadioPort():
 
     @block.setter
     def block(self, block):
-        """ Set the LVAP. """
+        """ Set the block. """
 
         self._block = block
 
@@ -127,69 +98,37 @@ class RadioPort():
     def mcs(self):
         """ Get set of MCS. """
 
-        return self._mcs
+        self._block.tx_policies[self._lvap.addr].mcs
 
     @mcs.setter
     def mcs(self, mcs):
         """ Set the list of MCS. """
 
-        self._mcs = self._block.supports & set(mcs)
-        self.block.radio.connection.send_set_port(self)
+        self._block.tx_policies[self._lvap.addr].mcs = mcs
 
     @property
     def no_ack(self):
         """ Get no ack flag. """
 
-        return self._no_ack
+        self._block.tx_policies[self._lvap.addr].no_ack
 
     @no_ack.setter
     def no_ack(self, no_ack):
-        """ Set no ack flag. """
+        """ Set the no ack flag. """
 
-        self._no_ack = True if no_ack else False
-        self.block.radio.connection.send_set_port(self)
+        self._block.tx_policies[self._lvap.addr].no_ack = no_ack
 
     @property
     def rts_cts(self):
-        """ Get rts_cts flag. """
+        """ Get rts_cts . """
 
-        return self._rts_cts
+        self._block.tx_policies[self._lvap.addr].rts_cts
 
-    @rts_cts.setter
+    @rts_cts .setter
     def rts_cts(self, rts_cts):
-        """ Set rts_cts flag. """
+        """ Set rts_cts . """
 
-        self._rts_cts = rts_cts
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def tx_mcast(self):
-        """ Get tx_mcast. """
-
-        return self._tx_mcast
-
-    @tx_mcast.setter
-    def tx_mcast(self, tx_mcast):
-        """ Set tx_mcast. """
-
-        if tx_mcast not in TX_MCAST:
-            raise ValueError("Invalid tx mast %s" % tx_mcast)
-
-        self._tx_mcast = tx_mcast
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def ur_mcast_count(self):
-        """ Get ur_mcast_count. """
-
-        return self._ur_mcast_count
-
-    @ur_mcast_count.setter
-    def ur_mcast_count(self, ur_mcast_count):
-        """ Set tx_mcast. """
-
-        self._ur_mcast_count = 5#int(ur_mcast_count)
-        self.block.radio.connection.send_set_port(self)
+        self._block.tx_policies[self._lvap.addr].rts_cts = rts_cts
 
     def __eq__(self, other):
 
@@ -199,12 +138,9 @@ class RadioPort():
 
         no_ack = self.no_ack
         mcs = ', '.join([str(x) for x in sorted(list(self.mcs))])
-        tx_mcast = TX_MCAST[self.tx_mcast]
-        ur_mcast_count = self._ur_mcast_count
 
-        out = "(%s, mcs [%s], rts/cts %u, ack %s, mcast %s, ur %u)" % \
-            (self.lvap.addr, mcs, self.rts_cts, str(no_ack), tx_mcast,
-             ur_mcast_count)
+        out = "(%s, mcs [%s], rts/cts %u, ack %s)" % \
+            (self.lvap.addr, mcs, self.rts_cts, str(no_ack))
 
         return out
 

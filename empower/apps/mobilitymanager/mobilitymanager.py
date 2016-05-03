@@ -36,9 +36,6 @@ from empower.core.resourcepool import ResourcePool
 from empower.triggers.rssi import rssi
 from empower.events.wtpup import wtpup
 from empower.maps.ucqm import ucqm
-from empower.core.radioport import TX_MCAST_LEGACY
-from empower.core.radioport import TX_MCAST_DMS
-from empower.core.radioport import TX_MCAST_UR
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -78,8 +75,7 @@ def handover(lvap, wtps):
         port = lvap.scheduled_on[block]
         port.no_ack = True
         port.rts_cts = 3500
-        port.mcs = [6, 12]
-        port.tx_mcast = TX_MCAST_DMS
+        port.mcs = [6, 12, 54]
 
 
 class MobilityManagerHandler(EmpowerAppHandler):

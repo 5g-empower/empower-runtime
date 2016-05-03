@@ -319,7 +319,7 @@ class LVAPPConnection(object):
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
         net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap._ssids = ssids
+        lvap.set_ssids(ssids)
 
         RUNTIME.lvaps[sta] = lvap
 
@@ -611,6 +611,8 @@ class LVAPPConnection(object):
             LOG.error("Incoming block %s is invalid", block)
             return
 
+        block = match.pop()
+
         # this will try to updated the lvap object with the resource block
         # coming in this status update message.
         try:
@@ -673,7 +675,8 @@ class LVAPPConnection(object):
 
         LOG.info("LVAP status %s", lvap)
 
-    def _handle_status_port(self, status):
+    @classmethod
+    def _handle_status_port(cls, status):
         """Handle an incoming PORT message.
         Args:
             status, a STATUS_PORT message
@@ -697,29 +700,32 @@ class LVAPPConnection(object):
         hwaddr = EtherAddress(status.hwaddr)
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
-        LOG.info("Port status from %s", sta_addr)
+        # incoming block
+        pool = ResourcePool()
+        pool.add(block)
 
-        try:
-            lvap = RUNTIME.lvaps[sta_addr]
-        except KeyError:
-            LOG.error("Invalid LVAP %s, ignoring", sta_addr)
+        match = wtp.supports & pool
+
+        if not match:
+            LOG.error("Incoming block %s is invalid", block)
             return
 
-        try:
-            port = lvap.downlink[block]
-        except KeyError:
-            LOG.error("Invalid Block %s, ignoring", block)
-            return
+        block = match.pop()
 
-        port._no_ack = bool(status.flags.no_ack)
-        port._rts_cts = int(status.rts_cts)
-        port._mcs = set([float(x)/2 for x in status.mcs])
-        port._tx_mcast = int(status.tx_mcast)
-        port._ur_mcast_count = int(status.ur_mcast_count)
+        LOG.info("Port status from %s, station %s", wtp_addr, sta_addr)
 
-        LOG.info("Port status %s", port)
+        tx_policy = block.tx_policies[sta_addr]
 
-    def _handle_caps_response(self, caps):
+        tx_policy._mcs = set([float(x)/2 for x in status.mcs])
+        tx_policy._rts_cts = int(status.rts_cts)
+        tx_policy._mcast = int(status.tx_mcast)
+        tx_policy._ur_count = int(status.ur_mcast_count)
+        tx_policy._no_ack = bool(status.flags.no_ack)
+
+        LOG.info("Port status %s", tx_policy)
+
+    @classmethod
+    def _handle_caps_response(cls, caps):
         """Handle an incoming CAPS_RESPONSE message.
         Args:
             caps, a CAPS_RESPONSE message
@@ -755,7 +761,8 @@ class LVAPPConnection(object):
 
             wtp.ports[network_port.port_id] = network_port
 
-    def _handle_interference_map(self, interference_map):
+    @classmethod
+    def _handle_interference_map(cls, interference_map):
         """Handle an incoming INTERFERENCE_MAP message.
         Args:
             interference_map, an INTERFERENCE_MAP message
@@ -786,7 +793,8 @@ class LVAPPConnection(object):
                 if sta in RUNTIME.lvaps or sta in RUNTIME.wtps:
                     block.rssi_to[sta] = entry[1]
 
-    def _handle_status_vap(self, status):
+    @classmethod
+    def _handle_status_vap(cls, status):
         """Handle an incoming STATUS_VAP message.
         Args:
             status, a STATUS_VAP message
@@ -959,7 +967,7 @@ class LVAPPConnection(object):
         msg = DEL_LVAP.build(del_lvap)
         self.stream.write(msg)
 
-    def send_set_port(self, port):
+    def send_set_port(self, tx_policy):
         """Send a SET_PORT message.
         Args:
             port: a Port object
@@ -969,21 +977,21 @@ class LVAPPConnection(object):
             TypeError: if lvap is not an LVAP object.
         """
 
-        flags = Container(no_ack=port.no_ack)
-        rates = sorted([int(x*2) for x in port.mcs])
+        flags = Container(no_ack=tx_policy.no_ack)
+        rates = sorted([int(x*2) for x in tx_policy.mcs])
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
-                             length=29 + len(port.mcs),
+                             length=29 + len(rates),
                              seq=self.wtp.seq,
                              flags=flags,
-                             sta=port.lvap.addr.to_raw(),
-                             hwaddr=port.block.hwaddr.to_raw(),
-                             channel=port.block.channel,
-                             band=port.block.band,
-                             rts_cts=port.rts_cts,
-                             tx_mcast=port.tx_mcast,
-                             ur_mcast_count=port.ur_mcast_count,
+                             sta=tx_policy.addr.to_raw(),
+                             hwaddr=tx_policy.block.hwaddr.to_raw(),
+                             channel=tx_policy.block.channel,
+                             band=tx_policy.block.band,
+                             rts_cts=tx_policy.rts_cts,
+                             tx_mcast=tx_policy.mcast,
+                             ur_mcast_count=tx_policy.ur_count,
                              nb_mcses=len(rates),
                              mcs=rates)
 

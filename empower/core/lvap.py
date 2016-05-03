@@ -149,7 +149,8 @@ class LVAP(object):
         self.supports = ResourcePool()
 
         # lvap bssid, this is the bssid to which the client is currently
-        # attached
+        # attached, it can only be updated as a result of an auth request
+        # message
         self._lvap_bssid = lvap_bssid_addr
 
         # the following parameters are only updated upon RX of a lvap status
@@ -260,6 +261,17 @@ class LVAP(object):
 
         return self.__ports
 
+    def refresh_lvap(self):
+        """Send add lvap message on the selected port."""
+
+        for port in self.downlink.values():
+            port.block.radio.connection.send_add_lvap(port.lvap, port.block,
+                                                      self.downlink.SET_MASK)
+
+        for port in self.uplink.values():
+            port.block.radio.connection.send_add_lvap(port.lvap, port.block,
+                                                      self.uplink.SET_MASK)
+
     @property
     def encap(self):
         """Get the encap."""
@@ -274,16 +286,7 @@ class LVAP(object):
             return
 
         self._encap = encap
-
-        for port in self.downlink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.downlink.SET_MASK)
-
-        for port in self.uplink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.uplink.SET_MASK)
+        self.refresh_lvap()
 
     @property
     def assoc_id(self):
@@ -299,16 +302,7 @@ class LVAP(object):
             return
 
         self._assoc_id = assoc_id
-
-        for port in self.downlink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.downlink.SET_MASK)
-
-        for port in self.uplink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.uplink.SET_MASK)
+        self.refresh_lvap()
 
     @property
     def lvap_bssid(self):
@@ -324,16 +318,7 @@ class LVAP(object):
             return
 
         self._lvap_bssid = lvap_bssid
-
-        for port in self.downlink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.downlink.SET_MASK)
-
-        for port in self.uplink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.uplink.SET_MASK)
+        self.refresh_lvap()
 
     @property
     def ssids(self):
@@ -345,13 +330,16 @@ class LVAP(object):
     def ssids(self, ssids):
         """Set the ssids assigned to this LVAP."""
 
+        if self._ssids == ssids:
+            return
+
         self._ssids = ssids
+        self.refresh_lvap()
 
-    @property
-    def tenant(self):
-        """ Get the tenant assigned to this LVAP. """
+    def set_ssids(self, ssids):
+        """Set the ssids assigned to this LVAP without seding messages."""
 
-        return self._tenant
+        self._ssids = ssids
 
     @property
     def ssid(self):
@@ -362,6 +350,12 @@ class LVAP(object):
 
         return self._tenant.tenant_name
 
+    @property
+    def tenant(self):
+        """ Get the tenant assigned to this LVAP. """
+
+        return self._tenant
+
     @tenant.setter
     def tenant(self, tenant):
         """ Set the SSID. """
@@ -370,16 +364,7 @@ class LVAP(object):
             return
 
         self._tenant = tenant
-
-        for port in self.downlink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.downlink.SET_MASK)
-
-        for port in self.uplink.values():
-            port.block.radio.connection.send_add_lvap(port.lvap,
-                                                      port.block,
-                                                      self.uplink.SET_MASK)
+        self.refresh_lvap()
 
     @property
     def scheduled_on(self):
