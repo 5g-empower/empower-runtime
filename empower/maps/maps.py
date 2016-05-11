@@ -240,6 +240,9 @@ class MapsHandler(ModuleHandler):
             if "wtp" not in request:
                 raise ValueError("missing wtp element")
 
+            if "hwaddr" not in request:
+                raise ValueError("missing hwaddr element")
+
             if "band" not in request:
                 raise ValueError("missing band element")
 
@@ -256,12 +259,14 @@ class MapsHandler(ModuleHandler):
 
             channel = int(request['channel'])
             band = int(request['band'])
+            hwaddr = EtherAddress(request['hwaddr'])
 
             del request['wtp']
             del request['channel']
             del request['band']
+            del request['hwaddr']
 
-            request['block'] = ResourceBlock(wtp, channel, band)
+            request['block'] = ResourceBlock(wtp, hwaddr, channel, band)
 
             module = self.worker.add_module(**request)
 
