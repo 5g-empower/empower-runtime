@@ -19,11 +19,11 @@
 
 from distutils.core import setup
 
-setup(name="empower-controller",
+setup(name="empower-runtime",
       version="1.0",
-      description="EmPOWER Controller",
+      description="EmPOWER Runtime",
       author="Roberto Riggio",
       author_email="roberto.riggio@create-net.org",
-      url="https://github.com/rriggio/empower",
+      url="https://github.com/5g-empower/empower-runtime",
       long_description="EmPOWER is an SDN/NFV framework for Enterprise WLANs",
       packages=['empower'])
