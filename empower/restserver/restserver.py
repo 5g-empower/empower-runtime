@@ -27,7 +27,6 @@
 
 """Exposes a RESTful interface for EmPOWER."""
 
-import json
 import tornado.web
 import tornado.httpserver
 
@@ -35,16 +34,15 @@ from tornado.web import MissingArgumentError
 from uuid import UUID
 from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandler
-from empower.restserver.aclhandler import AllowHandler
-from empower.restserver.aclhandler import DenyHandler
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
+from empower.datatypes.etheraddress import EtherAddress
+
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -183,6 +181,129 @@ class ManageTenantHandler(BaseHandler):
                     role=account.role,
                     error=error,
                     tenant=tenant)
+
+
+class ACLHandler(EmpowerAPIHandler):
+
+    """ACL handler. Used to view and manipulate the ACL."""
+
+    STRUCT = None
+    HANDLERS = []
+
+    def get(self, *args, **kwargs):
+        """ List the entire ACL or just the specified entry.
+
+        Args:
+            addr: the station address
+
+        Example URLs:
+
+            GET /api/v1/[allow|deny]
+            GET /api/v1/[allow|deny/11:22:33:44:55:66
+        """
+
+        try:
+
+            if len(args) > 1:
+                raise ValueError("Invalid URL")
+
+            acl = getattr(RUNTIME, self.STRUCT)
+
+            if len(args) == 0:
+                self.write_as_json(acl.values())
+            else:
+                if EtherAddress(args[0]) in acl:
+                    self.write_as_json(EtherAddress(args[0]))
+                else:
+                    raise KeyError(EtherAddress(args[0]))
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+    def post(self, *args, **kwargs):
+        """ Add new entry to ACL.
+
+        Args:
+            None
+
+        Request:
+            version: protocol version (1.0)
+            sta: the station address
+
+        Example URLs:
+
+            POST /api/v1/[allow|deny]
+        """
+        try:
+
+            if len(args) != 0:
+                raise ValueError("Invalid URL")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "sta" not in request:
+                raise ValueError("missing sta element")
+
+            label = ""
+
+            if "label" in request:
+                label = request['label']
+
+            func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
+            func(EtherAddress(request['sta']), label)
+
+            self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
+
+        except KeyError as ex:
+            print(ex)
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """ Delete entry from ACL.
+
+        Args:
+            addr: the station address
+
+        Example URLs:
+
+            DELETE /api/v1/[allow|deny]/11:22:33:44:55:66
+        """
+
+        try:
+            if len(args) != 1:
+                raise ValueError("Invalid URL")
+            func = getattr(RUNTIME, 'remove_%s' % self.STRUCT)
+            func(EtherAddress(args[0]))
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        self.set_status(204, None)
+
+
+class AllowHandler(ACLHandler):
+    """ Allow handler. """
+
+    STRUCT = "allowed"
+    HANDLERS = [r"/api/v1/allow/?",
+                r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
+
+
+class DenyHandler(ACLHandler):
+    """ Deny handler. """
+
+    STRUCT = "denied"
+    HANDLERS = [r"/api/v1/deny/?",
+                r"/api/v1/deny/([a-zA-Z0-9:]*)/?"]
 
 
 class AccountsHandler(EmpowerAPIHandler):
