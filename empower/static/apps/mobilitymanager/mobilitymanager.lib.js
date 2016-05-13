@@ -1,3 +1,28 @@
+function refreshWTPs() {
+    $.getJSON("/api/v1/tenants/" + tenant_id + "/wtps",
+        function(data) {
+            for (node in data) {
+                var idWtp = data[node].addr
+                if (!wtps[idWtp]) {
+                    wtps[idWtp] = data[node]
+                    wtps[idWtp]['lvaps'] = {}
+                    wtps[idWtp].connection = data[node].connection
+                    wtps[idWtp].feed = data[node].feed
+                    wtpUp(idWtp)
+                    continue
+                }
+                if (wtps[idWtp].connection && !data[node].connection) {
+                    wtpDown(idWtp)
+                }
+                if (!wtps[idWtp].connection && data[node].connection) {
+                    wtpUp(idWtp)
+                }
+                wtps[idWtp].supports = data[node]. supports
+
+            }
+        });
+}
+
 function refreshLVAPs() {
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps",
