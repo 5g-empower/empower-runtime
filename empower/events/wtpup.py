@@ -27,14 +27,12 @@
 
 """WTP up event module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import ModuleWorker
+from empower.core.module import ModuleEventWorker
 from empower.core.module import Module
-from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvapp import PT_CAPS_RESPONSE
+from empower.datatypes.etheraddress import EtherAddress
 
 from empower.main import RUNTIME
 
@@ -42,22 +40,10 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class WTPUpHandler(ModuleHandler):
-    pass
-
-
 class WTPUp(Module):
-    pass
-
-
-class WTPUpWorker(ModuleWorker):
     """WTPUp worker."""
 
-    MODULE_NAME = "wtpup"
-    MODULE_HANDLER = WTPUpHandler
-    MODULE_TYPE = WTPUp
-
-    def on_wtp_up(self, caps_response):
+    def handle_response(self, caps_response):
         """ Handle an CAPS_RESPONSE message.
 
         Args:
@@ -67,34 +53,53 @@ class WTPUpWorker(ModuleWorker):
             None
         """
 
-        for event in self.modules.values():
+        addr = EtherAddress(caps_response.wtp)
+        wtps = RUNTIME.tenants[self.tenant_id].wtps
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+        if addr not in wtps:
+            return
 
-            addr = caps_response.wtp
-            wtps = RUNTIME.tenants[event.tenant_id].wtps
+        wtp = wtps[addr]
 
-            if addr not in wtps:
-                return
-
-            wtp = wtps[addr]
-
-            LOG.info("Event: WTP Up %s", wtp.addr)
-
-            handle_callback(wtp, event)
+        handle_callback(wtp, self)
 
 
-bind_module(WTPUpWorker)
+class WTPUpWorker(ModuleEventWorker):
+    """ Counter worker. """
+
+    MODULE_NAME = "wtpup"
+    MODULE_TYPE = WTPUp
+    PT_TYPE = PT_CAPS_RESPONSE
+    PT_PACKET = None
+
+
+def wtpup(*args, **kwargs):
+    """Create a new module.
+
+    Args:
+        kwargs: keyword arguments for the module.
+
+    Returns:
+        None
+    """
+
+    worker = RUNTIME.components[WTPUpWorker.__module__]
+    kwargs['worker'] = worker
+    kwargs['module_type'] = worker.MODULE_NAME
+    new_module = worker.add_module(**kwargs)
+
+    return new_module
+
+
+def remove_wtpup(*args, **kwargs):
+    """Remove module."""
+
+    worker = RUNTIME.components[WTPUpWorker.__module__]
+    worker.remove_module(kwargs['module_id'])
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = WTPUpWorker(rest_server)
-    lvap_server.register_message(PT_CAPS_RESPONSE, None, worker.on_wtp_up)
-
+    worker = WTPUpWorker(LVAPPServer.__module__)
     return worker

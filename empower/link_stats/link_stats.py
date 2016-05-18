@@ -40,11 +40,9 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
-from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvapp import PT_VERSION
+from empower.lvapp.lvappserver import LVAPPServer
 
 from empower.main import RUNTIME
 
@@ -71,15 +69,11 @@ RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
                         UBInt8("type"),
                         UBInt16("length"),
                         UBInt32("seq"),
-                        UBInt32("rates_id"),
+                        UBInt32("module_id"),
                         Bytes("wtp", 6),
                         Bytes("sta", 6),
                         UBInt16("nb_entries"),
                         Array(lambda ctx: ctx.nb_entries, RATES_ENTRY))
-
-
-class LinkStatsHandler(ModuleHandler):
-    pass
 
 
 class LinkStats(Module):
@@ -95,8 +89,7 @@ class LinkStats(Module):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and \
-               self.lvap == other.lvap
+        return super().__eq__(other) and self.lvap == other.lvap
 
     @property
     def lvap(self):
@@ -107,7 +100,7 @@ class LinkStats(Module):
         self._lvap = EtherAddress(value)
 
     def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the Rates """
+        """ Return a JSON-serializable."""
 
         out = super().to_dict()
 
@@ -150,15 +143,7 @@ class LinkStats(Module):
         msg = RATES_REQUEST.build(rates_req)
         wtp.connection.stream.write(msg)
 
-
-class LinkStatsWorker(ModuleWorker):
-    """ Counter worker. """
-
-    MODULE_NAME = "link_stats"
-    MODULE_HANDLER = LinkStatsHandler
-    MODULE_TYPE = LinkStats
-
-    def handle_rates_response(self, rates):
+    def handle_response(self, response):
         """Handle an incoming RATES_RESPONSE message.
         Args:
             rates, a RATES_RESPONSE message
@@ -166,34 +151,53 @@ class LinkStatsWorker(ModuleWorker):
             None
         """
 
-        if rates.rates_id not in self.modules:
-            return
-
-        counter = self.modules[rates.rates_id]
-
         # update cache
-        lvap = RUNTIME.lvaps[counter.lvap]
-        lvap.rates = {x[0]: x[1] for x in rates.rates}
+        lvap = RUNTIME.lvaps[self.lvap]
+        lvap.rates = {x[0]: x[1] for x in response.rates}
 
         # update this object
-        counter.rates = {x[0]: x[1] for x in rates.rates}
+        self.rates = {x[0]: x[1] for x in response.rates}
 
         # call callback
-        handle_callback(counter, counter)
+        handle_callback(self, self)
 
 
-bind_module(LinkStatsWorker)
+class LinkStatsWorker(ModuleWorker):
+    """ Counter worker. """
+
+    MODULE_NAME = "link_stats"
+    MODULE_TYPE = LinkStats
+    PT_TYPE = PT_RATES_RESPONSE
+    PT_PACKET = RATES_RESPONSE
+
+
+def link_stats(*args, **kwargs):
+    """Create a new module.
+
+    Args:
+        kwargs: keyword arguments for the module.
+
+    Returns:
+        None
+    """
+
+    worker = RUNTIME.components[LinkStatsWorker.__module__]
+    kwargs['worker'] = worker
+    kwargs['module_type'] = worker.MODULE_NAME
+    new_module = worker.add_module(**kwargs)
+
+    return new_module
+
+
+def remove_link_stats(*args, **kwargs):
+    """Remove module."""
+
+    worker = RUNTIME.components[LinkStatsWorker.__module__]
+    worker.remove_module(kwargs['module_id'])
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = LinkStatsWorker(rest_server)
-    lvap_server.register_message(PT_RATES_RESPONSE,
-                                 RATES_RESPONSE,
-                                 worker.handle_rates_response)
-
+    worker = LinkStatsWorker(LVAPPServer.__module__)
     return worker

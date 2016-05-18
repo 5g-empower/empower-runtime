@@ -28,7 +28,6 @@
 """EmPOWER Primitive Base Class."""
 
 import time
-import re
 import json
 import types
 import xmlrpc.client
@@ -42,6 +41,7 @@ from multiprocessing.pool import ThreadPool
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
+from empower.restserver.restserver import RESTServer
 
 from empower.main import RUNTIME
 
@@ -82,7 +82,7 @@ def handle_callback(serializable, module):
 
     Args:
         serializable, an object implementing the to_dict() method
-        callback, the callback (url of method)
+        module, an object with the callback (url of method)
 
     Returns:
         None
@@ -117,54 +117,6 @@ def handle_callback(serializable, module):
         LOG.exception(ex)
 
 
-def base_add_module(worker, tenant_id, **kwargs):
-    """Create a new module.
-
-    Args:
-        worker: a worker object.
-        tenant_id: the tenant id.
-        kwargs: keyword arguments for the module.
-
-    Returns:
-        None
-    """
-
-    worker = RUNTIME.components[worker.__module__]
-    kwargs['tenant_id'] = tenant_id
-    kwargs['worker'] = worker
-    kwargs['module_type'] = worker.MODULE_NAME
-    new_module = worker.add_module(**kwargs)
-
-    return new_module
-
-
-def base_remove_module(worker, module_id):
-    """Remove a module."""
-
-    worker = RUNTIME.components[worker.__module__]
-    worker.remove_module(module_id)
-
-
-def bind_module(worker):
-    """Bind primitive."""
-
-    import sys
-    this = sys.modules[worker.__module__]
-
-    def add(tenant_id, **kwargs):
-        """Callback method for adding a module."""
-
-        return base_add_module(worker, tenant_id, **kwargs)
-
-    def remove(module_id):
-        """Callback method for removing a module."""
-
-        return base_remove_module(worker, module_id)
-
-    setattr(this, worker.MODULE_NAME, add)
-    setattr(this, 'remove_' + worker.MODULE_NAME, remove)
-
-
 class ModuleHandler(EmpowerAPIHandlerUsers):
     """ModuleHandler. Used to view and manipulate modules."""
 
@@ -185,7 +137,7 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
             if len(args) > 2 or len(args) < 1:
                 raise ValueError("Invalid URL")
             tenant_id = UUID(args[0])
-            resp = {k: v for k, v in self.worker.modules.items()
+            resp = {k: v for k, v in self.server.modules.items()
                     if v.tenant_id == tenant_id}
             if len(args) == 1:
                 self.write_as_json(resp.values())
@@ -225,14 +177,14 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
 
             del request['version']
             request['tenant_id'] = tenant_id
-            request['module_type'] = self.worker.MODULE_NAME
-            request['worker'] = self.worker
+            request['module_type'] = self.server.MODULE_NAME
+            request['worker'] = self.server
 
-            module = self.worker.add_module(**request)
+            module = self.server.add_module(**request)
 
             self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
                             (module.tenant_id,
-                             self.worker.MODULE_NAME,
+                             self.server.MODULE_NAME,
                              module.module_id))
 
             self.set_status(201, None)
@@ -263,13 +215,13 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
             tenant_id = UUID(args[0])
             module_id = int(args[1])
 
-            module = self.worker.modules[module_id]
+            module = self.server.modules[module_id]
 
             if module.tenant_id != tenant_id:
                 raise KeyError("Module %u not in tenant %s" % (module_id,
                                                                tenant_id))
 
-            self.worker.remove_module(module_id)
+            self.server.remove_module(module_id)
 
         except KeyError as ex:
             self.send_error(404, message=ex)
@@ -421,6 +373,11 @@ class Module(object):
 
         pass
 
+    def handle_response(self, module, response):
+        """Stub handle response method."""
+
+        pass
+
 
 class ModuleWorker(object):
     """Module worker.
@@ -432,49 +389,41 @@ class ModuleWorker(object):
         modules: dictionary of modules currently active in this tenant
     """
 
-    MODULE_NAME = ""
-    MODULE_HANDLER = ModuleHandler
+    MODULE_NAME = None
     MODULE_TYPE = None
+    PT_TYPE = None
+    PT_PACKET = None
 
-    def __init__(self, rest_server):
+    def __init__(self, server):
 
         self.__module_id = 0
         self.modules = {}
-        self.rest_server = rest_server
-        self.MODULE_HANDLER.worker = self
-        self.add_handlers()
+        self.pnfp_server = RUNTIME.components[server]
+        self.rest_server = RUNTIME.components[RESTServer.__module__]
 
-    def add_handlers(self):
-        """Add primitive handlers."""
+        urls = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?",
+                r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?"]
 
-        add = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?" % self.MODULE_NAME
-        add_name = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?" % \
-            self.MODULE_NAME
+        for url in urls:
+            handler = (url % self.MODULE_NAME, ModuleHandler,
+                       dict(server=self))
+            self.rest_server.add_handler(handler)
 
-        handlers = [
-            (add, self.MODULE_HANDLER),
-            (add_name, self.MODULE_HANDLER),
-        ]
+        self.pnfp_server.register_message(self.PT_TYPE, self.PT_PACKET,
+                                          self.handle_packet)
 
-        self.rest_server.add_handlers(r".*$", handlers)
+    def handle_packet(self, response):
+        """Handle response message."""
 
-    def remove_handlers(self):
-        """Remove primitive handlers."""
+        if response.module_id not in self.modules:
+            return
 
-        remove = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?$" % self.MODULE_NAME
-        remove_name = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?$" % \
-            self.MODULE_NAME
+        module = self.modules[response.module_id]
 
-        re_a = re.compile(remove)
-        re_b = re.compile(remove_name)
+        LOG.info("Received %s response (id=%u)", self.MODULE_NAME,
+                 response.module_id)
 
-        def determine(spec, re_a, re_b, module_handler):
-            return not (spec.handler_class == module_handler and
-                        (spec.regex == re_a or spec.regex == re_b))
-
-        for handler in self.rest_server.handlers:
-            handler[1][:] = [x for x in handler[1]
-                             if determine(x, re_a, re_b, self.MODULE_HANDLER)]
+        module.handle_response(response)
 
     @property
     def module_id(self):
@@ -502,7 +451,8 @@ class ModuleWorker(object):
                 raise ValueError("missing %s param" % param)
 
         # instantiate module
-        module = self.MODULE_TYPE()
+        new_module = getattr(self, 'MODULE_TYPE')
+        module = new_module()
 
         # set mandatory parameters
         for arg in self.MODULE_TYPE.REQUIRED:
@@ -562,3 +512,27 @@ class ModuleWorker(object):
             self.modules[module_id].stop()
 
         del self.modules[module_id]
+
+
+class ModuleEventWorker(ModuleWorker):
+    """Module event worker.
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def handle_packet(self, event):
+        """Handle response message."""
+
+        for module in self.modules.values():
+
+            if module.tenant_id not in RUNTIME.tenants:
+                continue
+
+            LOG.info("New event %s: (id=%u)", self.MODULE_NAME,
+                     module.module_id)
+
+            module.handle_response(event)

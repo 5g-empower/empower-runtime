@@ -27,12 +27,9 @@
 
 """LVAP join event module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import ModuleWorker
+from empower.core.module import ModuleEventWorker
 from empower.core.module import Module
-from empower.core.module import bind_module
 from empower.core.module import handle_callback
-from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvapp import PT_LVAP_JOIN
 
@@ -42,54 +39,61 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class LVAPJoinHandler(ModuleHandler):
-    pass
-
-
 class LVAPJoin(Module):
-    pass
-
-
-class LVAPJoinWorker(ModuleWorker):
     """ LvapUp worker. """
 
-    MODULE_NAME = "lvapjoin"
-    MODULE_HANDLER = LVAPJoinHandler
-    MODULE_TYPE = LVAPJoin
-
-    def on_lvap_join(self, lvap):
-        """ Handle an LVAL JOIN event.
+    def handle_response(self, lvap):
+        """ Handle an LVAL_JOIN message.
         Args:
             lvap, an LVAP object
         Returns:
             None
         """
 
-        for event in self.modules.values():
+        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+        if lvap.addr not in lvaps:
+            return
 
-            lvaps = RUNTIME.tenants[event.tenant_id].lvaps
-
-            if lvap.addr not in lvaps:
-                return
-
-            LOG.info("Event: LVAP Join %s", lvap.addr)
-
-            handle_callback(lvap, event)
+        handle_callback(lvap, self)
 
 
-bind_module(LVAPJoinWorker)
+class LVAPJoinWorker(ModuleEventWorker):
+    """ Counter worker. """
+
+    MODULE_NAME = "lvapjoin"
+    MODULE_TYPE = LVAPJoin
+    PT_TYPE = PT_LVAP_JOIN
+    PT_PACKET = None
+
+
+def lvapjoin(*args, **kwargs):
+    """Create a new module.
+
+    Args:
+        kwargs: keyword arguments for the module.
+
+    Returns:
+        None
+    """
+
+    worker = RUNTIME.components[LVAPJoinWorker.__module__]
+    kwargs['worker'] = worker
+    kwargs['module_type'] = worker.MODULE_NAME
+    new_module = worker.add_module(**kwargs)
+
+    return new_module
+
+
+def remove_lvapjoin(*args, **kwargs):
+    """Remove module."""
+
+    worker = RUNTIME.components[LVAPJoinWorker.__module__]
+    worker.remove_module(kwargs['module_id'])
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = LVAPJoinWorker(rest_server)
-    lvap_server.register_message(PT_LVAP_JOIN, None, worker.on_lvap_join)
-
+    worker = LVAPJoinWorker(LVAPPServer.__module__)
     return worker

@@ -72,14 +72,11 @@ class LinkStatsPoller(Poller):
         LOG.info("New link stats received from %s" % counter.lvap)
 
 
-def launch(tenant,
-           filepath="./",
-           polling=DEFAULT_POLLING,
+def launch(tenant, filepath="./", polling=DEFAULT_POLLING,
            period=DEFAULT_PERIOD):
     """ Initialize the module. """
 
+    poller = LinkStatsPoller(tenant, filepath=filepath, polling=polling,
+                             every=period)
 
-    return LinkStatsPoller(tenant,
-                           filepath=filepath,
-                           polling=polling,
-                           every=period)
+    return poller

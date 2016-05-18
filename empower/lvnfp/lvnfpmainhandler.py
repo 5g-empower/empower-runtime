@@ -46,7 +46,7 @@ from empower.lvnfp import PT_REGISTER
 from empower.lvnfp import PT_VERSION
 from empower.lvnfp import PT_CAPS_REQUEST
 from empower.core.lvnf import LVNF
-from empower.core.virtualport import VirtualPort
+from empower.core.virtualport import VirtualPortLvnf
 from empower.core.lvnf import PROCESS_RUNNING
 from empower.core.lvnf import PROCESS_STOPPED
 from empower.core.lvnf import PROCESS_DONE
@@ -104,9 +104,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             self.close()
             return
 
-        LOG.info("Received %s seq %u from %s" % (msg['type'],
-                                                 msg['seq'],
-                                                 self.request.remote_ip))
+        LOG.info("Received %s seq %u from %s", msg['type'], msg['seq'],
+                 self.request.remote_ip)
 
         handler_name = "_handle_%s" % msg['type']
 
@@ -164,6 +163,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
                 handler(lvnf)
             LOG.info("Deleting LVNF: %s" % lvnf.lvnf_id)
+            tenant = RUNTIME.tenants[lvnf.tenant_id]
             del tenant.lvnfs[lvnf.lvnf_id]
 
     def send_message(self, message_type, message):
@@ -393,11 +393,11 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                 else:
                     ovs_port_id = None
 
-                virtual_port = VirtualPort(dpid=lvnf.cpp.addr,
-                                           ovs_port_id=ovs_port_id,
-                                           virtual_port_id=virtual_port_id,
-                                           iface=port['iface'],
-                                           hwaddr=hwaddr)
+                virtual_port = VirtualPortLvnf(dpid=lvnf.cpp.addr,
+                                               ovs_port_id=ovs_port_id,
+                                               virtual_port_id=virtual_port_id,
+                                               iface=port['iface'],
+                                               hwaddr=hwaddr)
 
                 # these are used by the overridden dict methods
                 virtual_port.next.lvnf = lvnf
