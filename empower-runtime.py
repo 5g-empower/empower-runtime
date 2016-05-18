@@ -27,7 +27,7 @@ if __name__ == "__main__":
              'lvnfp.lvnfpserver',
              'lvapp.lvappserver',
              'energinoserver.energinoserver',
-             'link_stats.link_stats',
+             'lvap_stats.lvap_stats',
              #'events.wtpdown',
              #'events.wtpup',
              #'events.lvapleave',

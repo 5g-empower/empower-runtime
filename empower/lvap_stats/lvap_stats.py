@@ -37,7 +37,6 @@ from construct import UBInt32
 from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.core.module import handle_callback
@@ -76,7 +75,7 @@ RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
                         Array(lambda ctx: ctx.nb_entries, RATES_ENTRY))
 
 
-class LinkStats(Module):
+class LVAPStats(Module):
     """ PacketsCounter object. """
 
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
@@ -162,16 +161,16 @@ class LinkStats(Module):
         handle_callback(self, self)
 
 
-class LinkStatsWorker(ModuleWorker):
+class LVAPStatsWorker(ModuleWorker):
     """ Counter worker. """
 
-    MODULE_NAME = "link_stats"
-    MODULE_TYPE = LinkStats
+    MODULE_NAME = "lvap_stats"
+    MODULE_TYPE = LVAPStats
     PT_TYPE = PT_RATES_RESPONSE
     PT_PACKET = RATES_RESPONSE
 
 
-def link_stats(*args, **kwargs):
+def lvap_stats(*args, **kwargs):
     """Create a new module.
 
     Args:
@@ -181,7 +180,7 @@ def link_stats(*args, **kwargs):
         None
     """
 
-    worker = RUNTIME.components[LinkStatsWorker.__module__]
+    worker = RUNTIME.components[LVAPStatsWorker.__module__]
     kwargs['worker'] = worker
     kwargs['module_type'] = worker.MODULE_NAME
     new_module = worker.add_module(**kwargs)
@@ -189,15 +188,15 @@ def link_stats(*args, **kwargs):
     return new_module
 
 
-def remove_link_stats(*args, **kwargs):
+def remove_lvap_stats(*args, **kwargs):
     """Remove module."""
 
-    worker = RUNTIME.components[LinkStatsWorker.__module__]
+    worker = RUNTIME.components[LVAPStatsWorker.__module__]
     worker.remove_module(kwargs['module_id'])
 
 
 def launch():
     """ Initialize the module. """
 
-    worker = LinkStatsWorker(LVAPPServer.__module__)
+    worker = LVAPStatsWorker(LVAPPServer.__module__)
     return worker
