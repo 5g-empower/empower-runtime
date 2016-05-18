@@ -170,6 +170,8 @@ def lvap_stats(**kwargs):
 
 
 def app_lvap_stats(self, **kwargs):
+    """Create a new module (app version)."""
+
     kwargs['tenant_id'] = self.tenant_id
     return lvap_stats(**kwargs)
 
