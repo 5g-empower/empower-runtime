@@ -30,8 +30,6 @@
 from empower.apps.pollers.poller import Poller
 from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
-from empower.events.lvapjoin import lvapjoin
-from empower.lvap_stats.lvap_stats import lvap_stats
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -55,16 +53,13 @@ class LinkStatsPoller(Poller):
 
         Poller.__init__(self, tenant, **kwargs)
 
-        lvapjoin(tenant_id=self.tenant.tenant_id,
-                 callback=self.lvap_join_callback)
+        self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap_stats(lvap=lvap.addr,
-                   tenant_id=self.tenant.tenant_id,
-                   every=self.polling,
-                   callback=self.link_stats_callback)
+        self.lvap_stats(lvap=lvap.addr, every=self.polling,
+                        callback=self.link_stats_callback)
 
     def link_stats_callback(self, counter):
         """ New stats available. """

@@ -36,6 +36,7 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Array
 
+from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleLVAPPWorker
 from empower.core.module import Module
@@ -166,6 +167,13 @@ def lvap_stats(**kwargs):
     """Create a new module."""
 
     return RUNTIME.components[LVAPStatsWorker.__module__].add_module(**kwargs)
+
+
+def app_lvap_stats(self, **kwargs):
+    kwargs['tenant_id'] = self.tenant_id
+    return lvap_stats(**kwargs)
+
+setattr(EmpowerApp, LVAPStats.MODULE_NAME, app_lvap_stats)
 
 
 def launch():

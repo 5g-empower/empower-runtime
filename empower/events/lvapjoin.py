@@ -27,6 +27,7 @@
 
 """LVAP join event module."""
 
+from empower.core.app import EmpowerApp
 from empower.core.module import ModuleLVAPPEventWorker
 from empower.core.module import Module
 from empower.lvapp import PT_LVAP_JOIN
@@ -67,15 +68,15 @@ class LVAPJoinWorker(ModuleLVAPPEventWorker):
 def lvapjoin(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[LVAPJoinWorker.__module__]
-    return worker.add_module(**kwargs)
+    return RUNTIME.components[LVAPJoinWorker.__module__].add_module(**kwargs)
 
 
-def remove_lvapjoin(**kwargs):
-    """Remove module."""
+def app_lvapjoin(self, **kwargs):
+    kwargs['tenant_id'] = self.tenant_id
+    return lvapjoin(**kwargs)
 
-    worker = RUNTIME.components[LVAPJoinWorker.__module__]
-    worker.remove_module(kwargs['module_id'])
+
+setattr(EmpowerApp, LVAPJoin.MODULE_NAME, app_lvapjoin)
 
 
 def launch():
