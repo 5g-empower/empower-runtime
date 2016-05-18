@@ -42,6 +42,8 @@ from multiprocessing.pool import ThreadPool
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.restserver.restserver import RESTServer
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.lvnfp.lvnfpserver import LVNFPServer
 
 from empower.main import RUNTIME
 
@@ -373,7 +375,7 @@ class Module(object):
 
         pass
 
-    def handle_response(self, module, response):
+    def handle_response(self, response):
         """Stub handle response method."""
 
         pass
@@ -391,13 +393,13 @@ class ModuleWorker(object):
 
     MODULE_NAME = None
     MODULE_TYPE = None
-    PT_TYPE = None
-    PT_PACKET = None
 
-    def __init__(self, server):
+    def __init__(self, server, pt_type, pt_packet):
 
         self.__module_id = 0
         self.modules = {}
+        self.pt_type = pt_type
+        self.pt_packet = pt_packet
         self.pnfp_server = RUNTIME.components[server]
         self.rest_server = RUNTIME.components[RESTServer.__module__]
 
@@ -409,7 +411,7 @@ class ModuleWorker(object):
                        dict(server=self))
             self.rest_server.add_handler(handler)
 
-        self.pnfp_server.register_message(self.PT_TYPE, self.PT_PACKET,
+        self.pnfp_server.register_message(self.pt_type, self.pt_packet,
                                           self.handle_packet)
 
     def handle_packet(self, response):
@@ -536,3 +538,61 @@ class ModuleEventWorker(ModuleWorker):
                      module.module_id)
 
             module.handle_response(event)
+
+
+class ModuleLVAPPWorker(ModuleWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVAPPServer.__module__, pt_type, pt_packet)
+
+
+class ModuleLVNFPWorker(ModuleWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVNFPServer.__module__, pt_type, pt_packet)
+
+
+class ModuleLVAPPEventWorker(ModuleEventWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVAPPServer.__module__, pt_type,
+                                   pt_packet)
+
+
+class ModuleLVNFPEventWorker(ModuleEventWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVNFPServer.__module__, pt_type,
+                                   pt_packet)

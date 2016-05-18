@@ -37,11 +37,10 @@ from construct import UBInt32
 from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import ModuleWorker
+from empower.core.module import ModuleLVAPPWorker
 from empower.core.module import Module
 from empower.core.module import handle_callback
 from empower.lvapp import PT_VERSION
-from empower.lvapp.lvappserver import LVAPPServer
 
 from empower.main import RUNTIME
 
@@ -92,10 +91,14 @@ class LVAPStats(Module):
 
     @property
     def lvap(self):
+        """Return LVAP."""
+
         return self._lvap
 
     @lvap.setter
     def lvap(self, value):
+        """Set LVAP."""
+
         self._lvap = EtherAddress(value)
 
     def to_dict(self):
@@ -161,16 +164,14 @@ class LVAPStats(Module):
         handle_callback(self, self)
 
 
-class LVAPStatsWorker(ModuleWorker):
+class LVAPStatsWorker(ModuleLVAPPWorker):
     """ Counter worker. """
 
     MODULE_NAME = "lvap_stats"
     MODULE_TYPE = LVAPStats
-    PT_TYPE = PT_RATES_RESPONSE
-    PT_PACKET = RATES_RESPONSE
 
 
-def lvap_stats(*args, **kwargs):
+def lvap_stats(**kwargs):
     """Create a new module.
 
     Args:
@@ -188,7 +189,7 @@ def lvap_stats(*args, **kwargs):
     return new_module
 
 
-def remove_lvap_stats(*args, **kwargs):
+def remove_lvap_stats(**kwargs):
     """Remove module."""
 
     worker = RUNTIME.components[LVAPStatsWorker.__module__]
@@ -198,5 +199,5 @@ def remove_lvap_stats(*args, **kwargs):
 def launch():
     """ Initialize the module. """
 
-    worker = LVAPStatsWorker(LVAPPServer.__module__)
+    worker = LVAPStatsWorker(PT_RATES_RESPONSE, RATES_RESPONSE)
     return worker

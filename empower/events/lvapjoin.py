@@ -27,7 +27,7 @@
 
 """LVAP join event module."""
 
-from empower.core.module import ModuleEventWorker
+from empower.core.module import ModuleLVAPPEventWorker
 from empower.core.module import Module
 from empower.core.module import handle_callback
 from empower.lvapp.lvappserver import LVAPPServer
@@ -58,13 +58,11 @@ class LVAPJoin(Module):
         handle_callback(lvap, self)
 
 
-class LVAPJoinWorker(ModuleEventWorker):
+class LVAPJoinWorker(ModuleLVAPPEventWorker):
     """ Counter worker. """
 
     MODULE_NAME = "lvapjoin"
     MODULE_TYPE = LVAPJoin
-    PT_TYPE = PT_LVAP_JOIN
-    PT_PACKET = None
 
 
 def lvapjoin(*args, **kwargs):
@@ -95,5 +93,5 @@ def remove_lvapjoin(*args, **kwargs):
 def launch():
     """ Initialize the module. """
 
-    worker = LVAPJoinWorker(LVAPPServer.__module__)
+    worker = LVAPJoinWorker(PT_LVAP_JOIN)
     return worker
