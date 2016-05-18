@@ -27,7 +27,6 @@
 
 """EmPOWER Primitive Base Class."""
 
-import empower.logger
 import time
 import json
 import types
@@ -39,6 +38,8 @@ from tornado.ioloop import IOLoop
 
 from uuid import UUID
 from multiprocessing.pool import ThreadPool
+
+import empower.logger
 
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
