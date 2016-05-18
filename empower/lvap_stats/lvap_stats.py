@@ -39,13 +39,9 @@ from construct import Array
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleLVAPPWorker
 from empower.core.module import Module
-from empower.core.module import handle_callback
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 PT_RATES_REQUEST = 0x29
@@ -77,6 +73,7 @@ RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
 class LVAPStats(Module):
     """ PacketsCounter object. """
 
+    MODULE_NAME = "lvap_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
 
     # parameters
@@ -127,23 +124,18 @@ class LVAPStats(Module):
         if not lvap.wtp.connection:
             return
 
-        self.send_rates_request(lvap.wtp, lvap)
-
-    def send_rates_request(self, wtp, lvap):
-        """ Send a RATES_REQUEST message. """
-
         rates_req = Container(version=PT_VERSION,
                               type=PT_RATES_REQUEST,
                               length=18,
-                              seq=wtp.seq,
+                              seq=lvap.wtp.seq,
                               rates_id=self.module_id,
                               sta=lvap.addr.to_raw())
 
-        LOG.info("Sending rates request to %s @ %s (id=%u)",
-                 lvap.addr, wtp.addr, self.module_id)
+        self.log.info("Sending rates request to %s @ %s (id=%u)",
+                      lvap.addr, lvap.wtp.addr, self.module_id)
 
         msg = RATES_REQUEST.build(rates_req)
-        wtp.connection.stream.write(msg)
+        lvap.wtp.connection.stream.write(msg)
 
     def handle_response(self, response):
         """Handle an incoming RATES_RESPONSE message.
@@ -161,43 +153,22 @@ class LVAPStats(Module):
         self.rates = {x[0]: x[1] for x in response.rates}
 
         # call callback
-        handle_callback(self, self)
+        self.handle_callback(self)
 
 
 class LVAPStatsWorker(ModuleLVAPPWorker):
     """ Counter worker. """
 
-    MODULE_NAME = "lvap_stats"
-    MODULE_TYPE = LVAPStats
+    pass
 
 
 def lvap_stats(**kwargs):
-    """Create a new module.
+    """Create a new module."""
 
-    Args:
-        kwargs: keyword arguments for the module.
-
-    Returns:
-        None
-    """
-
-    worker = RUNTIME.components[LVAPStatsWorker.__module__]
-    kwargs['worker'] = worker
-    kwargs['module_type'] = worker.MODULE_NAME
-    new_module = worker.add_module(**kwargs)
-
-    return new_module
-
-
-def remove_lvap_stats(**kwargs):
-    """Remove module."""
-
-    worker = RUNTIME.components[LVAPStatsWorker.__module__]
-    worker.remove_module(kwargs['module_id'])
+    return RUNTIME.components[LVAPStatsWorker.__module__].add_module(**kwargs)
 
 
 def launch():
     """ Initialize the module. """
 
-    worker = LVAPStatsWorker(PT_RATES_RESPONSE, RATES_RESPONSE)
-    return worker
+    return LVAPStatsWorker(LVAPStats, PT_RATES_RESPONSE, RATES_RESPONSE)

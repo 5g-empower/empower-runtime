@@ -27,6 +27,7 @@
 
 """EmPOWER Primitive Base Class."""
 
+import empower.logger
 import time
 import json
 import types
@@ -47,7 +48,6 @@ from empower.lvnfp.lvnfpserver import LVNFPServer
 
 from empower.main import RUNTIME
 
-import empower.logger
 LOG = empower.logger.get_logger()
 
 
@@ -79,46 +79,6 @@ def on_complete(res):
     pass
 
 
-def handle_callback(serializable, module):
-    """Handle an module callback.
-
-    Args:
-        serializable, an object implementing the to_dict() method
-        module, an object with the callback (url of method)
-
-    Returns:
-        None
-    """
-
-    # call callback if defined
-    if not module.callback:
-        return
-
-    callback = module.callback
-
-    try:
-
-        as_dict = serializable.to_dict()
-        as_json = json.dumps(as_dict, cls=EmpowerEncoder)
-
-        if isinstance(callback, types.FunctionType) or \
-           isinstance(callback, types.MethodType):
-
-            callback(serializable)
-
-        elif isinstance(callback, list) and len(callback) == 2:
-
-            exec_xmlrpc(callback, (as_json, ))
-
-        else:
-
-            raise TypeError("Invalid callback type")
-
-    except Exception as ex:
-
-        LOG.exception(ex)
-
-
 class ModuleHandler(EmpowerAPIHandlerUsers):
     """ModuleHandler. Used to view and manipulate modules."""
 
@@ -136,11 +96,14 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         """
 
         try:
+
             if len(args) > 2 or len(args) < 1:
                 raise ValueError("Invalid URL")
             tenant_id = UUID(args[0])
+
             resp = {k: v for k, v in self.server.modules.items()
                     if v.tenant_id == tenant_id}
+
             if len(args) == 1:
                 self.write_as_json(resp.values())
             else:
@@ -179,14 +142,14 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
 
             del request['version']
             request['tenant_id'] = tenant_id
-            request['module_type'] = self.server.MODULE_NAME
+            request['module_type'] = self.server.module.MODULE_NAME
             request['worker'] = self.server
 
             module = self.server.add_module(**request)
 
             self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
                             (module.tenant_id,
-                             self.server.MODULE_NAME,
+                             self.server.module.MODULE_NAME,
                              module.module_id))
 
             self.set_status(201, None)
@@ -257,6 +220,45 @@ class Module(object):
         self.__profiler = None
         self.__last_poll = None
         self.__worker = None
+        self.log = empower.logger.get_logger()
+
+    def handle_callback(self, serializable):
+        """Handle an module callback.
+
+        Args:
+            serializable, an object implementing the to_dict() method
+
+        Returns:
+            None
+        """
+
+        # call callback if defined
+        if not self.callback:
+            return
+
+        callback = self.callback
+
+        try:
+
+            as_dict = serializable.to_dict()
+            as_json = json.dumps(as_dict, cls=EmpowerEncoder)
+
+            if isinstance(callback, types.FunctionType) or \
+               isinstance(callback, types.MethodType):
+
+                callback(serializable)
+
+            elif isinstance(callback, list) and len(callback) == 2:
+
+                exec_xmlrpc(callback, (as_json, ))
+
+            else:
+
+                raise TypeError("Invalid callback type")
+
+        except Exception as ex:
+
+            LOG.exception(ex)
 
     def tic(self):
         """Start profiling."""
@@ -394,22 +396,25 @@ class ModuleWorker(object):
     MODULE_NAME = None
     MODULE_TYPE = None
 
-    def __init__(self, server, pt_type, pt_packet):
+    def __init__(self, server, module, pt_type, pt_packet):
 
         self.__module_id = 0
         self.modules = {}
         self.pt_type = pt_type
         self.pt_packet = pt_packet
+        self.module = module
         self.pnfp_server = RUNTIME.components[server]
         self.rest_server = RUNTIME.components[RESTServer.__module__]
 
-        urls = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?",
-                r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?"]
+        module_name = self.module.MODULE_NAME
 
-        for url in urls:
-            handler = (url % self.MODULE_NAME, ModuleHandler,
-                       dict(server=self))
-            self.rest_server.add_handler(handler)
+        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?"
+        handler = (url % module_name, ModuleHandler, dict(server=self))
+        self.rest_server.add_handler(handler)
+
+        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?"
+        handler = (url % module_name, ModuleHandler, dict(server=self))
+        self.rest_server.add_handler(handler)
 
         self.pnfp_server.register_message(self.pt_type, self.pt_packet,
                                           self.handle_packet)
@@ -422,7 +427,7 @@ class ModuleWorker(object):
 
         module = self.modules[response.module_id]
 
-        LOG.info("Received %s response (id=%u)", self.MODULE_NAME,
+        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
                  response.module_id)
 
         module.handle_response(response)
@@ -444,27 +449,30 @@ class ModuleWorker(object):
         """Add a new module."""
 
         # check if module type has been set
-        if not self.MODULE_TYPE:
+        if not self.module:
             raise ValueError("Module type not set")
 
+        # add default args
+        kwargs['worker'] = self
+        kwargs['module_type'] = self.module.MODULE_NAME
+
         # check if all require parameters have been specified
-        for param in self.MODULE_TYPE.REQUIRED:
+        for param in self.module.REQUIRED:
             if param not in kwargs:
                 raise ValueError("missing %s param" % param)
 
         # instantiate module
-        new_module = getattr(self, 'MODULE_TYPE')
-        module = new_module()
+        module = self.module()
 
         # set mandatory parameters
-        for arg in self.MODULE_TYPE.REQUIRED:
+        for arg in self.module.REQUIRED:
             if not hasattr(module, arg):
                 raise ValueError("Invalid param %s" % arg)
             setattr(module, arg, kwargs[arg])
 
         # set optional parameters
         specified = set(kwargs.keys())
-        required = set(self.MODULE_TYPE.REQUIRED)
+        required = set(self.module.REQUIRED)
         remaining = specified - required
         for arg in remaining:
             if not hasattr(module, arg):
@@ -534,7 +542,7 @@ class ModuleEventWorker(ModuleWorker):
             if module.tenant_id not in RUNTIME.tenants:
                 continue
 
-            LOG.info("New event %s: (id=%u)", self.MODULE_NAME,
+            LOG.info("New event %s: (id=%u)", self.module.MODULE_NAME,
                      module.module_id)
 
             module.handle_response(event)
@@ -550,8 +558,9 @@ class ModuleLVAPPWorker(ModuleWorker):
         modules: dictionary of modules currently active in this tenant
     """
 
-    def __init__(self, pt_type, pt_packet=None):
-        ModuleWorker.__init__(self, LVAPPServer.__module__, pt_type, pt_packet)
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
+                              pt_packet)
 
 
 class ModuleLVNFPWorker(ModuleWorker):
@@ -564,8 +573,9 @@ class ModuleLVNFPWorker(ModuleWorker):
         modules: dictionary of modules currently active in this tenant
     """
 
-    def __init__(self, pt_type, pt_packet=None):
-        ModuleWorker.__init__(self, LVNFPServer.__module__, pt_type, pt_packet)
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
+                              pt_packet)
 
 
 class ModuleLVAPPEventWorker(ModuleEventWorker):
@@ -578,9 +588,9 @@ class ModuleLVAPPEventWorker(ModuleEventWorker):
         modules: dictionary of modules currently active in this tenant
     """
 
-    def __init__(self, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVAPPServer.__module__, pt_type,
-                                   pt_packet)
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
+                                   pt_type, pt_packet)
 
 
 class ModuleLVNFPEventWorker(ModuleEventWorker):
@@ -593,6 +603,6 @@ class ModuleLVNFPEventWorker(ModuleEventWorker):
         modules: dictionary of modules currently active in this tenant
     """
 
-    def __init__(self, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVNFPServer.__module__, pt_type,
-                                   pt_packet)
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
+                                   pt_type, pt_packet)
