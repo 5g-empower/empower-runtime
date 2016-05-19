@@ -114,6 +114,18 @@ class Maps(Module):
 
         wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
+        if 'hwaddr' not in value:
+            raise ValueError("Missing field: hwaddr")
+
+        if 'channel' not in value:
+            raise ValueError("Missing field: channel")
+
+        if 'band' not in value:
+            raise ValueError("Missing field: band")
+
+        if 'wtp' not in value:
+            raise ValueError("Missing field: wtp")
+
         incoming = ResourcePool()
         block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
                               int(value['channel']), int(value['band']))
