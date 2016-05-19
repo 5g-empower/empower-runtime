@@ -112,21 +112,20 @@ class Maps(Module):
     @block.setter
     def block(self, value):
 
-        if not isinstance(value, ResourceBlock):
-            raise ValueError("Expected ResourceBlock, got %s", type(value))
+        wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
-        wtp = RUNTIME.wtps[value.radio.addr]
+        incoming = ResourcePool()
+        block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                              int(value['channel']), int(value['band']))
+        incoming.add(block)
 
-        requested = ResourcePool()
-        requested.add(value)
-
-        match = wtp.supports & requested
-
-        if len(match) > 1:
-            raise ValueError("More than one block specified")
+        match = wtp.supports & incoming
 
         if not match:
             raise ValueError("No block specified")
+
+        if len(match) > 1:
+            raise ValueError("More than one block specified")
 
         self._block = match.pop()
 
