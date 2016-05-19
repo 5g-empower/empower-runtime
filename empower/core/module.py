@@ -219,8 +219,6 @@ class Module(object):
         self.__tenant_id = None
         self.__every = 5000
         self.__callback = None
-        self.__profiler = None
-        self.__last_poll = None
         self.__worker = None
         self.log = empower.logger.get_logger()
 
@@ -262,17 +260,6 @@ class Module(object):
 
             LOG.exception(ex)
 
-    def tic(self):
-        """Start profiling."""
-
-        self.__profiler = time.time()
-
-    def toc(self):
-        """Stop profiling."""
-
-        self.__last_poll = int((time.time() - self.__profiler) * 1000)
-        self.__profiler = None
-
     @property
     def tenant_id(self):
         """Return tenant id."""
@@ -304,8 +291,7 @@ class Module(object):
                'module_type': self.module_type,
                'tenant_id': self.tenant_id,
                'every': self.every,
-               'callback': self.callback,
-               'last_poll': self.__last_poll}
+               'callback': self.callback}
 
         return out
 
@@ -425,6 +411,7 @@ class ModuleWorker(object):
         """Remove primitive handlers."""
 
         def determine(spec, regex, module_handler):
+            """Match url."""
 
             if spec.handler_class == module_handler and spec.regex == regex:
                 return False

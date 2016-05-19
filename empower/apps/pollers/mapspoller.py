@@ -28,14 +28,7 @@
 """Radio Maps Poller App."""
 
 from empower.apps.pollers.poller import Poller
-from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
-from empower.events.wtpup import wtpup
-from empower.maps.ucqm import ucqm
-from empower.maps.ncqm import ncqm
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class MapsPoller(Poller):
@@ -43,54 +36,44 @@ class MapsPoller(Poller):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        filepath: path to file for statistics (optional, default ./)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
         ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.mapspoller:$ID
+        ./empower-runtime.py apps.pollers.mapspoller --tenant_id=$ID
 
     """
 
-    def __init__(self, tenant, **kwargs):
-
-        Poller.__init__(self, tenant, **kwargs)
-
-        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+    def __init__(self, **kwargs):
+        Poller.__init__(self, **kwargs)
+        self.wtpup(callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
         """ Called when a new WTP connects to the controller"""
 
         for block in wtp.supports:
 
-            ucqm(block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.polling,
-                 callback=self.ucqm_callback)
+            self.ucqm(block=block, every=self.every,
+                      callback=self.ucqm_callback)
 
-            ncqm(block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.polling,
-                 callback=self.ncqm_callback)
+            self.ncqm(block=block, every=self.every,
+                      callback=self.ncqm_callback)
 
     def ucqm_callback(self, ucqm):
         """ New stats available. """
 
-        LOG.info("New UCQM received from %s" % ucqm.block)
+        self.log.info("New UCQM received from %s" % ucqm.block)
 
     def ncqm_callback(self, ucqm):
         """ New stats available. """
 
-        LOG.info("New NCQM received from %s" % ucqm.block)
+        self.log.info("New NCQM received from %s" % ucqm.block)
 
 
-def launch(tenant,
-           filepath="./",
-           polling=DEFAULT_POLLING,
-           period=DEFAULT_PERIOD):
+def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return MapsPoller(tenant,
-                      filepath=filepath,
-                      polling=polling,
-                      every=period)
+    return MapsPoller(tenant_id=tenant_id, filepath=filepath, every=every)

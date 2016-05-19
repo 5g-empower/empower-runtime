@@ -27,10 +27,6 @@
 
 """Common channel quality and conflict maps module."""
 
-import tornado.web
-import tornado.httpserver
-import uuid
-
 from construct import Container
 from construct import Struct
 from construct import Array
@@ -45,16 +41,13 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
-from empower.core.module import ModuleHandler
-from empower.core.module import ModuleWorker
 from empower.core.module import Module
 from empower.lvapp import PT_VERSION
-from empower.core.module import handle_callback
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
+PT_POLLER_REQ_MSG_TYPE = 0x27
+PT_POLLER_RESP_MSG_TYPE = 0x28
 
 
 POLLER_ENTRY_TYPE = Sequence("img_entries",
@@ -70,17 +63,17 @@ POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt8("type"),
                         UBInt16("length"),
                         UBInt32("seq"),
-                        UBInt32("poller_id"),
+                        UBInt32("module_id"),
                         Bytes("addrs", 6),
                         Bytes("hwaddr", 6),
                         UBInt8("channel"),
                         UBInt8("band"))
 
-POLLER_RESP_MSG = Struct("poller_response", UBInt8("version"),
+POLLER_RESPONSE = Struct("poller_response", UBInt8("version"),
                          UBInt8("type"),
                          UBInt16("length"),
                          UBInt32("seq"),
-                         UBInt32("poller_id"),
+                         UBInt32("module_id"),
                          Bytes("wtp", 6),
                          Bytes("hwaddr", 6),
                          UBInt8("channel"),
@@ -92,6 +85,7 @@ POLLER_RESP_MSG = Struct("poller_response", UBInt8("version"),
 class Maps(Module):
     """ A maps poller. """
 
+    MODULE_NAME = None
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     _addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
@@ -140,9 +134,8 @@ class Maps(Module):
     def maps(self):
         """ Return a JSON-serializable dictionary. """
 
-        map_type = self.worker.MODULE_NAME
-        if hasattr(self.block, map_type):
-            return getattr(self.block, map_type)
+        if hasattr(self.block, self.MODULE_NAME):
+            return getattr(self.block, self.MODULE_NAME)
         else:
             return {}
 
@@ -168,132 +161,32 @@ class Maps(Module):
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.block.radio.addr not in tenant.wtps:
+        wtp = self.block.radio
+
+        if wtp.addr not in tenant.wtps:
             return
 
-        if not self.block.radio.connection:
+        if not wtp.connection:
             return
-
-        self.send_poller_request(self.block.radio, self.addrs, self.block)
-
-    def send_poller_request(self, wtp, target, block):
-        """ Send a poller request message.
-
-        Args:
-            module_id: the poller id
-            wtp: a WTP object
-            target: an EtherAddress object
-            block: a ResourceBlock object
-        Returns:
-            None
-        """
 
         req = Container(version=PT_VERSION,
-                        type=self.worker.POLLER_REQ_MSG_TYPE,
+                        type=self.PT_REQUEST,
                         length=26,
                         seq=wtp.seq,
-                        poller_id=self.module_id,
+                        module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
-                        addrs=target.to_raw(),
-                        hwaddr=block.hwaddr.to_raw(),
-                        channel=block.channel,
-                        band=block.band)
+                        addrs=self.addrs.to_raw(),
+                        hwaddr=self.block.hwaddr.to_raw(),
+                        channel=self.block.channel,
+                        band=self.block.band)
 
-        LOG.info("Sending %s request to %s (id=%u)",
-                 self.worker.MODULE_NAME,
-                 block,
-                 self.module_id)
+        self.log.info("Sending %s request to %s (id=%u)",
+                      self.MODULE_NAME, self.block, self.module_id)
 
         msg = POLLER_REQUEST.build(req)
         wtp.connection.stream.write(msg)
 
-
-class MapsHandler(ModuleHandler):
-    """ Module handler. Used to view and manipulate modules. """
-
-    def post(self, *args, **kwargs):
-        """ Create a new module.
-
-        Args:
-            [0]: tenant_id
-
-        Request:
-            version: the protocol version (1.0)
-
-        Example URLs:
-
-            POST /api/v1/tenants/EmPOWER/<module>
-        """
-
-        try:
-
-            if len(args) != 1:
-                raise ValueError("Invalid URL")
-
-            tenant_id = uuid.UUID(args[0])
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "wtp" not in request:
-                raise ValueError("missing wtp element")
-
-            if "hwaddr" not in request:
-                raise ValueError("missing hwaddr element")
-
-            if "band" not in request:
-                raise ValueError("missing band element")
-
-            if "channel" not in request:
-                raise ValueError("missing channel element")
-
-            del request['version']
-            request['tenant_id'] = tenant_id
-            request['module_type'] = self.worker.MODULE_NAME
-            request['worker'] = self.worker
-
-            wtp_addr = EtherAddress(request['wtp'])
-            wtp = RUNTIME.tenants[tenant_id].wtps[wtp_addr]
-
-            channel = int(request['channel'])
-            band = int(request['band'])
-            hwaddr = EtherAddress(request['hwaddr'])
-
-            del request['wtp']
-            del request['channel']
-            del request['band']
-            del request['hwaddr']
-
-            request['block'] = ResourceBlock(wtp, hwaddr, channel, band)
-
-            module = self.worker.add_module(**request)
-
-            self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
-                            (module.tenant_id,
-                             self.worker.MODULE_NAME,
-                             module.module_id))
-
-            self.set_status(201, None)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-
-class MapsWorker(ModuleWorker):
-    """ Poller worker. """
-
-    MODULE_NAME = None
-    MODULE_HANDLER = None
-    MODULE_TYPE = None
-
-    POLLER_REQ_MSG_TYPE = None
-    POLLER_RESP_MSG_TYPE = None
-
-    def handle_poller_response(self, message):
+    def handle_response(self, response):
         """Handle an incoming poller response message.
         Args:
             message, a poller response message
@@ -301,39 +194,32 @@ class MapsWorker(ModuleWorker):
             None
         """
 
-        if message.poller_id not in self.modules:
-            return
-
-        wtp_addr = EtherAddress(message.wtp)
+        wtp_addr = EtherAddress(response.wtp)
 
         if wtp_addr not in RUNTIME.wtps:
             return
 
         wtp = RUNTIME.wtps[wtp_addr]
-        hwaddr = EtherAddress(message.hwaddr)
+
+        hwaddr = EtherAddress(response.hwaddr)
+        block = ResourceBlock(wtp, hwaddr, response.channel, response.band)
         incoming = ResourcePool()
-        incoming.add(ResourceBlock(wtp, hwaddr, message.channel, message.band))
+        incoming.add(block)
 
         matching = (wtp.supports & incoming).pop()
 
-        LOG.info("Received %s response from %s (id=%u)",
-                 self.MODULE_NAME,
-                 matching,
-                 message.poller_id)
-
-        # find poller object
-        poller = self.modules[message.poller_id]
+        if not matching:
+            return
 
         # handle the message
-        map_type = self.MODULE_NAME
-        setattr(poller.block, map_type, CQM())
-        map_entry = getattr(poller.block, map_type)
+        setattr(self.block, self.MODULE_NAME, CQM())
+        map_entry = getattr(self.block, self.MODULE_NAME)
 
-        for entry in message.img_entries:
+        for entry in response.img_entries:
 
             addr = EtherAddress(entry[0])
 
-            if not addr.match(poller.addrs):
+            if not addr.match(self.addrs):
                 continue
 
             value = {'addr': addr,
@@ -347,4 +233,4 @@ class MapsWorker(ModuleWorker):
             map_entry[addr] = value
 
         # call callback
-        handle_callback(poller, poller)
+        self.handle_callback(self)

@@ -27,49 +27,47 @@
 
 """User channel quality map module."""
 
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.maps.maps import MapsHandler
-from empower.maps.maps import MapsWorker
+from empower.core.module import ModuleLVAPPWorker
+from empower.core.app import EmpowerApp
+from empower.maps.maps import POLLER_RESPONSE
 from empower.maps.maps import Maps
-from empower.maps.maps import POLLER_RESP_MSG
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
+PT_POLLER_REQUEST = 0x25
+PT_POLLER_RESPONSE = 0x26
 
 
 class UCQM(Maps):
-    pass
-
-
-class UCQMHandler(MapsHandler):
-    pass
-
-
-class UCQMWorker(MapsWorker):
+    """User Channel Quality Maps."""
 
     MODULE_NAME = "ucqm"
-    MODULE_HANDLER = UCQMHandler
-    MODULE_TYPE = UCQM
+    PT_REQUEST = PT_POLLER_REQUEST
 
-    POLLER_REQ_MSG_TYPE = 0x25
-    POLLER_RESP_MSG_TYPE = 0x26
 
-bind_module(UCQMWorker)
+class UCQMWorker(ModuleLVAPPWorker):
+    """User channel quality map worker."""
+
+    pass
+
+
+def ucqm(**kwargs):
+    """Create a new module."""
+
+    worker = RUNTIME.components[UCQMWorker.__module__]
+    return worker.add_module(**kwargs)
+
+
+def bound_ucqm(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    return ucqm(**kwargs)
+
+setattr(EmpowerApp, UCQM.MODULE_NAME, bound_ucqm)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = UCQMWorker(rest_server)
-    lvap_server.register_message(worker.POLLER_RESP_MSG_TYPE,
-                                 POLLER_RESP_MSG,
-                                 worker.handle_poller_response)
-
-    return worker
+    return UCQMWorker(UCQM, PT_POLLER_RESPONSE, POLLER_RESPONSE)

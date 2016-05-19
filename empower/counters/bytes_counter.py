@@ -70,6 +70,7 @@ class BytesCounter(Counter):
 
 
 class BytesCounterWorker(ModuleLVAPPWorker):
+    """Bytes counts worker."""
 
     pass
 

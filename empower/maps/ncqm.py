@@ -25,51 +25,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Network channel quality map module."""
+"""User channel quality map module."""
 
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.maps.maps import MapsHandler
-from empower.maps.maps import MapsWorker
+from empower.core.module import ModuleLVAPPWorker
+from empower.core.app import EmpowerApp
+from empower.maps.maps import POLLER_RESPONSE
 from empower.maps.maps import Maps
-from empower.maps.maps import POLLER_RESP_MSG
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
+PT_POLLER_REQUEST = 0x27
+PT_POLLER_RESPONSE = 0x28
 
 
 class NCQM(Maps):
-    pass
-
-
-class NCQMHandler(MapsHandler):
-    pass
-
-
-class NCQMWorker(MapsWorker):
+    """User Channel Quality Maps."""
 
     MODULE_NAME = "ncqm"
-    MODULE_HANDLER = NCQMHandler
-    MODULE_TYPE = NCQM
+    PT_REQUEST = PT_POLLER_REQUEST
 
-    POLLER_REQ_MSG_TYPE = 0x27
-    POLLER_RESP_MSG_TYPE = 0x28
 
-bind_module(NCQMWorker)
+class NCQMWorker(ModuleLVAPPWorker):
+    """User channel quality map worker."""
+
+    pass
+
+
+def ncqm(**kwargs):
+    """Create a new module."""
+
+    worker = RUNTIME.components[NCQMWorker.__module__]
+    return worker.add_module(**kwargs)
+
+
+def bound_ncqm(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    return ncqm(**kwargs)
+
+setattr(EmpowerApp, NCQM.MODULE_NAME, bound_ncqm)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = NCQMWorker(rest_server)
-    lvap_server.register_message(worker.POLLER_RESP_MSG_TYPE,
-                                 POLLER_RESP_MSG,
-                                 worker.handle_poller_response)
-
-    return worker
+    return NCQMWorker(NCQM, PT_POLLER_RESPONSE, POLLER_RESPONSE)
