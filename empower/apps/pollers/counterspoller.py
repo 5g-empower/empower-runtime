@@ -28,14 +28,7 @@
 """Counters Poller Apps."""
 
 from empower.apps.pollers.poller import Poller
-from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
-from empower.events.lvapjoin import lvapjoin
-from empower.counters.packets_counter import packets_counter
-from empower.counters.bytes_counter import bytes_counter
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class CountersPoller(Poller):
@@ -43,55 +36,43 @@ class CountersPoller(Poller):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        filepath: path to file for statistics (optional, default ./)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
         ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.counterspoller:$ID
+        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
 
     """
 
-    def __init__(self, tenant, **kwargs):
-
-        Poller.__init__(self, tenant, **kwargs)
-
-        lvapjoin(tenant_id=self.tenant.tenant_id,
-                 callback=self.lvap_join_callback)
+    def __init__(self, **kwargs):
+        Poller.__init__(self, **kwargs)
+        self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        packets_counter(bins=[512, 1472, 8192],
-                        lvap=lvap.addr,
-                        tenant_id=self.tenant.tenant_id,
-                        every=self.polling,
-                        callback=self.packets_callback)
+        lvap.packets_counter(bins=[512, 1472, 8192], every=self.every,
+                             callback=self.packets_callback)
 
-        bytes_counter(bins=[512, 1472, 8192],
-                      lvap=lvap.addr,
-                      tenant_id=self.tenant.tenant_id,
-                      every=self.polling,
-                      callback=self.bytes_callback)
+        lvap.bytes_counter(bins=[512, 1472, 8192], every=self.every,
+                           callback=self.bytes_callback)
 
     def packets_callback(self, stats):
         """ New stats available. """
 
-        LOG.info("New stats (packets) received from %s" % stats.lvap)
+        self.log.info("New stats (packets) received from %s" % stats.lvap)
 
     def bytes_callback(self, stats):
         """ New stats available. """
 
-        LOG.info("New stats (bytes) received from %s" % stats.lvap)
+        self.log.info("New stats (bytes) received from %s" % stats.lvap)
 
 
-def launch(tenant,
-           filepath="./",
-           polling=DEFAULT_POLLING,
-           period=DEFAULT_PERIOD):
+def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return CountersPoller(tenant,
-                          filepath=filepath,
-                          polling=polling,
-                          every=period)
+    return CountersPoller(tenant_id=tenant_id, filepath=filepath,
+                          every=every)

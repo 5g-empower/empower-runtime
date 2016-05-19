@@ -54,8 +54,7 @@ class LinkStatsPoller(Poller):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        self.lvap_stats(lvap=lvap.addr, every=self.every,
-                        callback=self.link_stats_callback)
+        lvap.lvap_stats(every=self.every, callback=self.link_stats_callback)
 
     def link_stats_callback(self, counter):
         """ New stats available. """

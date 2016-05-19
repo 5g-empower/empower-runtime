@@ -37,15 +37,10 @@ from construct import UBInt32
 from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import ModuleWorker
 from empower.core.module import Module
-from empower.core.module import handle_callback
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 PT_STATS_REQUEST = 0x17
@@ -57,7 +52,7 @@ STATS_REQUEST = Struct("stats_request", UBInt8("version"),
                        UBInt8("type"),
                        UBInt16("length"),
                        UBInt32("seq"),
-                       UBInt32("stats_id"),
+                       UBInt32("module_id"),
                        Bytes("sta", 6))
 
 STATS_RESPONSE = \
@@ -65,7 +60,7 @@ STATS_RESPONSE = \
            UBInt8("type"),
            UBInt16("length"),
            UBInt32("seq"),
-           UBInt32("stats_id"),
+           UBInt32("module_id"),
            Bytes("wtp", 6),
            Bytes("sta", 6),
            UBInt16("nb_tx"),
@@ -74,7 +69,6 @@ STATS_RESPONSE = \
 
 
 class Counter(Module):
-
     """ PacketsCounter object. """
 
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
@@ -89,9 +83,8 @@ class Counter(Module):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and \
-               self.lvap == other.lvap and \
-               self.bins == other.bins
+        return super().__eq__(other) and self.lvap == other.lvap and \
+            self.bins == other.bins
 
     @property
     def lvap(self):
@@ -129,23 +122,21 @@ class Counter(Module):
         if not lvap.wtp.connection:
             return
 
-        self.send_stats_request(lvap.wtp, lvap)
-
-    def send_stats_request(self, wtp, lvap):
-        """ Send a STATS_REQUEST message. """
-
         stats_req = Container(version=PT_VERSION,
                               type=PT_STATS_REQUEST,
                               length=18,
-                              seq=wtp.seq,
-                              stats_id=self.module_id,
+                              seq=lvap.wtp.seq,
+                              module_id=self.module_id,
                               sta=lvap.addr.to_raw())
 
-        LOG.info("Sending stats request to %s @ %s (id=%u)",
-                 lvap.addr, wtp.addr, self.module_id)
+        self.log.info("Sending stats request to %s @ %s (id=%u)",
+                      lvap.addr, lvap.wtp.addr, self.module_id)
 
         msg = STATS_REQUEST.build(stats_req)
-        wtp.connection.stream.write(msg)
+        lvap.wtp.connection.stream.write(msg)
+
+    def fill_samples(self, data):
+        pass
 
     @property
     def tx_samples(self):
@@ -174,7 +165,7 @@ class Counter(Module):
 
         if len(bins) > 0:
 
-            if [x for x in bins if type(x) is int] != bins:
+            if [x for x in bins if isinstance(x, int)] != bins:
                 raise ValueError("bins values must be integers")
 
             if sorted(bins) != bins:
@@ -188,18 +179,7 @@ class Counter(Module):
 
         self._bins = bins
 
-
-class CounterWorker(ModuleWorker):
-
-    """ Counter worker. """
-
-    MODULE_NAME = None
-    MODULE_HANDLER = None
-    MODULE_TYPE = None
-
-    stats = {}
-
-    def handle_stats_response(self, stats):
+    def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.
         Args:
             stats, a STATS_RESPONSE message
@@ -207,19 +187,14 @@ class CounterWorker(ModuleWorker):
             None
         """
 
-        if stats.stats_id not in self.modules:
-            return
-
-        counter = self.modules[stats.stats_id]
-
         # update cache
-        lvap = RUNTIME.lvaps[counter.lvap]
-        lvap.tx_samples = stats.stats[0:stats.nb_tx]
-        lvap.rx_samples = stats.stats[stats.nb_tx:-1]
+        lvap = RUNTIME.lvaps[self.lvap]
+        lvap.tx_samples = response.stats[0:response.nb_tx]
+        lvap.rx_samples = response.stats[response.nb_tx:-1]
 
         # update this object
-        counter.tx_samples = stats.stats[0:stats.nb_tx]
-        counter.rx_samples = stats.stats[stats.nb_tx:-1]
+        self.tx_samples = response.stats[0:response.nb_tx]
+        self.rx_samples = response.stats[response.nb_tx:-1]
 
         # call callback
-        handle_callback(counter, counter)
+        self.handle_callback(self)

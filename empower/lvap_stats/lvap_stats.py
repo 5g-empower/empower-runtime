@@ -36,7 +36,7 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Array
 
-from empower.core.app import EmpowerApp
+from empower.core.lvap import LVAP
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleLVAPPWorker
 from empower.core.module import Module
@@ -57,7 +57,7 @@ RATES_REQUEST = Struct("rates_request", UBInt8("version"),
                        UBInt8("type"),
                        UBInt16("length"),
                        UBInt32("seq"),
-                       UBInt32("rates_id"),
+                       UBInt32("module_id"),
                        Bytes("sta", 6))
 
 RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
@@ -129,7 +129,7 @@ class LVAPStats(Module):
                               type=PT_RATES_REQUEST,
                               length=18,
                               seq=lvap.wtp.seq,
-                              rates_id=self.module_id,
+                              module_id=self.module_id,
                               sta=lvap.addr.to_raw())
 
         self.log.info("Sending rates request to %s @ %s (id=%u)",
@@ -169,13 +169,14 @@ def lvap_stats(**kwargs):
     return RUNTIME.components[LVAPStatsWorker.__module__].add_module(**kwargs)
 
 
-def app_lvap_stats(self, **kwargs):
+def bound_lvap_stats(self, **kwargs):
     """Create a new module (app version)."""
 
-    kwargs['tenant_id'] = self.tenant_id
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvap'] = self.addr
     return lvap_stats(**kwargs)
 
-setattr(EmpowerApp, LVAPStats.MODULE_NAME, app_lvap_stats)
+setattr(LVAP, LVAPStats.MODULE_NAME, bound_lvap_stats)
 
 
 def launch():

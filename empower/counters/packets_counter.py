@@ -27,24 +27,19 @@
 
 """Packets counters module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
 from empower.counters.counters import PT_STATS_RESPONSE
 from empower.counters.counters import STATS_RESPONSE
-from empower.counters.counters import CounterWorker
+from empower.core.module import ModuleLVAPPWorker
 from empower.counters.counters import Counter
+from empower.core.lvap import LVAP
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class PacketsCounter(Counter):
-
     """ Stats returning packet counters """
+
+    MODULE_NAME = "packets_counter"
 
     def fill_samples(self, data):
         """ Compute samples.
@@ -74,29 +69,30 @@ class PacketsCounter(Counter):
         return out
 
 
-class PacketsCounterHandler(ModuleHandler):
+class PacketsCounterWorker(ModuleLVAPPWorker):
+
     pass
 
 
-class PacketsCounterWorker(CounterWorker):
+def packets_counter(**kwargs):
+    """Create a new module."""
 
-    MODULE_NAME = "packets_counter"
-    MODULE_HANDLER = PacketsCounterHandler
-    MODULE_TYPE = PacketsCounter
+    worker = RUNTIME.components[PacketsCounterWorker.__module__]
+    return worker.add_module(**kwargs)
 
 
-bind_module(PacketsCounterWorker)
+def bound_packets_counter(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvap'] = self.addr
+    return packets_counter(**kwargs)
+
+setattr(LVAP, PacketsCounter.MODULE_NAME, bound_packets_counter)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = PacketsCounterWorker(rest_server)
-    lvap_server.register_message(PT_STATS_RESPONSE,
-                                 STATS_RESPONSE,
-                                 worker.handle_stats_response)
-
-    return worker
+    return PacketsCounterWorker(PacketsCounter, PT_STATS_RESPONSE,
+                                STATS_RESPONSE)

@@ -27,30 +27,33 @@
 
 """Bytes counters module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
 from empower.counters.counters import PT_STATS_RESPONSE
 from empower.counters.counters import STATS_RESPONSE
-from empower.counters.counters import CounterWorker
+from empower.core.module import ModuleLVAPPWorker
 from empower.counters.counters import Counter
+from empower.core.lvap import LVAP
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class BytesCounter(Counter):
-
     """ Stats returning byte counters """
 
+    MODULE_NAME = "bytes_counter"
+
     def fill_samples(self, data):
-        """ Compute samples. """
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
 
         samples = sorted(data, key=lambda entry: entry[0])
-
         out = [0] * len(self.bins)
 
         for entry in samples:
@@ -60,35 +63,35 @@ class BytesCounter(Counter):
             count = entry[1]
             for i in range(0, len(self.bins)):
                 if size <= self.bins[i]:
-                    out[i] = out[i] + size * count
+                    out[i] = out[i] + count
                     break
 
         return out
 
 
-class BytesCounterHandler(ModuleHandler):
+class BytesCounterWorker(ModuleLVAPPWorker):
+
     pass
 
 
-class BytesCounterWorker(CounterWorker):
+def bytes_counter(**kwargs):
+    """Create a new module."""
 
-    MODULE_NAME = "bytes_counter"
-    MODULE_HANDLER = BytesCounterHandler
-    MODULE_TYPE = BytesCounter
+    worker = RUNTIME.components[BytesCounterWorker.__module__]
+    return worker.add_module(**kwargs)
 
 
-bind_module(BytesCounterWorker)
+def bound_bytes_counter(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvap'] = self.addr
+    return bytes_counter(**kwargs)
+
+setattr(LVAP, BytesCounter.MODULE_NAME, bound_bytes_counter)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = BytesCounterWorker(rest_server)
-    lvap_server.register_message(PT_STATS_RESPONSE,
-                                 STATS_RESPONSE,
-                                 worker.handle_stats_response)
-
-    return worker
+    return BytesCounterWorker(BytesCounter, PT_STATS_RESPONSE, STATS_RESPONSE)

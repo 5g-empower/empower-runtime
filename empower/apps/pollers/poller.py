@@ -44,13 +44,11 @@ class Poller(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        self.filepath = "./"
         EmpowerApp.__init__(self, **kwargs)
+        self.filepath = "./"
 
     def loop(self):
         """ Periodic job. """
-
-        print("Poller loop...")
 
         # save cpu and memory utilization
         for proc in psutil.process_iter():
