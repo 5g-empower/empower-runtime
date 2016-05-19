@@ -27,6 +27,7 @@
 
 """EmPOWER Primitive Base Class."""
 
+import re
 import time
 import json
 import types
@@ -419,6 +420,30 @@ class ModuleWorker(object):
 
         self.pnfp_server.register_message(self.pt_type, self.pt_packet,
                                           self.handle_packet)
+
+    def remove_handlers(self):
+        """Remove primitive handlers."""
+
+        def determine(spec, regex, module_handler):
+
+            if spec.handler_class == module_handler and spec.regex == regex:
+                return False
+
+            return True
+
+        module_name = self.module.MODULE_NAME
+
+        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?$"
+        regex = re.compile(url % module_name)
+        for handler in self.rest_server.handlers:
+            handler[1][:] = \
+                [x for x in handler[1] if determine(x, regex, ModuleHandler)]
+
+        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?$"
+        regex = re.compile(url % module_name)
+        for handler in self.rest_server.handlers:
+            handler[1][:] = \
+                [x for x in handler[1] if determine(x, regex, ModuleHandler)]
 
     def handle_packet(self, response):
         """Handle response message."""

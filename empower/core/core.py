@@ -281,6 +281,25 @@ class EmpowerRuntime(object):
         for param in request:
             setattr(account, param, request[param])
 
+    def register_app(self, name, init_method, params):
+        """Register new component."""
+
+        tenant_id = params['tenant_id']
+
+        if tenant_id not in self.tenants:
+            return
+
+        if name in self.tenants[tenant_id].components:
+            LOG.error("'%s' already registered", name)
+            raise ValueError("%s already registered" % name)
+
+        LOG.info("Registering '%s'", name)
+
+        self.tenants[tenant_id].components[name] = init_method(**params)
+
+        if hasattr(self.tenants[tenant_id].components[name], "start"):
+            self.tenants[tenant_id].components[name].start()
+
     def register(self, name, init_method, params):
         """Register new component."""
 
@@ -289,10 +308,27 @@ class EmpowerRuntime(object):
             raise ValueError("%s already registered" % name)
 
         LOG.info("Registering '%s'", name)
+
         self.components[name] = init_method(**params)
-        self.components[name].path = name
+
         if hasattr(self.components[name], "start"):
             self.components[name].start()
+
+    def unregister_app(self, tenant_id, app_id):
+        """Unregister component."""
+
+        LOG.info("Unregistering: %s (%s)", app_id, tenant_id)
+
+        tenant = self.tenants[tenant_id]
+        app = tenant.components[app_id]
+
+        from empower.core.app import EmpowerApp
+
+        if not issubclass(type(app), EmpowerApp):
+            raise ValueError("Module %s cannot be removed", app_id)
+
+        app.stop()
+        del tenant.components[app_id]
 
     def unregister(self, name):
         """Unregister component."""
@@ -302,27 +338,17 @@ class EmpowerRuntime(object):
         worker = self.components[name]
 
         from empower.core.module import ModuleWorker
-        from empower.core.app import EmpowerApp
 
-        if not issubclass(type(worker), ModuleWorker) and \
-           not issubclass(type(worker), EmpowerApp):
-
+        if not issubclass(type(worker), ModuleWorker):
             raise ValueError("Module %s cannot be removed", name)
 
-        # if this was a worker then remove all modules
-        if issubclass(type(worker), ModuleWorker):
+        to_be_removed = []
 
-            to_be_removed = []
+        for module in self.components[name].modules.values():
+            to_be_removed.append(module.module_id)
 
-            for module in self.components[name].modules.values():
-                to_be_removed.append(module.module_id)
-
-            for remove in to_be_removed:
-                self.components[name].remove_module(remove)
-
-        # if this was an App then stop control loop
-        if issubclass(type(worker), EmpowerApp):
-            worker.stop()
+        for remove in to_be_removed:
+            self.components[name].remove_module(remove)
 
         self.components[name].remove_handlers()
         del self.components[name]

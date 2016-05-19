@@ -27,69 +27,58 @@
 
 """LVAP leave event module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import ModuleWorker
+from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import bind_module
-from empower.core.module import handle_callback
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
+from empower.core.module import ModuleLVAPPEventWorker
 from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class LVAPLeaveHandler(ModuleHandler):
-    pass
-
 
 class LVAPLeave(Module):
-    pass
-
-
-class LVAPLeaveWorker(ModuleWorker):
-    """ LvapUp worker. """
+    """LVAPLeave."""
 
     MODULE_NAME = "lvapleave"
-    MODULE_HANDLER = LVAPLeaveHandler
-    MODULE_TYPE = LVAPLeave
 
-    def on_lvap_leave(self, lvap):
-        """ Handle an LVAL LEAVE event.
+    def handle_response(self, lvap):
+        """ Handle an LVAL_LEAVE message.
         Args:
             lvap, an LVAP object
         Returns:
             None
         """
 
-        for event in self.modules.values():
+        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+        if lvap.addr not in lvaps:
+            return
 
-            lvaps = RUNTIME.tenants[event.tenant_id].lvaps
-
-            if lvap.addr not in lvaps:
-                return
-
-            LOG.info("Event: LVAP Leave %s", lvap.addr)
-
-            handle_callback(lvap, event)
+        self.handle_callback(lvap)
 
 
-bind_module(LVAPLeaveWorker)
+class LVAPLeaveWorker(ModuleLVAPPEventWorker):
+    """LVAPLeave."""
+
+    pass
+
+
+def lvapleave(**kwargs):
+    """Create a new module."""
+
+    return RUNTIME.components[LVAPLeaveWorker.__module__].add_module(**kwargs)
+
+
+def app_lvapleave(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant_id
+    return lvapleave(**kwargs)
+
+
+setattr(EmpowerApp, LVAPLeave.MODULE_NAME, app_lvapleave)
 
 
 def launch():
-    """ Initialize the module. """
+    """Initialize the module."""
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = LVAPLeaveWorker(rest_server)
-    lvap_server.register_message(PT_LVAP_LEAVE, None, worker.on_lvap_leave)
-
-    return worker
+    return LVAPLeaveWorker(LVAPLeave, PT_LVAP_LEAVE)

@@ -28,14 +28,11 @@
 """LVAP join event module."""
 
 from empower.core.app import EmpowerApp
-from empower.core.module import ModuleLVAPPEventWorker
 from empower.core.module import Module
+from empower.core.module import ModuleLVAPPEventWorker
 from empower.lvapp import PT_LVAP_JOIN
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class LVAPJoin(Module):
@@ -72,6 +69,8 @@ def lvapjoin(**kwargs):
 
 
 def app_lvapjoin(self, **kwargs):
+    """Create a new module (app version)."""
+
     kwargs['tenant_id'] = self.tenant_id
     return lvapjoin(**kwargs)
 

@@ -27,21 +27,19 @@
 
 """WTP up event module."""
 
-from empower.core.module import ModuleEventWorker
+from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import handle_callback
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.lvapp import PT_CAPS_RESPONSE
 from empower.datatypes.etheraddress import EtherAddress
+from empower.core.module import ModuleLVAPPEventWorker
+from empower.lvapp import PT_CAPS_RESPONSE
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class WTPUp(Module):
     """WTPUp worker."""
+
+    MODULE_NAME = "wtpup"
 
     def handle_response(self, caps_response):
         """ Handle an CAPS_RESPONSE message.
@@ -54,52 +52,38 @@ class WTPUp(Module):
         """
 
         addr = EtherAddress(caps_response.wtp)
-        wtps = RUNTIME.tenants[self.tenant_id].wtps
 
-        if addr not in wtps:
+        if addr not in RUNTIME.tenants[self.tenant_id].wtps:
             return
 
-        wtp = wtps[addr]
+        wtp = RUNTIME.tenants[self.tenant_id].wtps[addr]
 
-        handle_callback(wtp, self)
+        self.handle_callback(wtp)
 
 
-class WTPUpWorker(ModuleEventWorker):
+class WTPUpWorker(ModuleLVAPPEventWorker):
     """ Counter worker. """
 
-    MODULE_NAME = "wtpup"
-    MODULE_TYPE = WTPUp
-    PT_TYPE = PT_CAPS_RESPONSE
-    PT_PACKET = None
+    pass
 
 
-def wtpup(*args, **kwargs):
-    """Create a new module.
+def wtpup(**kwargs):
+    """Create a new module."""
 
-    Args:
-        kwargs: keyword arguments for the module.
-
-    Returns:
-        None
-    """
-
-    worker = RUNTIME.components[WTPUpWorker.__module__]
-    kwargs['worker'] = worker
-    kwargs['module_type'] = worker.MODULE_NAME
-    new_module = worker.add_module(**kwargs)
-
-    return new_module
+    return RUNTIME.components[WTPUpWorker.__module__].add_module(**kwargs)
 
 
-def remove_wtpup(*args, **kwargs):
-    """Remove module."""
+def app_wtpup(self, **kwargs):
+    """Create a new module (app version)."""
 
-    worker = RUNTIME.components[WTPUpWorker.__module__]
-    worker.remove_module(kwargs['module_id'])
+    kwargs['tenant_id'] = self.tenant_id
+    return wtpup(**kwargs)
+
+
+setattr(EmpowerApp, WTPUp.MODULE_NAME, app_wtpup)
 
 
 def launch():
-    """ Initialize the module. """
+    """Initialize the module."""
 
-    worker = WTPUpWorker(LVAPPServer.__module__)
-    return worker
+    return WTPUpWorker(WTPUp, PT_CAPS_RESPONSE)

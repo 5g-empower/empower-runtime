@@ -73,6 +73,7 @@ class Tenant(object):
         self.lvaps = {}
         self.lvnfs = {}
         self.vaps = {}
+        self.components = {}
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """

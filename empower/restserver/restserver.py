@@ -954,6 +954,184 @@ class TenantHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
+class TenantComponentsHandler(EmpowerAPIHandler):
+    """Components handler. Used to load/unload components."""
+
+    HANDLERS = \
+        [r"/api/v1/tenants/([a-zA-Z0-9-]*)/components/?",
+         r"/api/v1/tenants/([a-zA-Z0-9-]*)/components/([a-zA-Z0-9:\-.]*)/?"]
+
+    def get(self, *args):
+        """ Lists either all the components running in this controller or just
+        the one requested. Returns 404 if the requested component does not
+        exists.
+
+        Args:
+            tenant_id: the tenant id
+            component_id: the id of a component istance
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<id>
+
+        """
+
+        try:
+
+            if len(args) < 1 or len(args) > 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            if len(args) == 1:
+                self.write_as_json(tenant.components)
+            else:
+                componet_id = args[1]
+                self.write_as_json(tenant.components[componet_id])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+    def put(self, *args):
+        """ Update a component.
+
+        Args:
+            tenant_id: the tenant id
+            component_id: the id of a component istance
+
+        Request:
+            version: protocol version (1.0)
+            params: dictionary of parametes supported by the component
+                    as reported by the GET request
+
+        Example URLs:
+
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<id>
+
+            {
+              "version" : 1.0,
+              "params" : { "every": 2000 }
+            }
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "params" not in request:
+                raise ValueError("missing params element")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            app_id = args[1]
+            app = tenant.components[app_id]
+
+            for param in request['params']:
+                setattr(app, param, request['params'][param])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
+    def delete(self, *args, **kwargs):
+        """ Unload a component.
+
+        Args:
+            tenant_id: the tenant id
+            component_id: the id of a component istance
+
+        Example URLs:
+
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<id>
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            app_id = args[1]
+
+            RUNTIME.unregister_app(tenant_id, app_id)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
+    def post(self, *args, **kwargs):
+        """ Add a component.
+
+        Args:
+            tenant_id: the tenant id
+            component_id: the id of a component istance
+
+        Request:
+            version: protocol version (1.0)
+            argv: the app to be loaded
+            params: the apps parameters
+
+        Example URLs:
+
+            POST
+                /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/components
+            {
+              "version" : 1.0,
+              "argv" : "apps.pollers.linkstatspoller"
+            }
+
+        """
+
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "argv" not in request:
+                raise ValueError("missing argv element")
+
+            tenant_id = UUID(args[0])
+
+            argv = request['argv'].split(" ")
+            argv.append("--tenant_id=%s" % tenant_id)
+
+            components, components_order = _parse_args(argv)
+
+            if not _do_launch(components, components_order):
+                raise ValueError("Invalid args")
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+
 class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
@@ -965,6 +1143,7 @@ class RESTServer(tornado.web.Application):
                 ManageTenantHandler,
                 AccountsHandler,
                 ComponentsHandler,
+                TenantComponentsHandler,
                 PendingTenantHandler,
                 TenantHandler,
                 AllowHandler,

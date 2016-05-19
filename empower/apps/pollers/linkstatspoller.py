@@ -28,11 +28,7 @@
 """Link Statistics Poller Apps."""
 
 from empower.apps.pollers.poller import Poller
-from empower.apps.pollers.poller import DEFAULT_POLLING
 from empower.core.app import DEFAULT_PERIOD
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class LinkStatsPoller(Poller):
@@ -40,38 +36,34 @@ class LinkStatsPoller(Poller):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        filepath: path to file for statistics (optional, default ./)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
         ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.linkstatspoller:$ID
+        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
 
     """
 
-    def __init__(self, tenant, **kwargs):
-
-        Poller.__init__(self, tenant, **kwargs)
-
+    def __init__(self, **kwargs):
+        Poller.__init__(self, **kwargs)
         self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        self.lvap_stats(lvap=lvap.addr, every=self.polling,
+        self.lvap_stats(lvap=lvap.addr, every=self.every,
                         callback=self.link_stats_callback)
 
     def link_stats_callback(self, counter):
         """ New stats available. """
 
-        LOG.info("New link stats received from %s" % counter.lvap)
+        self.log.info("New link stats received from %s" % counter.lvap)
 
 
-def launch(tenant, filepath="./", polling=DEFAULT_POLLING,
-           period=DEFAULT_PERIOD):
+def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    poller = LinkStatsPoller(tenant, filepath=filepath, polling=polling,
-                             every=period)
-
-    return poller
+    return LinkStatsPoller(tenant_id=tenant_id, filepath=filepath, every=every)

@@ -27,71 +27,63 @@
 
 """WTP down event module."""
 
-from empower.core.module import ModuleHandler
-from empower.core.module import ModuleWorker
+from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import bind_module
-from empower.core.module import handle_callback
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
+from empower.datatypes.etheraddress import EtherAddress
+from empower.core.module import ModuleLVAPPEventWorker
 from empower.lvapp import PT_BYE
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class WTPDownHandler(ModuleHandler):
-    pass
-
 
 class WTPDown(Module):
-    pass
-
-
-class WTPDownWorker(ModuleWorker):
     """WTPDown worker."""
 
     MODULE_NAME = "wtpdown"
-    MODULE_HANDLER = WTPDownHandler
-    MODULE_TYPE = WTPDown
 
-    def on_wtp_down(self, wtp):
-        """ Handle an BYE message.
+    def handle_response(self, caps_response):
+        """ Handle an CAPS_RESPONSE message.
 
         Args:
-            pnfdev_bye, a PNFDEV_BYE message
+            caps_response, a CAPS_RESPONSE message
 
         Returns:
             None
         """
 
-        for event in self.modules.values():
+        addr = EtherAddress(caps_response.wtp)
 
-            if event.tenant_id not in RUNTIME.tenants:
-                return
+        if addr not in RUNTIME.tenants[self.tenant_id].wtps:
+            return
 
-            wtps = RUNTIME.tenants[event.tenant_id].wtps
+        wtp = RUNTIME.tenants[self.tenant_id].wtps[addr]
 
-            if wtp.addr not in wtps:
-                return
-
-            LOG.info("Event: WTP Down %s", wtp.addr)
-
-            handle_callback(wtp, event)
+        self.handle_callback(wtp)
 
 
-bind_module(WTPDownWorker)
+class WTPDownWorker(ModuleLVAPPEventWorker):
+    """ Counter worker. """
+
+    pass
+
+
+def wtpdown(**kwargs):
+    """Create a new module."""
+
+    return RUNTIME.components[WTPDownWorker.__module__].add_module(**kwargs)
+
+
+def app_wtpdown(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant_id
+    return wtpdown(**kwargs)
+
+
+setattr(EmpowerApp, WTPDown.MODULE_NAME, app_wtpdown)
 
 
 def launch():
-    """ Initialize the module. """
+    """Initialize the module."""
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = WTPDownWorker(rest_server)
-    lvap_server.register_message(PT_BYE, None, worker.on_wtp_down)
-
-    return worker
+    return WTPDownWorker(WTPDown, PT_BYE)

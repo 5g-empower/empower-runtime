@@ -27,12 +27,9 @@
 
 """Poller Apps."""
 
-import time
 import psutil
 
 from empower.core.app import EmpowerApp
-
-DEFAULT_POLLING = 1000
 
 
 class Poller(EmpowerApp):
@@ -42,33 +39,18 @@ class Poller(EmpowerApp):
 
         pool: network id (mandatory)
         filepath: path to the CSVs output directory (optional, default ./)
-        polling: stats polling period in ms (optional, default 1000ms)
-        period: loop period in ms (optional, default 5000ms)
+        every: loop period in ms (optional, default 5000ms)
 
     """
 
-    def __init__(self, tenant, **kwargs):
-
-        self.last = time.time()
-        self.__polling = DEFAULT_POLLING
-        self.filepath = "./",
-
-        EmpowerApp.__init__(self, tenant, **kwargs)
-
-    @property
-    def polling(self):
-        """Return polling."""
-
-        return self.__polling
-
-    @polling.setter
-    def polling(self, value):
-        """Set polling."""
-
-        self.__polling = int(value)
+    def __init__(self, **kwargs):
+        self.filepath = "./"
+        EmpowerApp.__init__(self, **kwargs)
 
     def loop(self):
         """ Periodic job. """
+
+        print("Poller loop...")
 
         # save cpu and memory utilization
         for proc in psutil.process_iter():
@@ -80,7 +62,7 @@ class Poller(EmpowerApp):
 
             line = "%f,%u\n" % (cpu, mem)
 
-            filename = self.filepath + "cpu_%u.csv" % self.polling
+            filename = self.filepath + "cpu_%u.csv" % self.every
 
             with open(filename, 'a') as file_d:
                 file_d.write(line)
@@ -95,7 +77,7 @@ class Poller(EmpowerApp):
                                    wtp.downlink_bit_rate,
                                    wtp.uplink_bit_rate)
 
-            filename = self.filepath + "signalling_%u.csv" % self.polling
+            filename = self.filepath + "signalling_%u.csv" % self.every
 
             with open(filename, 'a') as file_d:
                 file_d.write(line)

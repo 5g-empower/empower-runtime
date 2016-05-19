@@ -167,22 +167,14 @@ def _do_launch(components, components_order):
     for name in components_order:
 
         params = components[name]
-
-        component_name = name.split(":")
         launch = "launch"
-        name = component_name[0]
-
         name, _, members = modules[name]
-        func = None
 
         if launch not in members:
-
             logging.error("%s is not defined in module %s", launch, name)
             return False
 
-        else:
-
-            func = members[launch]
+        func = members[launch]
 
         # We explicitly test for a function and not an arbitrary callable
         if not isinstance(func, types.FunctionType):
@@ -191,10 +183,9 @@ def _do_launch(components, components_order):
 
         try:
 
-            if len(component_name) == 2:
-                tenant = UUID(component_name[1])
-                params['tenant'] = tenant
-                RUNTIME.register("%s:%s" % (name, tenant), func, params)
+            if 'tenant_id' in params:
+                params['tenant_id'] = UUID(params['tenant_id'])
+                RUNTIME.register_app(name, func, params)
             else:
                 RUNTIME.register(name, func, params)
 

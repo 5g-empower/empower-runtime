@@ -28,17 +28,13 @@
 """EmPOWER base app class."""
 
 import tornado.ioloop
-import json
 
-from empower.core.jsonserializer import EmpowerEncoder
-from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
+import empower.logger
+
 from empower.restserver.restserver import RESTServer
 from empower.restserver.restserver import BaseHandler
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PERIOD = 5000
 
@@ -48,115 +44,36 @@ class EmpowerAppHomeHandler(BaseHandler):
 
     Base Web UI handler, sub-class to implement app-specific web UI handlers.
     Templates must be put in the /templates/<app name>/ sub-directory. Static
-    files must be put in the /static/<app name>/. Note that <app name> is
-    defined by the MODULE_NAME variable in the EmpowerApp instance.
+    files must be put in the /static/<app name>/.
     """
-
-    PAGE = None
-    HANDLERS = []
 
     def get(self):
-        self.render(self.PAGE, tenant_id=self.server.tenant_id)
 
-
-class EmpowerAppHandler(EmpowerAPIHandlerUsers):
-    """REST Handler.
-
-    Base REST handler, sub-class to implement app-specific REST handlers.
-    The REST interface is available at /apps/tenants/<tenant id>/<app name>/.
-    """
-
-    HANDLERS = []
-
-    def get(self, *args, **kwargs):
-        """Get method handler.
-
-        This method is used by apps in order to export their data structures.
-        By default this REST method calls the to_dict() method of the web app
-        object and returns its JSON serialization.
-
-        Args:
-            None
-
-        Example URLs:
-
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/conflicts
-        """
-
-        try:
-            self.write_as_json(self.server.to_dict())
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        self.set_status(200, None)
+        page = "apps/%s/index.html" % self.server.__module__
+        self.render(page, tenant_id=self.server.tenant_id)
 
 
 class EmpowerApp(object):
-    """EmpowerApp base app class.
-
-    Applications must sub class EmpowerApp and must override MODULE_NAME with
-    a unique name for the application. Applications can also override
-    MODULE_HANDLER and MODULE_HOME_HANDLER in order to enable the rest
-    interface and the web ui respectivelly.
-    """
-
-    MODULE_NAME = None
-    MODULE_HANDLER = None
-    MODULE_HOME_HANDLER = None
+    """EmpowerApp base app class."""
 
     def __init__(self, tenant_id, **kwargs):
 
         self.__tenant_id = tenant_id
         self.__every = DEFAULT_PERIOD
         self.ui_url = None
-        self.rest = None
         self.params = []
-
+        self.log = empower.logger.get_logger()
         self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
 
-        self.add_handlers()
+        self.ui_url = r"/apps/%s/?" % self.__module__
+        handler = (self.ui_url, EmpowerAppHomeHandler, dict(server=self))
+        rest_server = RUNTIME.components[RESTServer.__module__]
+        rest_server.add_handler(handler)
 
         for param in kwargs:
             if hasattr(self, param):
                 setattr(self, param, kwargs[param])
                 self.params.append(param)
-
-    def add_handlers(self):
-        """Add primitives handlers."""
-
-        if self.MODULE_NAME and self.MODULE_HANDLER:
-
-            module = (self.tenant_id, self.MODULE_NAME)
-
-            self.MODULE_HANDLER.HANDLERS.\
-                append(r"/api/v1/tenants/%s/%s/?" % module)
-
-            self.rest = "/api/v1/tenants/%s/%s/?" % module
-
-            rest_server = RUNTIME.components[RESTServer.__module__]
-            rest_server.add_handler_class(self.MODULE_HANDLER, self)
-
-        if self.MODULE_NAME and self.MODULE_HOME_HANDLER:
-
-            module = (self.tenant_id, self.MODULE_NAME)
-
-            self.MODULE_HOME_HANDLER.PAGE = \
-                "apps/%s/index.html" % self.MODULE_NAME
-
-            self.MODULE_HOME_HANDLER.HANDLERS.\
-                append(r"/apps/tenants/%s/%s/?" % module)
-
-            self.ui_url = "/apps/tenants/%s/%s/?" % module
-
-            rest_server = RUNTIME.components[RESTServer.__module__]
-            rest_server.add_handler_class(self.MODULE_HOME_HANDLER, self)
-
-    def remove_handlers(self):
-        """Remove primitive handlers."""
-
-        pass
 
     @property
     def tenant_id(self):
@@ -180,7 +97,7 @@ class EmpowerApp(object):
     def every(self, value):
         """Set loop period."""
 
-        LOG.info("Setting control loop interval to %u", value)
+        self.log.info("Setting control loop interval to %u", value)
         self.__every = int(value)
 
     def start(self):
@@ -200,7 +117,6 @@ class EmpowerApp(object):
 
         params['tenant_id'] = self.tenant_id
         params['ui_url'] = self.ui_url
-        params['rest'] = self.rest
 
         for param in self.params:
             params[param] = getattr(self, param)
