@@ -268,9 +268,9 @@ class Summary(Module):
         for recv in response.frames:
 
             if self.block.band == BT_L20:
-                rate = float(recv[4]) / 2;
+                rate = float(recv[4]) / 2
             else:
-                rate = int(recv[4]);
+                rate = int(recv[4])
 
             if recv[5] == 0x00:
                 pt_type = "MNGT"
