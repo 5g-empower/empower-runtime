@@ -152,30 +152,42 @@ class Summary(Module):
 
     @property
     def keep(self):
+        """Return keep parameter."""
+
         return self._keep
 
     @keep.setter
     def keep(self, value):
+        "Set keep parameter."
+
         if value < 0:
             raise ValueError("Invalid keep value (%u)" % value)
         self._keep = value
 
     @property
     def limit(self):
+        """Return limit parameter."""
+
         return self._limit
 
     @limit.setter
     def limit(self, value):
+        "Set limit parameter."
+
         if value < -1:
             raise ValueError("Invalid limit value (%u)" % value)
         self._limit = value
 
     @property
     def period(self):
+        "Return period parameter."
+
         return self._period
 
     @period.setter
     def period(self, value):
+        "Set period parameter."
+
         if value < 2000:
             raise ValueError("Invalid period value (%u)" % value)
         self._period = value
