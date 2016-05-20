@@ -89,7 +89,7 @@ DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt8("type"),
                      UBInt16("length"),
                      UBInt32("seq"),
-                     UBInt32("trigger_id"))
+                     UBInt32("module_id"))
 
 
 class Summary(Module):
@@ -227,7 +227,7 @@ class Summary(Module):
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_SUMMARY,
-                        length=26,
+                        length=30,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         limit=self.limit,

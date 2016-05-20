@@ -27,63 +27,14 @@
 
 """Basic mobility manager."""
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
-from empower.core.app import EmpowerAppHandler
-from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
+
+from empower.datatypes.etheraddress import EtherAddress
 from empower.core.resourcepool import ResourcePool
-from empower.triggers.rssi import rssi
-from empower.events.wtpup import wtpup
-from empower.maps.ucqm import ucqm
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
-DEFAULT_LIMIT = -99
-
-
-def handover(lvap, wtps):
-    """ Handover the LVAP to a WTP with
-    an RSSI higher that -65dB. """
-
-    # Initialize the Resource Pool
-    pool = ResourcePool()
-
-    # Update the Resource Pool with all
-    # the available Resourse Blocks
-    for wtp in wtps:
-        pool = pool | wtp.supports
-
-    # Select matching Resource Blocks
-    matches = pool & lvap.scheduled_on
-
-    # Filter Resource Blocks by RSSI
-    valid = [block for block in matches
-             if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
-
-    if not valid:
-        return
-
-    new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['ewma_rssi'])
-    LOG.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
-    lvap.scheduled_on = new_block
-
-    # Set port
-    for block in lvap.scheduled_on:
-        port = lvap.scheduled_on[block]
-        port.no_ack = True
-        port.rts_cts = 3500
-        port.mcs = [6, 12, 54]
-
-
-class MobilityManagerHandler(EmpowerAppHandler):
-    pass
-
-
-class MobilityManagerHomeHandler(EmpowerAppHomeHandler):
-    pass
+DEFAULT_LIMIT = -10
 
 
 class MobilityManager(EmpowerApp):
@@ -100,25 +51,56 @@ class MobilityManager(EmpowerApp):
 
     """
 
-    MODULE_NAME = "mobilitymanager"
-    MODULE_HANDLER = MobilityManagerHandler
-    MODULE_HOME_HANDLER = MobilityManagerHomeHandler
-
-    def __init__(self, tenant, **kwargs):
-
+    def __init__(self, **kwargs):
         self.__limit = DEFAULT_LIMIT
-
-        EmpowerApp.__init__(self, tenant, **kwargs)
-
-        # Register an RSSI trigger for all LVAPs
-        rssi(lvaps="ff:ff:ff:ff:ff:ff",
-             tenant_id=self.tenant.tenant_id,
-             relation='LT',
-             value=self.limit,
-             callback=self.low_rssi)
+        EmpowerApp.__init__(self, **kwargs)
 
         # Register an wtp up event
-        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+        self.wtpup(callback=self.wtp_up_callback)
+
+        # Register an lvap join event
+        self.lvapjoin(callback=self.lvap_join_callback)
+
+    def lvap_join_callback(self, lvap):
+        """Called when a new LVAP connects the network."""
+
+        lvap.rssi(relation='LT', value=self.limit, callback=self.low_rssi)
+
+    def handover(self, lvap):
+        """ Handover the LVAP to a WTP with
+        an RSSI higher that -65dB. """
+
+        self.log.info("Running handover...")
+
+        # Initialize the Resource Pool
+        pool = ResourcePool()
+
+        # Update the Resource Pool with all
+        # the available Resourse Blocks
+        for wtp in self.wtps():
+            pool = pool | wtp.supports
+
+        # Select matching Resource Blocks
+        matches = pool & lvap.scheduled_on
+
+        # Filter Resource Blocks by RSSI
+        valid = [block for block in matches
+                 if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
+
+        if not valid:
+            return
+
+        new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['ewma_rssi'])
+        self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
+
+        lvap.scheduled_on = new_block
+
+        # Set port
+        for block in lvap.scheduled_on:
+            port = lvap.scheduled_on[block]
+            port.no_ack = True
+            port.rts_cts = 3500
+            port.mcs = [6, 12, 54]
 
     @property
     def limit(self):
@@ -135,24 +117,26 @@ class MobilityManager(EmpowerApp):
         if limit > 0 or limit < -100:
             raise ValueError("Invalid value for limit")
 
-        LOG.info("Setting limit %u dB" % value)
+        self.log.info("Setting limit %u dB" % value)
         self.__limit = limit
 
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
 
         for block in wtp.supports:
-
-            ucqm(tenant_id=self.tenant.tenant_id,
-                 block=block,
-                 every=self.every)
+            self.ucqm(block=block, every=self.every)
 
     def low_rssi(self, trigger):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
 
+        print(trigger)
+        return
+
         lvap_addr = EtherAddress(trigger.events[-1]['lvap'])
-        handover(self.lvap(lvap_addr), self.wtps())
+        lvap = self.lvap(lvap_addr)
+
+        self.handover(lvap)
 
     def loop(self):
         """ Periodic job. """
@@ -160,10 +144,10 @@ class MobilityManager(EmpowerApp):
         # Handover every active LVAP to
         # the best WTP
         for lvap in self.lvaps():
-            handover(lvap, self.wtps())
+            self.handover(lvap)
 
 
-def launch(tenant, limit=DEFAULT_LIMIT, period=DEFAULT_PERIOD):
+def launch(tenant_id, limit=DEFAULT_LIMIT, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return MobilityManager(tenant, every=period, limit=limit)
+    return MobilityManager(tenant_id=tenant_id, limit=limit, every=every)

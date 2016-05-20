@@ -117,6 +117,7 @@ class EmpowerApp(object):
 
         params['tenant_id'] = self.tenant_id
         params['ui_url'] = self.ui_url
+        params['params'] = self.params
 
         for param in self.params:
             params[param] = getattr(self, param)

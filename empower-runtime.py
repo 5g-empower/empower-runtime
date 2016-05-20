@@ -36,7 +36,7 @@ if __name__ == "__main__":
              'counters.bytes_counter',
              'maps.ucqm',
              'maps.ncqm',
-             #'triggers.rssi',
+             'triggers.rssi',
              'triggers.summary',
              #'events.cppdown',
              #'events.cppup',

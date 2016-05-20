@@ -37,23 +37,16 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
 
+from empower.core.module import ModuleLVAPPWorker
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
+from empower.core.module import Module
+from empower.core.lvap import LVAP
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.triggers.triggers import TriggerWorker
-from empower.triggers.triggers import Trigger
-from empower.core.module import ModuleHandler
+from empower.core.app import EmpowerApp
 from empower.lvapp import PT_VERSION
-from empower.lvapp import PT_HELLO
-from empower.lvapp import PT_BYE
-from empower.lvapp import PT_LVAP_JOIN
-from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 R_GT = 'GT'
 R_LT = 'LT'
@@ -71,8 +64,11 @@ ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
                           UBInt16("length"),
                           UBInt32("seq"),
-                          UBInt32("trigger_id"),
-                          Bytes("sta", 6),
+                          UBInt32("module_id"),
+                          Bytes("addr", 6),
+                          Bytes("hwaddr", 6),
+                          UBInt8("channel"),
+                          UBInt8("band"),
                           UBInt8("relation"),
                           SBInt8("value"))
 
@@ -80,9 +76,9 @@ RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
                       UBInt8("type"),
                       UBInt16("length"),
                       UBInt32("seq"),
-                      UBInt32("trigger_id"),
+                      UBInt32("module_id"),
                       Bytes("wtp", 6),
-                      Bytes("sta", 6),
+                      Bytes("addr", 6),
                       UBInt8("relation"),
                       SBInt8("value"),
                       SBInt8("current"))
@@ -92,24 +88,115 @@ DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
                           UBInt16("length"),
                           UBInt32("seq"),
-                          UBInt32("trigger_id"),
-                          Bytes("sta", 6),
-                          UBInt8("relation"),
-                          SBInt8("value"))
+                          UBInt32("module_id"))
 
 
-class RSSI(Trigger):
-
+class RSSI(Module):
     """ RSSI trigger object. """
 
+    MODULE_NAME = "rssi"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'addr', 'block']
+
     # parameters
+    _addr = None
     _relation = 'GT'
     _value = -90
+    _block = None
 
     # data strctures
     events = []
 
-    def handle_trigger(self, message):
+    def run_once(self):
+        """ Send out rate request. """
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return
+
+        tenant = RUNTIME.tenants[self.tenant_id]
+
+        wtp = self.block.radio
+
+        if wtp.addr not in tenant.wtps:
+            return
+
+        if not wtp.connection:
+            return
+
+        req = Container(version=PT_VERSION,
+                        type=PT_ADD_RSSI,
+                        length=30,
+                        seq=wtp.seq,
+                        module_id=self.module_id,
+                        wtp=wtp.addr.to_raw(),
+                        addr=self.addr.to_raw(),
+                        hwaddr=self.block.hwaddr.to_raw(),
+                        channel=self.block.channel,
+                        band=self.block.band,
+                        relation=RELATIONS[self.relation],
+                        value=self.value)
+
+        self.log.info("Sending %s request to %s (id=%u)",
+                      self.MODULE_NAME, self.block, self.module_id)
+
+        msg = ADD_RSSI_TRIGGER.build(req)
+        wtp.connection.stream.write(msg)
+
+    @property
+    def addr(self):
+        """ Return the address. """
+        return self._addr
+
+    @addr.setter
+    def addr(self, addr):
+        """ Set the address. """
+        self._addr = EtherAddress(addr)
+
+    @property
+    def block(self):
+        """Return block."""
+
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        """Set block."""
+
+        if isinstance(value, ResourceBlock):
+
+            self._block = value
+
+        elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+
+            if 'hwaddr' not in value:
+                raise ValueError("Missing field: hwaddr")
+
+            if 'channel' not in value:
+                raise ValueError("Missing field: channel")
+
+            if 'band' not in value:
+                raise ValueError("Missing field: band")
+
+            if 'wtp' not in value:
+                raise ValueError("Missing field: wtp")
+
+            incoming = ResourcePool()
+            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                  int(value['channel']), int(value['band']))
+            incoming.add(block)
+
+            match = wtp.supports & incoming
+
+            if not match:
+                raise ValueError("No block specified")
+
+            if len(match) > 1:
+                raise ValueError("More than one block specified")
+
+            self._block = match.pop()
+
+    def handle_response(self, message):
         """ Handle an incoming RSSI_TRIGGER message.
         Args:
             message, a RSSI_TRIGGER message
@@ -128,18 +215,10 @@ class RSSI(Trigger):
         elif message.relation == RELATIONS['LE']:
             relation = 'LE'
 
-        LOG.info("RSSI trigger: %s RSSI @ %s %s %s at %s (id=%u)",
-                 EtherAddress(message.sta),
-                 EtherAddress(message.wtp),
-                 relation,
-                 message.value,
-                 message.current,
-                 message.trigger_id)
-
         timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         rssi_event = {'timestamp': timestamp,
-                      'lvap': EtherAddress(message.sta),
+                      'addr': EtherAddress(message.addr),
                       'wtp': EtherAddress(message.wtp),
                       'relation': relation,
                       'value': message.value,
@@ -153,7 +232,7 @@ class RSSI(Trigger):
         out = super().to_dict()
 
         out['relation'] = self.relation
-        out['lvaps'] = self.lvaps
+        out['addr'] = self.addr
         out['value'] = self.value
         out['events'] = self.events
 
@@ -187,104 +266,36 @@ class RSSI(Trigger):
 
         self._value = int(value)
 
-    def __str__(self):
-        return "Trigger %u rssi @ %s %s %u" % (self.module_id,
-                                               self.lvaps,
-                                               self.relation,
-                                               self.value)
-
     def __eq__(self, other):
+        return self.addr == other.addr and self.relation == other.relation \
+            and self.value == other.value
 
-        return super().__eq__(other) and \
-               self.value == other.value
 
+class RssiWorker(ModuleLVAPPWorker):
+    """ Rssi worker. """
 
-class RSSIHandler(ModuleHandler):
     pass
 
 
-class RSSIWorker(TriggerWorker):
-    """ Trigger worker. """
+def rssi(**kwargs):
+    """Create a new module."""
 
-    MODULE_NAME = "rssi"
-    MODULE_HANDLER = RSSIHandler
-    MODULE_TYPE = RSSI
-
-    TRIGGER_MSG_TYPE = PT_RSSI
-    TRIGGER_MSG = RSSI_TRIGGER
-
-    sent = {}
-
-    def add_trigger(self, wtp, lvap, trigger):
-        """ Send an ADD_RSSI_TRIGGER message.
-
-        Args:
-            sta: an EtherAddress object specifing the target STA
-            relation: the check to be enforced (EQ, GT, LT, LE, GE)
-            value: the comparison argument
-        Returns:
-            None
-        Raises:
-            TypeError: if sta is not an EtherAddress object.
-        """
-
-        add_trigger = Container(version=PT_VERSION,
-                                type=PT_ADD_RSSI,
-                                length=20,
-                                seq=wtp.seq,
-                                trigger_id=trigger.module_id,
-                                sta=lvap.addr.to_raw(),
-                                relation=RELATIONS[trigger.relation],
-                                value=trigger.value)
-
-        LOG.info("Adding trigger for sta %s: RSSI @ %s %s %s (id=%u)",
-                 lvap.addr,
-                 wtp.addr,
-                 trigger.relation,
-                 trigger.value,
-                 trigger.module_id)
-
-        msg = ADD_RSSI_TRIGGER.build(add_trigger)
-        wtp.connection.stream.write(msg)
-
-    def del_trigger(self, wtp, lvap, trigger):
-        """ Send an del trigger message. """
-
-        del_trigger = Container(version=PT_VERSION,
-                                type=PT_DEL_RSSI,
-                                length=20,
-                                seq=wtp.seq,
-                                trigger_id=trigger.module_id,
-                                sta=lvap.addr.to_raw(),
-                                relation=RELATIONS[trigger.relation],
-                                value=trigger.value)
-
-        LOG.info("Deleting trigger for sta %s: RSSI @ %s %s %s (id=%u)",
-                 lvap.addr,
-                 wtp.addr,
-                 trigger.relation,
-                 trigger.value,
-                 trigger.module_id)
-
-        msg = DEL_RSSI_TRIGGER.build(del_trigger)
-        wtp.connection.stream.write(msg)
+    return RUNTIME.components[RssiWorker.__module__].add_module(**kwargs)
 
 
-bind_module(RSSIWorker)
+def bound_rssi(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['addr'] = self.addr
+    kwargs['block'] = next(iter(self.downlink.keys()))
+    kwargs['every'] = -1
+    return rssi(**kwargs)
+
+setattr(LVAP, RSSI.MODULE_NAME, bound_rssi)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = RSSIWorker(rest_server)
-
-    lvap_server.register_message(PT_HELLO, None, worker.handle_hello)
-    lvap_server.register_message(PT_LVAP_JOIN, None, worker.handle_lvap_join)
-    lvap_server.register_message(PT_LVAP_LEAVE, None, worker.handle_lvap_leave)
-    lvap_server.register_message(PT_BYE, None, worker.handle_bye)
-    lvap_server.register_message(PT_RSSI, RSSI_TRIGGER, worker.handle_trigger)
-
-    return worker
+    return RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)

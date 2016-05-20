@@ -28,7 +28,6 @@
 """EmPOWER Primitive Base Class."""
 
 import re
-import time
 import json
 import types
 import xmlrpc.client

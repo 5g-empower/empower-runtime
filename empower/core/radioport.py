@@ -98,7 +98,7 @@ class RadioPort():
     def mcs(self):
         """ Get set of MCS. """
 
-        self._block.tx_policies[self._lvap.addr].mcs
+        return self._block.tx_policies[self._lvap.addr].mcs
 
     @mcs.setter
     def mcs(self, mcs):
@@ -110,7 +110,7 @@ class RadioPort():
     def no_ack(self):
         """ Get no ack flag. """
 
-        self._block.tx_policies[self._lvap.addr].no_ack
+        return self._block.tx_policies[self._lvap.addr].no_ack
 
     @no_ack.setter
     def no_ack(self, no_ack):
@@ -122,7 +122,7 @@ class RadioPort():
     def rts_cts(self):
         """ Get rts_cts . """
 
-        self._block.tx_policies[self._lvap.addr].rts_cts
+        return self._block.tx_policies[self._lvap.addr].rts_cts
 
     @rts_cts .setter
     def rts_cts(self, rts_cts):
