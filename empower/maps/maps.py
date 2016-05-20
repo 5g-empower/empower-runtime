@@ -112,34 +112,40 @@ class Maps(Module):
     @block.setter
     def block(self, value):
 
-        wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+        if isinstance(value, ResourceBlock):
 
-        if 'hwaddr' not in value:
-            raise ValueError("Missing field: hwaddr")
+            self._block = value
 
-        if 'channel' not in value:
-            raise ValueError("Missing field: channel")
+        elif isinstance(value, dict):
 
-        if 'band' not in value:
-            raise ValueError("Missing field: band")
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
-        if 'wtp' not in value:
-            raise ValueError("Missing field: wtp")
+            if 'hwaddr' not in value:
+                raise ValueError("Missing field: hwaddr")
 
-        incoming = ResourcePool()
-        block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                              int(value['channel']), int(value['band']))
-        incoming.add(block)
+            if 'channel' not in value:
+                raise ValueError("Missing field: channel")
 
-        match = wtp.supports & incoming
+            if 'band' not in value:
+                raise ValueError("Missing field: band")
 
-        if not match:
-            raise ValueError("No block specified")
+            if 'wtp' not in value:
+                raise ValueError("Missing field: wtp")
 
-        if len(match) > 1:
-            raise ValueError("More than one block specified")
+            incoming = ResourcePool()
+            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                  int(value['channel']), int(value['band']))
+            incoming.add(block)
 
-        self._block = match.pop()
+            match = wtp.supports & incoming
+
+            if not match:
+                raise ValueError("No block specified")
+
+            if len(match) > 1:
+                raise ValueError("More than one block specified")
+
+            self._block = match.pop()
 
     @property
     def maps(self):

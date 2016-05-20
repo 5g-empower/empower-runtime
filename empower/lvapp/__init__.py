@@ -73,8 +73,8 @@ HELLO = Struct("hello", UBInt8("version"),
                UBInt8("type"),
                UBInt16("length"),
                UBInt32("seq"),
-               UBInt32("period"),
                Bytes("wtp", 6),
+               UBInt32("period"),
                UBInt32("uplink_bytes"),
                UBInt32("downlink_bytes"))
 

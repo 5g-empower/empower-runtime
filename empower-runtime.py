@@ -37,7 +37,7 @@ if __name__ == "__main__":
              'maps.ucqm',
              'maps.ncqm',
              #'triggers.rssi',
-             #'triggers.summary',
+             'triggers.summary',
              #'events.cppdown',
              #'events.cppup',
              #'events.lvnfjoin',

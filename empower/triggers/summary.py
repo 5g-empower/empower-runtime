@@ -39,23 +39,16 @@ from construct import Bytes
 from construct import Sequence
 from construct import Array
 
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
+from empower.core.resourcepool import BT_L20
+from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import bind_module
-from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.triggers.triggers import TriggerWorker
-from empower.triggers.triggers import Trigger
-from empower.core.module import ModuleHandler
 from empower.lvapp import PT_VERSION
-from empower.lvapp import PT_HELLO
-from empower.lvapp import PT_BYE
-from empower.lvapp import PT_LVAP_JOIN
-from empower.lvapp import PT_LVAP_LEAVE
+from empower.core.module import Module
+from empower.core.module import ModuleLVAPPWorker
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 PT_ADD_SUMMARY = 0x22
 PT_SUMMARY = 0x23
@@ -65,10 +58,13 @@ ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt8("type"),
                      UBInt16("length"),
                      UBInt32("seq"),
-                     UBInt32("trigger_id"),
+                     UBInt32("module_id"),
+                     Bytes("addrs", 6),
+                     Bytes("hwaddr", 6),
+                     UBInt8("channel"),
+                     UBInt8("band"),
                      SBInt16("limit"),
-                     UBInt16("every"),
-                     Bytes("sta", 6))
+                     UBInt16("period"))
 
 SUMMARY_ENTRY = Sequence("frames",
                          Bytes("addr", 6),
@@ -78,16 +74,14 @@ SUMMARY_ENTRY = Sequence("frames",
                          UBInt8("rate"),
                          UBInt8("type"),
                          UBInt8("subtype"),
-                         UBInt32("length"),
-                         UBInt32("dur"))
+                         UBInt32("length"))
 
 SUMMARY_TRIGGER = Struct("summary", UBInt8("version"),
                          UBInt8("type"),
                          UBInt16("length"),
                          UBInt32("seq"),
-                         UBInt32("trigger_id"),
+                         UBInt32("module_id"),
                          Bytes("wtp", 6),
-                         Bytes("sta", 6),
                          UBInt16("nb_entries"),
                          Array(lambda ctx: ctx.nb_entries, SUMMARY_ENTRY))
 
@@ -95,32 +89,66 @@ DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt8("type"),
                      UBInt16("length"),
                      UBInt32("seq"),
-                     UBInt32("trigger_id"),
-                     Bytes("sta", 6))
+                     UBInt32("trigger_id"))
 
 
-class Summary(Trigger):
-
+class Summary(Module):
     """ Summary object. """
 
+    MODULE_NAME = "summary"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
+
     # parametes
+    _addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
     _keep = 0
     _limit = -1
-    _rates = [12, 18, 24, 36, 48, 72, 96, 108]
+    _period = 2000
+    _block = None
 
     # data structures
-    frames = {}
-    drifts = {}
-    ref = None
-    first_tsft = None
+    frames = []
 
     @property
-    def rates(self):
-        return self._rates
+    def block(self):
+        return self._block
 
-    @rates.setter
-    def rates(self, value):
-        self._rates = value
+    @block.setter
+    def block(self, value):
+
+        if isinstance(value, ResourceBlock):
+
+            self._block = value
+
+        elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+
+            if 'hwaddr' not in value:
+                raise ValueError("Missing field: hwaddr")
+
+            if 'channel' not in value:
+                raise ValueError("Missing field: channel")
+
+            if 'band' not in value:
+                raise ValueError("Missing field: band")
+
+            if 'wtp' not in value:
+                raise ValueError("Missing field: wtp")
+
+            incoming = ResourcePool()
+            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                  int(value['channel']), int(value['band']))
+            incoming.add(block)
+
+            match = wtp.supports & incoming
+
+            if not match:
+                raise ValueError("No block specified")
+
+            if len(match) > 1:
+                raise ValueError("More than one block specified")
+
+            self._block = match.pop()
 
     @property
     def keep(self):
@@ -142,164 +170,162 @@ class Summary(Trigger):
             raise ValueError("Invalid limit value (%u)" % value)
         self._limit = value
 
-    def handle_trigger(self, message):
-        """ Handle trigger. """
+    @property
+    def period(self):
+        return self._period
 
-        LOG.info("Summary trigger from %s @ %s (id=%u, frames=%u)",
-                 EtherAddress(message.sta),
-                 EtherAddress(message.wtp),
-                 message.trigger_id,
-                 len(message.frames))
+    @period.setter
+    def period(self, value):
+        if value < 2000:
+            raise ValueError("Invalid period value (%u)" % value)
+        self._period = value
 
-        sta_addr = EtherAddress(message.sta)
+    @property
+    def addrs(self):
+        """ Return the address. """
+        return self._addrs
 
-        if sta_addr not in self.frames:
-            self.frames[sta_addr] = {}
+    @addrs.setter
+    def addrs(self, addrs):
+        """ Set the address. """
+        self._addrs = EtherAddress(addrs)
 
-        wtp_addr = EtherAddress(message.wtp)
+    def __eq__(self, other):
+        return super().__eq__(other) and self.addrs == other.addrs and \
+            self.limit == other.limit and self.period == other.period
 
-        if wtp_addr not in self.frames[sta_addr]:
-            self.frames[sta_addr][wtp_addr] = []
+    def run_once(self):
+        """ Send out rate request. """
 
-        if wtp_addr not in self.drifts:
-            self.drifts[wtp_addr] = None
+        if self.tenant_id not in RUNTIME.tenants:
+            return
 
-        if len(self.frames[sta_addr][wtp_addr]) > self.keep:
-            self.frames[sta_addr][wtp_addr] = []
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        for recv in message.frames:
+        wtp = self.block.radio
+
+        if wtp.addr not in tenant.wtps:
+            return
+
+        if not wtp.connection:
+            return
+
+        req = Container(version=PT_VERSION,
+                        type=PT_ADD_SUMMARY,
+                        length=26,
+                        seq=wtp.seq,
+                        module_id=self.module_id,
+                        limit=self.limit,
+                        period=self.period,
+                        wtp=wtp.addr.to_raw(),
+                        addrs=self.addrs.to_raw(),
+                        hwaddr=self.block.hwaddr.to_raw(),
+                        channel=self.block.channel,
+                        band=self.block.band)
+
+        self.log.info("Sending %s request to %s (id=%u)",
+                      self.MODULE_NAME, self.block, self.module_id)
+
+        msg = ADD_SUMMARY.build(req)
+        wtp.connection.stream.write(msg)
+
+    def handle_response(self, response):
+        """Handle an incoming response message.
+        Args:
+            message, a response message
+        Returns:
+            None
+        """
+
+        wtp_addr = EtherAddress(response.wtp)
+
+        if wtp_addr not in RUNTIME.wtps:
+            return
+
+        tenant = RUNTIME.tenants[self.tenant_id]
+
+        if wtp_addr not in tenant.wtps:
+            return
+
+        if len(self.frames) > self.keep:
+            self.frames = []
+
+        for recv in response.frames:
+
+            if self.block.band == BT_L20:
+                rate = float(recv[4]) / 2;
+            else:
+                rate = int(recv[4]);
+
+            if recv[5] == 0x00:
+                pt_type = "MNGT"
+            elif recv[5] == 0x04:
+                pt_type = "CTRL"
+            elif recv[5] == 0x08:
+                pt_type = "DATA"
+            else:
+                pt_type = "UNKN"
+
+            if recv[6] == 0x00:
+                pt_subtype = "ASSOC_REQ"
+            elif recv[6] == 0x10:
+                pt_subtype = "ASSOC_RESP"
+            elif recv[6] == 0x20:
+                pt_subtype = "AUTH_REQ"
+            elif recv[6] == 0x30:
+                pt_subtype = "AUTH_RESP"
+            elif recv[6] == 0x80:
+                pt_subtype = "BEACON"
+            else:
+                pt_subtype = recv[6]
 
             frame = {'tsft': recv[1],
                      'seq': recv[2],
                      'rssi': recv[3],
-                     'rate': recv[4],
-                     'type': recv[5],
-                     'subtype': recv[6],
-                     'length': recv[7],
-                     'dur': recv[8]}
+                     'rate': rate,
+                     'type': pt_type,
+                     'subtype': pt_subtype,
+                     'length': recv[7]}
 
-            if frame['rate'] not in self.rates:
-                continue
-
-            if not self.ref:
-                LOG.info("Setting reference wtp to %s", wtp_addr)
-                self.ref = wtp_addr
-                self.first_tsft = frame['tsft']
-
-            if wtp_addr == self.ref:
-
-                adjusted_tsft = frame['tsft']
-
-            else:
-
-                # begin update drifts
-                found = None
-
-                for i, j in enumerate(self.frames[sta_addr][self.ref]):
-                    if j['seq'] == frame['seq']:
-                        found = i
-
-                if found:
-                    ref_tsft = self.frames[sta_addr][self.ref][found]['tsft']
-                    self.drifts[wtp_addr] = ref_tsft - frame['tsft']
-                # end updated drifts
-
-                if not self.drifts[wtp_addr]:
-                    continue
-
-                adjusted_tsft = frame['tsft'] + self.drifts[wtp_addr]
-
-            frame['tsft_adj'] = adjusted_tsft
-            self.frames[sta_addr][wtp_addr].append(frame)
+            self.frames.append(frame)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Summary """
 
         out = super().to_dict()
 
+        out['addrs'] = self.addrs
         out['keep'] = self.keep
-        out['limit'] = self.ref
-        out['rates'] = self.rates
-        out['ref'] = self.ref
-        out['drifts'] = {str(j): w for j, w in self.drifts.items()}
+        out['limit'] = self.limit
+        out['period'] = self.period
+        out['frames'] = self.frames
 
         return out
 
 
-class SummaryHandler(ModuleHandler):
+class SummaryWorker(ModuleLVAPPWorker):
+    """ Summary worker. """
+
     pass
 
 
-class SummaryWorker(TriggerWorker):
-    """ Trigger worker. """
+def summary(**kwargs):
+    """Create a new module."""
 
-    MODULE_NAME = "summary"
-    MODULE_HANDLER = SummaryHandler
-    MODULE_TYPE = Summary
-
-    TRIGGER_MSG_TYPE = PT_SUMMARY
-    TRIGGER_MSG = SUMMARY_TRIGGER
-
-    sent = {}
-
-    def add_trigger(self, wtp, lvap, trigger):
-        """ Send an add trigger message. """
-
-        add_trigger = Container(version=PT_VERSION,
-                                type=PT_ADD_SUMMARY,
-                                length=22,
-                                seq=wtp.seq,
-                                trigger_id=trigger.module_id,
-                                limit=trigger.limit,
-                                every=trigger.every,
-                                sta=lvap.addr.to_raw())
-
-        LOG.info("Adding summary for sta %s @ %s (id=%u)",
-                 lvap.addr,
-                 wtp.addr,
-                 trigger.module_id)
-
-        msg = ADD_SUMMARY.build(add_trigger)
-        wtp.connection.stream.write(msg)
-
-    def del_trigger(self, wtp, lvap, trigger):
-        """ Send an del trigger message. """
-
-        del_trigger = Container(version=PT_VERSION,
-                                type=PT_DEL_SUMMARY,
-                                length=22,
-                                seq=wtp.get_next_seq(),
-                                trigger_id=trigger.module_id,
-                                limit=trigger.limit,
-                                every=trigger.every,
-                                sta=lvap.addr.to_raw())
-
-        LOG.info("Deleting summary for sta %s @ %s (id=%u)",
-                 lvap.addr,
-                 wtp.addr,
-                 trigger.module_id)
-
-        msg = DEL_SUMMARY.build(del_trigger)
-        wtp.connection.stream.write(msg)
+    return RUNTIME.components[SummaryWorker.__module__].add_module(**kwargs)
 
 
-bind_module(SummaryWorker)
+def bound_summary(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['every'] = -1
+    return summary(**kwargs)
+
+setattr(EmpowerApp, Summary.MODULE_NAME, bound_summary)
 
 
 def launch():
     """ Initialize the module. """
 
-    lvap_server = RUNTIME.components[LVAPPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = SummaryWorker(rest_server)
-
-    lvap_server.register_message(PT_HELLO, None, worker.handle_hello)
-    lvap_server.register_message(PT_LVAP_JOIN, None, worker.handle_lvap_join)
-    lvap_server.register_message(PT_LVAP_LEAVE, None, worker.handle_lvap_leave)
-    lvap_server.register_message(PT_BYE, None, worker.handle_bye)
-    lvap_server.register_message(PT_SUMMARY,
-                                 SUMMARY_TRIGGER,
-                                 worker.handle_trigger)
-
-    return worker
+    return SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
