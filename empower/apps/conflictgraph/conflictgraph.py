@@ -28,26 +28,7 @@
 """Channel Quality and Conflict Maps visulization app."""
 
 from empower.core.app import EmpowerApp
-from empower.core.app import EmpowerAppHandler
-from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
-from empower.maps.ucqm import ucqm
-from empower.maps.ncqm import ncqm
-from empower.events.wtpup import wtpup
-from empower.datatypes.etheraddress import EtherAddress
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
-DEFAULT_ADDRS = "ff:ff:ff:ff:ff:ff"
-
-
-class ConflictGraphHandler(EmpowerAppHandler):
-    pass
-
-
-class ConflictGraphHomeHandler(EmpowerAppHomeHandler):
-    pass
 
 
 class ConflictGraph(EmpowerApp):
@@ -55,39 +36,20 @@ class ConflictGraph(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
         ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.conflictgraph.conflictgraph:$ID
+        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
 
     """
 
-    MODULE_NAME = "conflictgraph"
-    MODULE_HANDLER = ConflictGraphHandler
-    MODULE_HOME_HANDLER = ConflictGraphHomeHandler
-
-    def __init__(self, tenant, **kwargs):
-
-        self.__addrs = EtherAddress(DEFAULT_ADDRS)
+    def __init__(self, **kwargs):
+        EmpowerApp.__init__(self, **kwargs)
         self.conflicts = {'networks': [], 'stations': []}
-
-        EmpowerApp.__init__(self, tenant, **kwargs)
-
-        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
-
-    @property
-    def addrs(self):
-        """Return adres period."""
-
-        return self.__addrs
-
-    @addrs.setter
-    def addrs(self, value):
-        """Set addrs."""
-
-        self.__addrs = EtherAddress(value)
+        self.wtpup(callback=self.wtp_up_callback)
 
     def to_dict(self):
 
@@ -96,21 +58,15 @@ class ConflictGraph(EmpowerApp):
         return out
 
     def wtp_up_callback(self, wtp):
-        """Called when a new WTP connects to the controller."""
+        """ Called when a new WTP connects to the controller"""
 
         for block in wtp.supports:
 
-            ucqm(addrs=self.addrs,
-                 block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.every,
-                 callback=self.update_cm)
+            self.ucqm(block=block, every=self.every,
+                      callback=self.update_cm)
 
-            ncqm(addrs=self.addrs,
-                 block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.every,
-                 callback=self.update_cm)
+            self.ncqm(block=block, every=self.every,
+                      callback=self.update_cm)
 
     def update_cm(self, _):
         """Periodic job."""
@@ -137,25 +93,21 @@ class ConflictGraph(EmpowerApp):
 
                     if src.addr in blk.ucqm:
 
-                        LOG.info("(%s, %s) -> (%s, %s)",
-                                 src.addr,
-                                 src.wtp,
-                                 dst.addr,
-                                 dst.wtp)
+                        self.log.info("(%s, %s) -> (%s, %s)",
+                                      src.addr, src.wtp,
+                                      dst.addr, dst.wtp)
                         self.conflicts['stations'].append((src, dst))
 
                     if src.lvap_bssid in blk.ncqm or \
                        src.wtp == dst.wtp:
 
-                        LOG.info("(%s, %s) -> (%s, %s)",
-                                 src.wtp,
-                                 src.addr,
-                                 dst.addr,
-                                 dst.wtp)
+                        self.log.info("(%s, %s) -> (%s, %s)",
+                                      src.addr, src.wtp,
+                                      dst.addr, dst.wtp)
                         self.conflicts['networks'].append((src, dst))
 
 
-def launch(tenant, addrs=DEFAULT_ADDRS, period=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return ConflictGraph(tenant, addrs=addrs, every=period)
+    return ConflictGraph(tenant_id=tenant_id, every=every)
