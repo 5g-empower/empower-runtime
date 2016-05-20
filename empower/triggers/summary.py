@@ -110,10 +110,13 @@ class Summary(Module):
 
     @property
     def block(self):
+        """Return block."""
+
         return self._block
 
     @block.setter
     def block(self, value):
+        """Set block."""
 
         if isinstance(value, ResourceBlock):
 
