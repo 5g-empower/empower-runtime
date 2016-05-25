@@ -229,9 +229,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             # set connection (this will trigger a register message)
             pnfdev.connection = self
 
-            # send out caps request
-            self.send_caps_requests()
-
         # Update PNFDev params
         pnfdev.every = hello['every']
         pnfdev.last_seen = hello['seq']

@@ -103,57 +103,51 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
             if self.account.role == ROLE_ADMIN:
                 return
 
-            if self.account.role == ROLE_USER:
+            if self.request.uri.startswith("/api/v1/accounts"):
 
-                if self.request.uri.startswith("/api/v1/accounts"):
+                pattern = re.compile("/api/v1/accounts/([a-zA-Z0-9:-]*)/?")
+                match = pattern.match(self.request.uri)
 
-                    pattern = re.compile("/api/v1/accounts/([a-zA-Z0-9:-]*)/?")
-                    match = pattern.match(self.request.uri)
-
-                    if match and match.group(1):
-                        if match.group(1) in RUNTIME.accounts:
-                            account = RUNTIME.accounts[match.group(1)]
-                            if self.account.username == account.username:
-                                return
-                            else:
-                                self.send_error(401)
-                                return
-
-                    return
-
-                if self.request.uri.startswith("/api/v1/pending"):
-                    pattern = re.compile("/api/v1/pending/([a-zA-Z0-9-]*)/?")
-                    match = pattern.match(self.request.uri)
-                    if match and match.group(1):
-                        try:
-                            tenant_id = UUID(match.group(1))
-                        except:
-                            self.send_error(400)
+                if match and match.group(1):
+                    if match.group(1) in RUNTIME.accounts:
+                        account = RUNTIME.accounts[match.group(1)]
+                        if self.account.username == account.username:
                             return
-                        pending = RUNTIME.load_pending_tenant(tenant_id)
-                        if pending:
-                            if self.account.username == pending.owner:
-                                return
+                        else:
                             self.send_error(401)
                             return
 
-                    return
+                return
 
-                if self.request.uri.startswith("/api/v1/tenants"):
-
-                    pattern = re.compile("/api/v1/tenants/([a-zA-Z0-9-]*)/?")
-                    match = pattern.match(self.request.uri)
-
-                    if match and match.group(1):
-                        tenant_id = UUID(match.group(1))
-                        if tenant_id in RUNTIME.tenants:
-                            tenant = RUNTIME.tenants[tenant_id]
-                            if self.account.username == tenant.owner:
-                                return
-                            self.send_error(401)
+            if self.request.uri.startswith("/api/v1/pending"):
+                pattern = re.compile("/api/v1/pending/([a-zA-Z0-9-]*)/?")
+                match = pattern.match(self.request.uri)
+                if match and match.group(1):
+                    tenant_id = UUID(match.group(1))
+                    pending = RUNTIME.load_pending_tenant(tenant_id)
+                    if pending:
+                        if self.account.username == pending.owner:
                             return
+                        self.send_error(401)
+                        return
 
-                    return
+                return
+
+            if self.request.uri.startswith("/api/v1/tenants"):
+
+                pattern = re.compile("/api/v1/tenants/([a-zA-Z0-9-]*)/?")
+                match = pattern.match(self.request.uri)
+
+                if match and match.group(1):
+                    tenant_id = UUID(match.group(1))
+                    if tenant_id in RUNTIME.tenants:
+                        tenant = RUNTIME.tenants[tenant_id]
+                        if self.account.username == tenant.owner:
+                            return
+                        self.send_error(401)
+                        return
+
+                return
 
         self.send_error(401)
         return

@@ -44,8 +44,8 @@ from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_LVAP_LEAVE
-from empower.lvapp import PT_CAPS_REQUEST
-from empower.lvapp import CAPS_REQUEST
+from empower.lvapp import PT_CAPS
+from empower.lvapp import CAPS
 from empower.lvapp import PT_AUTH_RESPONSE
 from empower.lvapp import AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
@@ -223,7 +223,6 @@ class LVAPPConnection(object):
             # connection attribute of the PNFDev object is set
             self.wtp = wtp
             wtp.connection = self
-            self.send_caps_request()
 
         # Update WTP params
         wtp.period = hello.period
@@ -725,7 +724,7 @@ class LVAPPConnection(object):
         LOG.info("Port status %s", tx_policy)
 
     @classmethod
-    def _handle_caps_response(cls, caps):
+    def _handle_caps(cls, caps):
         """Handle an incoming CAPS_RESPONSE message.
         Args:
             caps, a CAPS_RESPONSE message
@@ -868,26 +867,6 @@ class LVAPPConnection(object):
         LOG.info("Add vap %s", vap)
 
         msg = ADD_VAP.build(add_vap)
-        self.stream.write(msg)
-
-    def send_caps_request(self):
-        """Send a CAPS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            TypeError: if sta is not an EtherAddress object.
-        """
-
-        caps_req = Container(version=PT_VERSION,
-                             type=PT_CAPS_REQUEST,
-                             length=10,
-                             seq=self.wtp.seq)
-
-        LOG.info("Sending caps request to %s", self.wtp.addr)
-
-        msg = CAPS_REQUEST.build(caps_req)
         self.stream.write(msg)
 
     def send_assoc_response(self, lvap):

@@ -38,9 +38,6 @@ from empower.core.lvnf import LVNF
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant Function Handler. Used to view anc manipulate Functions."""
@@ -164,8 +161,8 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
             lvnf.start()
 
-        #except ValueError as ex:
-        #    self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
 

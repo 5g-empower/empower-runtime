@@ -41,22 +41,20 @@ class WTPDown(Module):
 
     MODULE_NAME = "wtpdown"
 
-    def handle_response(self, caps_response):
-        """ Handle an CAPS_RESPONSE message.
+    def handle_response(self, wtp):
+        """ Handle an BYE message.
 
         Args:
-            caps_response, a CAPS_RESPONSE message
+            wtp, a wtp object
 
         Returns:
             None
         """
 
-        addr = EtherAddress(caps_response.wtp)
+        wtps = RUNTIME.tenants[self.tenant_id].wtps
 
-        if addr not in RUNTIME.tenants[self.tenant_id].wtps:
+        if wtp.addr not in wtps:
             return
-
-        wtp = RUNTIME.tenants[self.tenant_id].wtps[addr]
 
         self.handle_callback(wtp)
 

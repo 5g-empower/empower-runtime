@@ -260,7 +260,6 @@ class ACLHandler(EmpowerAPIHandler):
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 
         except KeyError as ex:
-            print(ex)
             self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)

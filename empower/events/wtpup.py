@@ -31,7 +31,7 @@ from empower.core.app import EmpowerApp
 from empower.core.module import Module
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleLVAPPEventWorker
-from empower.lvapp import PT_CAPS_RESPONSE
+from empower.lvapp import PT_REGISTER
 
 from empower.main import RUNTIME
 
@@ -41,22 +41,20 @@ class WTPUp(Module):
 
     MODULE_NAME = "wtpup"
 
-    def handle_response(self, caps_response):
-        """ Handle an CAPS_RESPONSE message.
+    def handle_response(self, wtp):
+        """ Handle an REGISTER message.
 
         Args:
-            caps_response, a CAPS_RESPONSE message
+            wtp, a WTP object
 
         Returns:
             None
         """
 
-        addr = EtherAddress(caps_response.wtp)
+        wtps = RUNTIME.tenants[self.tenant_id].wtps
 
-        if addr not in RUNTIME.tenants[self.tenant_id].wtps:
+        if wtp.addr not in wtps:
             return
-
-        wtp = RUNTIME.tenants[self.tenant_id].wtps[addr]
 
         self.handle_callback(wtp)
 
@@ -86,4 +84,4 @@ setattr(EmpowerApp, WTPUp.MODULE_NAME, app_wtpup)
 def launch():
     """Initialize the module."""
 
-    return WTPUpWorker(WTPUp, PT_CAPS_RESPONSE)
+    return WTPUpWorker(WTPUp, PT_REGISTER)

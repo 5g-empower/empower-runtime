@@ -43,23 +43,22 @@ from construct import Padding
 PT_VERSION = 0x00
 
 PT_BYE = 0x00
-PT_REGISTER = 0xFF
-PT_LVAP_JOIN = 0x01
-PT_LVAP_LEAVE = 0x02
-PT_HELLO = 0x03
-PT_PROBE_REQUEST = 0x04
-PT_PROBE_RESPONSE = 0x05
-PT_AUTH_REQUEST = 0x06
-PT_AUTH_RESPONSE = 0x07
-PT_ASSOC_REQUEST = 0x08
-PT_ASSOC_RESPONSE = 0x09
-PT_ADD_LVAP = 0x10
-PT_DEL_LVAP = 0x11
-PT_STATUS_LVAP = 0x12
-PT_SET_PORT = 0x13
-PT_STATUS_PORT = 0x14
-PT_CAPS_REQUEST = 0x15
-PT_CAPS_RESPONSE = 0x16
+PT_REGISTER = 0x01
+PT_LVAP_JOIN = 0x02
+PT_LVAP_LEAVE = 0x03
+PT_HELLO = 0x04
+PT_PROBE_REQUEST = 0x05
+PT_PROBE_RESPONSE = 0x06
+PT_AUTH_REQUEST = 0x07
+PT_AUTH_RESPONSE = 0x08
+PT_ASSOC_REQUEST = 0x09
+PT_ASSOC_RESPONSE = 0x10
+PT_ADD_LVAP = 0x11
+PT_DEL_LVAP = 0x12
+PT_STATUS_LVAP = 0x13
+PT_SET_PORT = 0x14
+PT_STATUS_PORT = 0x15
+PT_CAPS = 0x16
 PT_ADD_VAP = 0x31
 PT_DEL_VAP = 0x32
 PT_STATUS_VAP = 0x33
@@ -169,11 +168,6 @@ STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
                      Bytes("lvap_bssid", 6),
                      SSIDS)
 
-CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
-                      UBInt8("type"),
-                      UBInt16("length"),
-                      UBInt32("seq"))
-
 CAPS_R = Sequence("blocks",
                   Bytes("hwaddr", 6),
                   UBInt8("channel"),
@@ -184,15 +178,15 @@ CAPS_P = Sequence("ports", Bytes("hwaddr", 6),
                   UBInt16("port_id"),
                   Bytes("iface", 10))
 
-CAPS_RESPONSE = Struct("caps_response", UBInt8("version"),
-                       UBInt8("type"),
-                       UBInt16("length"),
-                       UBInt32("seq"),
-                       Bytes("wtp", 6),
-                       UBInt8("nb_resources_elements"),
-                       UBInt8("nb_ports_elements"),
-                       Array(lambda ctx: ctx.nb_resources_elements, CAPS_R),
-                       Array(lambda ctx: ctx.nb_ports_elements, CAPS_P))
+CAPS = Struct("caps", UBInt8("version"),
+              UBInt8("type"),
+              UBInt16("length"),
+              UBInt32("seq"),
+              Bytes("wtp", 6),
+              UBInt8("nb_resources_elements"),
+              UBInt8("nb_ports_elements"),
+              Array(lambda ctx: ctx.nb_resources_elements, CAPS_R),
+              Array(lambda ctx: ctx.nb_ports_elements, CAPS_P))
 
 SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("type"),
@@ -262,8 +256,7 @@ PT_TYPES = {PT_BYE: None,
             PT_ADD_LVAP: ADD_LVAP,
             PT_DEL_LVAP: DEL_LVAP,
             PT_STATUS_LVAP: STATUS_LVAP,
-            PT_CAPS_REQUEST: CAPS_REQUEST,
-            PT_CAPS_RESPONSE: CAPS_RESPONSE,
+            PT_CAPS: CAPS,
             PT_SET_PORT: SET_PORT,
             PT_STATUS_PORT: STATUS_PORT,
             PT_STATUS_VAP: STATUS_VAP}
@@ -282,8 +275,7 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_ADD_LVAP: [],
                      PT_DEL_LVAP: [],
                      PT_STATUS_LVAP: [],
-                     PT_CAPS_REQUEST: [],
-                     PT_CAPS_RESPONSE: [],
+                     PT_CAPS: [],
                      PT_SET_PORT: [],
                      PT_STATUS_PORT: [],
                      PT_STATUS_VAP: []}

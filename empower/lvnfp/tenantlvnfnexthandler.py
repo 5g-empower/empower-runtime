@@ -34,9 +34,6 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant/LVNF/Port/Next Handler."""

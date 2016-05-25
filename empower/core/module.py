@@ -42,7 +42,7 @@ from multiprocessing.pool import ThreadPool
 import empower.logger
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
+from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvnfp.lvnfpserver import LVNFPServer
@@ -80,7 +80,7 @@ def on_complete(res):
     pass
 
 
-class ModuleHandler(EmpowerAPIHandlerUsers):
+class ModuleHandler(EmpowerAPIHandler):
     """ModuleHandler. Used to view and manipulate modules."""
 
     def get(self, *args, **kwargs):

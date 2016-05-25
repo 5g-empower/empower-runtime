@@ -27,36 +27,23 @@
 
 """CPP up event module."""
 
+from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import Module
-from empower.core.module import bind_module
-from empower.core.module import handle_callback
 from empower.restserver.restserver import RESTServer
 from empower.lvnfp.lvnfpserver import LVNFPServer
+from empower.core.module import ModuleLVAPPEventWorker
 from empower.lvnfp import PT_REGISTER
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class CPPUpHandler(ModuleHandler):
-    pass
-
 
 class CPPUp(Module):
-    pass
-
-
-class CPPUpWorker(ModuleWorker):
     """CPPUp worker."""
 
     MODULE_NAME = "cppup"
-    MODULE_HANDLER = CPPUpHandler
-    MODULE_TYPE = CPPUp
 
     def on_cpp_up(self, register):
         """ Handle an REGISTER message.
@@ -67,6 +54,10 @@ class CPPUpWorker(ModuleWorker):
         Returns:
             None
         """
+
+        print(register)
+
+        return
 
         for event in list(self.modules.values()):
 
@@ -84,16 +75,29 @@ class CPPUpWorker(ModuleWorker):
             handle_callback(cpps[addr], event)
 
 
-bind_module(CPPUpWorker)
+class CPPUpWorker(ModuleLVAPPEventWorker):
+    """ Counter worker. """
+
+    pass
+
+
+def cppup(**kwargs):
+    """Create a new module."""
+
+    return RUNTIME.components[CPPUpWorker.__module__].add_module(**kwargs)
+
+
+def app_cppup(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant_id
+    return cppup(**kwargs)
+
+
+setattr(EmpowerApp, CPPUp.MODULE_NAME, app_cppup)
 
 
 def launch():
-    """ Initialize the module. """
+    """Initialize the module."""
 
-    lvnf_server = RUNTIME.components[LVNFPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = CPPUpWorker(rest_server)
-    lvnf_server.register_message(PT_REGISTER, None, worker.on_cpp_up)
-
-    return worker
+    return CPPUpWorker(CPPUp, PT_REGISTER)

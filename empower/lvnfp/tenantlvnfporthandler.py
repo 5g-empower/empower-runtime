@@ -27,16 +27,11 @@
 
 """LVNF Port Handler."""
 
-import json
 import uuid
 
-from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class TenantLVNFPortHandler(EmpowerAPIHandlerAdminUsers):
