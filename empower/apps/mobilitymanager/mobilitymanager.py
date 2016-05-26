@@ -130,9 +130,6 @@ class MobilityManager(EmpowerApp):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
 
-        print(trigger)
-        return
-
         lvap_addr = EtherAddress(trigger.events[-1]['lvap'])
         lvap = self.lvap(lvap_addr)
 

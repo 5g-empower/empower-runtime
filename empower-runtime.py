@@ -38,13 +38,13 @@ if __name__ == "__main__":
              'maps.ncqm',
              'triggers.rssi',
              'triggers.summary',
-             #'events.cppdown',
-             #'events.cppup',
-             #'events.lvnfjoin',
-             #'events.lvnfleave',
+             'events.cppdown',
+             'events.cppup',
+             'events.lvnfjoin',
+             'events.lvnfleave',
              #'handlers.read_handler',
              #'handlers.write_handler',
-             #'lvnf_stats.lvnf_stats',
+             'lvnf_stats.lvnf_stats',
              ]
 
     main(ARGVS)

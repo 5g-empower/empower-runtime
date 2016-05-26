@@ -29,16 +29,6 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.events.wtpup import wtpup
-from empower.events.wtpdown import wtpdown
-from empower.events.cppup import cppup
-from empower.events.cppdown import cppdown
-from empower.events.lvapjoin import lvapjoin
-from empower.events.lvapleave import lvapleave
-
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class EventsApp(EmpowerApp):
@@ -55,65 +45,59 @@ class EventsApp(EmpowerApp):
 
     """
 
-    def __init__(self, tenant, **kwargs):
+    def __init__(self, **kwargs):
+        EmpowerApp.__init__(self, **kwargs)
+        self.cppup(callback=self.cpp_up_callback)
+        self.cppdown(callback=self.cpp_down_callback)
+        self.wtpup(callback=self.wtp_up_callback)
+        self.wtpdown(callback=self.wtp_down_callback)
+        self.lvapjoin(callback=self.lvap_join_callback)
+        self.lvapleave(callback=self.lvap_leave_callback)
+        self.lvnfjoin(callback=self.lvnf_join_callback)
+        self.lvnfleave(callback=self.lvnf_leave_callback)
 
-        EmpowerApp.__init__(self, tenant, **kwargs)
+    def lvnf_join_callback(self, lvnf):
+        """Called when an LVNF associates to a tennant."""
 
-        cppup(tenant_id=self.tenant.tenant_id,
-              callback=self.cpp_up_callback)
+        self.log.info("LVNF %s joined %s" % (lvnf.lvnf_id, lvnf.tenant_id))
 
-        cppdown(tenant_id=self.tenant.tenant_id,
-                callback=self.cpp_down_callback)
+    def lvnf_leave_callback(self, lvnf):
+        """Called when an LVNF associates to a tennant."""
 
-        wtpup(tenant_id=self.tenant.tenant_id,
-              callback=self.wtp_up_callback)
-
-        wtpdown(tenant_id=self.tenant.tenant_id,
-                callback=self.wtp_down_callback)
-
-        lvapjoin(tenant_id=self.tenant.tenant_id,
-                 callback=self.lvap_join_callback)
-
-        lvapleave(tenant_id=self.tenant.tenant_id,
-                  callback=self.lvap_leave_callback)
+        self.log.info("LVNF %s left %s" % (lvnf.lvnf_id, lvnf.tenant_id))
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP disassociates from a tennant."""
 
-        LOG.info("LVAP %s left %s" % (lvap.addr, lvap.ssid))
+        self.log.info("LVAP %s left %s" % (lvap.addr, lvap.ssid))
 
     def lvap_join_callback(self, lvap):
         """Called when an LVAP associates to a tennant."""
 
-        LOG.info("LVAP %s joined %s" % (lvap.addr, lvap.ssid))
+        self.log.info("LVAP %s joined %s" % (lvap.addr, lvap.ssid))
 
     def wtp_up_callback(self, wtp):
         """Called when a new wtp connects to the controller."""
 
-        LOG.info("WTP %s connected!" % wtp.addr)
+        self.log.info("WTP %s connected!" % wtp.addr)
 
     def wtp_down_callback(self, wtp):
         """Called when a wtp connectdiss from the controller."""
 
-        LOG.info("WTP %s left!" % wtp.addr)
+        self.log.info("WTP %s left!" % wtp.addr)
 
     def cpp_up_callback(self, cpp):
         """Called when a new cpp connects to the controller."""
 
-        LOG.info("CPP %s connected!" % cpp.addr)
+        self.log.info("CPP %s connected!" % cpp.addr)
 
     def cpp_down_callback(self, cpp):
         """Called when a cpp disconnects from the controller."""
 
-        LOG.info("CPP %s left!" % cpp.addr)
-
-    def loop(self):
-        """Periodic job."""
-
-        pass
+        self.log.info("CPP %s left!" % cpp.addr)
 
 
-def launch(tenant, period=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return EventsApp(tenant, every=period)
+    return EventsApp(tenant_id=tenant_id, every=every)

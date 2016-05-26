@@ -52,7 +52,7 @@ class Image(object):
 
         for handler in handlers:
 
-            if isinstance(handler, list):
+            if not isinstance(handler, list):
                 raise ValueError("list expected")
 
             if len(handler) != 2:

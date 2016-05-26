@@ -42,7 +42,7 @@ from multiprocessing.pool import ThreadPool
 import empower.logger
 
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.restserver.apihandlers import EmpowerAPIHandler
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvnfp.lvnfpserver import LVNFPServer
@@ -80,7 +80,7 @@ def on_complete(res):
     pass
 
 
-class ModuleHandler(EmpowerAPIHandler):
+class ModuleHandler(EmpowerAPIHandlerAdminUsers):
     """ModuleHandler. Used to view and manipulate modules."""
 
     def get(self, *args, **kwargs):
@@ -434,15 +434,7 @@ class ModuleWorker(object):
     def handle_packet(self, response):
         """Handle response message."""
 
-        if response.module_id not in self.modules:
-            return
-
-        module = self.modules[response.module_id]
-
-        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                 response.module_id)
-
-        module.handle_response(response)
+        pass
 
     @property
     def module_id(self):
@@ -574,6 +566,19 @@ class ModuleLVAPPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
 
+    def handle_packet(self, response):
+        """Handle response message."""
+
+        if response.module_id not in self.modules:
+            return
+
+        module = self.modules[response.module_id]
+
+        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
+                 response.module_id)
+
+        module.handle_response(response)
+
 
 class ModuleLVNFPWorker(ModuleWorker):
     """Module worker (LVAP Server version).
@@ -588,6 +593,19 @@ class ModuleLVNFPWorker(ModuleWorker):
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
                               pt_packet)
+
+    def handle_packet(self, response):
+        """Handle response message."""
+
+        if response['module_id'] not in self.modules:
+            return
+
+        module = self.modules[response['module_id']]
+
+        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
+                 response['module_id'])
+
+        module.handle_response(response)
 
 
 class ModuleLVAPPEventWorker(ModuleEventWorker):

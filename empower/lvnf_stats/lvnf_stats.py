@@ -29,53 +29,49 @@
 
 from uuid import UUID
 
-from empower.core.module import ModuleWorker
-from empower.core.module import ModuleHandler
+from empower.core.lvnf import LVNF
 from empower.core.module import Module
-from empower.core.module import bind_module
-from empower.core.module import handle_callback
-from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
 from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
-from empower.lvnfp.lvnfpserver import LVNFPServer
-from empower.restserver.restserver import RESTServer
+from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
+from empower.core.module import ModuleLVNFPWorker
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class LVNFStats(Module):
     """LVNFStats object."""
 
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf_id']
+    MODULE_NAME = "lvnf_stats"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf']
 
-    def __init__(self):
+    # parameters
+    _lvnf = None
 
-        super().__init__()
+    # data structure
+    stats = {}
 
-        self.__lvnf_id = None
-        self.stats = None
+    @property
+    def lvnf(self):
+        """Return lvnf."""
+
+        return self._lvnf
+
+    @lvnf.setter
+    def lvnf(self, value):
+        """Set lvnf."""
+
+        self._lvnf = UUID(value)
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and \
-               self.lvnf_id == other.lvnf_id
-
-    @property
-    def lvnf_id(self):
-        return self.__lvnf_id
-
-    @lvnf_id.setter
-    def lvnf_id(self, value):
-        self.__lvnf_id = UUID(str(value))
+        return super().__eq__(other) and self.lvnf == other.lvnf
 
     def to_dict(self):
         """Return a JSON-serializable representation of this object."""
 
         out = super().to_dict()
 
-        out['lvnf_id'] = self.lvnf_id
+        out['lvnf'] = self.lvnf
         out['stats'] = self.stats
 
         return out
@@ -83,91 +79,71 @@ class LVNFStats(Module):
     def run_once(self):
         """Send out stats requests."""
 
-        worker = RUNTIME.components[self.worker.__module__]
-        worker.send_lvnf_stats_request(self)
-
-
-class LVNFStatsHandler(ModuleHandler):
-    pass
-
-
-class LVNFStatsWorker(ModuleWorker):
-    """LVNFStats worker."""
-
-    MODULE_NAME = "lvnf_stats"
-    MODULE_HANDLER = LVNFStatsHandler
-    MODULE_TYPE = LVNFStats
-
-    def send_lvnf_stats_request(self, stats):
-        """Send a lvnf stats request message."""
-
-        # start profiling
-        stats.tic()
-
-        if stats.tenant_id not in RUNTIME.tenants:
-            self.remove_module(stats.module_id)
+        if self.tenant_id not in RUNTIME.tenants:
             return
 
-        tenant = RUNTIME.tenants[stats.tenant_id]
+        lvnfs = RUNTIME.tenants[self.tenant_id].lvnfs
 
-        if stats.lvnf_id not in tenant.lvnfs:
-            LOG.error("LVNF %s not found." % stats.lvnf_id)
-            self.remove_module(stats.module_id)
+        if self.lvnf not in lvnfs:
+            self.log.error("LVNF %s not found.", self.lvnf)
             return
 
-        lvnf = tenant.lvnfs[stats.lvnf_id]
+        lvnf = lvnfs[self.lvnf]
 
         if not lvnf.cpp.connection:
             return
 
-        stats_req = {'lvnf_stats_id': stats.module_id,
-                     'lvnf_id': stats.lvnf_id,
-                     'tenant_id': stats.tenant_id}
+        stats = {'module_id': self.module_id,
+                 'lvnf_id': self.lvnf,
+                 'tenant_id': self.tenant_id}
 
-        lvnf.cpp.connection.send_message(PT_LVNF_STATS_REQUEST, stats_req)
+        lvnf.cpp.connection.send_message(PT_LVNF_STATS_REQUEST, stats)
 
-    def handle_lvnf_stats_response(self, stats_response):
-        """Handle an incoming stats response message.
+    def handle_response(self, response):
+        """Handle an incoming STATS_RESPONSE message.
         Args:
-            stats_response, a stats response message
+            response, a STATS_RESPONSE message
         Returns:
             None
         """
 
-        if stats_response['lvnf_stats_id'] not in self.modules:
-            return
-
-        stats = self.modules[stats_response['lvnf_stats_id']]
-
-        # stop profiling
-        stats.toc()
-
-        tenant_id = UUID(stats_response['tenant_id'])
-        lvnf_id = UUID(stats_response['lvnf_id'])
+        tenant_id = UUID(response['tenant_id'])
+        lvnf_id = UUID(response['lvnf_id'])
 
         tenant = RUNTIME.tenants[tenant_id]
 
         if lvnf_id not in tenant.lvnfs:
             return
 
-        stats.stats = stats_response['stats']
+        self.stats = response['stats']
 
-        # handle callback
-        handle_callback(stats, stats)
+        # call callback
+        self.handle_callback(self)
 
 
-bind_module(LVNFStatsWorker)
+class LVNFStatsWorker(ModuleLVNFPWorker):
+    """ Counter worker. """
+
+    pass
+
+
+def lvnf_stats(**kwargs):
+    """Create a new module."""
+
+    return RUNTIME.components[LVNFStatsWorker.__module__].add_module(**kwargs)
+
+
+def bound_lvnf_stats(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvnf'] = self.lvnf
+    return lvnf_stats(**kwargs)
+
+setattr(LVNF, LVNFStats.MODULE_NAME, bound_lvnf_stats)
 
 
 def launch():
-    """Initialize the module."""
+    """ Initialize the module. """
 
-    lvnf_server = RUNTIME.components[LVNFPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = LVNFStatsWorker(rest_server)
-    lvnf_server.register_message(PT_LVNF_STATS_RESPONSE,
-                                 None,
-                                 worker.handle_lvnf_stats_response)
-
-    return worker
+    return LVNFStatsWorker(LVNFStats, PT_LVNF_STATS_RESPONSE)

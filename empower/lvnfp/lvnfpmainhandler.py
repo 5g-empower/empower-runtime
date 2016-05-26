@@ -237,7 +237,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         pnfdev.last_seen_ts = time.time()
 
-    def _handle_caps_response(self, caps):
+    def _handle_caps(self, caps):
         """Handle an incoming cap response message.
 
         Args:
@@ -311,13 +311,12 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         tenant = RUNTIME.tenants[tenant_id]
 
-        LOG.info("LVNF %s status update: %s" %
-                 (lvnf_id, status_lvnf['process']))
+        LOG.info("LVNF %s status update: %s", lvnf_id, status_lvnf['process'])
 
         # Add lvnf to tenant if not present
         if lvnf_id not in tenant.lvnfs:
 
-            LOG.warning("LVNF %s not found, adding." % lvnf_id)
+            LOG.warning("LVNF %s not found, adding.", lvnf_id)
 
             img_dict = status_lvnf['image']
 
@@ -371,7 +370,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
             # Raise LVNF join event
             if lvnf.process != PROCESS_RUNNING:
-                LOG.info("LVNF JOIN %s" % (lvnf_id))
+                LOG.info("LVNF JOIN %s", lvnf_id)
                 for handler in self.server.pt_types_handlers[PT_LVNF_JOIN]:
                     handler(lvnf)
 
