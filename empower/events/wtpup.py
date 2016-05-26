@@ -18,7 +18,7 @@
 from empower.core.app import EmpowerApp
 from empower.core.module import Module
 from empower.core.module import ModuleLVAPPEventWorker
-from empower.lvapp import PT_REGISTER
+from empower.lvapp import PT_CAPS
 
 from empower.main import RUNTIME
 
@@ -28,11 +28,11 @@ class WTPUp(Module):
 
     MODULE_NAME = "wtpup"
 
-    def handle_response(self, wtp):
-        """ Handle an REGISTER message.
+    def handle_response(self, caps):
+        """ Handle an CAPS message.
 
         Args:
-            wtp, a WTP object
+            caps, a CAPS message
 
         Returns:
             None
@@ -40,8 +40,10 @@ class WTPUp(Module):
 
         wtps = RUNTIME.tenants[self.tenant_id].wtps
 
-        if wtp.addr not in wtps:
+        if caps.wtp not in wtps:
             return
+
+        wtp = wtps[caps.wtp]
 
         self.handle_callback(wtp)
 
@@ -71,4 +73,4 @@ setattr(EmpowerApp, WTPUp.MODULE_NAME, app_wtpup)
 def launch():
     """Initialize the module."""
 
-    return WTPUpWorker(WTPUp, PT_REGISTER)
+    return WTPUpWorker(WTPUp, PT_CAPS)

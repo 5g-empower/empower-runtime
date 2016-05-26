@@ -97,14 +97,13 @@ class RSSI(Module):
     MODULE_NAME = "rssi"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'addr', 'block']
 
-    # parameters
-    _addr = None
-    _relation = 'GT'
-    _value = -90
-    _block = None
-
-    # data strctures
-    events = []
+    def __init__(self):
+        Module.__init__(self)
+        self._addr = None
+        self._relation = 'GT'
+        self._value = -90
+        self._block = None
+        self.events = []
 
     def run_once(self):
         """ Send out rate request. """
@@ -225,6 +224,7 @@ class RSSI(Module):
                       'current': message.current}
 
         self.events.append(rssi_event)
+        self.handle_callback(self)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Trigger """

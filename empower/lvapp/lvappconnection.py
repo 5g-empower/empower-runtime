@@ -44,8 +44,6 @@ from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_LVAP_LEAVE
-from empower.lvapp import PT_CAPS
-from empower.lvapp import CAPS
 from empower.lvapp import PT_AUTH_RESPONSE
 from empower.lvapp import AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
@@ -725,9 +723,9 @@ class LVAPPConnection(object):
 
     @classmethod
     def _handle_caps(cls, caps):
-        """Handle an incoming CAPS_RESPONSE message.
+        """Handle an incoming CAPS message.
         Args:
-            caps, a CAPS_RESPONSE message
+            caps, a CAPS message
         Returns:
             None
         """

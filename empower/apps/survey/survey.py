@@ -25,14 +25,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Link Statistics Poller Apps."""
+"""Survey App."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
 class Survey(EmpowerApp):
-    """Link Statistics Poller Apps.
+    """Survey App.
 
     Command Line Parameters:
 
@@ -41,8 +41,8 @@ class Survey(EmpowerApp):
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
+        ./empower-runtime.py apps.survey.survey \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
 
     """
 
@@ -51,16 +51,16 @@ class Survey(EmpowerApp):
         self.wtpup(callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
-        """ New LVAP. """
+        """New WTP."""
 
         for block in wtp.supports:
-            self.summary(block=block, limit=10,
-                         callback=self.summary_callback)
+            self.summary(block=block, callback=self.summary_callback)
 
     def summary_callback(self, summary):
         """ New stats available. """
 
-        self.log.info("New summary from %s" % summary.lvap)
+        self.log.info("New summary from %s addrs %s frames %u", summary.block,
+                      summary.addrs, len(summary.frames))
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):

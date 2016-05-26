@@ -98,15 +98,13 @@ class Summary(Module):
     MODULE_NAME = "summary"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
-    # parametes
-    _addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
-    _keep = 0
-    _limit = -1
-    _period = 2000
-    _block = None
-
-    # data structures
-    frames = []
+    def __init__(self):
+        Module.__init__(self)
+        self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
+        self._limit = -1
+        self._period = 2000
+        self._block = None
+        self.frames = []
 
     @property
     def block(self):
@@ -152,20 +150,6 @@ class Summary(Module):
                 raise ValueError("More than one block specified")
 
             self._block = match.pop()
-
-    @property
-    def keep(self):
-        """Return keep parameter."""
-
-        return self._keep
-
-    @keep.setter
-    def keep(self, value):
-        "Set keep parameter."
-
-        if value < 0:
-            raise ValueError("Invalid keep value (%u)" % value)
-        self._keep = value
 
     @property
     def limit(self):
@@ -262,8 +246,7 @@ class Summary(Module):
         if wtp_addr not in tenant.wtps:
             return
 
-        if len(self.frames) > self.keep:
-            self.frames = []
+        self.frames = []
 
         for recv in response.frames:
 
@@ -304,13 +287,14 @@ class Summary(Module):
 
             self.frames.append(frame)
 
+        self.handle_callback(self)
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Summary """
 
         out = super().to_dict()
 
         out['addrs'] = self.addrs
-        out['keep'] = self.keep
         out['limit'] = self.limit
         out['period'] = self.period
         out['frames'] = self.frames
