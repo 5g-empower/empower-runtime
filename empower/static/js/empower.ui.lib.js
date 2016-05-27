@@ -769,6 +769,37 @@ function loadCPPs(tenant_id) {
     });
 }
 
+function removeVBSP(mac, tenant_id) {
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/vbsps/" + mac
+    } else {
+        url = "/api/v1/vbsps/" + mac
+    }
+    $.ajax({
+        url: url,
+        type: 'DELETE',
+        dataType: 'json',
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        success: function (data) {
+            loadVBSPs()
+        },
+        statusCode: {
+            400: function () {
+                alert('Invalid MAC Address');
+            },
+            400: function () {
+                alert('Duplicate MAC Address');
+            },
+            500: function () {
+                alert('Empty MAC Address');
+            }
+        }
+    });
+}
+
 function removeCPP(mac, tenant_id) {
     if (tenant_id) {
         url = "/api/v1/tenants/" + tenant_id + "/cpps/" + mac
@@ -939,6 +970,29 @@ function lvnfDown(idLvnf) {
 
 }
 
+function selectVBSP() {
+
+    $.getJSON("/api/v1/vbsps",
+        function(data) {
+
+            tmp = "Select VBSP: <select id=\"select_vbsp\">"
+            for (var stream in data) {
+                tmp += "<option>" + data[stream].addr + "</option>"
+            }
+            tmp += "</select>"
+            tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addVBSPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPSelectBox()\" /></div>"
+
+            var table = document.getElementById("vbsps");
+            var rowCount = table.rows.length - 1;
+            var row = table.deleteRow(rowCount);
+            var row = table.insertRow(rowCount);
+            var mac = row.insertCell(0);
+            mac.colSpan = 3
+            mac.innerHTML = tmp
+
+        });
+
+}
 
 function selectCPP() {
 
@@ -962,6 +1016,17 @@ function selectCPP() {
 
         });
 
+}
+
+function removeVBSPSelectBox() {
+    var table = document.getElementById("vbsps");
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return selectVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
 function removeCPPSelectBox() {
@@ -994,6 +1059,24 @@ function addCPPtoTenant() {
     });
 }
 
+function addVBSPtoTenant() {
+    var select = document.getElementById('select_vbsp');
+    $.ajax({
+        url: "/api/v1/tenants/" + tenant_id + "/vbsps/" + select.value,
+        type: 'POST',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            removeVBSPSelectBox()
+        },
+        error: function (data) {
+            removeVBSPSelectBox()
+        },
+    });
+}
 
 wtps = {}
 lvaps ={}
@@ -1587,13 +1670,13 @@ function addWTPtoTenant() {
     });
 }
 
-oains = {}
+vbsps = {}
 
-function loadOAINs(tenant_id) {
+function loadVBSPs(tenant_id) {
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/oains"
+        url = "/api/v1/tenants/" + tenant_id + "/vbsps"
     } else {
-        url = "/api/v1/oains"
+        url = "/api/v1/vbsps"
     }
     $.ajax({
         url: url,
@@ -1601,7 +1684,7 @@ function loadOAINs(tenant_id) {
         dataType: 'json',
         cache: false,
         success: function (data) {
-            var table = document.getElementById('oains');
+            var table = document.getElementById('vbsps');
             var rowCount = table.rows.length - 1;
             while (rowCount--) {
                 if (rowCount < 0) {
@@ -1610,7 +1693,7 @@ function loadOAINs(tenant_id) {
                 table.deleteRow(rowCount);
             }
             if (data.length == 0) {
-                var table = document.getElementById('oains');
+                var table = document.getElementById('vbsps');
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
@@ -1620,7 +1703,7 @@ function loadOAINs(tenant_id) {
             }
             for (var stream in data) {
                 value = data[stream].addr
-                var table = document.getElementById('oains');
+                var table = document.getElementById('vbsps');
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var c = 0
@@ -1628,9 +1711,9 @@ function loadOAINs(tenant_id) {
                 remove.align = "center"
                 remove.width = "24px"
                 if (tenant_id) {
-                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeOAIN('" + value + "', '" + tenant_id + "')\" />"
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBSP('" + value + "', '" + tenant_id + "')\" />"
                 } else {
-                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeOAIN('" + value + "')\" />"
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBSP('" + value + "')\" />"
                 }
                 var flag = row.insertCell(c++);
                 flag.align = "center"
@@ -1643,20 +1726,20 @@ function loadOAINs(tenant_id) {
                 var mac = row.insertCell(c++);
                 mac.innerHTML = data[stream]['label'] + " (" + value + ")"
                 if (data[stream]['connection']) {
-                    mac.innerHTML += "<div class=\"details\" id=\"oain_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
+                    mac.innerHTML += "<div class=\"details\" id=\"vbsp_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
                 } else {
-                    mac.innerHTML += "<div class=\"details\" id=\"oain_" + stream + "\">Disconnected</div>"
+                    mac.innerHTML += "<div class=\"details\" id=\"vbsp_" + stream + "\">Disconnected</div>"
                 }
             }
         },
     });
 }
 
-function removeOAIN(mac, tenant_id) {
+function removeVNSP(mac, tenant_id) {
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/oains/" + mac
+        url = "/api/v1/tenants/" + tenant_id + "/vbsps/" + mac
     } else {
-        url = "/api/v1/oains/" + mac
+        url = "/api/v1/vbsps/" + mac
     }
     $.ajax({
         url: url,
@@ -1667,7 +1750,7 @@ function removeOAIN(mac, tenant_id) {
             request.setRequestHeader("Authorization", BASE_AUTH);
         },
         success: function (data) {
-            loadOAINs()
+            loadVBSPs()
         },
         statusCode: {
             400: function () {
@@ -1683,13 +1766,13 @@ function removeOAIN(mac, tenant_id) {
     });
 }
 
-function registerOAIN(tenant_id) {
-    var mac = document.getElementById("oain_mac").value;
-    var label = document.getElementById("oain_label").value;
+function registerVBSP(tenant_id) {
+    var mac = document.getElementById("vbsp_mac").value;
+    var label = document.getElementById("vbsp_label").value;
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/oains"
+        url = "/api/v1/tenants/" + tenant_id + "/vbsps"
     } else {
-        url = "/api/v1/oains"
+        url = "/api/v1/vbsps"
     }
     data = '{  "version" : "1.0", "addr" : "' + mac + '", "label" : "' + label + '" }'
     $.ajax({
@@ -1703,14 +1786,14 @@ function registerOAIN(tenant_id) {
         },
         statusCode: {
             201: function (data) {
-                var table = document.getElementById('oains');
+                var table = document.getElementById('vbsps');
                 var rowCount = table.rows.length - 1;
                 var row = table.deleteRow(rowCount);
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
                 mac.colSpan = 3
                 mac.align = "right"
-                mac.innerHTML = "<a onClick=\"return addOAIN()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                mac.innerHTML = "<a onClick=\"return addVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
             },
             400: function () {
                 alert('Invalid MAC Address');
@@ -1725,24 +1808,24 @@ function registerOAIN(tenant_id) {
     });
 }
 
-function addOAIN() {
-    var table = document.getElementById('oains');
+function addVBSP() {
+    var table = document.getElementById('vbsps');
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"oain_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic OAI Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"oain_label\" type=\"text\" value=\"Generic OAI Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerOAIN()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeOAINInputBox()\" /></div></li></ul>"
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbsp_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBSP Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbsp_label\" type=\"text\" value=\"Generic VBSP Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBSP()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPInputBox()\" /></div></li></ul>"
     mac.colSpan = 3
     mac.innerHTML = tmp
 }
 
-function removeOAINInputBox() {
-    var table = document.getElementById('oains');
+function removeVBSPInputBox() {
+    var table = document.getElementById('vbsps');
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 3
     mac.align = "right"
-    mac.innerHTML = "<a onClick=\"return addOAIN()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+    mac.innerHTML = "<a onClick=\"return addVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
 }

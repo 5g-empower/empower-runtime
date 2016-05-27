@@ -59,7 +59,7 @@ class Tenant(object):
                'lvnfs',
                'wtps',
                'cpps',
-               'oains']
+               'vbsps']
 
     def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type):
         self.tenant_id = tenant_id
@@ -69,7 +69,7 @@ class Tenant(object):
         self.bssid_type = bssid_type
         self.wtps = {}
         self.cpps = {}
-        self.oains = {}
+        self.vbsps = {}
         self.lvaps = {}
         self.lvnfs = {}
         self.vaps = {}

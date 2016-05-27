@@ -25,13 +25,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""OAI Node."""
+"""Virtual Base Station."""
 
 from empower.core.pnfdev import BasePNFDev
 
 
-class OAIN(BasePNFDev):
-    """A Wireless Termination Point.
+class VBSP(BasePNFDev):
+    """A Virtual Base Station.
 
     Attributes:
         addr: This PNFDev MAC address (EtherAddress)
@@ -47,8 +47,7 @@ class OAIN(BasePNFDev):
         downlink_bytes: signalling channel downlink bytes
         downlink_bit_rate: signalling channel downlink bit rate
         ports: OVS ports
-        supports: set of resource blocks supported by the WTP
     """
 
-    ALIAS = "oains"
-    SOLO = "oain"
+    ALIAS = "vbsps"
+    SOLO = "vbsp"

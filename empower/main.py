@@ -168,6 +168,7 @@ def _do_launch(components, components_order):
 
         params = components[name]
         launch = "launch"
+        name, _, members = modules[name]
 
         if launch not in members:
             logging.error("%s is not defined in module %s", launch, name)

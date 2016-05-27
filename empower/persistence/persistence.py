@@ -239,11 +239,11 @@ class TblWTP(TblPNFDev):
     }
 
 
-class TblOAIN(TblPNFDev):
-    """ OAI Node. """
+class TblVBSP(TblPNFDev):
+    """ Virtual Base Station Point. """
 
     __mapper_args__ = {
-        'polymorphic_identity': 'oains'
+        'polymorphic_identity': 'vbsps'
     }
 
 
