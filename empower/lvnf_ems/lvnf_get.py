@@ -1,69 +1,51 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
-# All rights reserved.
+# Copyright (c) 2016 Roberto Riggio
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the CREATE-NET nor the
-#      names of its contributors may be used to endorse or promote products
-#      derived from this software without specific prior written permission.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# THIS SOFTWARE IS PROVIDED BY CREATE-NET ''AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL CREATE-NET BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
-"""Handlers poller module."""
+"""LVNF EMS GET command."""
 
 from uuid import UUID
 
-from empower.core.module import ModuleWorker
-from empower.core.module import ModuleHandler
+from empower.core.lvnf import LVNF
 from empower.core.module import Module
-from empower.core.module import bind_module
-from empower.core.module import handle_callback
-from empower.handlers import PT_READ_HANDLER_REQUEST
-from empower.handlers import PT_READ_HANDLER_RESPONSE
-from empower.lvnfp.lvnfpserver import LVNFPServer
-from empower.restserver.restserver import RESTServer
+from empower.lvnf_ems import PT_LVNF_GET_REQUEST
+from empower.lvnf_ems import PT_LVNF_GET_RESPONSE
+from empower.core.module import ModuleLVNFPWorker
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
 
+class LVNFGet(Module):
+    """LVNF Get object."""
 
-class ReadHandler(Module):
-    """ReadHandler object."""
-
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf_id', 'handler']
+    MODULE_NAME = "lvnf_get"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf', 'handler']
 
     def __init__(self):
-
         super().__init__()
-
-        self.__lvnf_id = None
+        self.__lvnf = None
         self.__handler = None
-        self.samples = None
         self.retcode = None
+        self.samples = None
 
     def __eq__(self, other):
 
         return super().__eq__(other) and \
-               self.lvnf_id == other.lvnf_id and \
-               self.handler == other.handler
+            self.lvnf == other.lvnf and \
+            self.handler == other.handler
 
     @property
     def handler(self):
@@ -76,7 +58,7 @@ class ReadHandler(Module):
         """Set the handler name."""
 
         tenant = RUNTIME.tenants[self.tenant_id]
-        lvnf = tenant.lvnfs[self.lvnf_id]
+        lvnf = tenant.lvnfs[self.lvnf]
 
         if handler not in lvnf.image.handlers:
             raise KeyError("Handler %s not found" % handler)
@@ -84,90 +66,59 @@ class ReadHandler(Module):
         self.__handler = handler
 
     @property
-    def lvnf_id(self):
-        return self.__lvnf_id
+    def lvnf(self):
+        return self.__lvnf
 
-    @lvnf_id.setter
-    def lvnf_id(self, value):
-        self.__lvnf_id = UUID(str(value))
+    @lvnf.setter
+    def lvnf(self, value):
+        self.__lvnf = UUID(str(value))
 
     def to_dict(self):
         """Return a JSON-serializable representation of this object."""
 
         out = super().to_dict()
 
-        out['lvnf_id'] = self.lvnf_id
+        out['lvnf'] = self.lvnf
         out['handler'] = self.handler
-        out['samples'] = self.samples
         out['retcode'] = self.retcode
+        out['samples'] = self.samples
 
         return out
 
     def run_once(self):
         """Send out handler requests."""
 
-        worker = RUNTIME.components[self.worker.__module__]
-        worker.send_read_handler_request(self)
-
-
-class ReadHandlerHandler(ModuleHandler):
-    pass
-
-
-class ReadHandlerWorker(ModuleWorker):
-    """ReadHandler worker."""
-
-    MODULE_NAME = "read_handler"
-    MODULE_HANDLER = ReadHandlerHandler
-    MODULE_TYPE = ReadHandler
-
-    def send_read_handler_request(self, handler):
-        """Send a READ_HANDLER_REQUEST message."""
-
-        # start profiling
-        handler.tic()
-
-        if handler.tenant_id not in RUNTIME.tenants:
-            self.remove_module(handler.module_id)
+        if self.tenant_id not in RUNTIME.tenants:
             return
 
-        tenant = RUNTIME.tenants[handler.tenant_id]
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        if handler.lvnf_id not in tenant.lvnfs:
-            LOG.error("LVNF %s not found.", handler.lvnf_id)
-            self.remove_module(handler.module_id)
+        if self.lvnf not in tenant.lvnfs:
+            self.log.error("LVNF %s not found.", self.lvnf)
             return
 
-        lvnf = tenant.lvnfs[handler.lvnf_id]
+        lvnf = tenant.lvnfs[self.lvnf]
 
         if not lvnf.cpp.connection:
             return
 
-        handler_req = {'handler_id': handler.module_id,
-                       'lvnf_id': handler.lvnf_id,
-                       'tenant_id': handler.tenant_id,
-                       'handler': lvnf.image.handlers[handler.handler]}
+        handler_req = {'module_id': self.module_id,
+                       'lvnf_id': self.lvnf,
+                       'tenant_id': self.tenant_id,
+                       'handler': lvnf.image.handlers[self.handler]}
 
-        lvnf.cpp.connection.send_message(PT_READ_HANDLER_REQUEST, handler_req)
+        lvnf.cpp.connection.send_message(PT_LVNF_GET_REQUEST, handler_req)
 
-    def handle_read_handler_response(self, handler_response):
-        """Handle an incoming READ_HANDLER_RESPONSE message.
+    def handle_response(self, response):
+        """Handle an incoming LVNF_GET_RESPONSE message.
         Args:
-            handler_response, a READ_HANDLER_RESPONSE message
+            response, a LVNF_GET_RESPONSE message
         Returns:
             None
         """
 
-        if handler_response['handler_id'] not in self.modules:
-            return
-
-        handler = self.modules[handler_response['handler_id']]
-
-        # stop profiling
-        handler.toc()
-
-        tenant_id = UUID(handler_response['tenant_id'])
-        lvnf_id = UUID(handler_response['lvnf_id'])
+        tenant_id = UUID(response['tenant_id'])
+        lvnf_id = UUID(response['lvnf_id'])
 
         tenant = RUNTIME.tenants[tenant_id]
 
@@ -175,31 +126,41 @@ class ReadHandlerWorker(ModuleWorker):
             return
 
         # update this object
-        if handler_response['retcode'] != 200:
-            error = handler_response['samples']
-            LOG.error("Error while polling %s: %s", handler.handler, error)
-            self.remove_module(handler.module_id)
+        if response['retcode'] != 200:
+            error = "%s (%s)" % (response['retcode'], response['samples'])
+            self.log.error("Error accessing %s: %s", self.handler, error)
             return
 
-        handler.retcode = handler_response['retcode']
-        handler.samples = handler_response['samples']
+        self.retcode = response['retcode']
+        self.samples = response['samples']
 
-        # handle callback
-        handle_callback(handler, handler)
+        # call callback
+        self.handle_callback(self)
 
 
-bind_module(ReadHandlerWorker)
+class LVNFGetWorker(ModuleLVNFPWorker):
+    """ Counter worker. """
+
+    pass
+
+
+def lvnf_get(**kwargs):
+    """Create a new module."""
+
+    return RUNTIME.components[LVNFGetWorker.__module__].add_module(**kwargs)
+
+
+def bound_lvnf_get(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvnf'] = self.lvnf
+    return lvnf_get(**kwargs)
+
+setattr(LVNF, LVNFGet.MODULE_NAME, bound_lvnf_get)
 
 
 def launch():
-    """Initialize the module."""
+    """ Initialize the module. """
 
-    lvnf_server = RUNTIME.components[LVNFPServer.__module__]
-    rest_server = RUNTIME.components[RESTServer.__module__]
-
-    worker = ReadHandlerWorker(rest_server)
-    lvnf_server.register_message(PT_READ_HANDLER_RESPONSE,
-                                 None,
-                                 worker.handle_read_handler_response)
-
-    return worker
+    return LVNFGetWorker(LVNFGet, PT_LVNF_GET_RESPONSE)

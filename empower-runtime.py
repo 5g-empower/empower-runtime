@@ -43,8 +43,8 @@ if __name__ == "__main__":
              'events.cppup',
              'events.lvnfjoin',
              'events.lvnfleave',
-             #'handlers.read_handler',
-             #'handlers.write_handler',
+             'lvnf_ems.lvnf_get',
+             'lvnf_ems.lvnf_set',
              'lvnf_stats.lvnf_stats',
              ]
 

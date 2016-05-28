@@ -25,9 +25,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Handlers poller module."""
+"""LVNF Element Management System."""
 
-PT_READ_HANDLER_REQUEST = "read_handler_request"
-PT_READ_HANDLER_RESPONSE = "read_handler_response"
-PT_WRITE_HANDLER_REQUEST = "write_handler_request"
-PT_WRITE_HANDLER_RESPONSE = "write_handler_response"
+PT_LVNF_GET_REQUEST = "lvnf_get_request"
+PT_LVNF_GET_RESPONSE = "lvnf_get_response"
+PT_LVNF_SET_REQUEST = "lvnf_set_request"
+PT_LVNF_SET_RESPONSE = "lvnf_set_response"
