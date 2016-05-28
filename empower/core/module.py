@@ -157,8 +157,8 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
 
         except KeyError as ex:
             self.send_error(404, message=ex)
-        #except ValueError as ex:
-        #    self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
 
     def delete(self, *args, **kwargs):
         """Delete a module.
