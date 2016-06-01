@@ -46,6 +46,7 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvnfp.lvnfpserver import LVNFPServer
+from empower.vbspp.vbspserver import VBSPServer
 
 from empower.main import RUNTIME
 
@@ -635,4 +636,19 @@ class ModuleLVNFPEventWorker(ModuleEventWorker):
 
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
+                                   pt_type, pt_packet)
+
+
+class ModuleVBSPPEventWorker(ModuleEventWorker):
+    """Module worker (VBSP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
                                    pt_type, pt_packet)

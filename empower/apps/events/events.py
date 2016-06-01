@@ -47,6 +47,8 @@ class EventsApp(EmpowerApp):
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)
+        self.vbspup(callback=self.vbsp_up_callback)
+        self.vbspdown(callback=self.vbsp_down_callback)
         self.cppup(callback=self.cpp_up_callback)
         self.cppdown(callback=self.cpp_down_callback)
         self.wtpup(callback=self.wtp_up_callback)
@@ -55,6 +57,16 @@ class EventsApp(EmpowerApp):
         self.lvapleave(callback=self.lvap_leave_callback)
         self.lvnfjoin(callback=self.lvnf_join_callback)
         self.lvnfleave(callback=self.lvnf_leave_callback)
+
+    def vbsp_down_callback(self, vbsp):
+        """Called when an VBSP disconnects from a tennant."""
+
+        self.log.info("VBSP %s disconnected" % vbsp.addr)
+
+    def vbsp_up_callback(self, vbsp):
+        """Called when an VBSP connects to a tennant."""
+
+        self.log.info("VBSP %s connected" % vbsp.addr)
 
     def lvnf_join_callback(self, lvnf):
         """Called when an LVNF associates to a tennant."""

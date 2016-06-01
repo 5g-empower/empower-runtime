@@ -39,7 +39,6 @@ from empower.vbspp import PRT_VBSP_BYE
 from empower.vbspp import PRT_VBSP_REGISTER
 from empower.vbspp import PROGRAN_VERSION
 
-
 from empower.main import RUNTIME
 
 import empower.logger
@@ -69,7 +68,6 @@ class VBSPConnection(object):
         self.enb_id = None
         self.vbsp_id = None
         self.stream.set_close_callback(self._on_disconnect)
-        self.__buffer = b''
         self._hb_interval_ms = 500
         self._hb_worker = tornado.ioloop.PeriodicCallback(self._heartbeat_cb,
                                                           self._hb_interval_ms)
@@ -134,7 +132,7 @@ class VBSPConnection(object):
 
         if send_buff is None:
             err_code = progran_pb2.MSG_ENCODING
-            LOG.error("errno %u occured" % err_code)
+            LOG.error("errno %u occured", err_code)
 
         # First send the length of the message and then the actual message
         self.stream.write(size_message)
@@ -147,7 +145,8 @@ class VBSPConnection(object):
 
         echo_request = progran_pb2.progran_message()
 
-        self.create_header(xid, enb_id, header_pb2.PRPT_ECHO_REQUEST, echo_request.echo_request_msg.header)
+        self.create_header(xid, enb_id, header_pb2.PRPT_ECHO_REQUEST,
+                           echo_request.echo_request_msg.header)
         echo_request.msg_dir = progran_pb2.INITIATING_MESSAGE
 
         LOG.info("Sending echo request message to VBSP %f", self.vbsp.addr)
@@ -161,7 +160,6 @@ class VBSPConnection(object):
         xid = echo_request.echo_request_msg.header.xid
 
         echo_reply = progran_pb2.progran_message()
-        err_code = progran_pb2.NO_ERR
 
         self.create_header(xid, enb_id, header_pb2.PRPT_ECHO_REPLY,
                            echo_reply.echo_reply_msg.header)
@@ -177,38 +175,31 @@ class VBSPConnection(object):
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        self.__buffer = b''
-
         if line is not None:
-            LOG.info("Received message of length %d" % len(line))
-
-            self.__buffer = self.__buffer + line
 
             if self.vbsp:
                 self.vbsp.uplink_bytes += len(line)
 
-            if len(line) == 4: # Checking for size message (4 Bytes)
-                size = MESSAGE_SIZE.parse(self.__buffer)
+            # Checking for size message (4 Bytes)
+            if len(line) == 4:
+                size = MESSAGE_SIZE.parse(line)
                 remaining = size.length
                 self.stream.read_bytes(remaining, self._on_read)
                 return
 
             deserialized_msg = self.deserialize_message(line)
-
-            LOG.info("\n\n\n************ START OF REPLY MESSAGE ********************\n\n\n")
-
+            msg_type = deserialized_msg.WhichOneof("msg")
+            LOG.info("Received %s message", msg_type)
             LOG.info(deserialized_msg.__str__())
-
-            LOG.info("\n\n\n************ END OF REPLY MESSAGE **********************\n\n\n")
 
             self._trigger_message(deserialized_msg)
             self._wait()
 
-    def _trigger_message(self, deserialized_msg, callback_data=None):
+    def _trigger_message(self, deserialized_msg):
 
         msg_type = deserialized_msg.WhichOneof("msg")
 
-        if msg_type == None or msg_type not in self.server.pt_types:
+        if not msg_type or msg_type not in self.server.pt_types:
 
             LOG.error("Unknown message type %u", msg_type)
             return
@@ -221,14 +212,15 @@ class VBSPConnection(object):
 
         if msg_type in self.server.pt_types_handlers:
             for handler in self.server.pt_types_handlers[msg_type]:
-                handler(msg)
+                handler(deserialized_msg)
 
-    def convert_hex_enb_id_to_ether_address(self, enb_id):
+    def hex_enb_id_to_ether_address(self, enb_id):
 
         str_hex_value = format(enb_id, 'x')
         padding = '0' * (12 - len(str_hex_value))
         mac_string = padding + str_hex_value
-        mac_string_array = [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
+        mac_string_array = \
+            [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
 
         return EtherAddress(":".join(mac_string_array))
 
@@ -242,26 +234,28 @@ class VBSPConnection(object):
 
         if not self.enb_id:
             self.enb_id = hello.hello_msg.header.eid
-            self.vbsp_id = self.convert_hex_enb_id_to_ether_address(self.enb_id)
+            self.vbsp_id = self.hex_enb_id_to_ether_address(self.enb_id)
         elif self.enb_id != hello.hello_msg.header.eid:
-            LOG.error(" Hello from different ENB with id (%f)", hello.hello_msg.header.eid)
+            LOG.error("Hello from different eNB (%f)",
+                      hello.hello_msg.header.eid)
             return
 
         try:
             vbsp = RUNTIME.vbsps[self.vbsp_id]
         except KeyError:
-            LOG.error(" Hello from unknown VBSP (%s)", (self.vbsp_id))
+            LOG.error("Hello from unknown VBSP (%s)", (self.vbsp_id))
             return
 
-        LOG.info("Hello from %s , port %s, VBSP %s", self.addr[0], self.addr[1], self.vbsp_id.to_str())
+        LOG.info("Hello from %s, VBSP %s", self.addr[0], self.vbsp_id.to_str())
 
-        # If this is a new connection, then send enb status request or enb config request
+        # If this is a new connection, then send enb status request or enb
+        # config request
         if not vbsp.connection:
             # set enb before connection because it is used when the connection
             # attribute of the PNFDev object is set
             self.vbsp = vbsp
             vbsp.connection = self
-            vbsp.period = 5000000
+            vbsp.period = 5000
             # self.send_caps_request()
 
         # Update VBSP params
@@ -274,18 +268,16 @@ class VBSPConnection(object):
         self.stream.read_bytes(4, self._on_read)
 
     def _on_disconnect(self):
-        """ Handle WTP disconnection """
+        """Handle VBSP disconnection."""
 
         if not self.vbsp:
             return
 
-        LOG.info("VBSP disconnected: %s" % self.vbsp.addr)
+        LOG.info("VBSP disconnected: %s", self.vbsp.addr)
 
         # reset state
-        # self.vbsp.last_seen = 0
+        self.vbsp.last_seen = 0
         self.vbsp.connection = None
-        # self.vbsp.ports = {}
-        # self.vbsp.supports = ResourcePool()
 
         # remove hosted LVAPs
         to_be_removed = []
@@ -293,23 +285,14 @@ class VBSPConnection(object):
             if vbsp == self.vbsp:
                 to_be_removed.append(vbsp)
 
-        # commented for now by supreeth
-        # for vbsp in to_be_removed:
-        #     LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
-        #     for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
-        #         handler(lvap)
-        #     LOG.info("Deleting LVAP: %s", lvap.addr)
-        #     lvap.clear_ports()
-        #     del RUNTIME.lvaps[lvap.addr]
-
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to self."""
 
         for handler in self.server.pt_types_handlers[PRT_VBSP_BYE]:
-            handler(self.wtp)
+            handler(self.vbsp)
 
     def send_register_message_to_self(self):
         """Send a REGISTER message to self."""
 
         for handler in self.server.pt_types_handlers[PRT_VBSP_REGISTER]:
-            handler(self.wtp)
+            handler(self.vbsp)

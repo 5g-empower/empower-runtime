@@ -31,6 +31,8 @@ if __name__ == "__main__":
              'lvap_stats.lvap_stats',
              'events.wtpdown',
              'events.wtpup',
+             'events.vbspup',
+             'events.vbspdown',
              'events.lvapleave',
              'events.lvapjoin',
              'counters.packets_counter',
