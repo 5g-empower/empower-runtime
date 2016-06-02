@@ -188,9 +188,6 @@ class VBSPConnection(object):
                 return
 
             deserialized_msg = self.deserialize_message(line)
-            msg_type = deserialized_msg.WhichOneof("msg")
-            LOG.info("Received %s message", msg_type)
-            LOG.info(deserialized_msg.__str__())
 
             self._trigger_message(deserialized_msg)
             self._wait()

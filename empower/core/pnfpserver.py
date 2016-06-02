@@ -33,6 +33,8 @@ import tornado.websocket
 
 from uuid import UUID
 
+import empower.logger
+
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
@@ -285,6 +287,7 @@ class PNFPServer():
         self.__load_belongs()
         self.pt_types = pt_types
         self.pt_types_handlers = pt_types_handlers
+        self.log = empower.logger.get_logger()
 
     @property
     def pnfdevs(self):

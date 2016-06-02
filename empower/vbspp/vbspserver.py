@@ -41,9 +41,6 @@ from empower.vbspp import DEFAULT_PORT
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantVBSPHandler(BaseTenantPNFDevHandler):
     """TenantVBSP Handler."""
@@ -71,13 +68,12 @@ class VBSPServer(PNFPServer, TCPServer):
         TCPServer.__init__(self)
 
         self.port = int(port)
-        self.ues = {}
         self.connection = None
 
         self.listen(self.port)
 
     def handle_stream(self, stream, address):
-        LOG.info('Incoming connection from %r and %r', address, stream)
+        self.log.info('Incoming connection from %r', address)
         self.connection = VBSPConnection(stream, address, server=self)
 
 
@@ -90,5 +86,5 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(TenantVBSPHandler, server)
     rest_server.add_handler_class(VBSPHandler, server)
 
-    LOG.info("VBSP Server available at %u", server.port)
+    server.log.info("VBSP Server available at %u", server.port)
     return server

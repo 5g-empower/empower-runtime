@@ -38,13 +38,11 @@ from construct import UBInt32
 from construct import Bytes
 
 from empower.core.module import ModuleLVAPPWorker
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
-from empower.core.module import Module
-from empower.core.lvap import LVAP
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.app import EmpowerApp
 from empower.lvapp import PT_VERSION
+from empower.core.app import EmpowerApp
+from empower.triggers.trigger import Trigger
+from empower.lvapp import PT_BYE
 
 from empower.main import RUNTIME
 
@@ -65,7 +63,7 @@ ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt16("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"),
-                          Bytes("addr", 6),
+                          Bytes("addrs", 6),
                           Bytes("hwaddr", 6),
                           UBInt8("channel"),
                           UBInt8("band"),
@@ -79,8 +77,6 @@ RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
                       UBInt32("module_id"),
                       Bytes("wtp", 6),
                       Bytes("addr", 6),
-                      UBInt8("relation"),
-                      SBInt8("value"),
                       SBInt8("current"))
 
 
@@ -91,18 +87,15 @@ DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt32("module_id"))
 
 
-class RSSI(Module):
+class RSSI(Trigger):
     """ RSSI trigger object. """
 
     MODULE_NAME = "rssi"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'addr', 'block']
 
     def __init__(self):
-        Module.__init__(self)
-        self._addr = None
+        Trigger.__init__(self)
         self._relation = 'GT'
         self._value = -90
-        self._block = None
         self.events = []
 
     def run_once(self):
@@ -127,7 +120,7 @@ class RSSI(Module):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
-                        addr=self.addr.to_raw(),
+                        addrs=self.addrs.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band,
@@ -140,61 +133,6 @@ class RSSI(Module):
         msg = ADD_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
 
-    @property
-    def addr(self):
-        """ Return the address. """
-        return self._addr
-
-    @addr.setter
-    def addr(self, addr):
-        """ Set the address. """
-        self._addr = EtherAddress(addr)
-
-    @property
-    def block(self):
-        """Return block."""
-
-        return self._block
-
-    @block.setter
-    def block(self, value):
-        """Set block."""
-
-        if isinstance(value, ResourceBlock):
-
-            self._block = value
-
-        elif isinstance(value, dict):
-
-            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
-
-            if 'hwaddr' not in value:
-                raise ValueError("Missing field: hwaddr")
-
-            if 'channel' not in value:
-                raise ValueError("Missing field: channel")
-
-            if 'band' not in value:
-                raise ValueError("Missing field: band")
-
-            if 'wtp' not in value:
-                raise ValueError("Missing field: wtp")
-
-            incoming = ResourcePool()
-            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                                  int(value['channel']), int(value['band']))
-            incoming.add(block)
-
-            match = wtp.supports & incoming
-
-            if not match:
-                raise ValueError("No block specified")
-
-            if len(match) > 1:
-                raise ValueError("More than one block specified")
-
-            self._block = match.pop()
-
     def handle_response(self, message):
         """ Handle an incoming RSSI_TRIGGER message.
         Args:
@@ -203,24 +141,13 @@ class RSSI(Module):
             None
         """
 
-        if message.relation == RELATIONS['EQ']:
-            relation = 'EQ'
-        elif message.relation == RELATIONS['GT']:
-            relation = 'GT'
-        elif message.relation == RELATIONS['LT']:
-            relation = 'LT'
-        elif message.relation == RELATIONS['GE']:
-            relation = 'GE'
-        elif message.relation == RELATIONS['LE']:
-            relation = 'LE'
-
         timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         rssi_event = {'timestamp': timestamp,
                       'addr': EtherAddress(message.addr),
                       'wtp': EtherAddress(message.wtp),
-                      'relation': relation,
-                      'value': message.value,
+                      'relation': self.relation,
+                      'value': self.value,
                       'current': message.current}
 
         self.events.append(rssi_event)
@@ -232,7 +159,6 @@ class RSSI(Module):
         out = super().to_dict()
 
         out['relation'] = self.relation
-        out['addr'] = self.addr
         out['value'] = self.value
         out['events'] = self.events
 
@@ -266,15 +192,22 @@ class RSSI(Module):
 
         self._value = int(value)
 
-    def __eq__(self, other):
-        return self.addr == other.addr and self.relation == other.relation \
-            and self.value == other.value
-
 
 class RssiWorker(ModuleLVAPPWorker):
     """ Rssi worker. """
 
-    pass
+    def handle_bye(self, wtp):
+        """Handle WTP bye message."""
+
+        to_be_removed = []
+
+        for module in self.modules:
+            block = self.modules[module].block
+            if block in wtp.supports:
+                to_be_removed.append(module)
+
+        for module in to_be_removed:
+            self.remove_module(module)
 
 
 def rssi(**kwargs):
@@ -287,15 +220,16 @@ def bound_rssi(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['addr'] = self.addr
-    kwargs['block'] = next(iter(self.downlink.keys()))
     kwargs['every'] = -1
     return rssi(**kwargs)
 
-setattr(LVAP, RSSI.MODULE_NAME, bound_rssi)
+setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)
 
 
 def launch():
     """ Initialize the module. """
 
-    return RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
+    rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
+    rssi_worker.pnfp_server.register_message(PT_BYE, None,
+                                             rssi_worker.handle_bye)
+    return rssi_worker

@@ -316,7 +316,7 @@ class LVAPPConnection(object):
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
         net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap.set_ssids(ssids)
+        lvap.set_ssids(list(ssids))
 
         RUNTIME.lvaps[sta] = lvap
 
@@ -972,6 +972,8 @@ class LVAPPConnection(object):
                              nb_mcses=len(rates),
                              mcs=rates)
 
+        LOG.info("Set tx policy %s", tx_policy)
+
         msg = SET_PORT.build(set_port)
         self.stream.write(msg)
 
@@ -1023,6 +1025,8 @@ class LVAPPConnection(object):
             tmp = Container(length=len(b_ssid), ssid=b_ssid)
             add_lvap.ssids.append(tmp)
             add_lvap.length = add_lvap.length + len(b_ssid) + 1
+
+        LOG.info("Add lvap %s", lvap)
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)

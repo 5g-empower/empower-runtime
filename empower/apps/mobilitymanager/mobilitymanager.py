@@ -58,13 +58,12 @@ class MobilityManager(EmpowerApp):
         # Register an wtp up event
         self.wtpup(callback=self.wtp_up_callback)
 
-        # Register an lvap join event
-        self.lvapjoin(callback=self.lvap_join_callback)
+    def wtp_up_callback(self, wtp):
+        """Called when a new WTP connects to the controller."""
 
-    def lvap_join_callback(self, lvap):
-        """Called when a new LVAP connects the network."""
-
-        lvap.rssi(relation='LT', value=self.limit, callback=self.low_rssi)
+        for block in wtp.supports:
+            self.ucqm(block=block, every=self.every)
+            self.rssi(block=block, relation='LT', callback=self.low_rssi)
 
     def handover(self, lvap):
         """ Handover the LVAP to a WTP with
@@ -120,18 +119,17 @@ class MobilityManager(EmpowerApp):
         self.log.info("Setting limit %u dB" % value)
         self.__limit = limit
 
-    def wtp_up_callback(self, wtp):
-        """Called when a new WTP connects to the controller."""
-
-        for block in wtp.supports:
-            self.ucqm(block=block, every=self.every)
-
     def low_rssi(self, trigger):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
 
-        lvap_addr = EtherAddress(trigger.events[-1]['lvap'])
+        print(trigger.events)
+
+        lvap_addr = EtherAddress(trigger.events[-1]['addr'])
         lvap = self.lvap(lvap_addr)
+
+        if not lvap:
+            return
 
         self.handover(lvap)
 

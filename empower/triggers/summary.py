@@ -39,14 +39,13 @@ from construct import Bytes
 from construct import Sequence
 from construct import Array
 
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.core.resourcepool import BT_L20
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
-from empower.core.module import Module
 from empower.core.module import ModuleLVAPPWorker
+from empower.triggers.trigger import Trigger
+from empower.lvapp import PT_BYE
 
 from empower.main import RUNTIME
 
@@ -92,64 +91,15 @@ DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt32("module_id"))
 
 
-class Summary(Module):
+class Summary(Trigger):
     """ Summary object. """
 
     MODULE_NAME = "summary"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
-        Module.__init__(self)
-        self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
+        Trigger.__init__(self)
         self._limit = -1
-        self._period = 2000
-        self._block = None
         self.frames = []
-
-    @property
-    def block(self):
-        """Return block."""
-
-        return self._block
-
-    @block.setter
-    def block(self, value):
-        """Set block."""
-
-        if isinstance(value, ResourceBlock):
-
-            self._block = value
-
-        elif isinstance(value, dict):
-
-            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
-
-            if 'hwaddr' not in value:
-                raise ValueError("Missing field: hwaddr")
-
-            if 'channel' not in value:
-                raise ValueError("Missing field: channel")
-
-            if 'band' not in value:
-                raise ValueError("Missing field: band")
-
-            if 'wtp' not in value:
-                raise ValueError("Missing field: wtp")
-
-            incoming = ResourcePool()
-            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                                  int(value['channel']), int(value['band']))
-            incoming.add(block)
-
-            match = wtp.supports & incoming
-
-            if not match:
-                raise ValueError("No block specified")
-
-            if len(match) > 1:
-                raise ValueError("More than one block specified")
-
-            self._block = match.pop()
 
     @property
     def limit(self):
@@ -164,34 +114,6 @@ class Summary(Module):
         if value < -1:
             raise ValueError("Invalid limit value (%u)" % value)
         self._limit = value
-
-    @property
-    def period(self):
-        "Return period parameter."
-
-        return self._period
-
-    @period.setter
-    def period(self, value):
-        "Set period parameter."
-
-        if value < 2000:
-            raise ValueError("Invalid period value (%u)" % value)
-        self._period = value
-
-    @property
-    def addrs(self):
-        """ Return the address. """
-        return self._addrs
-
-    @addrs.setter
-    def addrs(self, addrs):
-        """ Set the address. """
-        self._addrs = EtherAddress(addrs)
-
-    def __eq__(self, other):
-        return super().__eq__(other) and self.addrs == other.addrs and \
-            self.limit == other.limit and self.period == other.period
 
     def run_once(self):
         """ Send out rate request. """
@@ -294,9 +216,7 @@ class Summary(Module):
 
         out = super().to_dict()
 
-        out['addrs'] = self.addrs
         out['limit'] = self.limit
-        out['period'] = self.period
         out['frames'] = self.frames
 
         return out
@@ -305,7 +225,18 @@ class Summary(Module):
 class SummaryWorker(ModuleLVAPPWorker):
     """ Summary worker. """
 
-    pass
+    def handle_bye(self, wtp):
+        """Handle WTP bye message."""
+
+        to_be_removed = []
+
+        for module in self.modules:
+            block = self.modules[module].block
+            if block in wtp.supports:
+                to_be_removed.append(module)
+
+        for module in to_be_removed:
+            self.remove_module(module)
 
 
 def summary(**kwargs):
@@ -327,4 +258,7 @@ setattr(EmpowerApp, Summary.MODULE_NAME, bound_summary)
 def launch():
     """ Initialize the module. """
 
-    return SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
+    summary_worker = SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
+    summary_worker.pnfp_server.register_message(PT_BYE, None,
+                                                summary_worker.handle_bye)
+    return summary_worker

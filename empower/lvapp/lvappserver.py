@@ -47,9 +47,6 @@ from empower.lvapp.tenantlvapnexthandler import TenantLVAPNextHandler
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 DEFAULT_PORT = 4433
 
 
@@ -87,7 +84,7 @@ class LVAPPServer(PNFPServer, TCPServer):
         self.__assoc_id = 0
 
     def handle_stream(self, stream, address):
-        LOG.info('Incoming connection from %r', address)
+        self.log.info('Incoming connection from %r', address)
         self.connection = LVAPPConnection(stream, address, server=self)
 
     @property
@@ -112,5 +109,5 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(TenantLVAPPortHandler, server)
     rest_server.add_handler_class(TenantLVAPNextHandler, server)
 
-    LOG.info("LVAP Server available at %u", server.port)
+    server.log.info("LVAP Server available at %u", server.port)
     return server

@@ -71,6 +71,12 @@ class RadioPort():
                 'rts_cts': self.rts_cts}
 
     @property
+    def tx_policy(self):
+        """ Return the TX policy. """
+
+        return self._block.tx_policies[self._lvap.addr]
+
+    @property
     def lvap(self):
         """ Return the lvap. """
 
@@ -234,6 +240,9 @@ class RadioPortProp(dict):
 
             # update LVAP configuration
             key.radio.connection.send_add_lvap(value.lvap, key, self.SET_MASK)
+
+            # update Port configuration
+            key.radio.connection.send_set_port(value.tx_policy)
 
     def __getitem__(self, key):
 
