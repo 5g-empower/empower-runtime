@@ -63,7 +63,7 @@ ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt8("channel"),
                      UBInt8("band"),
                      SBInt16("limit"),
-                     UBInt16("period"))
+                     UBInt16("every"))
 
 SUMMARY_ENTRY = Sequence("frames",
                          Bytes("addr", 6),
@@ -137,7 +137,7 @@ class Summary(Trigger):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         limit=self.limit,
-                        period=self.period,
+                        every=self.every,
                         wtp=wtp.addr.to_raw(),
                         addrs=self.addrs.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
