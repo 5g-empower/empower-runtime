@@ -144,6 +144,7 @@ class RSSI(Trigger):
         timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         rssi_event = {'timestamp': timestamp,
+                      'addrs': self.addrs,
                       'addr': EtherAddress(message.addr),
                       'wtp': EtherAddress(message.wtp),
                       'relation': self.relation,
