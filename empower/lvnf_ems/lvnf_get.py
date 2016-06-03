@@ -35,9 +35,14 @@ class LVNFGet(Module):
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf', 'handler']
 
     def __init__(self):
-        super().__init__()
+
+        Module.__init__(self)
+
+        # parameters
         self.__lvnf = None
         self.__handler = None
+
+        # data structures
         self.retcode = None
         self.samples = None
 

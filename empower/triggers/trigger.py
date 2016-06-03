@@ -31,14 +31,18 @@ class Trigger(Module):
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
+
         Module.__init__(self)
+
+        # parameters
         self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
         self._block = None
 
-    def run_once(self):
-        """ Send out trigger configuration. """
+    def __eq__(self, other):
 
-        pass
+        return super().__eq__(other) and \
+            self.addrs == other.addrs and \
+            self.block == other.block
 
     @property
     def addrs(self):
@@ -95,11 +99,6 @@ class Trigger(Module):
 
             self._block = match.pop()
 
-    def handle_response(self, message):
-        """Handle a TRIGGER message."""
-
-        pass
-
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Trigger """
 
@@ -110,7 +109,12 @@ class Trigger(Module):
 
         return out
 
-    def __eq__(self, other):
+    def run_once(self):
+        """ Send out trigger configuration. """
 
-        return super().__eq__(other) and self.addrs == other.addrs and \
-            self.block == other.block
+        pass
+
+    def handle_response(self, message):
+        """Handle a TRIGGER message."""
+
+        pass

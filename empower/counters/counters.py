@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
-# All rights reserved.
+# Copyright (c) 2016 Roberto Riggio
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the CREATE-NET nor the
-#      names of its contributors may be used to endorse or promote products
-#      derived from this software without specific prior written permission.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# THIS SOFTWARE IS PROVIDED BY CREATE-NET ''AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL CREATE-NET BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 """Common counters module."""
 
@@ -73,13 +63,17 @@ class Counter(Module):
 
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
 
-    # parameters
-    _lvap = None
-    _bins = [8192]
+    def __init__(self):
 
-    # data structure
-    _tx_samples = []
-    _rx_samples = []
+        Module.__init__(self)
+
+        # parameters
+        self._lvap = None
+        self._bins = [8192]
+
+        # data structures
+        self._tx_samples = []
+        self._rx_samples = []
 
     def __eq__(self, other):
 
@@ -93,47 +87,6 @@ class Counter(Module):
     @lvap.setter
     def lvap(self, value):
         self._lvap = EtherAddress(value)
-
-    def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the Stats """
-
-        out = super().to_dict()
-
-        out['bins'] = self.bins
-        out['lvap'] = self.lvap
-        out['tx'] = self.tx_samples
-        out['rx'] = self.rx_samples
-
-        return out
-
-    def run_once(self):
-        """ Send out stats request. """
-
-        if self.tenant_id not in RUNTIME.tenants:
-            return
-
-        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
-
-        if self.lvap not in lvaps:
-            return
-
-        lvap = lvaps[self.lvap]
-
-        if not lvap.wtp.connection:
-            return
-
-        stats_req = Container(version=PT_VERSION,
-                              type=PT_STATS_REQUEST,
-                              length=18,
-                              seq=lvap.wtp.seq,
-                              module_id=self.module_id,
-                              sta=lvap.addr.to_raw())
-
-        self.log.info("Sending stats request to %s @ %s (id=%u)",
-                      lvap.addr, lvap.wtp.addr, self.module_id)
-
-        msg = STATS_REQUEST.build(stats_req)
-        lvap.wtp.connection.stream.write(msg)
 
     def fill_samples(self, data):
         pass
@@ -178,6 +131,47 @@ class Counter(Module):
                 raise ValueError("bins values must be positive")
 
         self._bins = bins
+
+    def to_dict(self):
+        """ Return a JSON-serializable dictionary representing the Stats """
+
+        out = super().to_dict()
+
+        out['bins'] = self.bins
+        out['lvap'] = self.lvap
+        out['tx'] = self.tx_samples
+        out['rx'] = self.rx_samples
+
+        return out
+
+    def run_once(self):
+        """ Send out stats request. """
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return
+
+        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
+
+        if self.lvap not in lvaps:
+            return
+
+        lvap = lvaps[self.lvap]
+
+        if not lvap.wtp.connection:
+            return
+
+        stats_req = Container(version=PT_VERSION,
+                              type=PT_STATS_REQUEST,
+                              length=18,
+                              seq=lvap.wtp.seq,
+                              module_id=self.module_id,
+                              sta=lvap.addr.to_raw())
+
+        self.log.info("Sending stats request to %s @ %s (id=%u)",
+                      lvap.addr, lvap.wtp.addr, self.module_id)
+
+        msg = STATS_REQUEST.build(stats_req)
+        lvap.wtp.connection.stream.write(msg)
 
     def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.

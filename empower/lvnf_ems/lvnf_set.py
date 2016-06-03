@@ -39,9 +39,12 @@ class LVNFSet(Module):
 
         super().__init__()
 
+        # parameters
         self.__lvnf = None
         self.__handler = None
         self.value = None
+
+        # data structures
         self.samples = None
         self.retcode = None
 
@@ -83,7 +86,7 @@ class LVNFSet(Module):
 
         out = super().to_dict()
 
-        out['lvnf_id'] = self.lvnf_id
+        out['lvnf'] = self.lvnf
         out['handler'] = self.handler
         out['samples'] = self.samples
         out['retcode'] = self.retcode
