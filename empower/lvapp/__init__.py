@@ -73,9 +73,7 @@ HELLO = Struct("hello", UBInt8("version"),
                UBInt16("length"),
                UBInt32("seq"),
                Bytes("wtp", 6),
-               UBInt32("period"),
-               UBInt32("uplink_bytes"),
-               UBInt32("downlink_bytes"))
+               UBInt32("period"))
 
 PROBE_REQUEST = Struct("probe_request", UBInt8("version"),
                        UBInt8("type"),
