@@ -17,7 +17,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import ModuleLVAPPEventWorker
+from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
 from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME

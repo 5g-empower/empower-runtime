@@ -19,7 +19,7 @@
 
 from empower.counters.counters import PT_STATS_RESPONSE
 from empower.counters.counters import STATS_RESPONSE
-from empower.core.module import ModuleLVAPPWorker
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.counters.counters import Counter
 from empower.core.lvap import LVAP
 

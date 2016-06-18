@@ -38,6 +38,7 @@ from empower.vbspp import PRT_TYPES
 from empower.vbspp import PRT_TYPES_HANDLERS
 from empower.vbspp.vbspconnection import VBSPConnection
 from empower.vbspp import DEFAULT_PORT
+from empower.core.module import ModuleEventWorker
 
 from empower.main import RUNTIME
 
@@ -54,6 +55,21 @@ class VBSPHandler(BasePNFDevHandler):
 
     HANDLERS = [(r"/api/v1/vbsps/?"),
                 (r"/api/v1/vbsps/([a-zA-Z0-9:]*)/?")]
+
+
+class ModuleVBSPPEventWorker(ModuleEventWorker):
+    """Module worker (VBSP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
+                                   pt_type, pt_packet)
 
 
 class VBSPServer(PNFPServer, TCPServer):

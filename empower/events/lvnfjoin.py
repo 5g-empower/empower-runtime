@@ -17,7 +17,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import ModuleLVNFPEventWorker
+from empower.lvnfp.lvnfpserver import ModuleLVNFPEventWorker
 from empower.lvnfp import PT_LVNF_JOIN
 
 from empower.main import RUNTIME

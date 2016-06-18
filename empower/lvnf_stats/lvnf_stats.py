@@ -33,7 +33,7 @@ from empower.core.lvnf import LVNF
 from empower.core.module import Module
 from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
 from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
-from empower.core.module import ModuleLVNFPWorker
+from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 
 from empower.main import RUNTIME
 
@@ -115,6 +115,11 @@ class LVNFStats(Module):
         if lvnf_id not in tenant.lvnfs:
             return
 
+        # update cache
+        lvnf = RUNTIME.tenants[tenant_id].lvnfs[lvnf_id]
+        lvnf.stats = response['stats']
+
+        # update this object
         self.stats = response['stats']
 
         # call callback

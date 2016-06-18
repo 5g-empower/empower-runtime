@@ -23,7 +23,7 @@ from empower.core.lvnf import LVNF
 from empower.core.module import Module
 from empower.lvnf_ems import PT_LVNF_SET_REQUEST
 from empower.lvnf_ems import PT_LVNF_SET_RESPONSE
-from empower.core.module import ModuleLVNFPWorker
+from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 
 from empower.main import RUNTIME
 

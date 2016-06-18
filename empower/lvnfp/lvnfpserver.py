@@ -35,6 +35,8 @@ from empower.core.pnfpserver import PNFPServer
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
+from empower.core.module import ModuleWorker
+from empower.core.module import ModuleEventWorker
 from empower.persistence.persistence import TblCPP
 from empower.lvnfp import PT_TYPES
 from empower.lvnfp import PT_TYPES_HANDLERS
@@ -45,9 +47,6 @@ from empower.lvnfp.tenantlvnfnexthandler import TenantLVNFNextHandler
 from empower.core.cpp import CPP
 
 from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 4422
 
@@ -64,6 +63,49 @@ class CPPHandler(BasePNFDevHandler):
 
     HANDLERS = [(r"/api/v1/cpps/?"),
                 (r"/api/v1/cpps/([a-zA-Z0-9:]*)/?")]
+
+
+class ModuleLVNFPWorker(ModuleWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
+                              pt_packet)
+
+    def handle_packet(self, response):
+        """Handle response message."""
+
+        if response['module_id'] not in self.modules:
+            return
+
+        module = self.modules[response['module_id']]
+
+        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
+                      response['module_id'])
+
+        module.handle_response(response)
+
+
+class ModuleLVNFPEventWorker(ModuleEventWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
+                                   pt_type, pt_packet)
 
 
 class LVNFPServer(PNFPServer, tornado.web.Application):
@@ -103,5 +145,5 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(TenantLVNFPortHandler, server)
     rest_server.add_handler_class(TenantLVNFNextHandler, server)
 
-    LOG.info("LVNF Server available at %u", server.port)
+    server.log.info("LVNF Server available at %u", server.port)
     return server

@@ -17,7 +17,7 @@
 
 """User channel quality map module."""
 
-from empower.core.module import ModuleLVAPPWorker
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.app import EmpowerApp
 from empower.maps.maps import POLLER_RESPONSE
 from empower.maps.maps import Maps

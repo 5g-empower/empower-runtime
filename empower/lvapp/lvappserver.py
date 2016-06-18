@@ -33,6 +33,8 @@ from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
+from empower.core.module import ModuleWorker
+from empower.core.module import ModuleEventWorker
 from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP
@@ -62,6 +64,49 @@ class WTPHandler(BasePNFDevHandler):
 
     HANDLERS = [(r"/api/v1/wtps/?"),
                 (r"/api/v1/wtps/([a-zA-Z0-9:]*)/?")]
+
+
+class ModuleLVAPPEventWorker(ModuleEventWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
+                                   pt_type, pt_packet)
+
+
+class ModuleLVAPPWorker(ModuleWorker):
+    """Module worker (LVAP Server version).
+
+    Keeps track of the currently defined modules for each tenant (events only)
+
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
+                              pt_packet)
+
+    def handle_packet(self, response):
+        """Handle response message."""
+
+        if response.module_id not in self.modules:
+            return
+
+        module = self.modules[response.module_id]
+
+        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
+                      response.module_id)
+
+        module.handle_response(response)
 
 
 class LVAPPServer(PNFPServer, TCPServer):

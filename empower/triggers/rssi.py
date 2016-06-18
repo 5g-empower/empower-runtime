@@ -27,7 +27,7 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
 
-from empower.core.module import ModuleLVAPPWorker
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp

@@ -33,7 +33,7 @@ from empower.core.resourcepool import BT_L20
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
-from empower.core.module import ModuleLVAPPWorker
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.triggers.trigger import Trigger
 from empower.lvapp import PT_BYE
 

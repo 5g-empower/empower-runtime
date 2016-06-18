@@ -44,9 +44,6 @@ import empower.logger
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.lvnfp.lvnfpserver import LVNFPServer
-from empower.vbspp.vbspserver import VBSPServer
 
 from empower.main import RUNTIME
 
@@ -393,6 +390,7 @@ class ModuleWorker(object):
         self.module = module
         self.pnfp_server = RUNTIME.components[server]
         self.rest_server = RUNTIME.components[RESTServer.__module__]
+        self.log = empower.logger.get_logger()
 
         module_name = self.module.MODULE_NAME
 
@@ -551,104 +549,3 @@ class ModuleEventWorker(ModuleWorker):
                      module.module_id)
 
             module.handle_response(event)
-
-
-class ModuleLVAPPWorker(ModuleWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
-                              pt_packet)
-
-    def handle_packet(self, response):
-        """Handle response message."""
-
-        if response.module_id not in self.modules:
-            return
-
-        module = self.modules[response.module_id]
-
-        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                 response.module_id)
-
-        module.handle_response(response)
-
-
-class ModuleLVNFPWorker(ModuleWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
-                              pt_packet)
-
-    def handle_packet(self, response):
-        """Handle response message."""
-
-        if response['module_id'] not in self.modules:
-            return
-
-        module = self.modules[response['module_id']]
-
-        LOG.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                 response['module_id'])
-
-        module.handle_response(response)
-
-
-class ModuleLVAPPEventWorker(ModuleEventWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
-class ModuleLVNFPEventWorker(ModuleEventWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
-class ModuleVBSPPEventWorker(ModuleEventWorker):
-    """Module worker (VBSP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
-                                   pt_type, pt_packet)

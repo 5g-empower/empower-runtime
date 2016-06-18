@@ -28,7 +28,7 @@ from construct import Array
 
 from empower.core.lvap import LVAP
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import ModuleLVAPPWorker
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import Module
 from empower.lvapp import PT_VERSION
 

@@ -17,8 +17,8 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.core.module import ModuleVBSPPEventWorker
 from empower.vbspp import PRT_VBSP_BYE
+from empower.vbspp.vbspserver import ModuleVBSPPEventWorker
 
 from empower.main import RUNTIME
 
