@@ -170,16 +170,18 @@ class Maps(Module):
         """ Send out request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
-
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
+            self.unload()
             return
 
         if not wtp.connection:
+            self.unload()
             return
 
         req = Container(version=PT_VERSION,

@@ -219,6 +219,12 @@ class Module(object):
         self.__worker = None
         self.log = empower.logger.get_logger()
 
+    def unload(self):
+        """Remove this module."""
+
+        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+        self.worker.remove_module(self.module_id)
+
     def handle_callback(self, serializable):
         """Handle an module callback.
 

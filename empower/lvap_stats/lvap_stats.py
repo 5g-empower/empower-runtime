@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Link statistics module."""
+"""LVAP statistics module."""
 
 from construct import UBInt8
 from construct import UBInt16
@@ -40,7 +40,8 @@ PT_RATES_RESPONSE = 0x30
 
 RATES_ENTRY = Sequence("rates",
                        UBInt8("rate"),
-                       UBInt8("prob"))
+                       UBInt8("prob"),
+                       UBInt8("tp"))
 
 
 RATES_REQUEST = Struct("rates_request", UBInt8("version"),
@@ -56,13 +57,12 @@ RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
                         UBInt32("seq"),
                         UBInt32("module_id"),
                         Bytes("wtp", 6),
-                        Bytes("sta", 6),
                         UBInt16("nb_entries"),
                         Array(lambda ctx: ctx.nb_entries, RATES_ENTRY))
 
 
 class LVAPStats(Module):
-    """ PacketsCounter object. """
+    """ LVAPStats object. """
 
     MODULE_NAME = "lvap_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
@@ -107,16 +107,19 @@ class LVAPStats(Module):
         """Send out rate request."""
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.unload()
             return
 
         lvaps = RUNTIME.tenants[self.tenant_id].lvaps
 
         if self.lvap not in lvaps:
+            self.unload()
             return
 
         lvap = lvaps[self.lvap]
 
         if not lvap.wtp.connection:
+            self.unload()
             return
 
         rates_req = Container(version=PT_VERSION,

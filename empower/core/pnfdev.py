@@ -62,10 +62,6 @@ class BasePNFDev(object):
         self.feed = None
         self.__seq = 0
         self.every = 0
-        self.uplink_bytes = 0
-        self.uplink_bit_rate = 0
-        self.downlink_bytes = 0
-        self.downlink_bit_rate = 0
         self.ports = {}
 
     @property
@@ -99,10 +95,6 @@ class BasePNFDev(object):
                 'every': self.every,
                 'label': self.label,
                 'feed': self.feed,
-                'uplink_bytes': self.uplink_bytes,
-                'uplink_bit_rate': self.uplink_bit_rate,
-                'downlink_bytes': self.downlink_bytes,
-                'downlink_bit_rate': self.downlink_bit_rate,
                 'ports': self.ports,
                 'connection': self.connection}
 

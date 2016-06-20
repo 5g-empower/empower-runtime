@@ -104,8 +104,7 @@ AUTH_RESPONSE = Struct("auth_response", UBInt8("version"),
                        UBInt8("type"),
                        UBInt16("length"),
                        UBInt32("seq"),
-                       Bytes("sta", 6),
-                       Bytes("bssid", 6))
+                       Bytes("sta", 6))
 
 ASSOC_REQUEST = \
     Struct("assoc_request", UBInt8("version"),

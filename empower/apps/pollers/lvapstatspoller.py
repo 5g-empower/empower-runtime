@@ -25,14 +25,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Link Statistics Poller Apps."""
+"""LVAP Statistics Poller Apps."""
 
 from empower.apps.pollers.poller import Poller
 from empower.core.app import DEFAULT_PERIOD
 
 
-class LinkStatsPoller(Poller):
-    """Link Statistics Poller Apps.
+class LVAPStatsPoller(Poller):
+    """LVAP Statistics Poller Apps.
 
     Command Line Parameters:
 
@@ -43,7 +43,7 @@ class LinkStatsPoller(Poller):
     Example:
 
         ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
+        ./empower-runtime.py apps.pollers.lvapstatspoller --tenant_id=$ID
 
     """
 
@@ -54,15 +54,17 @@ class LinkStatsPoller(Poller):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap.lvap_stats(every=self.every, callback=self.link_stats_callback)
+        lvap.lvap_stats(every=self.every, callback=self.lvap_stats_callback)
 
-    def link_stats_callback(self, counter):
+    def lvap_stats_callback(self, counter):
         """ New stats available. """
 
-        self.log.info("New link stats received from %s" % counter.lvap)
+        print(counter)
+
+        self.log.info("New lvap stats received from %s" % counter.lvap)
 
 
 def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return LinkStatsPoller(tenant_id=tenant_id, filepath=filepath, every=every)
+    return LVAPStatsPoller(tenant_id=tenant_id, filepath=filepath, every=every)

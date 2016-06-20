@@ -64,18 +64,3 @@ class Poller(EmpowerApp):
 
             with open(filename, 'a') as file_d:
                 file_d.write(line)
-
-        # Save signalling channel bytes
-        for wtp in self.wtps():
-
-            if not wtp.connection:
-                continue
-
-            line = "%s,%u,%u\n" % (wtp.addr,
-                                   wtp.downlink_bit_rate,
-                                   wtp.uplink_bit_rate)
-
-            filename = self.filepath + "signalling_%u.csv" % self.every
-
-            with open(filename, 'a') as file_d:
-                file_d.write(line)

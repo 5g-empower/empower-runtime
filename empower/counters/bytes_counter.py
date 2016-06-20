@@ -53,7 +53,7 @@ class BytesCounter(Counter):
             count = entry[1]
             for i in range(0, len(self.bins)):
                 if size <= self.bins[i]:
-                    out[i] = out[i] + count
+                    out[i] = out[i] + size * count
                     break
 
         return out

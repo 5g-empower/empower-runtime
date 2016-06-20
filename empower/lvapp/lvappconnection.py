@@ -202,19 +202,6 @@ class LVAPPConnection(object):
 
         LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
 
-        # compute delta if not new connection
-        if wtp.connection:
-
-            delta = time.time() - wtp.last_seen_ts
-
-            # uplink
-            ul_bytes = hello.uplink_bytes - wtp.uplink_bytes
-            wtp.uplink_bytes_per_second = int(ul_bytes / delta) * 8
-
-            # downlink
-            dl_bytes = hello.downlink_bytes - wtp.downlink_bytes
-            wtp.downlink_bytes_per_second = int(dl_bytes / delta) * 8
-
         # If this is a new connection, then send caps request
         if not wtp.connection:
             # set wtp before connection because it is used when the
@@ -225,8 +212,6 @@ class LVAPPConnection(object):
         # Update WTP params
         wtp.period = hello.period
         wtp.last_seen = hello.seq
-        wtp.uplink_bytes = hello.uplink_bytes
-        wtp.downlink_bytes = hello.downlink_bytes
 
         wtp.last_seen_ts = time.time()
 

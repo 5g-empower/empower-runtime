@@ -148,16 +148,19 @@ class Counter(Module):
         """ Send out stats request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.unload()
             return
 
         lvaps = RUNTIME.tenants[self.tenant_id].lvaps
 
         if self.lvap not in lvaps:
+            self.unload()
             return
 
         lvap = lvaps[self.lvap]
 
         if not lvap.wtp.connection:
+            self.unload()
             return
 
         stats_req = Container(version=PT_VERSION,
