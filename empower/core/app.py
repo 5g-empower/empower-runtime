@@ -28,29 +28,11 @@
 """EmPOWER base app class."""
 
 import tornado.ioloop
-
 import empower.logger
-
-from empower.restserver.restserver import RESTServer
-from empower.restserver.restserver import BaseHandler
 
 from empower.main import RUNTIME
 
 DEFAULT_PERIOD = 5000
-
-
-class EmpowerAppHomeHandler(BaseHandler):
-    """Web UI Handler.
-
-    Base Web UI handler, sub-class to implement app-specific web UI handlers.
-    Templates must be put in the /templates/<app name>/ sub-directory. Static
-    files must be put in the /static/<app name>/.
-    """
-
-    def get(self):
-
-        page = "apps/%s/index.html" % self.server.__module__
-        self.render(page, tenant_id=self.server.tenant_id)
 
 
 class EmpowerApp(object):
@@ -60,15 +42,10 @@ class EmpowerApp(object):
 
         self.__tenant_id = tenant_id
         self.__every = DEFAULT_PERIOD
-        self.ui_url = None
+        self.app_name = self.__module__.split(".")[-1]
         self.params = []
         self.log = empower.logger.get_logger()
         self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
-
-        self.ui_url = r"/apps/%s/?" % self.__module__
-        handler = (self.ui_url, EmpowerAppHomeHandler, dict(server=self))
-        rest_server = RUNTIME.components[RESTServer.__module__]
-        rest_server.add_handler(handler)
 
         for param in kwargs:
             if hasattr(self, param):
@@ -115,8 +92,10 @@ class EmpowerApp(object):
 
         params = {}
 
+        params['app_name'] = self.app_name
         params['tenant_id'] = self.tenant_id
-        params['ui_url'] = self.ui_url
+        params['ui_url'] = "/apps/tenants/%s/%s/" % \
+            (self.tenant_id, self.app_name)
         params['params'] = self.params
 
         for param in self.params:

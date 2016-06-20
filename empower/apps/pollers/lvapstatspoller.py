@@ -59,8 +59,6 @@ class LVAPStatsPoller(Poller):
     def lvap_stats_callback(self, counter):
         """ New stats available. """
 
-        print(counter)
-
         self.log.info("New lvap stats received from %s" % counter.lvap)
 
 

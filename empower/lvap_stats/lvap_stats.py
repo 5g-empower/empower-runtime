@@ -145,10 +145,10 @@ class LVAPStats(Module):
 
         # update cache
         lvap = RUNTIME.lvaps[self.lvap]
-        lvap.rates = {x[0]: x[1] for x in response.rates}
+        lvap.rates = {x[0]: {'prob': x[1], 'tp': x[2]} for x in response.rates}
 
         # update this object
-        self.rates = {x[0]: x[1] for x in response.rates}
+        self.rates = {x[0]: {'prob': x[1], 'tp': x[2]} for x in response.rates}
 
         # call callback
         self.handle_callback(self)

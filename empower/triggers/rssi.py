@@ -28,11 +28,11 @@ from construct import UBInt32
 from construct import Bytes
 
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
 from empower.triggers.trigger import Trigger
 from empower.lvapp import PT_BYE
+from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
 
@@ -66,7 +66,6 @@ RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
                       UBInt32("seq"),
                       UBInt32("module_id"),
                       Bytes("wtp", 6),
-                      Bytes("addr", 6),
                       SBInt8("current"))
 
 
@@ -91,7 +90,8 @@ class RSSI(Trigger):
         self._value = -90
 
         # data structures
-        self.events = []
+        self.current = None
+        self.timestamp = None
 
     def __eq__(self, other):
 
@@ -134,7 +134,8 @@ class RSSI(Trigger):
 
         out['relation'] = self.relation
         out['value'] = self.value
-        out['events'] = self.events
+        out['current'] = self.current
+        out['timestamp'] = self.timestamp
 
         return out
 
@@ -142,16 +143,18 @@ class RSSI(Trigger):
         """ Send out rate request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
-
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
+            self.unload()
             return
 
         if not wtp.connection:
+            self.unload()
             return
 
         req = Container(version=PT_VERSION,
@@ -173,6 +176,29 @@ class RSSI(Trigger):
         msg = ADD_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
 
+    def unload(self):
+        """Remove this module."""
+
+        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+
+        wtp = self.block.radio
+
+        if not wtp.connection:
+            return
+
+        del_rssi = Container(version=PT_VERSION,
+                             type=PT_DEL_RSSI,
+                             length=30,
+                             seq=wtp.seq,
+                             module_id=self.module_id)
+
+        print(del_rssi)
+
+        msg = DEL_RSSI_TRIGGER.build(del_rssi)
+        wtp.connection.stream.write(msg)
+
+        self.worker.remove_module(self.module_id)
+
     def handle_response(self, message):
         """ Handle an incoming RSSI_TRIGGER message.
         Args:
@@ -181,17 +207,9 @@ class RSSI(Trigger):
             None
         """
 
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.current = message.current
 
-        rssi_event = {'timestamp': timestamp,
-                      'addrs': self.addrs,
-                      'addr': EtherAddress(message.addr),
-                      'wtp': EtherAddress(message.wtp),
-                      'relation': self.relation,
-                      'value': self.value,
-                      'current': message.current}
-
-        self.events.append(rssi_event)
         self.handle_callback(self)
 
 
@@ -203,13 +221,24 @@ class RssiWorker(ModuleLVAPPWorker):
 
         to_be_removed = []
 
-        for module in self.modules:
-            block = self.modules[module].block
-            if block in wtp.supports:
+        for module in self.modules.values():
+            if module.block in wtp.supports:
                 to_be_removed.append(module)
 
         for module in to_be_removed:
-            self.remove_module(module)
+            module.unload()
+
+    def handle_lvap_leave(self, lvap):
+        """Handle WTP bye message."""
+
+        to_be_removed = []
+
+        for module in self.modules.values():
+            if module.addrs == lvap.addr:
+                to_be_removed.append(module)
+
+        for module in to_be_removed:
+            module.unload()
 
 
 def rssi(**kwargs):
@@ -234,4 +263,6 @@ def launch():
     rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
     rssi_worker.pnfp_server.register_message(PT_BYE, None,
                                              rssi_worker.handle_bye)
+    rssi_worker.pnfp_server.register_message(PT_LVAP_LEAVE, None,
+                                             rssi_worker.handle_lvap_leave)
     return rssi_worker

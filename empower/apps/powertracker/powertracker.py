@@ -38,19 +38,15 @@ class PowerTracker(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
-
-    Example:
-
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.powertracker.powertracker:$ID
-
+        tenant_id: network id (mandatory)
+        filepath: path to the CSVs output directory (optional,
+            default ./powertracker.csv)
+        every: loop period in ms (optional, default 5000ms)
     """
 
-    def __init__(self, tenant, **kwargs):
-
+    def __init__(self, **kwargs):
+        EmpowerApp.__init__(self, **kwargs)
         self.filename = "./powertracker.csv"
-        EmpowerApp.__init__(self, tenant, **kwargs)
 
     def loop(self):
         """ Periodic job. """
@@ -70,7 +66,7 @@ class PowerTracker(EmpowerApp):
             file_d.write(line)
 
 
-def launch(tenant, filename="./powertracker.csv", period=DEFAULT_PERIOD):
+def launch(tenant_id, filename="./powertracker.csv", every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return PowerTracker(tenant, filename=filename, every=period)
+    return PowerTracker(tenant_id=tenant_id, filename=filename, every=every)

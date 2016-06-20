@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
-# All rights reserved.
+# Copyright (c) 2016 Roberto Riggio
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the CREATE-NET nor the
-#      names of its contributors may be used to endorse or promote products
-#      derived from this software without specific prior written permission.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# THIS SOFTWARE IS PROVIDED BY CREATE-NET ''AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL CREATE-NET BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 """Basic mobility manager."""
 
@@ -58,12 +48,25 @@ class MobilityManager(EmpowerApp):
         # Register an wtp up event
         self.wtpup(callback=self.wtp_up_callback)
 
+        # Register an lvap join event
+        self.lvapjoin(callback=self.lvap_join_callback)
+
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
 
         for block in wtp.supports:
             self.ucqm(block=block, every=self.every)
-            self.rssi(block=block, relation='LT', callback=self.low_rssi)
+            for lvap in self.lvaps():
+                self.rssi(addrs=lvap.addr, block=block, value=-30,
+                          relation='LT', callback=self.low_rssi)
+
+    def lvap_join_callback(self, lvap):
+        """Called when an joins the network."""
+
+        for wtp in self.wtps():
+            for block in wtp.supports:
+                self.rssi(addrs=lvap.addr, block=block, value=-30,
+                          relation='LT', callback=self.low_rssi)
 
     def handover(self, lvap):
         """ Handover the LVAP to a WTP with
@@ -84,22 +87,15 @@ class MobilityManager(EmpowerApp):
 
         # Filter Resource Blocks by RSSI
         valid = [block for block in matches
-                 if block.ucqm[lvap.addr]['ewma_rssi'] >= -85]
+                 if block.ucqm[lvap.addr]['mov_rssi'] >= -85]
 
         if not valid:
             return
 
-        new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['ewma_rssi'])
+        new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
         self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
 
         lvap.scheduled_on = new_block
-
-        # Set port
-        for block in lvap.scheduled_on:
-            port = lvap.scheduled_on[block]
-            port.no_ack = True
-            port.rts_cts = 3500
-            port.mcs = [6, 12, 54]
 
     @property
     def limit(self):
@@ -123,7 +119,7 @@ class MobilityManager(EmpowerApp):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
 
-        print(trigger.events)
+        return
 
         lvap_addr = EtherAddress(trigger.events[-1]['addr'])
         lvap = self.lvap(lvap_addr)
@@ -135,6 +131,8 @@ class MobilityManager(EmpowerApp):
 
     def loop(self):
         """ Periodic job. """
+
+        return
 
         # Handover every active LVAP to
         # the best WTP

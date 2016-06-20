@@ -28,14 +28,14 @@ from empower.main import RUNTIME
 class Trigger(Module):
     """ RSSI trigger object. """
 
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'addrs']
 
     def __init__(self):
 
         Module.__init__(self)
 
         # parameters
-        self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
+        self._addrs = None
         self._block = None
 
     def __eq__(self, other):

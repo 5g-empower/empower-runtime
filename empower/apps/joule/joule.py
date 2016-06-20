@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016, Roberto Riggio
-# All rights reserved.
+# Copyright (c) 2016 Roberto Riggio
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the CREATE-NET nor the
-#      names of its contributors may be used to endorse or promote products
-#      derived from this software without specific prior written permission.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# THIS SOFTWARE IS PROVIDED BY CREATE-NET ''AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL CREATE-NET BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 """Virtual Power Metering App."""
 
@@ -34,14 +24,8 @@ import time
 from datetime import datetime
 
 from empower.core.app import EmpowerApp
-from empower.core.app import EmpowerAppHandler
-from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
-from empower.events.lvapjoin import lvapjoin
-from empower.counters.packets_counter import packets_counter
 
-import empower.logger
-LOG = empower.logger.get_logger()
 
 MODES = {('11a', '20', 1): {'difs': 34,
                             'sifs': 16,
@@ -51,14 +35,6 @@ MODES = {('11a', '20', 1): {'difs': 34,
                             'bits_per_symbol': 216}}
 
 DEFAULT_PROFILE = "./empower/apps/joule/models_30s_full.json"
-
-
-class JouleHandler(EmpowerAppHandler):
-    pass
-
-
-class JouleHomeHandler(EmpowerAppHomeHandler):
-    pass
 
 
 class Joule(EmpowerApp):
@@ -75,22 +51,19 @@ class Joule(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        every: loop period in ms (optional, default 5000ms)
         profile: path to the Joule profile as a json document
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.joule.joule:$ID \
+        ./empower-runtime.py apps.pollers.linkstatspoller \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada2 \
             --profile=./empower/apps/joule/models_30s_full.json
 
     """
 
-    MODULE_NAME = "joule"
-    MODULE_HANDLER = JouleHandler
-    MODULE_HOME_HANDLER = JouleHomeHandler
-
-    def __init__(self, tenant, **kwargs):
+    def __init__(self, **kwargs):
 
         self.stats = {}
         self.prev_bins_tx = {}
@@ -100,7 +73,7 @@ class Joule(EmpowerApp):
         self.updated = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.profile = None
 
-        EmpowerApp.__init__(self, tenant, **kwargs)
+        EmpowerApp.__init__(self, **kwargs)
 
         # load joule profile
         with open(os.path.expanduser(self.profile)) as json_data:
@@ -111,8 +84,8 @@ class Joule(EmpowerApp):
 
         # register a trigger of all lvaps, in this way as soon a new lvap
         # joins the pool this module will be promptly notified.
-        lvapjoin(tenant_id=self.tenant.tenant_id,
-                 callback=self.lvap_join_callback)
+        self.lvapjoin(tenant_id=self.tenant.tenant_id,
+                      callback=self.lvap_join_callback)
 
         self.last = time.time()
 
@@ -159,10 +132,10 @@ class Joule(EmpowerApp):
         """ Handle RSSI trigger event. """
 
         # track packets and bytes counter for the new LVAP
-        packets_stats = packets_counter(bins=self.bins,
-                                        tenant_id=self.tenant.tenant_id,
-                                        lvap=lvap.addr,
-                                        every=self.every)
+        packets_stats = lvap.packets_counter(bins=self.bins,
+                                             tenant_id=self.tenant.tenant_id,
+                                             lvap=lvap.addr,
+                                             every=self.every)
 
         self.stats[lvap.addr] = packets_stats
         self.power[lvap.addr] = 0.0
@@ -195,7 +168,7 @@ class Joule(EmpowerApp):
 
             self.power[sta] = power_tx + power_rx + self.profile['gamma']
 
-            LOG.info("LVAP %s Power: %f", sta, self.power[sta])
+            self.log.info("LVAP %s Power: %f", sta, self.power[sta])
 
         self.updated = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -222,10 +195,8 @@ class Joule(EmpowerApp):
             d_bytes_str = str(d_bytes - 14 - 20 - 8)
             x_max = self.profile[model]['x_max'][d_bytes_str]
 
-            LOG.info("%s: %u bytes, %u Mbps -> x_max %f [Mb/s]", model,
-                     d_bytes,
-                     x_mbps,
-                     x_max)
+            self.log.info("%s: %u bytes, %u Mbps -> x_max %f [Mb/s]", model,
+                          d_bytes, x_mbps, x_max)
 
             # this should be generalized
             if x_mbps < 0.1:
@@ -238,13 +209,13 @@ class Joule(EmpowerApp):
 
             power = alpha_d * x_mbps
 
-            LOG.info("%s: %u bytes, %u pkts, %f s -> %f [Mb/s] %f",
-                     model, d_bytes, diff[i], delta, x_mbps, power)
+            self.log.info("%s: %u bytes, %u pkts, %f s -> %f [Mb/s] %f",
+                          model, d_bytes, diff[i], delta, x_mbps, power)
 
         return power
 
 
-def launch(tenant, profile=DEFAULT_PROFILE, period=DEFAULT_PERIOD):
+def launch(tenant_id, profile=DEFAULT_PROFILE, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Joule(tenant, profile=profile, every=period)
+    return Joule(tenant_id=tenant_id, profile=profile, every=every)

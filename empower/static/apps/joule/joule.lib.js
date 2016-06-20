@@ -107,7 +107,7 @@ function refreshWTPs(data) {
 }
 
 function loop() {
-    $.getJSON("/api/v1/tenants/" + tenant_id + "/joule",
+    $.getJSON("/api/v1/tenants/" + tenant_id + "/components/empower.apps.joule.joule",
         function (data) {
             for (node in data.feeds) {
                 var idWtp = data.feeds[node].wtp

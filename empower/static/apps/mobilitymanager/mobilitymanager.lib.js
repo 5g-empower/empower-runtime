@@ -61,11 +61,12 @@ function refreshLVAPs() {
                         apLogo="ap_off.png"
                     }
                     tmp += "<td><img src='/static/apps/mobilitymanager/" + apLogo + "' width='100' /><br />" + wtps[wtp].addr + "<br />RBs: "
+                    rssi = null
                     for (block in wtps[wtp].supports) {
                         tmp += "("+wtps[wtp].supports[block].channel+", "+wtps[wtp].supports[block].band+") "
                         ucqm = wtps[wtp].supports[block].ucqm[lvap_addr]
                         if (ucqm) {
-                            var rssi = ucqm.sma_rssi
+                            rssi = ucqm.mov_rssi
                         }
                     }
                     tmp += "<br />RSSI: " + rssi

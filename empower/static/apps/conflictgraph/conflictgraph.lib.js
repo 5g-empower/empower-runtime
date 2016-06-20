@@ -2,7 +2,7 @@ networks = {}
 conflict = {}
 
 function refreshTab(tab) {
-    $.getJSON("/api/v1/tenants/" + tenant_id + "/conflictgraph", function(data) {
+    $.getJSON("/api/v1/tenants/" + tenant_id + "/components/empower.apps.conflictgraph.conflictgraph", function(data) {
         updateCm(data, 36, 'im5')
         updateCm(data, 6, 'im24')
     });

@@ -46,8 +46,7 @@ POLLER_ENTRY_TYPE = Sequence("img_entries",
                              SBInt32("last_rssi_avg"),
                              UBInt32("last_packets"),
                              UBInt32("hist_packets"),
-                             SBInt32("ewma_rssi"),
-                             SBInt32("sma_rssi"))
+                             SBInt32("mov_rssi"))
 
 POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt8("type"),
@@ -65,9 +64,6 @@ POLLER_RESPONSE = Struct("poller_response", UBInt8("version"),
                          UBInt32("seq"),
                          UBInt32("module_id"),
                          Bytes("wtp", 6),
-                         Bytes("hwaddr", 6),
-                         UBInt8("channel"),
-                         UBInt8("band"),
                          UBInt16("nb_entries"),
                          Array(lambda ctx: ctx.nb_entries, POLLER_ENTRY_TYPE))
 
@@ -86,6 +82,9 @@ class Maps(Module):
         # parameters
         self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
         self._block = None
+
+        # data structures
+        self.maps = CQM()
 
     def __eq__(self, other):
 
@@ -143,15 +142,6 @@ class Maps(Module):
 
             self._block = match.pop()
 
-    @property
-    def maps(self):
-        """ Return a JSON-serializable dictionary. """
-
-        if hasattr(self.block, self.MODULE_NAME):
-            return getattr(self.block, self.MODULE_NAME)
-        else:
-            return {}
-
     def to_dict(self):
         """ Return a JSON-serializable dictionary. """
 
@@ -160,9 +150,6 @@ class Maps(Module):
         out['maps'] = {str(k): v for k, v in self.maps.items()}
         out['addrs'] = self.addrs
         out['block'] = self.block.to_dict()
-
-        del out['block']['ucqm']
-        del out['block']['ncqm']
 
         return out
 
@@ -216,19 +203,20 @@ class Maps(Module):
 
         wtp = RUNTIME.wtps[wtp_addr]
 
-        hwaddr = EtherAddress(response.hwaddr)
-        block = ResourceBlock(wtp, hwaddr, response.channel, response.band)
         incoming = ResourcePool()
-        incoming.add(block)
+        incoming.add(self.block)
 
         matching = (wtp.supports & incoming).pop()
 
         if not matching:
             return
 
-        # handle the message
+        # update cache
         setattr(self.block, self.MODULE_NAME, CQM())
-        map_entry = getattr(self.block, self.MODULE_NAME)
+        map_entry_block = getattr(self.block, self.MODULE_NAME)
+
+        # update this object
+        self.maps = CQM()
 
         for entry in response.img_entries:
 
@@ -242,10 +230,10 @@ class Maps(Module):
                      'last_rssi_avg': entry[2] / 1000.0,
                      'last_packets': entry[3],
                      'hist_packets': entry[4],
-                     'ewma_rssi': entry[5] / 1000.0,
-                     'sma_rssi': entry[6] / 1000.0}
+                     'mov_rssi': entry[5] / 1000.0}
 
-            map_entry[addr] = value
+            map_entry_block[addr] = value
+            self.maps[addr] = value
 
         # call callback
         self.handle_callback(self)

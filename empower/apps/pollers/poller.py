@@ -37,7 +37,7 @@ class Poller(EmpowerApp):
 
     Command Line Parameters:
 
-        pool: network id (mandatory)
+        tenant_id: network id (mandatory)
         filepath: path to the CSVs output directory (optional, default ./)
         every: loop period in ms (optional, default 5000ms)
 

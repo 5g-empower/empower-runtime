@@ -104,6 +104,38 @@ class BaseHandler(tornado.web.RequestHandler):
                     error=error)
 
 
+class EmpowerAppHomeHandler(tornado.web.RequestHandler):
+    """Web UI Handler.
+
+    Templates must be put in the /templates/<app name>/ sub-directory. Static
+    files must be put in the /static/<app name>/.
+    """
+
+    HANDLERS = [r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/?",
+                r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/(.*)"
+                ]
+
+    def get(self, *args):
+
+        try:
+
+            if len(args) < 2 or len(args) > 3:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            app_name = args[1]
+
+            if len(args) == 2:
+                page = "index.html"
+            else:
+                page = args[2]
+
+            self.render("apps/%s/%s" % (app_name, page), tenant_id=tenant_id)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+
 class RequestTenantHandler(BaseHandler):
     """Tenant management (for users)."""
 
@@ -1135,6 +1167,7 @@ class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
     handlers = [BaseHandler,
+                EmpowerAppHomeHandler,
                 RequestTenantHandler,
                 ProfileHandler,
                 AuthLoginHandler,
