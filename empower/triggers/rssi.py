@@ -95,6 +95,7 @@ class RSSI(Module):
         self._block = None
         self._relation = 'GT'
         self._value = -90
+        self._period = 2000
 
         # data structures
         self.current = None
@@ -111,6 +112,7 @@ class RSSI(Module):
     @property
     def lvap(self):
         """ Return the address. """
+
         return self._lvap
 
     @lvap.setter
@@ -162,6 +164,20 @@ class RSSI(Module):
                 raise ValueError("More than one block specified")
 
             self._block = match.pop()
+
+    @property
+    def period(self):
+        """Return period parameter."""
+
+        return self._period
+
+    @period.setter
+    def period(self, value):
+        "Set period parameter."
+
+        if value < 1000:
+            raise ValueError("Invalid limit value (%u)" % value)
+        self._period = value
 
     @property
     def relation(self):
@@ -228,16 +244,17 @@ class RSSI(Module):
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_RSSI,
-                        length=28,
+                        length=30,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
-                        lvap=self.lvap.to_raw(),
+                        sta=self.lvap.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band,
                         relation=RELATIONS[self.relation],
-                        value=self.value)
+                        value=self.value,
+                        period=self.period)
 
         self.log.info("Sending %s request to %s (id=%u)",
                       self.MODULE_NAME, self.block, self.module_id)
@@ -249,10 +266,11 @@ class RSSI(Module):
         """Remove this module."""
 
         self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+        self.worker.remove_module(self.module_id)
 
         wtp = self.block.radio
 
-        if not wtp.connection:
+        if not wtp.connection or wtp.connection.stream.closed():
             return
 
         del_rssi = Container(version=PT_VERSION,
@@ -263,8 +281,6 @@ class RSSI(Module):
 
         msg = DEL_RSSI_TRIGGER.build(del_rssi)
         wtp.connection.stream.write(msg)
-
-        self.worker.remove_module(self.module_id)
 
     def handle_response(self, message):
         """ Handle an incoming RSSI_TRIGGER message.

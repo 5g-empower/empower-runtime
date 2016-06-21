@@ -87,14 +87,14 @@ class Summary(Module):
     """ Summary object. """
 
     MODULE_NAME = "summary"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'addrs']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'addr']
 
     def __init__(self):
 
         Module.__init__(self)
 
         # parameters
-        self._addrs = None
+        self._addr = None
         self._block = None
         self._limit = -1
         self._period = 2000
@@ -105,19 +105,19 @@ class Summary(Module):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
-            self.addrs == other.addrs and \
+            self.addr == other.addr and \
             self.block == other.block and \
             self.limit == other.limit
 
     @property
-    def addrs(self):
+    def addr(self):
         """ Return the address. """
-        return self._addrs
+        return self._addr
 
-    @addrs.setter
-    def addrs(self, addr):
+    @addr.setter
+    def addr(self, addr):
         """ Set the address. """
-        self._addrs = EtherAddress(addr)
+        self._addr = EtherAddress(addr)
 
     @property
     def block(self):
@@ -197,7 +197,7 @@ class Summary(Module):
 
         out = super().to_dict()
 
-        out['addrs'] = self.addrs
+        out['addr'] = self.addr
         out['block'] = self.block
         out['limit'] = self.limit
         out['frames'] = self.frames
@@ -226,9 +226,9 @@ class Summary(Module):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         limit=self.limit,
-                        every=self.period,
+                        period=self.period,
                         wtp=wtp.addr.to_raw(),
-                        addrs=self.addrs.to_raw(),
+                        addr=self.addr.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band)
@@ -243,10 +243,11 @@ class Summary(Module):
         """Remove this module."""
 
         self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+        self.worker.remove_module(self.module_id)
 
         wtp = self.block.radio
 
-        if not wtp.connection:
+        if not wtp.connection or wtp.connection.stream.closed():
             return
 
         del_rssi = Container(version=PT_VERSION,
@@ -257,8 +258,6 @@ class Summary(Module):
 
         msg = DEL_SUMMARY.build(del_rssi)
         wtp.connection.stream.write(msg)
-
-        self.worker.remove_module(self.module_id)
 
     def handle_response(self, response):
         """Handle an incoming response message.
@@ -286,7 +285,7 @@ class Summary(Module):
         for recv in response.frames:
 
             if self.block.band == BT_L20:
-                rate = float(recv[4]) / 2
+                rate = int(recv[4]) / 2.0
             else:
                 rate = int(recv[4])
 

@@ -40,37 +40,39 @@ class Survey(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        self.__addrs = None
+        self.__addr = None
         EmpowerApp.__init__(self, **kwargs)
         self.wtpup(callback=self.wtp_up_callback)
 
     @property
-    def addrs(self):
-        """Return addrs."""
+    def addr(self):
+        """Return addr."""
 
-        return self.__addrs
+        return self.__addr
 
-    @addrs.setter
-    def addrs(self, value):
-        """Set addrs."""
+    @addr.setter
+    def addr(self, value):
+        """Set addr."""
 
-        self.__addrs = EtherAddress(value)
+        self.__addr = EtherAddress(value)
 
     def wtp_up_callback(self, wtp):
         """New WTP."""
 
         for block in wtp.supports:
-            self.summary(addrs=self.addrs, block=block,
+            self.summary(addr=self.addr, block=block,
                          callback=self.summary_callback)
 
     def summary_callback(self, summary):
         """ New stats available. """
 
-        self.log.info("New summary from %s addrs %s frames %u", summary.block,
-                      summary.addrs, len(summary.frames))
+        print(summary.frames)
+
+        self.log.info("New summary from %s addr %s frames %u", summary.block,
+                      summary.addr, len(summary.frames))
 
 
-def launch(tenant_id, addrs=DEFAULT_ADDRESS, every=DEFAULT_PERIOD):
+def launch(tenant_id, addr=DEFAULT_ADDRESS, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Survey(tenant_id=tenant_id, addrs=addrs, every=every)
+    return Survey(tenant_id=tenant_id, addr=addr, every=every)

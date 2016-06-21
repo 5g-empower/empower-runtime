@@ -20,7 +20,7 @@
 from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
-from construct import SBInt32
+from construct import SBInt8
 from construct import Bytes
 from construct import Sequence
 from construct import Container
@@ -42,11 +42,11 @@ PT_POLLER_RESP_MSG_TYPE = 0x28
 
 POLLER_ENTRY_TYPE = Sequence("img_entries",
                              Bytes("addr", 6),
-                             UBInt32("last_rssi_std"),
-                             SBInt32("last_rssi_avg"),
+                             UBInt8("last_rssi_std"),
+                             SBInt8("last_rssi_avg"),
                              UBInt32("last_packets"),
                              UBInt32("hist_packets"),
-                             SBInt32("mov_rssi"))
+                             SBInt8("mov_rssi"))
 
 POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt8("type"),
@@ -156,6 +156,7 @@ class Maps(Module):
         """ Send out request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
@@ -163,10 +164,12 @@ class Maps(Module):
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", wtp.addr)
             self.unload()
             return
 
-        if not wtp.connection:
+        if not wtp.connection or wtp.connection.stream.closed():
+            self.log.info("WTP %s not connected", wtp.addr)
             self.unload()
             return
 
@@ -195,21 +198,6 @@ class Maps(Module):
             None
         """
 
-        wtp_addr = EtherAddress(response.wtp)
-
-        if wtp_addr not in RUNTIME.wtps:
-            return
-
-        wtp = RUNTIME.wtps[wtp_addr]
-
-        incoming = ResourcePool()
-        incoming.add(self.block)
-
-        matching = (wtp.supports & incoming).pop()
-
-        if not matching:
-            return
-
         # update cache
         setattr(self.block, self.MODULE_NAME, CQM())
         map_entry_block = getattr(self.block, self.MODULE_NAME)
@@ -225,11 +213,11 @@ class Maps(Module):
                 continue
 
             value = {'addr': addr,
-                     'last_rssi_std': entry[1] / 1000.0,
-                     'last_rssi_avg': entry[2] / 1000.0,
+                     'last_rssi_std': entry[1],
+                     'last_rssi_avg': entry[2],
                      'last_packets': entry[3],
                      'hist_packets': entry[4],
-                     'mov_rssi': entry[5] / 1000.0}
+                     'mov_rssi': entry[5]}
 
             map_entry_block[addr] = value
             self.maps[addr] = value

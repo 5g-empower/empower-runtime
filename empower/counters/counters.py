@@ -60,10 +60,10 @@ STATS_RESPONSE = \
            Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, STATS))
 
 
-class Counter(Module):
+class Counters(Module):
     """ PacketsCounter object. """
 
-    MODULE_NAME = "counter"
+    MODULE_NAME = "counters"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
 
     def __init__(self):
@@ -155,7 +155,7 @@ class Counter(Module):
             self.unload()
             return
 
-        if not lvap.wtp.connection:
+        if not lvap.wtp.connection or lvap.wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", lvap.wtp.addr)
             self.unload()
             return
@@ -250,30 +250,30 @@ class Counter(Module):
         self.handle_callback(self)
 
 
-class CounterWorker(ModuleLVAPPWorker):
+class CountersWorker(ModuleLVAPPWorker):
     """Counter worker."""
 
     pass
 
 
-def counter(**kwargs):
+def counters(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[CounterWorker.__module__]
+    worker = RUNTIME.components[CountersWorker.__module__]
     return worker.add_module(**kwargs)
 
 
-def bound_counter(self, **kwargs):
+def bound_counters(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
     kwargs['lvap'] = self.addr
-    return counter(**kwargs)
+    return counters(**kwargs)
 
-setattr(LVAP, Counter.MODULE_NAME, bound_counter)
+setattr(LVAP, Counters.MODULE_NAME, bound_counters)
 
 
 def launch():
     """ Initialize the module. """
 
-    return CounterWorker(Counter, PT_STATS_RESPONSE, STATS_RESPONSE)
+    return CountersWorker(Counters, PT_STATS_RESPONSE, STATS_RESPONSE)

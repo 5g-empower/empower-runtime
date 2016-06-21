@@ -26,6 +26,7 @@ from construct import Container
 from construct import Struct
 from construct import Array
 
+from empower.core.resourcepool import BT_L20
 from empower.core.lvap import LVAP
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
@@ -106,18 +107,26 @@ class LVAPStats(Module):
         """Send out rate request."""
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
-        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.lvap not in lvaps:
+        if self.lvap not in tenant.lvaps:
+            self.log.info("LVAP %s not found", self.lvap)
             self.unload()
             return
 
-        lvap = lvaps[self.lvap]
+        lvap = tenant.lvaps[self.lvap]
 
-        if not lvap.wtp.connection:
+        if lvap.wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", lvap.wtp.addr)
+            self.unload()
+            return
+
+        if not lvap.wtp.connection or lvap.wtp.connection.stream.closed():
+            self.log.info("WTP %s not connected", lvap.wtp.addr)
             self.unload()
             return
 
@@ -142,12 +151,14 @@ class LVAPStats(Module):
             None
         """
 
-        # update cache
-        lvap = RUNTIME.lvaps[self.lvap]
-        lvap.rates = {x[0]: {'prob': x[1], 'tp': x[2]} for x in response.rates}
-
         # update this object
-        self.rates = {x[0]: {'prob': x[1], 'tp': x[2]} for x in response.rates}
+        self.rates = {}
+        for entry in response.rates:
+            if self.block.band == BT_L20:
+                rate = entry[0] / 2.0
+            else:
+                rate = entry[0]
+            self.rates[rate] = {'prob': entry[1] / 180.0}
 
         # call callback
         self.handle_callback(self)

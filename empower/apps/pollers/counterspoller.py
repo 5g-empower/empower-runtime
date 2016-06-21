@@ -44,20 +44,13 @@ class CountersPoller(Poller):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap.counter(bins=[512, 1472, 8192], every=self.every,
-                     callback=self.counters_callback)
+        lvap.counters(bins=[512, 1472, 8192], every=self.every,
+                      callback=self.counters_callback)
 
     def counters_callback(self, stats):
         """ New stats available. """
 
-        print(stats)
-
         self.log.info("New counters received from %s" % stats.lvap)
-
-    def bytes_callback(self, stats):
-        """ New stats available. """
-
-        self.log.info("xNew stats (bytes) received from %s" % stats.lvap)
 
 
 def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
