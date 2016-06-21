@@ -168,8 +168,7 @@ STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
 CAPS_R = Sequence("blocks",
                   Bytes("hwaddr", 6),
                   UBInt8("channel"),
-                  UBInt8("band"),
-                  BitStruct("flags", Padding(16)))
+                  UBInt8("band"))
 
 CAPS_P = Sequence("ports", Bytes("hwaddr", 6),
                   UBInt16("port_id"),
@@ -227,6 +226,12 @@ ADD_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("band"),
                  Bytes("net_bssid", 6),
                  Bytes("ssid", lambda ctx: ctx.length - 22))
+
+DEL_VAP = Struct("add_vap", UBInt8("version"),
+                 UBInt8("type"),
+                 UBInt16("length"),
+                 UBInt32("seq"),
+                 Bytes("net_bssid", 6))
 
 STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     UBInt8("type"),

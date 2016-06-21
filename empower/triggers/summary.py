@@ -50,12 +50,12 @@ ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt16("length"),
                      UBInt32("seq"),
                      UBInt32("module_id"),
-                     Bytes("addrs", 6),
+                     Bytes("addr", 6),
                      Bytes("hwaddr", 6),
                      UBInt8("channel"),
                      UBInt8("band"),
                      SBInt16("limit"),
-                     UBInt16("every"))
+                     UBInt16("period"))
 
 SUMMARY_ENTRY = Sequence("frames",
                          Bytes("addr", 6),
@@ -97,6 +97,7 @@ class Summary(Module):
         self._addrs = None
         self._block = None
         self._limit = -1
+        self._period = 2000
 
         # data structures
         self.frames = []
@@ -164,6 +165,20 @@ class Summary(Module):
             self._block = match.pop()
 
     @property
+    def period(self):
+        """Return period parameter."""
+
+        return self._period
+
+    @period.setter
+    def period(self, value):
+        "Set period parameter."
+
+        if value < 1000:
+            raise ValueError("Invalid limit value (%u)" % value)
+        self._period = value
+
+    @property
     def limit(self):
         """Return limit parameter."""
 
@@ -193,6 +208,7 @@ class Summary(Module):
         """ Send out rate request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
@@ -200,10 +216,7 @@ class Summary(Module):
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
-            self.unload()
-            return
-
-        if not wtp.connection:
+            self.log.info("WTP %s not found", wtp.addr)
             self.unload()
             return
 
@@ -213,7 +226,7 @@ class Summary(Module):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         limit=self.limit,
-                        every=self.every,
+                        every=self.period,
                         wtp=wtp.addr.to_raw(),
                         addrs=self.addrs.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
@@ -226,6 +239,27 @@ class Summary(Module):
         msg = ADD_SUMMARY.build(req)
         wtp.connection.stream.write(msg)
 
+    def unload(self):
+        """Remove this module."""
+
+        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+
+        wtp = self.block.radio
+
+        if not wtp.connection:
+            return
+
+        del_rssi = Container(version=PT_VERSION,
+                             type=PT_DEL_SUMMARY,
+                             length=12,
+                             seq=wtp.seq,
+                             module_id=self.module_id)
+
+        msg = DEL_SUMMARY.build(del_rssi)
+        wtp.connection.stream.write(msg)
+
+        self.worker.remove_module(self.module_id)
+
     def handle_response(self, response):
         """Handle an incoming response message.
         Args:
@@ -234,15 +268,16 @@ class Summary(Module):
             None
         """
 
-        wtp_addr = EtherAddress(response.wtp)
-
-        if wtp_addr not in RUNTIME.wtps:
+        if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
+        wtp = self.block.radio
 
-        if wtp_addr not in tenant.wtps:
+        if wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", wtp.addr)
             self.unload()
             return
 

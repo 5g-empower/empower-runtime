@@ -53,7 +53,6 @@ POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt16("length"),
                         UBInt32("seq"),
                         UBInt32("module_id"),
-                        Bytes("addrs", 6),
                         Bytes("hwaddr", 6),
                         UBInt8("channel"),
                         UBInt8("band"))

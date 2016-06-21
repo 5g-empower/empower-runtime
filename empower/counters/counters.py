@@ -27,7 +27,9 @@ from construct import UBInt32
 from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import Module
+from empower.core.lvap import LVAP
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
@@ -61,6 +63,7 @@ STATS_RESPONSE = \
 class Counter(Module):
     """ PacketsCounter object. """
 
+    MODULE_NAME = "counter"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
 
     def __init__(self):
@@ -72,12 +75,15 @@ class Counter(Module):
         self._bins = [8192]
 
         # data structures
-        self._tx_samples = []
-        self._rx_samples = []
+        self.tx_packets = []
+        self.rx_packets = []
+        self.tx_bytes = []
+        self.rx_bytes = []
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.lvap == other.lvap and \
+        return super().__eq__(other) and \
+            self.lvap == other.lvap and \
             self.bins == other.bins
 
     @property
@@ -87,25 +93,6 @@ class Counter(Module):
     @lvap.setter
     def lvap(self, value):
         self._lvap = EtherAddress(value)
-
-    def fill_samples(self, data):
-        pass
-
-    @property
-    def tx_samples(self):
-        return self.fill_samples(self._tx_samples)
-
-    @tx_samples.setter
-    def tx_samples(self, value):
-        self._tx_samples = value
-
-    @property
-    def rx_samples(self):
-        return self.fill_samples(self._rx_samples)
-
-    @rx_samples.setter
-    def rx_samples(self, value):
-        self._rx_samples = value
 
     @property
     def bins(self):
@@ -139,8 +126,10 @@ class Counter(Module):
 
         out['bins'] = self.bins
         out['lvap'] = self.lvap
-        out['tx'] = self.tx_samples
-        out['rx'] = self.rx_samples
+        out['tx_bytes'] = self.tx_bytes
+        out['rx_bytes'] = self.tx_bytes
+        out['tx_packets'] = self.tx_packets
+        out['rx_packets'] = self.tx_packets
 
         return out
 
@@ -148,18 +137,26 @@ class Counter(Module):
         """ Send out stats request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
-        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.lvap not in lvaps:
+        if self.lvap not in tenant.lvaps:
+            self.log.info("LVAP %s not found", self.lvap)
             self.unload()
             return
 
-        lvap = lvaps[self.lvap]
+        lvap = tenant.lvaps[self.lvap]
+
+        if lvap.wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", lvap.wtp.addr)
+            self.unload()
+            return
 
         if not lvap.wtp.connection:
+            self.log.info("WTP %s not connected", lvap.wtp.addr)
             self.unload()
             return
 
@@ -170,11 +167,66 @@ class Counter(Module):
                               module_id=self.module_id,
                               sta=lvap.addr.to_raw())
 
-        self.log.info("Sending stats request to %s @ %s (id=%u)",
-                      lvap.addr, lvap.wtp.addr, self.module_id)
+        self.log.info("Sending %s request to %s @ %s (id=%u)",
+                      self.MODULE_NAME, lvap.addr, lvap.wtp.addr,
+                      self.module_id)
 
         msg = STATS_REQUEST.build(stats_req)
         lvap.wtp.connection.stream.write(msg)
+
+    def fill_bytes_samples(self, data):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        out = [0] * len(self.bins)
+
+        for entry in samples:
+            if len(entry) == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(self.bins)):
+                if size <= self.bins[i]:
+                    out[i] = out[i] + size * count
+                    break
+
+        return out
+
+    def fill_packets_samples(self, data):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        out = [0] * len(self.bins)
+
+        for entry in samples:
+            if len(entry) == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(self.bins)):
+                if size <= self.bins[i]:
+                    out[i] = out[i] + count
+                    break
+
+        return out
 
     def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.
@@ -184,14 +236,44 @@ class Counter(Module):
             None
         """
 
-        # update cache
-        lvap = RUNTIME.lvaps[self.lvap]
-        lvap.tx_samples = response.stats[0:response.nb_tx]
-        lvap.rx_samples = response.stats[response.nb_tx:-1]
-
         # update this object
-        self.tx_samples = response.stats[0:response.nb_tx]
-        self.rx_samples = response.stats[response.nb_tx:-1]
+        tx_samples = response.stats[0:response.nb_tx]
+        rx_samples = response.stats[response.nb_tx:-1]
+
+        self.tx_bytes = self.fill_bytes_samples(tx_samples)
+        self.rx_bytes = self.fill_bytes_samples(rx_samples)
+
+        self.tx_packets = self.fill_packets_samples(tx_samples)
+        self.rx_packets = self.fill_packets_samples(rx_samples)
 
         # call callback
         self.handle_callback(self)
+
+
+class CounterWorker(ModuleLVAPPWorker):
+    """Counter worker."""
+
+    pass
+
+
+def counter(**kwargs):
+    """Create a new module."""
+
+    worker = RUNTIME.components[CounterWorker.__module__]
+    return worker.add_module(**kwargs)
+
+
+def bound_counter(self, **kwargs):
+    """Create a new module (app version)."""
+
+    kwargs['tenant_id'] = self.tenant.tenant_id
+    kwargs['lvap'] = self.addr
+    return counter(**kwargs)
+
+setattr(LVAP, Counter.MODULE_NAME, bound_counter)
+
+
+def launch():
+    """ Initialize the module. """
+
+    return CounterWorker(Counter, PT_STATS_RESPONSE, STATS_RESPONSE)

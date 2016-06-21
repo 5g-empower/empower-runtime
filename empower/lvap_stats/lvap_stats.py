@@ -40,8 +40,7 @@ PT_RATES_RESPONSE = 0x30
 
 RATES_ENTRY = Sequence("rates",
                        UBInt8("rate"),
-                       UBInt8("prob"),
-                       UBInt8("tp"))
+                       UBInt32("prob"))
 
 
 RATES_REQUEST = Struct("rates_request", UBInt8("version"),
