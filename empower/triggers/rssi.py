@@ -30,9 +30,12 @@ from construct import Bytes
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
-from empower.triggers.trigger import Trigger
 from empower.lvapp import PT_BYE
 from empower.lvapp import PT_LVAP_LEAVE
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
+from empower.datatypes.etheraddress import EtherAddress
+from empower.core.module import Module
 
 from empower.main import RUNTIME
 
@@ -53,7 +56,7 @@ ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt16("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"),
-                          Bytes("addrs", 6),
+                          Bytes("lvap", 6),
                           Bytes("hwaddr", 6),
                           UBInt8("channel"),
                           UBInt8("band"),
@@ -76,16 +79,19 @@ DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt32("module_id"))
 
 
-class RSSI(Trigger):
+class RSSI(Module):
     """ RSSI trigger object. """
 
     MODULE_NAME = "rssi"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'lvap']
 
     def __init__(self):
 
         Trigger.__init__(self)
 
         # parameters
+        self._lvap = None
+        self._block = None
         self._relation = 'GT'
         self._value = -90
 
@@ -96,8 +102,65 @@ class RSSI(Trigger):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
+            self.lvap == other.lvap and \
+            self.block == other.block and \
             self.relation == other.relation and \
             self.value == other.value
+
+    @property
+    def lvap(self):
+        """ Return the address. """
+        return self._lvap
+
+    @lvap.setter
+    def lvap(self, lvap):
+        """ Set the address. """
+        self._lvap = EtherAddress(lvap)
+
+    @property
+    def block(self):
+        """Return block."""
+
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        """Set block."""
+
+        if isinstance(value, ResourceBlock):
+
+            self._block = value
+
+        elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+
+            if 'hwaddr' not in value:
+                raise ValueError("Missing field: hwaddr")
+
+            if 'channel' not in value:
+                raise ValueError("Missing field: channel")
+
+            if 'band' not in value:
+                raise ValueError("Missing field: band")
+
+            if 'wtp' not in value:
+                raise ValueError("Missing field: wtp")
+
+            incoming = ResourcePool()
+            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                  int(value['channel']), int(value['band']))
+            incoming.add(block)
+
+            match = wtp.supports & incoming
+
+            if not match:
+                raise ValueError("No block specified")
+
+            if len(match) > 1:
+                raise ValueError("More than one block specified")
+
+            self._block = match.pop()
 
     @property
     def relation(self):
@@ -132,6 +195,8 @@ class RSSI(Trigger):
 
         out = super().to_dict()
 
+        out['lvap'] = self.lvap
+        out['block'] = self.block
         out['relation'] = self.relation
         out['value'] = self.value
         out['current'] = self.current
@@ -163,7 +228,7 @@ class RSSI(Trigger):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
-                        addrs=self.addrs.to_raw(),
+                        lvap=self.lvap.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band,
@@ -234,7 +299,7 @@ class RssiWorker(ModuleLVAPPWorker):
         to_be_removed = []
 
         for module in self.modules.values():
-            if module.addrs == lvap.addr:
+            if module.lvap == lvap.addr:
                 to_be_removed.append(module)
 
         for module in to_be_removed:

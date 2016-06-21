@@ -34,8 +34,10 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.triggers.trigger import Trigger
 from empower.lvapp import PT_BYE
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
+from empower.core.module import Module
 
 from empower.main import RUNTIME
 
@@ -81,16 +83,19 @@ DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt32("module_id"))
 
 
-class Summary(Trigger):
+class Summary(Module):
     """ Summary object. """
 
     MODULE_NAME = "summary"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'addrs']
 
     def __init__(self):
 
-        Trigger.__init__(self)
+        Module.__init__(self)
 
         # parameters
+        self._addrs = None
+        self._block = None
         self._limit = -1
 
         # data structures
@@ -99,7 +104,64 @@ class Summary(Trigger):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
+            self.addrs == other.addrs and \
+            self.block == other.block and \
             self.limit == other.limit
+
+    @property
+    def addrs(self):
+        """ Return the address. """
+        return self._addrs
+
+    @addrs.setter
+    def addrs(self, addr):
+        """ Set the address. """
+        self._addrs = EtherAddress(addr)
+
+    @property
+    def block(self):
+        """Return block."""
+
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        """Set block."""
+
+        if isinstance(value, ResourceBlock):
+
+            self._block = value
+
+        elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+
+            if 'hwaddr' not in value:
+                raise ValueError("Missing field: hwaddr")
+
+            if 'channel' not in value:
+                raise ValueError("Missing field: channel")
+
+            if 'band' not in value:
+                raise ValueError("Missing field: band")
+
+            if 'wtp' not in value:
+                raise ValueError("Missing field: wtp")
+
+            incoming = ResourcePool()
+            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                  int(value['channel']), int(value['band']))
+            incoming.add(block)
+
+            match = wtp.supports & incoming
+
+            if not match:
+                raise ValueError("No block specified")
+
+            if len(match) > 1:
+                raise ValueError("More than one block specified")
+
+            self._block = match.pop()
 
     @property
     def limit(self):
@@ -120,6 +182,8 @@ class Summary(Trigger):
 
         out = super().to_dict()
 
+        out['addrs'] = self.addrs
+        out['block'] = self.block
         out['limit'] = self.limit
         out['frames'] = self.frames
 
@@ -129,16 +193,18 @@ class Summary(Trigger):
         """ Send out rate request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
-
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
+            self.unload()
             return
 
         if not wtp.connection:
+            self.unload()
             return
 
         req = Container(version=PT_VERSION,
@@ -171,11 +237,13 @@ class Summary(Trigger):
         wtp_addr = EtherAddress(response.wtp)
 
         if wtp_addr not in RUNTIME.wtps:
+            self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
         if wtp_addr not in tenant.wtps:
+            self.unload()
             return
 
         self.frames = []
