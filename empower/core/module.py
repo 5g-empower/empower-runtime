@@ -216,7 +216,7 @@ class Module(object):
         self.__tenant_id = None
         self.__every = 5000
         self.__callback = None
-        self.__worker = None
+        self.__periodic = None
         self.log = empower.logger.get_logger()
 
     def unload(self):
@@ -354,14 +354,14 @@ class Module(object):
         if self.every == -1:
             self.run_once()
         else:
-            self.__worker = tornado.ioloop.PeriodicCallback(self.run_once,
+            self.__periodic = tornado.ioloop.PeriodicCallback(self.run_once,
                                                             self.every)
-            self.__worker.start()
+            self.__periodic.start()
 
     def stop(self):
         """Stop worker."""
 
-        self.__worker.stop()
+        self.__periodic.stop()
 
     def run_once(self):
         """Period task."""

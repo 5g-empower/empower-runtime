@@ -87,7 +87,7 @@ class RSSI(Module):
 
     def __init__(self):
 
-        Trigger.__init__(self)
+        Module.__init__(self)
 
         # parameters
         self._lvap = None
@@ -208,6 +208,7 @@ class RSSI(Module):
         """ Send out rate request. """
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
             self.unload()
             return
 
@@ -215,10 +216,12 @@ class RSSI(Module):
         wtp = self.block.radio
 
         if wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", wtp.addr)
             self.unload()
             return
 
-        if not wtp.connection:
+        if self.lvap not in tenant.lvaps:
+            self.log.info("LVAP %s not found", self.lvap)
             self.unload()
             return
 
@@ -257,8 +260,6 @@ class RSSI(Module):
                              seq=wtp.seq,
                              module_id=self.module_id)
 
-        print(del_rssi)
-
         msg = DEL_RSSI_TRIGGER.build(del_rssi)
         wtp.connection.stream.write(msg)
 
@@ -271,6 +272,24 @@ class RSSI(Module):
         Returns:
             None
         """
+
+        if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
+            self.unload()
+            return
+
+        tenant = RUNTIME.tenants[self.tenant_id]
+        wtp = self.block.radio
+
+        if wtp.addr not in tenant.wtps:
+            self.log.info("WTP %s not found", wtp.addr)
+            self.unload()
+            return
+
+        if self.lvap not in tenant.lvaps:
+            self.log.info("LVAP %s not found", self.lvap)
+            self.unload()
+            return
 
         self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.current = message.current

@@ -218,8 +218,7 @@ class CQM(dict):
                    'last_rssi_avg': -float("inf"),
                    'last_packets': 0,
                    'hist_packets': 0,
-                   'ewma_rssi': -float("inf"),
-                   'sma_rssi': -float("inf")}
+                   'mov_rssi': -float("inf")}
 
             return inf
 

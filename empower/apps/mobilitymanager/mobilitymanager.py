@@ -24,7 +24,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.resourcepool import ResourcePool
 
 
-DEFAULT_LIMIT = -10
+DEFAULT_LIMIT = -80
 
 
 class MobilityManager(EmpowerApp):
@@ -57,7 +57,7 @@ class MobilityManager(EmpowerApp):
         for block in wtp.supports:
             self.ucqm(block=block, every=self.every)
             for lvap in self.lvaps():
-                self.rssi(addrs=lvap.addr, block=block, value=-30,
+                self.rssi(lvap=lvap.addr, block=block, value=self.limit,
                           relation='LT', callback=self.low_rssi)
 
     def lvap_join_callback(self, lvap):
@@ -65,7 +65,7 @@ class MobilityManager(EmpowerApp):
 
         for wtp in self.wtps():
             for block in wtp.supports:
-                self.rssi(addrs=lvap.addr, block=block, value=-30,
+                self.rssi(lvap=lvap.addr, block=block, value=self.limit,
                           relation='LT', callback=self.low_rssi)
 
     def handover(self, lvap):
@@ -87,7 +87,7 @@ class MobilityManager(EmpowerApp):
 
         # Filter Resource Blocks by RSSI
         valid = [block for block in matches
-                 if block.ucqm[lvap.addr]['mov_rssi'] >= -85]
+                 if block.ucqm[lvap.addr]['mov_rssi'] >= self.limit]
 
         if not valid:
             return
@@ -119,9 +119,7 @@ class MobilityManager(EmpowerApp):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
 
-        return
-
-        lvap_addr = EtherAddress(trigger.events[-1]['addr'])
+        lvap_addr = EtherAddress(trigger.lvap)
         lvap = self.lvap(lvap_addr)
 
         if not lvap:
@@ -131,8 +129,6 @@ class MobilityManager(EmpowerApp):
 
     def loop(self):
         """ Periodic job. """
-
-        return
 
         # Handover every active LVAP to
         # the best WTP
