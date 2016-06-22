@@ -23,15 +23,7 @@ from empower.core.app import EmpowerApp
 
 
 class Poller(EmpowerApp):
-    """Base EmPOWER poller application. Use it to stress-test pollers.
-
-    Command Line Parameters:
-
-        tenant_id: network id (mandatory)
-        filepath: path to the CSVs output directory (optional, default ./)
-        every: loop period in ms (optional, default 5000ms)
-
-    """
+    """Base EmPOWER poller application."""
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)

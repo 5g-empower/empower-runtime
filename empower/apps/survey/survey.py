@@ -30,13 +30,13 @@ class Survey(EmpowerApp):
     Command Line Parameters:
 
         tenant_id: tenant id
+        addr: the address to be tracked (optional, default ff:ff:ff:ff:ff:ff)
         every: loop period in ms (optional, default 5000ms)
 
     Example:
 
         ./empower-runtime.py apps.survey.survey \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
-
     """
 
     def __init__(self, **kwargs):
@@ -65,8 +65,6 @@ class Survey(EmpowerApp):
 
     def summary_callback(self, summary):
         """ New stats available. """
-
-        print(summary.frames)
 
         self.log.info("New summary from %s addr %s frames %u", summary.block,
                       summary.addr, len(summary.frames))

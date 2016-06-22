@@ -32,13 +32,14 @@ class MobilityManager(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        limit: handover limit in dBm (optional, default -80)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.mobilitymanager.mobilitymanager:$ID
-
+        ./empower-runtime.py apps.mobilitymanager.mobilitymanager \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

@@ -60,7 +60,6 @@ class Joule(EmpowerApp):
         ./empower-runtime.py apps.pollers.linkstatspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada2 \
             --profile=./empower/apps/joule/models_30s_full.json
-
     """
 
     def __init__(self, **kwargs):

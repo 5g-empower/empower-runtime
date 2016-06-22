@@ -28,10 +28,13 @@ class PowerTracker(EmpowerApp):
 
     Command Line Parameters:
 
-        tenant_id: network id (mandatory)
-        filepath: path to the CSVs output directory (optional,
-            default ./powertracker.csv)
+        tenant_id: tenant id
         every: loop period in ms (optional, default 5000ms)
+
+    Example:
+
+        ./empower-runtime.py apps.powertracker.powertracker \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

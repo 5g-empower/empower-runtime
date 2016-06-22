@@ -15,14 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" The Empower Manager. """
+"""Empower Manager."""
 
 import sys
 import getpass
 import base64
 import json
 
-from http.client import HTTPSConnection
 from http.client import HTTPConnection
 
 from argparse import ArgumentParser

@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""EmPOWER application implementing a basic mobility manager."""
+"""EmPOWER application implementing an uplink/downlink decoupling mechanism."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import EmpowerAppHandler

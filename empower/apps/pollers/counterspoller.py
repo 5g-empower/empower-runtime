@@ -32,9 +32,8 @@ class CountersPoller(Poller):
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.linkstatspoller --tenant_id=$ID
-
+        ./empower-runtime.py apps.pollers.counterspoller \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

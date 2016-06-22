@@ -26,13 +26,13 @@ class EventsApp(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.events.events:$ID
-
+        ./empower-runtime.py apps.events.events \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

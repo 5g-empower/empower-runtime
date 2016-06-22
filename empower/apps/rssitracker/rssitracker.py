@@ -32,14 +32,15 @@ class RSSITracker(EmpowerApp):
 
     Command Line Parameters:
 
-        addrs: the addresses to be tracked (optional, default f:ff:ff:ff:ff:ff)
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        addrs: the addresses to be tracked (optional, default
+            ff:ff:ff:ff:ff:ff)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.rssitracker.rssitracker:$ID
-
+        ./empower-runtime.py apps.rssitracker.rssitracker \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

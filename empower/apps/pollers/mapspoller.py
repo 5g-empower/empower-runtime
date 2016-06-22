@@ -22,7 +22,7 @@ from empower.core.app import DEFAULT_PERIOD
 
 
 class MapsPoller(Poller):
-    """Radio Maps Poller App.
+    """Maps Poller Apps.
 
     Command Line Parameters:
 
@@ -32,9 +32,8 @@ class MapsPoller(Poller):
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pollers.mapspoller --tenant_id=$ID
-
+        ./empower-runtime.py apps.pollers.mapstatspoller \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

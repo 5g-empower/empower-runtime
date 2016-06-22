@@ -87,14 +87,14 @@ class Summary(Module):
     """ Summary object. """
 
     MODULE_NAME = "summary"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'addr']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
 
         Module.__init__(self)
 
         # parameters
-        self._addr = None
+        self._addr = EtherAddress("FF:FF:FF:FF:FF:FF")
         self._block = None
         self._limit = -1
         self._period = 2000

@@ -30,15 +30,16 @@ class PingPong(EmpowerApp):
 
     Command Line Parameters:
 
+        tenant_id: tenant id
         lvap: the lvap address (optinal, default 00:18:DE:CC:D3:40)
-        wtps: comma separated list (optional)
-        period: loop period in ms (optional, default 5000ms)
+        wtps: comma separated list (optional, default 00:0D:B9:2F:56:58,
+            00:0D:B9:2F:56:5C, 00:0D:B9:2F:56:64)
+        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.pingpong.pingpong:$ID
-
+        ./empower-runtime.py apps.pingpong.pingpong \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):

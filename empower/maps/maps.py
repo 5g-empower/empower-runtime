@@ -36,9 +36,6 @@ from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
 
-PT_POLLER_REQ_MSG_TYPE = 0x27
-PT_POLLER_RESP_MSG_TYPE = 0x28
-
 
 POLLER_ENTRY_TYPE = Sequence("img_entries",
                              Bytes("addr", 6),
