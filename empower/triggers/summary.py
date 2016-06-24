@@ -58,7 +58,8 @@ ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt16("period"))
 
 SUMMARY_ENTRY = Sequence("frames",
-                         Bytes("addr", 6),
+                         Bytes("ra", 6),
+                         Bytes("ta", 6),
                          UBInt64("tsft"),
                          UBInt16("seq"),
                          SBInt8("rssi"),
@@ -285,39 +286,45 @@ class Summary(Module):
         for recv in response.frames:
 
             if self.block.band == BT_L20:
-                rate = int(recv[4]) / 2.0
+                rate = int(recv[5]) / 2.0
             else:
-                rate = int(recv[4])
-
-            if recv[5] == 0x00:
-                pt_type = "MNGT"
-            elif recv[5] == 0x04:
-                pt_type = "CTRL"
-            elif recv[5] == 0x08:
-                pt_type = "DATA"
-            else:
-                pt_type = "UNKN"
+                rate = int(recv[5])
 
             if recv[6] == 0x00:
-                pt_subtype = "ASSOC_REQ"
-            elif recv[6] == 0x10:
-                pt_subtype = "ASSOC_RESP"
-            elif recv[6] == 0x20:
-                pt_subtype = "AUTH_REQ"
-            elif recv[6] == 0x30:
-                pt_subtype = "AUTH_RESP"
-            elif recv[6] == 0x80:
-                pt_subtype = "BEACON"
+                pt_type = "MNGT"
+            elif recv[6] == 0x04:
+                pt_type = "CTRL"
+            elif recv[6] == 0x08:
+                pt_type = "DATA"
             else:
-                pt_subtype = recv[6]
+                pt_type = "UNKN (%s)" % recv[5]
 
-            frame = {'tsft': recv[1],
-                     'seq': recv[2],
-                     'rssi': recv[3],
+            if recv[7] == 0x00:
+                pt_subtype = "Assoc Req"
+            elif recv[7] == 0x10:
+                pt_subtype = "Assoc Resp"
+            elif recv[7] == 0x20:
+                pt_subtype = "Auth Req"
+            elif recv[7] == 0x30:
+                pt_subtype = "Auth Resp"
+            elif recv[7] == 0x80:
+                pt_subtype = "Beacon"
+            elif recv[7] == 0xC0:
+                pt_subtype = "QoS Null"
+            elif recv[7] == 0x64:
+                pt_subtype = "Null"
+            else:
+                pt_subtype = "UNKN (%s)" % recv[7]
+
+            frame = {'ra': EtherAddress(recv[0]),
+                     'ta': EtherAddress(recv[1]),
+                     'tsft': recv[2],
+                     'seq': recv[3],
+                     'rssi': recv[4],
                      'rate': rate,
                      'type': pt_type,
                      'subtype': pt_subtype,
-                     'length': recv[7]}
+                     'length': recv[8]}
 
             self.frames.append(frame)
 

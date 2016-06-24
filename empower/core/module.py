@@ -344,8 +344,8 @@ class Module(object):
         if self.every == -1:
             self.run_once()
         else:
-            self.__periodic = tornado.ioloop.PeriodicCallback(self.run_once,
-                                                            self.every)
+            self.__periodic = \
+                tornado.ioloop.PeriodicCallback(self.run_once, self.every)
             self.__periodic.start()
 
     def stop(self):

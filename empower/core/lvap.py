@@ -492,6 +492,16 @@ class LVAP(object):
         self.scheduled_on[default_block] = value
 
     @property
+    def default_block(self):
+        """Return the default block on which this LVAP is scheduled on."""
+
+        if not self.scheduled_on:
+            return None
+
+        default_block = next(iter(self.scheduled_on.keys()))
+        return default_block
+
+    @property
     def wtp(self):
         """Return the wtp on which this LVAP is scheduled on."""
 

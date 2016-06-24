@@ -151,10 +151,13 @@ class LVAPStats(Module):
             None
         """
 
+        tenant = RUNTIME.tenants[self.tenant_id]
+        lvap = tenant.lvaps[self.lvap]
+
         # update this object
         self.rates = {}
         for entry in response.rates:
-            if self.block.band == BT_L20:
+            if lvap.default_block.band == BT_L20:
                 rate = entry[0] / 2.0
             else:
                 rate = entry[0]

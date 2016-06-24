@@ -19,6 +19,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.core.resourcepool import BANDS
 from empower.datatypes.etheraddress import EtherAddress
 
 DEFAULT_ADDRESS = "ff:ff:ff:ff:ff:ff"
@@ -68,6 +69,20 @@ class Survey(EmpowerApp):
 
         self.log.info("New summary from %s addr %s frames %u", summary.block,
                       summary.addr, len(summary.frames))
+
+        filename = "survey_%s_%u_%s.csv" % (summary.block.addr,
+                                            summary.block.channel,
+                                            BANDS[summary.block.band])
+
+        for frame in summary.frames:
+
+            line = "%u,%.1f,%d,%u,%s,%s,%s,%s,%s\n" % \
+                (frame['tsft'], frame['rate'], frame['rssi'], frame['length'],
+                 frame['type'], frame['subtype'], frame['ra'], frame['ta'],
+                 frame['seq'])
+
+            with open(filename, 'a') as file_d:
+                file_d.write(line)
 
 
 def launch(tenant_id, addr=DEFAULT_ADDRESS, every=DEFAULT_PERIOD):
