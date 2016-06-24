@@ -115,19 +115,12 @@ class LVAPStats(Module):
 
         if self.lvap not in tenant.lvaps:
             self.log.info("LVAP %s not found", self.lvap)
-            self.unload()
             return
 
         lvap = tenant.lvaps[self.lvap]
 
-        if lvap.wtp.addr not in tenant.wtps:
-            self.log.info("WTP %s not found", lvap.wtp.addr)
-            self.unload()
-            return
-
         if not lvap.wtp.connection or lvap.wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", lvap.wtp.addr)
-            self.unload()
             return
 
         rates_req = Container(version=PT_VERSION,

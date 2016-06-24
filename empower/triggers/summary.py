@@ -34,7 +34,7 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.lvapp import PT_BYE
+from empower.lvapp import PT_CAPS
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
 from empower.core.module import Module
@@ -209,7 +209,7 @@ class Summary(Module):
         """ Send out rate request. """
 
         if self.tenant_id not in RUNTIME.tenants:
-            self.log.info("Tenant %s not found", self.tenant_id)
+            self.log.info("Tenant %s not found.", self.tenant_id)
             self.unload()
             return
 
@@ -240,26 +240,6 @@ class Summary(Module):
         msg = ADD_SUMMARY.build(req)
         wtp.connection.stream.write(msg)
 
-    def unload(self):
-        """Remove this module."""
-
-        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
-        self.worker.remove_module(self.module_id)
-
-        wtp = self.block.radio
-
-        if not wtp.connection or wtp.connection.stream.closed():
-            return
-
-        del_rssi = Container(version=PT_VERSION,
-                             type=PT_DEL_SUMMARY,
-                             length=12,
-                             seq=wtp.seq,
-                             module_id=self.module_id)
-
-        msg = DEL_SUMMARY.build(del_rssi)
-        wtp.connection.stream.write(msg)
-
     def handle_response(self, response):
         """Handle an incoming response message.
         Args:
@@ -267,19 +247,6 @@ class Summary(Module):
         Returns:
             None
         """
-
-        if self.tenant_id not in RUNTIME.tenants:
-            self.log.info("Tenant %s not found", self.tenant_id)
-            self.unload()
-            return
-
-        tenant = RUNTIME.tenants[self.tenant_id]
-        wtp = self.block.radio
-
-        if wtp.addr not in tenant.wtps:
-            self.log.info("WTP %s not found", wtp.addr)
-            self.unload()
-            return
 
         self.frames = []
 
@@ -334,18 +301,20 @@ class Summary(Module):
 class SummaryWorker(ModuleLVAPPWorker):
     """ Summary worker. """
 
-    def handle_bye(self, wtp):
-        """Handle WTP bye message."""
+    def handle_caps(self, caps):
+        """Handle WTP CAPS message."""
 
-        to_be_removed = []
+        wtp_addr = EtherAddress(caps.wtp)
+
+        if wtp_addr not in RUNTIME.wtps:
+            return
+
+        wtp = RUNTIME.wtps[wtp_addr]
 
         for module in self.modules:
             block = self.modules[module].block
             if block in wtp.supports:
-                to_be_removed.append(module)
-
-        for module in to_be_removed:
-            self.remove_module(module)
+                self.modules[module].run_once()
 
 
 def summary(**kwargs):
@@ -368,6 +337,6 @@ def launch():
     """ Initialize the module. """
 
     summary_worker = SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
-    summary_worker.pnfp_server.register_message(PT_BYE, None,
-                                                summary_worker.handle_bye)
+    summary_worker.pnfp_server.register_message(PT_CAPS, None,
+                                                summary_worker.handle_caps)
     return summary_worker
