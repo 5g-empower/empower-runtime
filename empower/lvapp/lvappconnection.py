@@ -74,7 +74,6 @@ BASE_MAC = EtherAddress("00:1b:b3:00:00:00")
 
 
 class LVAPPConnection(object):
-
     """LVAPP Connection.
 
     Represents a connection to a WTP (Wireless Termination Point) using
