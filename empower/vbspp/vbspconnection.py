@@ -138,9 +138,6 @@ class VBSPConnection(object):
         self.stream.write(size_message)
         self.stream.write(send_buff)
 
-        if self.vbsp:
-            self.vbsp.downlink_bytes += 4 + size
-
     def send_echo_request(self, enb_id, xid=0):
 
         echo_request = progran_pb2.progran_message()
@@ -176,9 +173,6 @@ class VBSPConnection(object):
         packet type in unknown. """
 
         if line is not None:
-
-            if self.vbsp:
-                self.vbsp.uplink_bytes += len(line)
 
             # Checking for size message (4 Bytes)
             if len(line) == 4:
