@@ -98,13 +98,24 @@ class EmpowerApp(object):
 
         pass
 
-    def wtps(self):
-        """Return WTPs in this tenant."""
+    def vbsps(self):
+        """Return VBSPs in this tenant."""
 
         if self.tenant_id not in RUNTIME.tenants:
             return None
 
-        return RUNTIME.tenants[self.tenant_id].wtps.values()
+        return RUNTIME.tenants[self.tenant_id].vbsps.values()
+
+    def vbsp(self, addr):
+        """Return a particular VBSP in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        if addr not in RUNTIME.tenants[self.tenant_id].vbsps:
+            return None
+
+        return RUNTIME.tenants[self.tenant_id].vbsps[addr]
 
     def lvaps(self):
         """Return LVAPs in this tenant."""
@@ -124,6 +135,14 @@ class EmpowerApp(object):
             return None
 
         return RUNTIME.tenants[self.tenant_id].lvaps[addr]
+
+    def wtps(self):
+        """Return WTPs in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        return RUNTIME.tenants[self.tenant_id].wtps.values()
 
     def wtp(self, addr):
         """Return a particular WTP in this tenant."""
