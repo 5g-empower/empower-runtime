@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='stats_common.proto',
   package='protocol',
   syntax='proto2',
-  serialized_pb=_b('\n\x12stats_common.proto\x12\x08protocol\"\xb3\x01\n\x0bprp_rlc_bsr\x12\r\n\x05lc_id\x18\x01 \x01(\r\x12\x15\n\rtx_queue_size\x18\x02 \x01(\r\x12\x1a\n\x12tx_queue_hol_delay\x18\x03 \x01(\r\x12!\n\x19retransmission_queue_size\x18\x04 \x01(\r\x12&\n\x1eretransmission_queue_hol_delay\x18\x05 \x01(\r\x12\x17\n\x0fstatus_pdu_size\x18\x06 \x01(\r\"\x1d\n\x0bprp_csi_p10\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\"-\n\x0bprp_csi_p11\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\"]\n\x0bprp_csi_p20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x1c\n\x14\x62\x61ndwidth_part_index\x18\x03 \x01(\r\x12\x10\n\x08sb_index\x18\x04 \x01(\r\"l\n\x0bprp_csi_p21\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x03 \x03(\r\x12\x1b\n\x13\x62\x61\x64width_part_index\x18\x04 \x01(\r\x12\x10\n\x08sb_index\x18\x05 \x01(\r\"-\n\x0bprp_csi_a12\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_pmi\x18\x02 \x03(\r\"^\n\x0bprp_csi_a22\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\x12\x0e\n\x06sb_pmi\x18\x04 \x01(\r\x12\x0f\n\x07sb_list\x18\x05 \x03(\r\">\n\x0bprp_csi_a20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x0f\n\x07sb_list\x18\x03 \x03(\r\"-\n\x0bprp_csi_a30\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\"T\n\x0bprp_csi_a31\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12%\n\x06sb_cqi\x18\x02 \x03(\x0b\x32\x15.protocol.prp_msb_cqi\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\"\x1d\n\x0bprp_msb_cqi\x12\x0e\n\x06sb_cqi\x18\x01 \x03(\r\"\xd2\x03\n\nprp_dl_csi\x12\x17\n\x0fserv_cell_index\x18\x01 \x01(\r\x12\n\n\x02ri\x18\x02 \x01(\r\x12$\n\x04type\x18\x03 \x01(\x0e\x32\x16.protocol.prp_csi_type\x12\'\n\x06p10csi\x18\x04 \x01(\x0b\x32\x15.protocol.prp_csi_p10H\x00\x12\'\n\x06p11csi\x18\x05 \x01(\x0b\x32\x15.protocol.prp_csi_p11H\x00\x12\'\n\x06p20csi\x18\x06 \x01(\x0b\x32\x15.protocol.prp_csi_p20H\x00\x12\'\n\x06p21csi\x18\x07 \x01(\x0b\x32\x15.protocol.prp_csi_p21H\x00\x12\'\n\x06\x61\x31\x32\x63si\x18\x08 \x01(\x0b\x32\x15.protocol.prp_csi_a12H\x00\x12\'\n\x06\x61\x32\x32\x63si\x18\t \x01(\x0b\x32\x15.protocol.prp_csi_a22H\x00\x12\'\n\x06\x61\x32\x30\x63si\x18\n \x01(\x0b\x32\x15.protocol.prp_csi_a20H\x00\x12\'\n\x06\x61\x33\x30\x63si\x18\x0b \x01(\x0b\x32\x15.protocol.prp_csi_a30H\x00\x12\'\n\x06\x61\x33\x31\x63si\x18\x0c \x01(\x0b\x32\x15.protocol.prp_csi_a31H\x00\x42\x08\n\x06report\"M\n\x11prp_dl_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12(\n\ncsi_report\x18\x02 \x03(\x0b\x32\x14.protocol.prp_dl_csi\"t\n\x0fprp_paging_info\x12\x14\n\x0cpaging_index\x18\x01 \x01(\r\x12\x1b\n\x13paging_message_size\x18\x02 \x01(\r\x12\x17\n\x0fpaging_subframe\x18\x03 \x01(\r\x12\x15\n\rcarrier_index\x18\x04 \x01(\r\"J\n\x18prp_paging_buffer_report\x12.\n\x0bpaging_info\x18\x01 \x03(\x0b\x32\x19.protocol.prp_paging_info\"\\\n\nprp_ul_cqi\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.protocol.prp_ul_cqi_type\x12\x0c\n\x04sinr\x18\x02 \x03(\r\x12\x17\n\x0fserv_cell_index\x18\x03 \x01(\r\"K\n\x11prp_ul_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12&\n\x08\x63qi_meas\x18\x02 \x03(\x0b\x32\x14.protocol.prp_ul_cqi\"I\n\x1dprp_noise_interference_report\x12\x0e\n\x06sfn_sf\x18\x01 \x01(\r\x12\x0b\n\x03rip\x18\x02 \x01(\r\x12\x0b\n\x03tnp\x18\x03 \x01(\r*J\n\x0bprp_ce_type\x12\r\n\tPRPCET_TA\x10\x01\x12\x0e\n\nPRPCET_DRX\x10\x02\x12\r\n\tPRPCET_CR\x10\x04\x12\r\n\tPRPCET_CA\x10\x08*\x9e\x01\n\x0cprp_csi_type\x12\x0e\n\nPRCSIT_P10\x10\x00\x12\x0e\n\nPRCSIT_P11\x10\x01\x12\x0e\n\nPRCSIT_P20\x10\x02\x12\x0e\n\nPRCSIT_P21\x10\x03\x12\x0e\n\nPRCSIT_A12\x10\x04\x12\x0e\n\nPRCSIT_A22\x10\x05\x12\x0e\n\nPRCSIT_A20\x10\x06\x12\x0e\n\nPRCSIT_A30\x10\x07\x12\x0e\n\nPRCSIT_A31\x10\x08*h\n\x0fprp_ul_cqi_type\x12\r\n\tPRUCT_SRS\x10\x00\x12\x0f\n\x0bPRUCT_PUSCH\x10\x01\x12\x11\n\rPRUCT_PUCCH_1\x10\x02\x12\x11\n\rPRUCT_PUCCH_2\x10\x03\x12\x0f\n\x0bPRUCT_PRACH\x10\x04')
+  serialized_pb=_b('\n\x12stats_common.proto\x12\x08protocol\"\xac\x01\n\x1eprp_meas_result_EUTRA_cgi_info\x12:\n\x0e\x63\x65ll_global_id\x18\x01 \x01(\x0b\x32\".protocol.prp_cell_global_id_EUTRA\x12\x1a\n\x12tracking_area_code\x18\x02 \x01(\r\x12\x32\n\rplmn_identity\x18\x03 \x03(\x0b\x32\x1b.protocol.prp_plmn_identity\"-\n\x11prp_plmn_identity\x12\x0b\n\x03mnc\x18\x01 \x03(\r\x12\x0b\n\x03mcc\x18\x02 \x03(\r\"e\n\x18prp_cell_global_id_EUTRA\x12\x32\n\rplmn_Identity\x18\x01 \x01(\x0b\x32\x1b.protocol.prp_plmn_identity\x12\x15\n\rcell_identity\x18\x02 \x01(\r\",\n\x0eprp_EUTRA_meas\x12\x0c\n\x04rsrp\x18\x01 \x01(\x05\x12\x0c\n\x04rsrq\x18\x02 \x01(\x05\"\xb3\x01\n\x0bprp_rlc_bsr\x12\r\n\x05lc_id\x18\x01 \x01(\r\x12\x15\n\rtx_queue_size\x18\x02 \x01(\r\x12\x1a\n\x12tx_queue_hol_delay\x18\x03 \x01(\r\x12!\n\x19retransmission_queue_size\x18\x04 \x01(\r\x12&\n\x1eretransmission_queue_hol_delay\x18\x05 \x01(\r\x12\x17\n\x0fstatus_pdu_size\x18\x06 \x01(\r\"\x1d\n\x0bprp_csi_p10\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\"-\n\x0bprp_csi_p11\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\"]\n\x0bprp_csi_p20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x1c\n\x14\x62\x61ndwidth_part_index\x18\x03 \x01(\r\x12\x10\n\x08sb_index\x18\x04 \x01(\r\"l\n\x0bprp_csi_p21\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x03 \x03(\r\x12\x1b\n\x13\x62\x61\x64width_part_index\x18\x04 \x01(\r\x12\x10\n\x08sb_index\x18\x05 \x01(\r\"-\n\x0bprp_csi_a12\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_pmi\x18\x02 \x03(\r\"^\n\x0bprp_csi_a22\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\x12\x0e\n\x06sb_pmi\x18\x04 \x01(\r\x12\x0f\n\x07sb_list\x18\x05 \x03(\r\">\n\x0bprp_csi_a20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x0f\n\x07sb_list\x18\x03 \x03(\r\"-\n\x0bprp_csi_a30\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\"T\n\x0bprp_csi_a31\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12%\n\x06sb_cqi\x18\x02 \x03(\x0b\x32\x15.protocol.prp_msb_cqi\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\"\x1d\n\x0bprp_msb_cqi\x12\x0e\n\x06sb_cqi\x18\x01 \x03(\r\"\xd2\x03\n\nprp_dl_csi\x12\x17\n\x0fserv_cell_index\x18\x01 \x01(\r\x12\n\n\x02ri\x18\x02 \x01(\r\x12$\n\x04type\x18\x03 \x01(\x0e\x32\x16.protocol.prp_csi_type\x12\'\n\x06p10csi\x18\x04 \x01(\x0b\x32\x15.protocol.prp_csi_p10H\x00\x12\'\n\x06p11csi\x18\x05 \x01(\x0b\x32\x15.protocol.prp_csi_p11H\x00\x12\'\n\x06p20csi\x18\x06 \x01(\x0b\x32\x15.protocol.prp_csi_p20H\x00\x12\'\n\x06p21csi\x18\x07 \x01(\x0b\x32\x15.protocol.prp_csi_p21H\x00\x12\'\n\x06\x61\x31\x32\x63si\x18\x08 \x01(\x0b\x32\x15.protocol.prp_csi_a12H\x00\x12\'\n\x06\x61\x32\x32\x63si\x18\t \x01(\x0b\x32\x15.protocol.prp_csi_a22H\x00\x12\'\n\x06\x61\x32\x30\x63si\x18\n \x01(\x0b\x32\x15.protocol.prp_csi_a20H\x00\x12\'\n\x06\x61\x33\x30\x63si\x18\x0b \x01(\x0b\x32\x15.protocol.prp_csi_a30H\x00\x12\'\n\x06\x61\x33\x31\x63si\x18\x0c \x01(\x0b\x32\x15.protocol.prp_csi_a31H\x00\x42\x08\n\x06report\"M\n\x11prp_dl_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12(\n\ncsi_report\x18\x02 \x03(\x0b\x32\x14.protocol.prp_dl_csi\"t\n\x0fprp_paging_info\x12\x14\n\x0cpaging_index\x18\x01 \x01(\r\x12\x1b\n\x13paging_message_size\x18\x02 \x01(\r\x12\x17\n\x0fpaging_subframe\x18\x03 \x01(\r\x12\x15\n\rcarrier_index\x18\x04 \x01(\r\"J\n\x18prp_paging_buffer_report\x12.\n\x0bpaging_info\x18\x01 \x03(\x0b\x32\x19.protocol.prp_paging_info\"\\\n\nprp_ul_cqi\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.protocol.prp_ul_cqi_type\x12\x0c\n\x04sinr\x18\x02 \x03(\r\x12\x17\n\x0fserv_cell_index\x18\x03 \x01(\r\"K\n\x11prp_ul_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12&\n\x08\x63qi_meas\x18\x02 \x03(\x0b\x32\x14.protocol.prp_ul_cqi\"I\n\x1dprp_noise_interference_report\x12\x0e\n\x06sfn_sf\x18\x01 \x01(\r\x12\x0b\n\x03rip\x18\x02 \x01(\r\x12\x0b\n\x03tnp\x18\x03 \x01(\r*J\n\x0bprp_ce_type\x12\r\n\tPRPCET_TA\x10\x01\x12\x0e\n\nPRPCET_DRX\x10\x02\x12\r\n\tPRPCET_CR\x10\x04\x12\r\n\tPRPCET_CA\x10\x08*\x9e\x01\n\x0cprp_csi_type\x12\x0e\n\nPRCSIT_P10\x10\x00\x12\x0e\n\nPRCSIT_P11\x10\x01\x12\x0e\n\nPRCSIT_P20\x10\x02\x12\x0e\n\nPRCSIT_P21\x10\x03\x12\x0e\n\nPRCSIT_A12\x10\x04\x12\x0e\n\nPRCSIT_A22\x10\x05\x12\x0e\n\nPRCSIT_A20\x10\x06\x12\x0e\n\nPRCSIT_A30\x10\x07\x12\x0e\n\nPRCSIT_A31\x10\x08*h\n\x0fprp_ul_cqi_type\x12\r\n\tPRUCT_SRS\x10\x00\x12\x0f\n\x0bPRUCT_PUSCH\x10\x01\x12\x11\n\rPRUCT_PUCCH_1\x10\x02\x12\x11\n\rPRUCT_PUCCH_2\x10\x03\x12\x0f\n\x0bPRUCT_PRACH\x10\x04')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -49,8 +49,8 @@ _PRP_CE_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1856,
-  serialized_end=1930,
+  serialized_start=2227,
+  serialized_end=2301,
 )
 _sym_db.RegisterEnumDescriptor(_PRP_CE_TYPE)
 
@@ -100,8 +100,8 @@ _PRP_CSI_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1933,
-  serialized_end=2091,
+  serialized_start=2304,
+  serialized_end=2462,
 )
 _sym_db.RegisterEnumDescriptor(_PRP_CSI_TYPE)
 
@@ -135,8 +135,8 @@ _PRP_UL_CQI_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2093,
-  serialized_end=2197,
+  serialized_start=2464,
+  serialized_end=2568,
 )
 _sym_db.RegisterEnumDescriptor(_PRP_UL_CQI_TYPE)
 
@@ -160,6 +160,165 @@ PRUCT_PUCCH_1 = 2
 PRUCT_PUCCH_2 = 3
 PRUCT_PRACH = 4
 
+
+
+_PRP_MEAS_RESULT_EUTRA_CGI_INFO = _descriptor.Descriptor(
+  name='prp_meas_result_EUTRA_cgi_info',
+  full_name='protocol.prp_meas_result_EUTRA_cgi_info',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cell_global_id', full_name='protocol.prp_meas_result_EUTRA_cgi_info.cell_global_id', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='tracking_area_code', full_name='protocol.prp_meas_result_EUTRA_cgi_info.tracking_area_code', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='plmn_identity', full_name='protocol.prp_meas_result_EUTRA_cgi_info.plmn_identity', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=33,
+  serialized_end=205,
+)
+
+
+_PRP_PLMN_IDENTITY = _descriptor.Descriptor(
+  name='prp_plmn_identity',
+  full_name='protocol.prp_plmn_identity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='mnc', full_name='protocol.prp_plmn_identity.mnc', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mcc', full_name='protocol.prp_plmn_identity.mcc', index=1,
+      number=2, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=207,
+  serialized_end=252,
+)
+
+
+_PRP_CELL_GLOBAL_ID_EUTRA = _descriptor.Descriptor(
+  name='prp_cell_global_id_EUTRA',
+  full_name='protocol.prp_cell_global_id_EUTRA',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='plmn_Identity', full_name='protocol.prp_cell_global_id_EUTRA.plmn_Identity', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cell_identity', full_name='protocol.prp_cell_global_id_EUTRA.cell_identity', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=254,
+  serialized_end=355,
+)
+
+
+_PRP_EUTRA_MEAS = _descriptor.Descriptor(
+  name='prp_EUTRA_meas',
+  full_name='protocol.prp_EUTRA_meas',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='rsrp', full_name='protocol.prp_EUTRA_meas.rsrp', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rsrq', full_name='protocol.prp_EUTRA_meas.rsrq', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=357,
+  serialized_end=401,
+)
 
 
 _PRP_RLC_BSR = _descriptor.Descriptor(
@@ -223,8 +382,8 @@ _PRP_RLC_BSR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=33,
-  serialized_end=212,
+  serialized_start=404,
+  serialized_end=583,
 )
 
 
@@ -254,8 +413,8 @@ _PRP_CSI_P10 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=214,
-  serialized_end=243,
+  serialized_start=585,
+  serialized_end=614,
 )
 
 
@@ -292,8 +451,8 @@ _PRP_CSI_P11 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=245,
-  serialized_end=290,
+  serialized_start=616,
+  serialized_end=661,
 )
 
 
@@ -344,8 +503,8 @@ _PRP_CSI_P20 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=292,
-  serialized_end=385,
+  serialized_start=663,
+  serialized_end=756,
 )
 
 
@@ -403,8 +562,8 @@ _PRP_CSI_P21 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=387,
-  serialized_end=495,
+  serialized_start=758,
+  serialized_end=866,
 )
 
 
@@ -441,8 +600,8 @@ _PRP_CSI_A12 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=497,
-  serialized_end=542,
+  serialized_start=868,
+  serialized_end=913,
 )
 
 
@@ -500,8 +659,8 @@ _PRP_CSI_A22 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=544,
-  serialized_end=638,
+  serialized_start=915,
+  serialized_end=1009,
 )
 
 
@@ -545,8 +704,8 @@ _PRP_CSI_A20 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=640,
-  serialized_end=702,
+  serialized_start=1011,
+  serialized_end=1073,
 )
 
 
@@ -583,8 +742,8 @@ _PRP_CSI_A30 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=704,
-  serialized_end=749,
+  serialized_start=1075,
+  serialized_end=1120,
 )
 
 
@@ -628,8 +787,8 @@ _PRP_CSI_A31 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=751,
-  serialized_end=835,
+  serialized_start=1122,
+  serialized_end=1206,
 )
 
 
@@ -659,8 +818,8 @@ _PRP_MSB_CQI = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=837,
-  serialized_end=866,
+  serialized_start=1208,
+  serialized_end=1237,
 )
 
 
@@ -770,8 +929,8 @@ _PRP_DL_CSI = _descriptor.Descriptor(
       name='report', full_name='protocol.prp_dl_csi.report',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=869,
-  serialized_end=1335,
+  serialized_start=1240,
+  serialized_end=1706,
 )
 
 
@@ -808,8 +967,8 @@ _PRP_DL_CQI_REPORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1337,
-  serialized_end=1414,
+  serialized_start=1708,
+  serialized_end=1785,
 )
 
 
@@ -860,8 +1019,8 @@ _PRP_PAGING_INFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1416,
-  serialized_end=1532,
+  serialized_start=1787,
+  serialized_end=1903,
 )
 
 
@@ -891,8 +1050,8 @@ _PRP_PAGING_BUFFER_REPORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1534,
-  serialized_end=1608,
+  serialized_start=1905,
+  serialized_end=1979,
 )
 
 
@@ -936,8 +1095,8 @@ _PRP_UL_CQI = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1610,
-  serialized_end=1702,
+  serialized_start=1981,
+  serialized_end=2073,
 )
 
 
@@ -974,8 +1133,8 @@ _PRP_UL_CQI_REPORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1704,
-  serialized_end=1779,
+  serialized_start=2075,
+  serialized_end=2150,
 )
 
 
@@ -1019,10 +1178,13 @@ _PRP_NOISE_INTERFERENCE_REPORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1781,
-  serialized_end=1854,
+  serialized_start=2152,
+  serialized_end=2225,
 )
 
+_PRP_MEAS_RESULT_EUTRA_CGI_INFO.fields_by_name['cell_global_id'].message_type = _PRP_CELL_GLOBAL_ID_EUTRA
+_PRP_MEAS_RESULT_EUTRA_CGI_INFO.fields_by_name['plmn_identity'].message_type = _PRP_PLMN_IDENTITY
+_PRP_CELL_GLOBAL_ID_EUTRA.fields_by_name['plmn_Identity'].message_type = _PRP_PLMN_IDENTITY
 _PRP_CSI_A31.fields_by_name['sb_cqi'].message_type = _PRP_MSB_CQI
 _PRP_DL_CSI.fields_by_name['type'].enum_type = _PRP_CSI_TYPE
 _PRP_DL_CSI.fields_by_name['p10csi'].message_type = _PRP_CSI_P10
@@ -1065,6 +1227,10 @@ _PRP_DL_CQI_REPORT.fields_by_name['csi_report'].message_type = _PRP_DL_CSI
 _PRP_PAGING_BUFFER_REPORT.fields_by_name['paging_info'].message_type = _PRP_PAGING_INFO
 _PRP_UL_CQI.fields_by_name['type'].enum_type = _PRP_UL_CQI_TYPE
 _PRP_UL_CQI_REPORT.fields_by_name['cqi_meas'].message_type = _PRP_UL_CQI
+DESCRIPTOR.message_types_by_name['prp_meas_result_EUTRA_cgi_info'] = _PRP_MEAS_RESULT_EUTRA_CGI_INFO
+DESCRIPTOR.message_types_by_name['prp_plmn_identity'] = _PRP_PLMN_IDENTITY
+DESCRIPTOR.message_types_by_name['prp_cell_global_id_EUTRA'] = _PRP_CELL_GLOBAL_ID_EUTRA
+DESCRIPTOR.message_types_by_name['prp_EUTRA_meas'] = _PRP_EUTRA_MEAS
 DESCRIPTOR.message_types_by_name['prp_rlc_bsr'] = _PRP_RLC_BSR
 DESCRIPTOR.message_types_by_name['prp_csi_p10'] = _PRP_CSI_P10
 DESCRIPTOR.message_types_by_name['prp_csi_p11'] = _PRP_CSI_P11
@@ -1086,6 +1252,34 @@ DESCRIPTOR.message_types_by_name['prp_noise_interference_report'] = _PRP_NOISE_I
 DESCRIPTOR.enum_types_by_name['prp_ce_type'] = _PRP_CE_TYPE
 DESCRIPTOR.enum_types_by_name['prp_csi_type'] = _PRP_CSI_TYPE
 DESCRIPTOR.enum_types_by_name['prp_ul_cqi_type'] = _PRP_UL_CQI_TYPE
+
+prp_meas_result_EUTRA_cgi_info = _reflection.GeneratedProtocolMessageType('prp_meas_result_EUTRA_cgi_info', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_MEAS_RESULT_EUTRA_CGI_INFO,
+  __module__ = 'stats_common_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_meas_result_EUTRA_cgi_info)
+  ))
+_sym_db.RegisterMessage(prp_meas_result_EUTRA_cgi_info)
+
+prp_plmn_identity = _reflection.GeneratedProtocolMessageType('prp_plmn_identity', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_PLMN_IDENTITY,
+  __module__ = 'stats_common_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_plmn_identity)
+  ))
+_sym_db.RegisterMessage(prp_plmn_identity)
+
+prp_cell_global_id_EUTRA = _reflection.GeneratedProtocolMessageType('prp_cell_global_id_EUTRA', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_CELL_GLOBAL_ID_EUTRA,
+  __module__ = 'stats_common_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_cell_global_id_EUTRA)
+  ))
+_sym_db.RegisterMessage(prp_cell_global_id_EUTRA)
+
+prp_EUTRA_meas = _reflection.GeneratedProtocolMessageType('prp_EUTRA_meas', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_EUTRA_MEAS,
+  __module__ = 'stats_common_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_EUTRA_meas)
+  ))
+_sym_db.RegisterMessage(prp_EUTRA_meas)
 
 prp_rlc_bsr = _reflection.GeneratedProtocolMessageType('prp_rlc_bsr', (_message.Message,), dict(
   DESCRIPTOR = _PRP_RLC_BSR,

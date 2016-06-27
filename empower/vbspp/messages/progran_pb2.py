@@ -26,7 +26,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='progran.proto',
   package='protocol',
   syntax='proto2',
-  serialized_pb=_b('\n\rprogran.proto\x12\x08protocol\x1a\x14stats_messages.proto\x1a\x0cheader.proto\x1a\x11time_common.proto\x1a\x15\x63onfig_messages.proto\x1a\x19\x63ontroller_commands.proto\x1a\x18\x63ontrol_delegation.proto\"\xf4\x07\n\x0fprogran_message\x12,\n\x07msg_dir\x18\x64 \x01(\x0e\x32\x1b.protocol.progran_direction\x12(\n\thello_msg\x18\x01 \x01(\x0b\x32\x13.protocol.prp_helloH\x00\x12\x36\n\x10\x65\x63ho_request_msg\x18\x02 \x01(\x0b\x32\x1a.protocol.prp_echo_requestH\x00\x12\x32\n\x0e\x65\x63ho_reply_msg\x18\x03 \x01(\x0b\x32\x18.protocol.prp_echo_replyH\x00\x12\x38\n\x11stats_request_msg\x18\x04 \x01(\x0b\x32\x1b.protocol.prp_stats_requestH\x00\x12\x34\n\x0fstats_reply_msg\x18\x05 \x01(\x0b\x32\x19.protocol.prp_stats_replyH\x00\x12\x32\n\x0esf_trigger_msg\x18\x06 \x01(\x0b\x32\x18.protocol.prp_sf_triggerH\x00\x12\x32\n\x0eul_sr_info_msg\x18\x07 \x01(\x0b\x32\x18.protocol.prp_ul_sr_infoH\x00\x12\x42\n\x16\x65nb_config_request_msg\x18\x08 \x01(\x0b\x32 .protocol.prp_enb_config_requestH\x00\x12>\n\x14\x65nb_config_reply_msg\x18\t \x01(\x0b\x32\x1e.protocol.prp_enb_config_replyH\x00\x12@\n\x15ue_config_request_msg\x18\n \x01(\x0b\x32\x1f.protocol.prp_ue_config_requestH\x00\x12<\n\x13ue_config_reply_msg\x18\x0b \x01(\x0b\x32\x1d.protocol.prp_ue_config_replyH\x00\x12@\n\x15lc_config_request_msg\x18\x0c \x01(\x0b\x32\x1f.protocol.prp_lc_config_requestH\x00\x12<\n\x13lc_config_reply_msg\x18\r \x01(\x0b\x32\x1d.protocol.prp_lc_config_replyH\x00\x12\x38\n\x11\x64l_mac_config_msg\x18\x0e \x01(\x0b\x32\x1b.protocol.prp_dl_mac_configH\x00\x12<\n\x13ue_state_change_msg\x18\x0f \x01(\x0b\x32\x1d.protocol.prp_ue_state_changeH\x00\x12\x42\n\x16\x63ontrol_delegation_msg\x18\x10 \x01(\x0b\x32 .protocol.prp_control_delegationH\x00\x42\x05\n\x03msg\"1\n\tprp_hello\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"?\n\x10prp_echo_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header*\x05\x08\x64\x10\xc8\x01\"=\n\x0eprp_echo_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header*\x05\x08\x64\x10\xc8\x01\"\xad\x02\n\x11prp_stats_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12&\n\x04type\x18\x02 \x01(\x0e\x32\x18.protocol.prp_stats_type\x12\x46\n\x16\x63omplete_stats_request\x18\x03 \x01(\x0b\x32$.protocol.prp_complete_stats_requestH\x00\x12>\n\x12\x63\x65ll_stats_request\x18\x04 \x01(\x0b\x32 .protocol.prp_cell_stats_requestH\x00\x12:\n\x10ue_stats_request\x18\x05 \x01(\x0b\x32\x1e.protocol.prp_ue_stats_requestH\x00\x42\x06\n\x04\x62ody\"\x9f\x01\n\x0fprp_stats_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x30\n\tue_report\x18\x02 \x03(\x0b\x32\x1d.protocol.prp_ue_stats_report\x12\x34\n\x0b\x63\x65ll_report\x18\x03 \x03(\x0b\x32\x1f.protocol.prp_cell_stats_report\"\x96\x01\n\x0eprp_sf_trigger\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12&\n\x07\x64l_info\x18\x03 \x03(\x0b\x32\x15.protocol.prp_dl_info\x12&\n\x07ul_info\x18\x04 \x03(\x0b\x32\x15.protocol.prp_ul_info\"T\n\x0eprp_ul_sr_info\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12\x0c\n\x04rnti\x18\x03 \x03(\r\">\n\x16prp_enb_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"|\n\x14prp_enb_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06\x65NB_id\x18\x02 \x01(\r\x12.\n\x0b\x63\x65ll_config\x18\x03 \x03(\x0b\x32\x19.protocol.prp_cell_config\"=\n\x15prp_ue_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"g\n\x13prp_ue_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12*\n\tue_config\x18\x02 \x03(\x0b\x32\x17.protocol.prp_ue_config\"=\n\x15prp_lc_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"m\n\x13prp_lc_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x30\n\x0clc_ue_config\x18\x02 \x03(\x0b\x32\x1a.protocol.prp_lc_ue_config\"\x82\x02\n\x11prp_dl_mac_config\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12)\n\ndl_ue_data\x18\x03 \x03(\x0b\x32\x15.protocol.prp_dl_data\x12$\n\x06\x64l_rar\x18\x04 \x03(\x0b\x32\x14.protocol.prp_dl_rar\x12\x30\n\x0c\x64l_broadcast\x18\x05 \x03(\x0b\x32\x1a.protocol.prp_dl_broadcast\x12\x34\n\x08ofdm_sym\x18\x06 \x03(\x0b\x32\".protocol.prp_pdcch_ofdm_sym_count\"r\n\x13prp_ue_state_change\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0c\n\x04type\x18\x02 \x01(\r\x12\'\n\x06\x63onfig\x18\x03 \x01(\x0b\x32\x17.protocol.prp_ue_config\"v\n\x16prp_control_delegation\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x17\n\x0f\x64\x65legation_type\x18\x02 \x01(\r\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x12\x0c\n\x04name\x18\x04 \x03(\t\"G\n\x18prp_echo_request_latency2+\n\x07latency\x12\x1a.protocol.prp_echo_request\x18\x64 \x01(\r\"C\n\x16prp_echo_reply_latency2)\n\x07latency\x12\x18.protocol.prp_echo_reply\x18\x64 \x01(\r*j\n\x11progran_direction\x12\x0b\n\x07NOT_SET\x10\x00\x12\x16\n\x12INITIATING_MESSAGE\x10\x01\x12\x16\n\x12SUCCESSFUL_OUTCOME\x10\x02\x12\x18\n\x14UNSUCCESSFUL_OUTCOME\x10\x03*\xb2\x02\n\x0bprogran_err\x12\n\n\x06NO_ERR\x10\x00\x12\x1a\n\rMSG_DEQUEUING\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1a\n\rMSG_ENQUEUING\x10\xfe\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x19\n\x0cMSG_DECODING\x10\xfd\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x19\n\x0cMSG_ENCODING\x10\xfc\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x16\n\tMSG_BUILD\x10\xfb\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1e\n\x11MSG_NOT_SUPPORTED\x10\xfa\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1c\n\x0fMSG_NOT_HANDLED\x10\xf9\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1e\n\x11MSG_NOT_VALIDATED\x10\xf8\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1a\n\rMSG_OUT_DATED\x10\xf7\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x17\n\nUNEXPECTED\x10\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01')
+  serialized_pb=_b('\n\rprogran.proto\x12\x08protocol\x1a\x14stats_messages.proto\x1a\x0cheader.proto\x1a\x11time_common.proto\x1a\x15\x63onfig_messages.proto\x1a\x19\x63ontroller_commands.proto\x1a\x18\x63ontrol_delegation.proto\"\xc6\x08\n\x0fprogran_message\x12,\n\x07msg_dir\x18\x64 \x01(\x0e\x32\x1b.protocol.progran_direction\x12(\n\thello_msg\x18\x01 \x01(\x0b\x32\x13.protocol.prp_helloH\x00\x12\x36\n\x10\x65\x63ho_request_msg\x18\x02 \x01(\x0b\x32\x1a.protocol.prp_echo_requestH\x00\x12\x32\n\x0e\x65\x63ho_reply_msg\x18\x03 \x01(\x0b\x32\x18.protocol.prp_echo_replyH\x00\x12\x38\n\x11stats_request_msg\x18\x04 \x01(\x0b\x32\x1b.protocol.prp_stats_requestH\x00\x12\x34\n\x0fstats_reply_msg\x18\x05 \x01(\x0b\x32\x19.protocol.prp_stats_replyH\x00\x12\x32\n\x0esf_trigger_msg\x18\x06 \x01(\x0b\x32\x18.protocol.prp_sf_triggerH\x00\x12\x32\n\x0eul_sr_info_msg\x18\x07 \x01(\x0b\x32\x18.protocol.prp_ul_sr_infoH\x00\x12\x42\n\x16\x65nb_config_request_msg\x18\x08 \x01(\x0b\x32 .protocol.prp_enb_config_requestH\x00\x12>\n\x14\x65nb_config_reply_msg\x18\t \x01(\x0b\x32\x1e.protocol.prp_enb_config_replyH\x00\x12@\n\x15ue_config_request_msg\x18\n \x01(\x0b\x32\x1f.protocol.prp_ue_config_requestH\x00\x12<\n\x13ue_config_reply_msg\x18\x0b \x01(\x0b\x32\x1d.protocol.prp_ue_config_replyH\x00\x12@\n\x15lc_config_request_msg\x18\x0c \x01(\x0b\x32\x1f.protocol.prp_lc_config_requestH\x00\x12<\n\x13lc_config_reply_msg\x18\r \x01(\x0b\x32\x1d.protocol.prp_lc_config_replyH\x00\x12\x38\n\x11\x64l_mac_config_msg\x18\x0e \x01(\x0b\x32\x1b.protocol.prp_dl_mac_configH\x00\x12<\n\x13ue_state_change_msg\x18\x0f \x01(\x0b\x32\x1d.protocol.prp_ue_state_changeH\x00\x12\x42\n\x16\x63ontrol_delegation_msg\x18\x10 \x01(\x0b\x32 .protocol.prp_control_delegationH\x00\x12P\n\x1due_rrc_measurements_reply_msg\x18\x11 \x01(\x0b\x32\'.protocol.prp_ue_rrc_measurements_replyH\x00\x42\x05\n\x03msg\"1\n\tprp_hello\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"?\n\x10prp_echo_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header*\x05\x08\x64\x10\xc8\x01\"=\n\x0eprp_echo_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header*\x05\x08\x64\x10\xc8\x01\"\x89\x01\n\x1dprp_ue_rrc_measurements_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0c\n\x04rnti\x18\x02 \x01(\r\x12\x34\n\x0cmeasurements\x18\x03 \x01(\x0b\x32\x1e.protocol.prp_rrc_measurements\"\xad\x02\n\x11prp_stats_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12&\n\x04type\x18\x02 \x01(\x0e\x32\x18.protocol.prp_stats_type\x12\x46\n\x16\x63omplete_stats_request\x18\x03 \x01(\x0b\x32$.protocol.prp_complete_stats_requestH\x00\x12>\n\x12\x63\x65ll_stats_request\x18\x04 \x01(\x0b\x32 .protocol.prp_cell_stats_requestH\x00\x12:\n\x10ue_stats_request\x18\x05 \x01(\x0b\x32\x1e.protocol.prp_ue_stats_requestH\x00\x42\x06\n\x04\x62ody\"\x9f\x01\n\x0fprp_stats_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x30\n\tue_report\x18\x02 \x03(\x0b\x32\x1d.protocol.prp_ue_stats_report\x12\x34\n\x0b\x63\x65ll_report\x18\x03 \x03(\x0b\x32\x1f.protocol.prp_cell_stats_report\"\x96\x01\n\x0eprp_sf_trigger\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12&\n\x07\x64l_info\x18\x03 \x03(\x0b\x32\x15.protocol.prp_dl_info\x12&\n\x07ul_info\x18\x04 \x03(\x0b\x32\x15.protocol.prp_ul_info\"T\n\x0eprp_ul_sr_info\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12\x0c\n\x04rnti\x18\x03 \x03(\r\">\n\x16prp_enb_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"|\n\x14prp_enb_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06\x65NB_id\x18\x02 \x01(\r\x12.\n\x0b\x63\x65ll_config\x18\x03 \x03(\x0b\x32\x19.protocol.prp_cell_config\"=\n\x15prp_ue_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"g\n\x13prp_ue_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12*\n\tue_config\x18\x02 \x03(\x0b\x32\x17.protocol.prp_ue_config\"=\n\x15prp_lc_config_request\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\"m\n\x13prp_lc_config_reply\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x30\n\x0clc_ue_config\x18\x02 \x03(\x0b\x32\x1a.protocol.prp_lc_ue_config\"\x82\x02\n\x11prp_dl_mac_config\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0e\n\x06sfn_sf\x18\x02 \x01(\r\x12)\n\ndl_ue_data\x18\x03 \x03(\x0b\x32\x15.protocol.prp_dl_data\x12$\n\x06\x64l_rar\x18\x04 \x03(\x0b\x32\x14.protocol.prp_dl_rar\x12\x30\n\x0c\x64l_broadcast\x18\x05 \x03(\x0b\x32\x1a.protocol.prp_dl_broadcast\x12\x34\n\x08ofdm_sym\x18\x06 \x03(\x0b\x32\".protocol.prp_pdcch_ofdm_sym_count\"r\n\x13prp_ue_state_change\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x0c\n\x04type\x18\x02 \x01(\r\x12\'\n\x06\x63onfig\x18\x03 \x01(\x0b\x32\x17.protocol.prp_ue_config\"v\n\x16prp_control_delegation\x12$\n\x06header\x18\x01 \x01(\x0b\x32\x14.protocol.prp_header\x12\x17\n\x0f\x64\x65legation_type\x18\x02 \x01(\r\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x12\x0c\n\x04name\x18\x04 \x03(\t\"G\n\x18prp_echo_request_latency2+\n\x07latency\x12\x1a.protocol.prp_echo_request\x18\x64 \x01(\r\"C\n\x16prp_echo_reply_latency2)\n\x07latency\x12\x18.protocol.prp_echo_reply\x18\x64 \x01(\r*j\n\x11progran_direction\x12\x0b\n\x07NOT_SET\x10\x00\x12\x16\n\x12INITIATING_MESSAGE\x10\x01\x12\x16\n\x12SUCCESSFUL_OUTCOME\x10\x02\x12\x18\n\x14UNSUCCESSFUL_OUTCOME\x10\x03*\xb2\x02\n\x0bprogran_err\x12\n\n\x06NO_ERR\x10\x00\x12\x1a\n\rMSG_DEQUEUING\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1a\n\rMSG_ENQUEUING\x10\xfe\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x19\n\x0cMSG_DECODING\x10\xfd\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x19\n\x0cMSG_ENCODING\x10\xfc\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x16\n\tMSG_BUILD\x10\xfb\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1e\n\x11MSG_NOT_SUPPORTED\x10\xfa\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1c\n\x0fMSG_NOT_HANDLED\x10\xf9\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1e\n\x11MSG_NOT_VALIDATED\x10\xf8\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x1a\n\rMSG_OUT_DATED\x10\xf7\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x17\n\nUNEXPECTED\x10\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01')
   ,
   dependencies=[stats__messages__pb2.DESCRIPTOR,header__pb2.DESCRIPTOR,time__common__pb2.DESCRIPTOR,config__messages__pb2.DESCRIPTOR,controller__commands__pb2.DESCRIPTOR,control__delegation__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -56,8 +56,8 @@ _PROGRAN_DIRECTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3228,
-  serialized_end=3334,
+  serialized_start=3450,
+  serialized_end=3556,
 )
 _sym_db.RegisterEnumDescriptor(_PROGRAN_DIRECTION)
 
@@ -115,8 +115,8 @@ _PROGRAN_ERR = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3337,
-  serialized_end=3643,
+  serialized_start=3559,
+  serialized_end=3865,
 )
 _sym_db.RegisterEnumDescriptor(_PROGRAN_ERR)
 
@@ -265,6 +265,13 @@ _PROGRAN_MESSAGE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='ue_rrc_measurements_reply_msg', full_name='protocol.progran_message.ue_rrc_measurements_reply_msg', index=17,
+      number=17, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -281,7 +288,7 @@ _PROGRAN_MESSAGE = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=159,
-  serialized_end=1171,
+  serialized_end=1253,
 )
 
 
@@ -311,8 +318,8 @@ _PRP_HELLO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1173,
-  serialized_end=1222,
+  serialized_start=1255,
+  serialized_end=1304,
 )
 
 
@@ -342,8 +349,8 @@ _PRP_ECHO_REQUEST = _descriptor.Descriptor(
   extension_ranges=[(100, 200), ],
   oneofs=[
   ],
-  serialized_start=1224,
-  serialized_end=1287,
+  serialized_start=1306,
+  serialized_end=1369,
 )
 
 
@@ -373,8 +380,53 @@ _PRP_ECHO_REPLY = _descriptor.Descriptor(
   extension_ranges=[(100, 200), ],
   oneofs=[
   ],
-  serialized_start=1289,
-  serialized_end=1350,
+  serialized_start=1371,
+  serialized_end=1432,
+)
+
+
+_PRP_UE_RRC_MEASUREMENTS_REPLY = _descriptor.Descriptor(
+  name='prp_ue_rrc_measurements_reply',
+  full_name='protocol.prp_ue_rrc_measurements_reply',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='protocol.prp_ue_rrc_measurements_reply.header', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rnti', full_name='protocol.prp_ue_rrc_measurements_reply.rnti', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='measurements', full_name='protocol.prp_ue_rrc_measurements_reply.measurements', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1435,
+  serialized_end=1572,
 )
 
 
@@ -435,8 +487,8 @@ _PRP_STATS_REQUEST = _descriptor.Descriptor(
       name='body', full_name='protocol.prp_stats_request.body',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1353,
-  serialized_end=1654,
+  serialized_start=1575,
+  serialized_end=1876,
 )
 
 
@@ -480,8 +532,8 @@ _PRP_STATS_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1657,
-  serialized_end=1816,
+  serialized_start=1879,
+  serialized_end=2038,
 )
 
 
@@ -532,8 +584,8 @@ _PRP_SF_TRIGGER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1819,
-  serialized_end=1969,
+  serialized_start=2041,
+  serialized_end=2191,
 )
 
 
@@ -577,8 +629,8 @@ _PRP_UL_SR_INFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1971,
-  serialized_end=2055,
+  serialized_start=2193,
+  serialized_end=2277,
 )
 
 
@@ -608,8 +660,8 @@ _PRP_ENB_CONFIG_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2057,
-  serialized_end=2119,
+  serialized_start=2279,
+  serialized_end=2341,
 )
 
 
@@ -653,8 +705,8 @@ _PRP_ENB_CONFIG_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2121,
-  serialized_end=2245,
+  serialized_start=2343,
+  serialized_end=2467,
 )
 
 
@@ -684,8 +736,8 @@ _PRP_UE_CONFIG_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2247,
-  serialized_end=2308,
+  serialized_start=2469,
+  serialized_end=2530,
 )
 
 
@@ -722,8 +774,8 @@ _PRP_UE_CONFIG_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2310,
-  serialized_end=2413,
+  serialized_start=2532,
+  serialized_end=2635,
 )
 
 
@@ -753,8 +805,8 @@ _PRP_LC_CONFIG_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2415,
-  serialized_end=2476,
+  serialized_start=2637,
+  serialized_end=2698,
 )
 
 
@@ -791,8 +843,8 @@ _PRP_LC_CONFIG_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2478,
-  serialized_end=2587,
+  serialized_start=2700,
+  serialized_end=2809,
 )
 
 
@@ -857,8 +909,8 @@ _PRP_DL_MAC_CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2590,
-  serialized_end=2848,
+  serialized_start=2812,
+  serialized_end=3070,
 )
 
 
@@ -902,8 +954,8 @@ _PRP_UE_STATE_CHANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2850,
-  serialized_end=2964,
+  serialized_start=3072,
+  serialized_end=3186,
 )
 
 
@@ -954,8 +1006,8 @@ _PRP_CONTROL_DELEGATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2966,
-  serialized_end=3084,
+  serialized_start=3188,
+  serialized_end=3306,
 )
 
 
@@ -985,8 +1037,8 @@ _PRP_ECHO_REQUEST_LATENCY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3086,
-  serialized_end=3157,
+  serialized_start=3308,
+  serialized_end=3379,
 )
 
 
@@ -1016,8 +1068,8 @@ _PRP_ECHO_REPLY_LATENCY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3159,
-  serialized_end=3226,
+  serialized_start=3381,
+  serialized_end=3448,
 )
 
 _PROGRAN_MESSAGE.fields_by_name['msg_dir'].enum_type = _PROGRAN_DIRECTION
@@ -1037,6 +1089,7 @@ _PROGRAN_MESSAGE.fields_by_name['lc_config_reply_msg'].message_type = _PRP_LC_CO
 _PROGRAN_MESSAGE.fields_by_name['dl_mac_config_msg'].message_type = _PRP_DL_MAC_CONFIG
 _PROGRAN_MESSAGE.fields_by_name['ue_state_change_msg'].message_type = _PRP_UE_STATE_CHANGE
 _PROGRAN_MESSAGE.fields_by_name['control_delegation_msg'].message_type = _PRP_CONTROL_DELEGATION
+_PROGRAN_MESSAGE.fields_by_name['ue_rrc_measurements_reply_msg'].message_type = _PRP_UE_RRC_MEASUREMENTS_REPLY
 _PROGRAN_MESSAGE.oneofs_by_name['msg'].fields.append(
   _PROGRAN_MESSAGE.fields_by_name['hello_msg'])
 _PROGRAN_MESSAGE.fields_by_name['hello_msg'].containing_oneof = _PROGRAN_MESSAGE.oneofs_by_name['msg']
@@ -1085,9 +1138,14 @@ _PROGRAN_MESSAGE.fields_by_name['ue_state_change_msg'].containing_oneof = _PROGR
 _PROGRAN_MESSAGE.oneofs_by_name['msg'].fields.append(
   _PROGRAN_MESSAGE.fields_by_name['control_delegation_msg'])
 _PROGRAN_MESSAGE.fields_by_name['control_delegation_msg'].containing_oneof = _PROGRAN_MESSAGE.oneofs_by_name['msg']
+_PROGRAN_MESSAGE.oneofs_by_name['msg'].fields.append(
+  _PROGRAN_MESSAGE.fields_by_name['ue_rrc_measurements_reply_msg'])
+_PROGRAN_MESSAGE.fields_by_name['ue_rrc_measurements_reply_msg'].containing_oneof = _PROGRAN_MESSAGE.oneofs_by_name['msg']
 _PRP_HELLO.fields_by_name['header'].message_type = header__pb2._PRP_HEADER
 _PRP_ECHO_REQUEST.fields_by_name['header'].message_type = header__pb2._PRP_HEADER
 _PRP_ECHO_REPLY.fields_by_name['header'].message_type = header__pb2._PRP_HEADER
+_PRP_UE_RRC_MEASUREMENTS_REPLY.fields_by_name['header'].message_type = header__pb2._PRP_HEADER
+_PRP_UE_RRC_MEASUREMENTS_REPLY.fields_by_name['measurements'].message_type = stats__messages__pb2._PRP_RRC_MEASUREMENTS
 _PRP_STATS_REQUEST.fields_by_name['header'].message_type = header__pb2._PRP_HEADER
 _PRP_STATS_REQUEST.fields_by_name['type'].enum_type = stats__messages__pb2._PRP_STATS_TYPE
 _PRP_STATS_REQUEST.fields_by_name['complete_stats_request'].message_type = stats__messages__pb2._PRP_COMPLETE_STATS_REQUEST
@@ -1130,6 +1188,7 @@ DESCRIPTOR.message_types_by_name['progran_message'] = _PROGRAN_MESSAGE
 DESCRIPTOR.message_types_by_name['prp_hello'] = _PRP_HELLO
 DESCRIPTOR.message_types_by_name['prp_echo_request'] = _PRP_ECHO_REQUEST
 DESCRIPTOR.message_types_by_name['prp_echo_reply'] = _PRP_ECHO_REPLY
+DESCRIPTOR.message_types_by_name['prp_ue_rrc_measurements_reply'] = _PRP_UE_RRC_MEASUREMENTS_REPLY
 DESCRIPTOR.message_types_by_name['prp_stats_request'] = _PRP_STATS_REQUEST
 DESCRIPTOR.message_types_by_name['prp_stats_reply'] = _PRP_STATS_REPLY
 DESCRIPTOR.message_types_by_name['prp_sf_trigger'] = _PRP_SF_TRIGGER
@@ -1175,6 +1234,13 @@ prp_echo_reply = _reflection.GeneratedProtocolMessageType('prp_echo_reply', (_me
   # @@protoc_insertion_point(class_scope:protocol.prp_echo_reply)
   ))
 _sym_db.RegisterMessage(prp_echo_reply)
+
+prp_ue_rrc_measurements_reply = _reflection.GeneratedProtocolMessageType('prp_ue_rrc_measurements_reply', (_message.Message,), dict(
+  DESCRIPTOR = _PRP_UE_RRC_MEASUREMENTS_REPLY,
+  __module__ = 'progran_pb2'
+  # @@protoc_insertion_point(class_scope:protocol.prp_ue_rrc_measurements_reply)
+  ))
+_sym_db.RegisterMessage(prp_ue_rrc_measurements_reply)
 
 prp_stats_request = _reflection.GeneratedProtocolMessageType('prp_stats_request', (_message.Message,), dict(
   DESCRIPTOR = _PRP_STATS_REQUEST,

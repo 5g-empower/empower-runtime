@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Virtual Base Station."""
+"""Virtual Base Station Point."""
 
 from empower.core.pnfdev import BasePNFDev
 
 
 class VBSP(BasePNFDev):
-    """A Virtual Base Station.
+    """A Virtual Base Station Point.
 
     Attributes:
         addr: This PNFDev MAC address (EtherAddress)
@@ -41,3 +41,17 @@ class VBSP(BasePNFDev):
 
     ALIAS = "vbsps"
     SOLO = "vbsp"
+
+    def __init__(self, addr, label):
+        super().__init__(addr, label)
+        self.enb_config = None
+        self.ues = {}
+
+    def to_dict(self):
+        """Return a JSON-serializable dictionary representing the VBSP."""
+
+        out = super().to_dict()
+        out['enb_config'] = self.enb_config,
+        out['ues'] = self.ues
+
+        return out

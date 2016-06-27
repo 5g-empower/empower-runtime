@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='header.proto',
   package='protocol',
   syntax='proto2',
-  serialized_pb=_b('\n\x0cheader.proto\x12\x08protocol\"E\n\nprp_header\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x0c\n\x04type\x18\x02 \x01(\r\x12\x0b\n\x03xid\x18\x04 \x01(\r\x12\x0b\n\x03\x65id\x18\x05 \x01(\r*\xa7\x03\n\x08prp_type\x12\x0e\n\nPRPT_HELLO\x10\x00\x12\x15\n\x11PRPT_ECHO_REQUEST\x10\x01\x12\x13\n\x0fPRPT_ECHO_REPLY\x10\x02\x12\x16\n\x12PRPT_STATS_REQUEST\x10\x03\x12\x14\n\x10PRPT_STATS_REPLY\x10\x04\x12\x13\n\x0fPRPT_SF_TRIGGER\x10\x05\x12\x13\n\x0fPRPT_UL_SR_INFO\x10\x06\x12\x1f\n\x1bPRPT_GET_ENB_CONFIG_REQUEST\x10\x07\x12\x1d\n\x19PRPT_GET_ENB_CONFIG_REPLY\x10\x08\x12\x1e\n\x1aPRPT_GET_UE_CONFIG_REQUEST\x10\t\x12\x1c\n\x18PRPT_GET_UE_CONFIG_REPLY\x10\n\x12\x1e\n\x1aPRPT_GET_LC_CONFIG_REQUEST\x10\x0b\x12\x1c\n\x18PRPT_GET_LC_CONFIG_REPLY\x10\x0c\x12\x16\n\x12PRPT_DL_MAC_CONFIG\x10\r\x12\x18\n\x14PRPT_UE_STATE_CHANGE\x10\x0e\x12\x19\n\x15PRPT_DELEGATE_CONTROL\x10\x0f')
+  serialized_pb=_b('\n\x0cheader.proto\x12\x08protocol\"E\n\nprp_header\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x0c\n\x04type\x18\x02 \x01(\r\x12\x0b\n\x03xid\x18\x04 \x01(\r\x12\x0b\n\x03\x65id\x18\x05 \x01(\r*\xce\x03\n\x08prp_type\x12\x0e\n\nPRPT_HELLO\x10\x00\x12\x15\n\x11PRPT_ECHO_REQUEST\x10\x01\x12\x13\n\x0fPRPT_ECHO_REPLY\x10\x02\x12\x16\n\x12PRPT_STATS_REQUEST\x10\x03\x12\x14\n\x10PRPT_STATS_REPLY\x10\x04\x12\x13\n\x0fPRPT_SF_TRIGGER\x10\x05\x12\x13\n\x0fPRPT_UL_SR_INFO\x10\x06\x12\x1f\n\x1bPRPT_GET_ENB_CONFIG_REQUEST\x10\x07\x12\x1d\n\x19PRPT_GET_ENB_CONFIG_REPLY\x10\x08\x12\x1e\n\x1aPRPT_GET_UE_CONFIG_REQUEST\x10\t\x12\x1c\n\x18PRPT_GET_UE_CONFIG_REPLY\x10\n\x12\x1e\n\x1aPRPT_GET_LC_CONFIG_REQUEST\x10\x0b\x12\x1c\n\x18PRPT_GET_LC_CONFIG_REPLY\x10\x0c\x12\x16\n\x12PRPT_DL_MAC_CONFIG\x10\r\x12\x18\n\x14PRPT_UE_STATE_CHANGE\x10\x0e\x12\x19\n\x15PRPT_DELEGATE_CONTROL\x10\x0f\x12%\n!PRPT_SEND_RRC_MEASUREMENTS_REPORT\x10\x10')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -94,11 +94,15 @@ _PRP_TYPE = _descriptor.EnumDescriptor(
       name='PRPT_DELEGATE_CONTROL', index=15, number=15,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PRPT_SEND_RRC_MEASUREMENTS_REPORT', index=16, number=16,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=98,
-  serialized_end=521,
+  serialized_end=560,
 )
 _sym_db.RegisterEnumDescriptor(_PRP_TYPE)
 
@@ -119,6 +123,7 @@ PRPT_GET_LC_CONFIG_REPLY = 12
 PRPT_DL_MAC_CONFIG = 13
 PRPT_UE_STATE_CHANGE = 14
 PRPT_DELEGATE_CONTROL = 15
+PRPT_SEND_RRC_MEASUREMENTS_REPORT = 16
 
 
 
