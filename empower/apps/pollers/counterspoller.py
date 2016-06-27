@@ -17,11 +17,11 @@
 
 """Counters Poller Apps."""
 
-from empower.apps.pollers.poller import Poller
+from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class CountersPoller(Poller):
+class CountersPoller(EmpowerApp):
     """Counters Poller Apps.
 
     Command Line Parameters:
@@ -37,7 +37,7 @@ class CountersPoller(Poller):
     """
 
     def __init__(self, **kwargs):
-        Poller.__init__(self, **kwargs)
+        EmpowerApp.__init__(self, **kwargs)
         self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
@@ -52,8 +52,7 @@ class CountersPoller(Poller):
         self.log.info("New counters received from %s" % stats.lvap)
 
 
-def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return CountersPoller(tenant_id=tenant_id, filepath=filepath,
-                          every=every)
+    return CountersPoller(tenant_id=tenant_id, every=every)

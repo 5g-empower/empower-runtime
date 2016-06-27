@@ -17,17 +17,16 @@
 
 """Radio Maps Poller App."""
 
-from empower.apps.pollers.poller import Poller
+from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class MapsPoller(Poller):
+class MapsPoller(EmpowerApp):
     """Maps Poller Apps.
 
     Command Line Parameters:
 
         tenant_id: tenant id
-        filepath: path to file for statistics (optional, default ./)
         every: loop period in ms (optional, default 5000ms)
 
     Example:
@@ -37,7 +36,7 @@ class MapsPoller(Poller):
     """
 
     def __init__(self, **kwargs):
-        Poller.__init__(self, **kwargs)
+        EmpowerApp.__init__(self, **kwargs)
         self.wtpup(callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):
@@ -62,7 +61,7 @@ class MapsPoller(Poller):
         self.log.info("New NCQM received from %s" % ucqm.block)
 
 
-def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return MapsPoller(tenant_id=tenant_id, filepath=filepath, every=every)
+    return MapsPoller(tenant_id=tenant_id, every=every)

@@ -17,17 +17,16 @@
 
 """LVAP Statistics Poller Apps."""
 
-from empower.apps.pollers.poller import Poller
+from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class LVAPStatsPoller(Poller):
+class LVAPStatsPoller(EmpowerApp):
     """LVAP Stats Poller Apps.
 
     Command Line Parameters:
 
         tenant_id: tenant id
-        filepath: path to file for statistics (optional, default ./)
         every: loop period in ms (optional, default 5000ms)
 
     Example:
@@ -37,7 +36,7 @@ class LVAPStatsPoller(Poller):
     """
 
     def __init__(self, **kwargs):
-        Poller.__init__(self, **kwargs)
+        EmpowerApp.__init__(self, **kwargs)
         self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):
@@ -51,7 +50,7 @@ class LVAPStatsPoller(Poller):
         self.log.info("New lvap stats received from %s" % counter.lvap)
 
 
-def launch(tenant_id, filepath="./", every=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return LVAPStatsPoller(tenant_id=tenant_id, filepath=filepath, every=every)
+    return LVAPStatsPoller(tenant_id=tenant_id, every=every)
