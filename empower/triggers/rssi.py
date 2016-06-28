@@ -33,6 +33,7 @@ from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
 from empower.lvapp import PT_CAPS
+from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import Module
 
@@ -175,6 +176,7 @@ class RSSI(Module):
         out['value'] = self.value
         out['period'] = self.period
         out['event'] = self.event
+        out['wtps'] = self.wtps
 
         return out
 
@@ -298,6 +300,12 @@ class RssiWorker(ModuleLVAPPWorker):
         for module in self.modules.values():
             module.run_once()
 
+    def handle_bye(self, wtp):
+        """Handle WTP BYE message."""
+
+        for module in self.modules.values():
+            module.wtps.remove(wtp.addr)
+
 
 def rssi(**kwargs):
     """Create a new module."""
@@ -321,5 +329,7 @@ def launch():
     rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
     rssi_worker.pnfp_server.register_message(PT_CAPS, None,
                                              rssi_worker.handle_caps)
+    rssi_worker.pnfp_server.register_message(PT_BYE, None,
+                                             rssi_worker.handle_bye)
 
     return rssi_worker
