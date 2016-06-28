@@ -17,6 +17,13 @@
 
 """VBSP Server."""
 
+import empower.vbspp.messages.stats_messages_pb2 as stats_messages_pb2
+
+from empower.vbspp import MAC_STATS_TYPE
+from empower.vbspp import MAC_STATS_REPORT_FREQ
+from empower.vbspp import MAC_CELL_STATS_TYPES
+from empower.vbspp import MAC_UE_STATS_TYPES
+
 from protobuf_to_dict import protobuf_to_dict
 from tornado.tcpserver import TCPServer
 
@@ -34,6 +41,35 @@ from empower.core.module import ModuleEventWorker
 from empower.core.module import ModuleWorker
 
 from empower.main import RUNTIME
+
+
+MAC_STATS_TYPE.update({
+    "complete": stats_messages_pb2.PRST_COMPLETE_STATS,
+    "cell": stats_messages_pb2.PRST_CELL_STATS,
+    "ue": stats_messages_pb2.PRST_UE_STATS
+})
+
+MAC_STATS_REPORT_FREQ.update({
+    "once": stats_messages_pb2.PRSRF_ONCE,
+    "periodical": stats_messages_pb2.PRSRF_PERIODICAL,
+    # "continuous": stats_messages_pb2.PRSRF_CONTINUOUS,
+    "off": stats_messages_pb2.PRSRF_OFF
+})
+
+MAC_CELL_STATS_TYPES.update({
+    "noise_interference": stats_messages_pb2.PRCST_NOISE_INTERFERENCE
+})
+
+MAC_UE_STATS_TYPES.update({
+    "buffer_status_report": stats_messages_pb2.PRUST_BSR,
+    "power_headroom_report": stats_messages_pb2.PRUST_PRH,
+    "rlc_buffer_status_report": stats_messages_pb2.PRUST_RLC_BS,
+    "mac_ce_buffer_status_report": stats_messages_pb2.PRUST_MAC_CE_BS,
+    "mac_ce_buffer_status_report": stats_messages_pb2.PRUST_MAC_CE_BS,
+    "downlink_cqi_report": stats_messages_pb2.PRUST_DL_CQI,
+    "paging_buffer_status_report": stats_messages_pb2.PRUST_PBS,
+    "uplink_cqi_report": stats_messages_pb2.PRUST_UL_CQI
+})
 
 
 class TenantVBSPHandler(BaseTenantPNFDevHandler):
@@ -90,7 +126,7 @@ class ModuleVBSPPWorker(ModuleWorker):
         module = self.modules[id_module]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response.module_id)
+                      module.module_id)
 
         module.handle_response(response)
 

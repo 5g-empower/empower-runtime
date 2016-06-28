@@ -88,15 +88,20 @@ class Counters(Module):
 
     @property
     def lvap(self):
+        """Return the LVAP Address."""
+
         return self._lvap
 
     @lvap.setter
     def lvap(self, value):
+        """Set the LVAP Address."""
+
         self._lvap = EtherAddress(value)
 
     @property
     def bins(self):
         """ Return the lvaps list """
+
         return self._bins
 
     @bins.setter

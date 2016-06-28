@@ -27,13 +27,12 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
 
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
 from empower.lvapp import PT_CAPS
-from empower.lvapp import PT_LVAP_LEAVE
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import Module
 
@@ -96,26 +95,28 @@ class RSSI(Module):
         self._period = 2000
 
         # data structures
-        self.current = None
-        self.timestamp = None
+        # list of wtps address to which the add rssi message has been sent
+        self.wtps = []
+        self.event = None
 
     def __eq__(self, other):
 
         return super().__eq__(other) and \
             self.lvap == other.lvap and \
-            self.block == other.block and \
             self.relation == other.relation and \
-            self.value == other.value
+            self.value == other.value and \
+            self.period == other.period
 
     @property
     def lvap(self):
-        """ Return the address. """
+        """ Return the LVAP address. """
 
         return self._lvap
 
     @lvap.setter
     def lvap(self, lvap):
-        """ Set the address. """
+        """ Set the LVAP address. """
+
         self._lvap = EtherAddress(lvap)
 
     @property
@@ -130,11 +131,13 @@ class RSSI(Module):
 
         if value < 1000:
             raise ValueError("Invalid limit value (%u)" % value)
+
         self._period = value
 
     @property
     def relation(self):
         """ Return the relation. """
+
         return self._relation
 
     @relation.setter
@@ -150,6 +153,7 @@ class RSSI(Module):
     @property
     def value(self):
         """ Return the value. """
+
         return self._value
 
     @value.setter
@@ -169,8 +173,8 @@ class RSSI(Module):
         out['lvap'] = self.lvap
         out['relation'] = self.relation
         out['value'] = self.value
-        out['current'] = self.current
-        out['timestamp'] = self.timestamp
+        out['period'] = self.period
+        out['event'] = self.event
 
         return out
 
@@ -185,8 +189,24 @@ class RSSI(Module):
         for wtp in RUNTIME.tenants[self.tenant_id].wtps.values():
             self.add_rssi_to_wtp(wtp)
 
+    def unload(self):
+        """Remove this module."""
+
+        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
+
+        for wtp in list(self.wtps):
+            self.remove_rssi_from_wtp(wtp)
+
+        self.worker.remove_module(self.module_id)
+
     def add_rssi_to_wtp(self, wtp):
         """Add RSSI to WTP."""
+
+        if not wtp.connection or wtp.connection.stream.closed():
+            return
+
+        if wtp.addr in self.wtps:
+            return
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_RSSI,
@@ -202,6 +222,8 @@ class RSSI(Module):
         self.log.info("Sending %s request to %s (id=%u)",
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
+        self.wtps.append(wtp.addr)
+
         msg = ADD_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
 
@@ -211,13 +233,21 @@ class RSSI(Module):
         if not wtp.connection or wtp.connection.stream.closed():
             return
 
-        del_rssi = Container(version=PT_VERSION,
-                             type=PT_DEL_RSSI,
-                             length=12,
-                             seq=wtp.seq,
-                             module_id=self.module_id)
+        if wtp.addr not in self.wtps:
+            return
 
-        msg = DEL_RSSI_TRIGGER.build(del_rssi)
+        req = Container(version=PT_VERSION,
+                        type=PT_DEL_RSSI,
+                        length=12,
+                        seq=wtp.seq,
+                        module_id=self.module_id)
+
+        self.log.info("Sending remove %s request to %s (id=%u)",
+                      self.MODULE_NAME, wtp.addr, self.module_id)
+
+        self.wtps.remove(wtp.addr)
+
+        msg = DEL_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
 
     def handle_response(self, message):
@@ -228,26 +258,34 @@ class RSSI(Module):
             None
         """
 
-        print(message)
-        return
+        wtp_addr = EtherAddress(message.wtp)
 
-        self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.current = message.current
+        if wtp_addr not in RUNTIME.wtps:
+            return
+
+        wtp = RUNTIME.wtps[wtp_addr]
+
+        if wtp_addr not in RUNTIME.tenants[self.tenant_id].wtps:
+            return
+
+        incoming = ResourcePool()
+        hwaddr = EtherAddress(message.hwaddr)
+        channel = message.channel
+        band = message.band
+        incoming.add(ResourceBlock(wtp, hwaddr, channel, band))
+
+        matches = wtp.supports & incoming
+
+        self.event = \
+            {'block': matches.pop(),
+             'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+             'current': message.current}
 
         self.handle_callback(self)
 
 
 class RssiWorker(ModuleLVAPPWorker):
     """ Rssi worker. """
-
-    def handle_lvap_leave(self, lvap):
-        """Handle LVAP leave message."""
-
-        for module in self.modules.values():
-            if lvap.addr != module.lvap:
-                continue
-            for wtp in RUNTIME.tenants[module.tenant_id].wtps:
-                module.remove_rssi_from_wtp(wtp)
 
     def handle_caps(self, caps):
         """Handle WTP CAPS message."""
@@ -257,12 +295,8 @@ class RssiWorker(ModuleLVAPPWorker):
         if wtp_addr not in RUNTIME.wtps:
             return
 
-        wtp = RUNTIME.wtps[wtp_addr]
-
-        for module in self.modules:
-            block = self.modules[module].block
-            if block in wtp.supports:
-                self.modules[module].add_rssi_to_wtp(wtp)
+        for module in self.modules.values():
+            module.run_once()
 
 
 def rssi(**kwargs):
@@ -287,6 +321,5 @@ def launch():
     rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
     rssi_worker.pnfp_server.register_message(PT_CAPS, None,
                                              rssi_worker.handle_caps)
-    rssi_worker.pnfp_server.register_message(PT_LVAP_LEAVE, None,
-                                             rssi_worker.handle_lvap_leave)
+
     return rssi_worker

@@ -76,25 +76,13 @@ class Maps(Module):
         Module.__init__(self)
 
         # parameters
-        self._addrs = EtherAddress('FF:FF:FF:FF:FF:FF')
         self._block = None
 
         # data structures
         self.maps = CQM()
 
     def __eq__(self, other):
-
-        return super().__eq__(other) and \
-            self.addrs == other.addrs and \
-            self.block == other.block
-
-    @property
-    def addrs(self):
-        return self._addrs
-
-    @addrs.setter
-    def addrs(self, value):
-        self._addrs = EtherAddress(value)
+        return super().__eq__(other) and self.block == other.block
 
     @property
     def block(self):
@@ -144,7 +132,6 @@ class Maps(Module):
         out = super().to_dict()
 
         out['maps'] = {str(k): v for k, v in self.maps.items()}
-        out['addrs'] = self.addrs
         out['block'] = self.block.to_dict()
 
         return out
@@ -175,7 +162,6 @@ class Maps(Module):
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
-                        addrs=self.addrs.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band)
@@ -204,9 +190,6 @@ class Maps(Module):
         for entry in response.img_entries:
 
             addr = EtherAddress(entry[0])
-
-            if not addr.match(self.addrs):
-                continue
 
             value = {'addr': addr,
                      'last_rssi_std': entry[1],

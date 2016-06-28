@@ -83,13 +83,13 @@ class LVAPStats(Module):
 
     @property
     def lvap(self):
-        """Return LVAP."""
+        """Return LVAP Address."""
 
         return self._lvap
 
     @lvap.setter
     def lvap(self, value):
-        """Set LVAP."""
+        """Set LVAP Address."""
 
         self._lvap = EtherAddress(value)
 

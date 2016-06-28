@@ -24,7 +24,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.resourcepool import ResourcePool
 
 
-DEFAULT_LIMIT = -80
+DEFAULT_LIMIT = -30
 
 
 class MobilityManager(EmpowerApp):
@@ -57,17 +57,12 @@ class MobilityManager(EmpowerApp):
 
         for block in wtp.supports:
             self.ucqm(block=block, every=self.every)
-            for lvap in self.lvaps():
-                self.rssi(lvap=lvap.addr, block=block, value=self.limit,
-                          relation='LT', callback=self.low_rssi)
 
     def lvap_join_callback(self, lvap):
         """Called when an joins the network."""
 
-        for wtp in self.wtps():
-            for block in wtp.supports:
-                self.rssi(lvap=lvap.addr, block=block, value=self.limit,
-                          relation='LT', callback=self.low_rssi)
+        self.rssi(lvap=lvap.addr, value=self.limit, relation='LT',
+                  callback=self.low_rssi)
 
     def handover(self, lvap):
         """ Handover the LVAP to a WTP with
@@ -119,6 +114,10 @@ class MobilityManager(EmpowerApp):
     def low_rssi(self, trigger):
         """ Perform handover if an LVAP's rssi is
         going below the threshold. """
+
+        self.log.info("Received trigger from %s rssi %u dB",
+                      trigger.event['block'],
+                      trigger.event['current'])
 
         lvap_addr = EtherAddress(trigger.lvap)
         lvap = self.lvap(lvap_addr)

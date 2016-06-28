@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015, Roberto Riggio
-# All rights reserved.
+# Copyright (c) 2016 Supreeth Herle
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the CREATE-NET nor the
-#      names of its contributors may be used to endorse or promote products
-#      derived from this software without specific prior written permission.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# THIS SOFTWARE IS PROVIDED BY CREATE-NET ''AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL CREATE-NET BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 """ VBSP Server module. """
 
@@ -34,7 +24,27 @@ from enum import IntEnum, Enum
 PROGRAN_VERSION = 0
 NUM_MAX_ENB = 2
 NUM_MAX_UE = 2048
+DEFAULT_CONTROLLER_AGENT_IPv4_ADDRESS = "127.0.0.1"
 DEFAULT_PORT = 2210
+
+
+MAC_STATS_TYPE = {}
+
+MAC_STATS_REPORT_FREQ = {}
+
+MAC_CELL_STATS_TYPES = {}
+
+MAC_UE_STATS_TYPES = {}
+
+TIMER_IDS = []
+
+HELLO_MSG_MODULE_ID = 4294967294
+MISC_MSG_MODULE_ID = 4294967295
+
+RESERVED_MODULE_IDS = [HELLO_MSG_MODULE_ID, MISC_MSG_MODULE_ID]
+MAX_MODULE_ID = 4294967295 # Max value of uint32
+
+MAX_NUM_CCs = 1
 
 
 class AgentIDT(IntEnum):
@@ -110,6 +120,7 @@ PRT_LC_CONFIG_RESPONSE = "lc_config_reply_msg"
 PRT_DL_MAC_CONFIG_MESSAGE = "dl_mac_config_msg"
 PRT_CONTROL_DELEGATION_MESSAGE = "control_delegation_msg"
 PRT_UE_STATE_CHANGE = "ue_state_change_msg"
+PRT_UE_RRC_MEASUREMENTS_RESPONSE = "ue_rrc_measurements_reply_msg"
 
 
 PRT_TYPES = {PRT_VBSP_BYE: None,
@@ -125,15 +136,16 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_MAC_STATS_RESPONSE: "mac_stats_response",
              PRT_SF_TRIGGER_MESSAGE: None,
              PRT_UL_SR_INFO_MESSAGE: None,
-             PRT_UE_STATE_CHANGE: None,
+             PRT_UE_STATE_CHANGE: "ue_state_change",
              PRT_UE_CONFIG_REQUEST: None,
              PRT_UE_CONFIG_RESPONSE: None,
              PRT_ENB_CONFIG_REQUEST: None,
-             PRT_ENB_CONFIG_RESPONSE: None,
+             PRT_ENB_CONFIG_RESPONSE: "enb_config_reply",
              PRT_LC_CONFIG_REQUEST: None,
              PRT_LC_CONFIG_RESPONSE: None,
              PRT_DL_MAC_CONFIG_MESSAGE: None,
-             PRT_CONTROL_DELEGATION_MESSAGE: None}
+             PRT_CONTROL_DELEGATION_MESSAGE: None,
+             PRT_UE_RRC_MEASUREMENTS_RESPONSE: "ue_rrc_measurements_reply"}
 
 
 PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
@@ -157,4 +169,5 @@ PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
                       PRT_LC_CONFIG_REQUEST: [],
                       PRT_LC_CONFIG_RESPONSE: [],
                       PRT_DL_MAC_CONFIG_MESSAGE: [],
-                      PRT_CONTROL_DELEGATION_MESSAGE: []}
+                      PRT_CONTROL_DELEGATION_MESSAGE: [],
+                      PRT_UE_RRC_MEASUREMENTS_RESPONSE: []}
