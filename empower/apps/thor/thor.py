@@ -18,20 +18,7 @@
 """Energy consumption balacing app."""
 
 from empower.core.app import EmpowerApp
-from empower.core.app import EmpowerAppHandler
-from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class ThorHandler(EmpowerAppHandler):
-    pass
-
-
-class ThorHomeHandler(EmpowerAppHomeHandler):
-    pass
 
 
 class Thor(EmpowerApp):
@@ -39,26 +26,21 @@ class Thor(EmpowerApp):
 
     Command Line Parameters:
 
-        period: loop period in ms (optional, default 5000ms)
+        tenant_id: tenant id
+        every: loop period in ms (optional, default 5000ms)
         max_lvap_per_wtp: max number of LVAPs per WTP (optional, default 2)
 
     Example:
 
-        ID="52313ecb-9d00-4b7d-b873-b55d3d9ada26"
-        ./empower-runtime.py apps.thor.thor:$ID --max_lvaps_per_wtp=2
+        ./empower-runtime.py apps.thor.thor \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
 
     """
 
-    MODULE_NAME = "thor"
-    MODULE_HANDLER = ThorHandler
-    MODULE_HOME_HANDLER = ThorHomeHandler
-
-    def __init__(self, tenant, **kwargs):
-
+    def __init__(self, **kwargs):
         self.__max_lvaps_per_wtp = 2
-        self.idle_cycles = {}
-
-        EmpowerApp.__init__(self, tenant, **kwargs)
+        self.__idle_cycles = {}
+        EmpowerApp.__init__(self, **kwargs)
 
     @property
     def max_lvaps_per_wtp(self):
@@ -75,7 +57,7 @@ class Thor(EmpowerApp):
         if max_lvaps_per_wtp < 1:
             raise ValueError("Invalid value for max_lvaps_per_wtp")
 
-        LOG.info("Setting max_lvaps_per_wtp to %u" % value)
+        self.log.info("Setting max_lvaps_per_wtp to %u" % value)
         self.__max_lvaps_per_wtp = max_lvaps_per_wtp
 
     def loop(self):
@@ -94,14 +76,14 @@ class Thor(EmpowerApp):
 
         for lvap in self.lvaps():
             if not lvap.wtp.feed:
-                LOG.info("LVAP %s on WTP w/o feed, ignoring.", lvap.addr)
+                self.log.info("LVAP %s on WTP w/o feed, ignoring.", lvap.addr)
                 continue
             if not tank:
                 tank = [v for v in self.wtps() if v.feed and v.connection]
             wtp = tank.pop()
             lvap.wtp = wtp
             mappings[lvap.wtp].append(lvap)
-            LOG.info("LVAP %s -> %s", lvap.addr, lvap.wtp)
+            self.log.info("LVAP %s -> %s", lvap.addr, lvap.wtp)
             if not always_on:
                 always_on = lvap.wtp
 
@@ -112,33 +94,32 @@ class Thor(EmpowerApp):
         if not always_on:
             always_on = [x for x in self.wtps() if x.feed][0]
 
-        LOG.info("WTP %s always on", always_on.addr)
-        LOG.info("Number of APs to be powered on %u", count)
+        self.log.info("WTP %s always on", always_on.addr)
 
         for wtp in mappings:
-
             if wtp == always_on or len(mappings[wtp]) > 0:
-                if wtp in self.idle_cycles:
-                    del self.idle_cycles[wtp]
+                if wtp in self.__idle_cycles:
+                    del self.__idle_cycles[wtp]
                 wtp.powerup()
             elif count > 0:
-                if wtp in self.idle_cycles:
-                    del self.idle_cycles[wtp]
+                if wtp in self.__idle_cycles:
+                    del self.__idle_cycles[wtp]
                 wtp.powerup()
                 count = count - 1
             elif wtp.feed.is_on:
-                if wtp not in self.idle_cycles:
-                    self.idle_cycles[wtp] = 0
-                LOG.info("WTP %s idle for %u cycles", wtp.addr,
-                         self.idle_cycles[wtp])
-                if self.idle_cycles[wtp] >= 5:
-                    del self.idle_cycles[wtp]
+                if wtp not in self.__idle_cycles:
+                    self.__idle_cycles[wtp] = 0
+                self.log.info("WTP %s idle for %u cycles", wtp.addr,
+                              self.__idle_cycles[wtp])
+                if self.__idle_cycles[wtp] >= 5:
+                    del self.__idle_cycles[wtp]
                     wtp.powerdown()
                 else:
-                    self.idle_cycles[wtp] = self.idle_cycles[wtp] + 1
+                    self.__idle_cycles[wtp] = self.__idle_cycles[wtp] + 1
 
 
-def launch(tenant, max_lvaps_per_wtp=2, period=DEFAULT_PERIOD):
+def launch(tenant_id, max_lvaps_per_wtp=2, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Thor(tenant, max_lvaps_per_wtp=max_lvaps_per_wtp, every=period)
+    return Thor(tenant_id=tenant_id, max_lvaps_per_wtp=max_lvaps_per_wtp,
+                every=every)
