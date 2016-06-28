@@ -207,7 +207,7 @@ class RSSI(Module):
         if not wtp.connection or wtp.connection.stream.closed():
             return
 
-        if wtp.addr in self.wtps:
+        if wtp in self.wtps:
             return
 
         req = Container(version=PT_VERSION,
@@ -224,7 +224,7 @@ class RSSI(Module):
         self.log.info("Sending %s request to %s (id=%u)",
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
-        self.wtps.append(wtp.addr)
+        self.wtps.append(wtp)
 
         msg = ADD_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
@@ -235,7 +235,7 @@ class RSSI(Module):
         if not wtp.connection or wtp.connection.stream.closed():
             return
 
-        if wtp.addr not in self.wtps:
+        if wtp not in self.wtps:
             return
 
         req = Container(version=PT_VERSION,
@@ -247,7 +247,7 @@ class RSSI(Module):
         self.log.info("Sending remove %s request to %s (id=%u)",
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
-        self.wtps.remove(wtp.addr)
+        self.wtps.remove(wtp)
 
         msg = DEL_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
