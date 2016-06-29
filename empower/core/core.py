@@ -17,8 +17,21 @@
 
 """EmPOWER Runtime."""
 
+import socket
+import fcntl
+import struct
+import tornado.ioloop
+
+from ipaddress import ip_address
+
+from construct import Container
+from construct import Struct
+from construct import UBInt16
+from construct import Bytes
+
 from sqlalchemy.exc import IntegrityError
 
+from empower.datatypes.etheraddress import EtherAddress
 from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
@@ -34,6 +47,12 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 DEFAULT_PERIOD = 5000
+
+CTRL_ADV = Struct("ctrl_adv", Bytes("dst", 6),
+                  Bytes("src", 6),
+                  UBInt16("eth_type"),
+                  Bytes("ctrl", 4),
+                  UBInt16("port"))
 
 
 def generate_default_accounts():
@@ -72,7 +91,7 @@ def generate_default_accounts():
 class EmpowerRuntime(object):
     """EmPOWER Runtime."""
 
-    def __init__(self):
+    def __init__(self, options):
 
         self.components = {}
         self.accounts = {}
@@ -90,11 +109,52 @@ class EmpowerRuntime(object):
         # generate default users if database is empty
         generate_default_accounts()
 
+        # load defaults
         LOG.info("Loading EmPOWER Runtime defaults")
-
         self.__load_accounts()
         self.__load_tenants()
         self.__load_acl()
+
+        if options.ctrl_adv:
+            self.__ifname = options.ctrl_adv_iface
+            self.__ctrl_ip = options.ctrl_ip
+            self.__ctrl_port = options.ctrl_port
+            self.__start_adv()
+
+    def __start_adv(self):
+        """Star ctrl advertising."""
+
+        LOG.info("Start ctrl advertisement")
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        info = fcntl.ioctl(sock.fileno(), 0x8927, struct.pack('256s',
+                           self.__ifname[:15].encode('utf-8')))
+
+        src = EtherAddress(':'.join(['%02x' % char for char in info[18:24]]))
+        dst = EtherAddress("FF:FF:FF:FF:FF:FF")
+
+        adv = Container(dst=dst.to_raw(),
+                        src=src.to_raw(),
+                        eth_type=0xEEEE,
+                        ctrl=self.__ctrl_ip.packed,
+                        port=self.__ctrl_port)
+
+        self.__msg = CTRL_ADV.build(adv)
+
+        self.__auto_cfg = \
+            tornado.ioloop.PeriodicCallback(self.__auto_cfg_loop, 2000)
+
+        self.__auto_cfg.start()
+
+    def __auto_cfg_loop(self):
+        """Send ctrl advertisement."""
+
+        LOG.info("Sending ctrl advertisement...")
+
+        sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+        sock.bind((self.__ifname, 0))
+        sock.send(self.__msg)
 
     def __load_accounts(self):
         """Load accounts table."""

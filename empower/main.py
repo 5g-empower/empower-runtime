@@ -26,6 +26,7 @@ import types
 import tornado.ioloop
 
 from uuid import UUID
+from ipaddress import ip_address
 
 from empower.core.core import EmpowerRuntime
 
@@ -71,6 +72,19 @@ class EmpowerOptions(Options):
 
     def __init__(self):
         self.log_config = None
+        self.ctrl_adv = False
+        self.ctrl_ip = "192.168.100.158"
+        self.ctrl_port = 5533
+        self.ctrl_adv_iface = "wlp2s0"
+
+    def _set_ctrl_port(self, given_name, name, value):
+        self.ctrl_port = int(value)
+
+    def _set_ctrl_ip(self, given_name, name, value):
+        self.ctrl_ip = ip_address(value)
+
+    def _set_ctrl_adv(self, given_name, name, value):
+        self.ctrl_adv = value
 
     def _set_log_config(self, given_name, name, value):
         if value is True:
@@ -95,13 +109,15 @@ class EmpowerOptions(Options):
 
 _OPTIONS = EmpowerOptions()
 
-_HELP_TEXT = """
-Start the controller with:
+_HELP_TEXT = """Start the controller with:
 <ctrl-bin>.py [options] [C1 [C1 options]] [C2 [C2 options]] ...
 
 Notable options include:
   --help                Print this help message
   --log-config=<file>   Use log config file (default is ./logging.cfg)
+  --ctrl-adv            Advertise controller (bool, default is false)
+  --ctrl-ip=<ip>        Controller address (ip, default is 192.168.100.158)
+  --ctrl-port=<port>    Controller port (int, default is 5533)
 
 C1, C2, etc. are component names (e.g., Python modules). The supported options
 are up to the module.
@@ -284,7 +300,7 @@ def main(argv=None):
     # Set the runtime after logging has been configured. This must be done
     # here since the components loader requires this symbol to be defined.
     import empower.main
-    empower.main.RUNTIME = EmpowerRuntime()
+    empower.main.RUNTIME = EmpowerRuntime(_OPTIONS)
 
     # launch components
     if _do_launch(components, components_order):

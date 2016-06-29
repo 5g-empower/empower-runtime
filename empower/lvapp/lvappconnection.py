@@ -228,7 +228,7 @@ class LVAPPConnection(object):
                 continue
 
             tenant_id = tenant.tenant_id
-            tokens = [tenant_id.hex[0:12][i:i+2] for i in range(0, 12, 2)]
+            tokens = [tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
             base_bssid = EtherAddress(':'.join(tokens))
 
             for block in wtp.supports:
