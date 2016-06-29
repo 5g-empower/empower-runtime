@@ -17,6 +17,8 @@
 
 """Virtual port."""
 
+
+from empower.datatypes.etheraddress import EtherAddress
 from empower.core.intent import add_intent
 from empower.core.intent import del_intent
 from empower.core.intent import key_to_match
@@ -180,7 +182,7 @@ class VirtualPortPropLvap(VirtualPortProp):
         # switches. Ignore totally the specified key and silently use as
         # key the LWAPP src and dst addresses. Notice that this will send
         # as many intents as the number of blocks.
-        if self.lvap.encap:
+        if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
 
             # remove old virtual links
             to_be_removed = []
@@ -207,17 +209,12 @@ class VirtualPortPropLvap(VirtualPortProp):
                     key = {}
                     key['dpid'] = n_port.dpid
                     key['port_id'] = n_port.port_id
-                    key['dl_src'] = n_port.dpid
-
-                    if value:
-                        key['dl_dst'] = value.hwaddr
 
                     match = key_to_match(key)
 
                     intent = {'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
                               'hwaddr': self.lvap.addr,
-                              'downlink': True,
                               'match': match}
 
                     if value:
@@ -254,7 +251,6 @@ class VirtualPortPropLvap(VirtualPortProp):
                     intent = {'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
                               'hwaddr': self.lvap.addr,
-                              'downlink': False,
                               'match': match}
 
                     if value:
@@ -286,19 +282,22 @@ class VirtualPortPropLvap(VirtualPortProp):
                     if n_port.iface != "empower0":
                         continue
 
-                    # make sure that dl_src is specified
-                    key['dl_src'] = self.lvap.addr
-
                     # add dummy fields
                     key['dpid'] = n_port.dpid
                     key['port_id'] = n_port.port_id
 
+                    # make sure that dl_src is specified, but only if I am
+                    # defining a new virtual link. In case of handover the
+                    # dl_src match shall not be specified
+                    if value:
+                        key['dl_src'] = self.lvap.addr
+
                     match = key_to_match(key)
 
-                    intent = {'src_dpid': n_port.dpid,
+                    intent = {'version': '1.0',
+                              'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
                               'hwaddr': self.lvap.addr,
-                              'downlink': True,
                               'match': match}
 
                     if value:
@@ -317,6 +316,12 @@ class VirtualPortPropLvap(VirtualPortProp):
 
                     break
 
+            # if this is not a new virtual link definition then ignore uplink
+            # port. This is because the old configuration is anyway deleted by
+            # the corresponding LVAP object.
+            if not value:
+                return
+
             # r_port is a RadioPort object
             for r_port in self.lvap.uplink.values():
 
@@ -326,28 +331,27 @@ class VirtualPortPropLvap(VirtualPortProp):
                     if n_port.iface != "empower0":
                         continue
 
-                    # make sure that dl_src is specified
-                    key['dl_src'] = self.lvap.addr
-
                     # add dummy fields
                     key['dpid'] = n_port.dpid
                     key['port_id'] = n_port.port_id
 
+                    # make sure that dl_src is specified, but only if I am
+                    # defining a new virtual link. In case of handover the
+                    # dl_src match shall not be specified
+                    if value:
+                        key['dl_src'] = self.lvap.addr
+
                     match = key_to_match(key)
 
-                    intent = {'src_dpid': n_port.dpid,
+                    intent = {'version': '1.0',
+                              'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
                               'hwaddr': self.lvap.addr,
-                              'downlink': False,
                               'match': match}
 
                     if value:
                         intent['dst_dpid'] = value.dpid
                         intent['dst_port'] = value.ovs_port_id
-
-                    # remove virtual link
-                    if self.__contains__(key):
-                        self.__delitem__(key)
 
                     # add new virtual link
                     uuid = add_intent(intent)

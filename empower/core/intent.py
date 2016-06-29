@@ -59,11 +59,14 @@ def add_intent(intent):
     if 'port_id' in key:
         del key['port_id']
 
-    intent['match'] = key
+    if key:
+        intent['match'] = key
+    else:
+        del intent['match']
 
     body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-    LOG.info("POST: %s\n%s", "/empower/vnfrule/", body)
+    LOG.info("POST: %s\n%s", "/intent/rules", body)
 
     headers = {
         'Content-type': 'application/json',
@@ -73,7 +76,7 @@ def add_intent(intent):
     try:
 
         conn = http.client.HTTPConnection("localhost", 8080)
-        conn.request("POST", "/empower/vnfrule/", body, headers)
+        conn.request("POST", "/intent/rules", body, headers)
         response = conn.getresponse()
         conn.close()
 
@@ -110,7 +113,7 @@ def del_intent(uuid):
     try:
 
         conn = http.client.HTTPConnection("localhost", 8080)
-        conn.request("DELETE", "/empower/vnfrule/%s" % uuid)
+        conn.request("DELETE", "/intent/rules/%s" % uuid)
         response = conn.getresponse()
 
         ret = (response.status, response.reason, response.read())
