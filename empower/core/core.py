@@ -124,8 +124,6 @@ class EmpowerRuntime(object):
     def __start_adv(self):
         """Star ctrl advertising."""
 
-        LOG.info("Start ctrl advertisement")
-
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         info = fcntl.ioctl(sock.fileno(), 0x8927, struct.pack('256s',
