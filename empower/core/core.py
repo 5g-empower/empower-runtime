@@ -22,8 +22,6 @@ import fcntl
 import struct
 import tornado.ioloop
 
-from ipaddress import ip_address
-
 from construct import Container
 from construct import Struct
 from construct import UBInt16
@@ -147,8 +145,6 @@ class EmpowerRuntime(object):
 
     def __auto_cfg_loop(self):
         """Send ctrl advertisement."""
-
-        LOG.info("Sending ctrl advertisement...")
 
         sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
         sock.bind((self.__ifname, 0))

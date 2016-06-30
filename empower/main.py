@@ -73,7 +73,7 @@ class EmpowerOptions(Options):
     def __init__(self):
         self.log_config = None
         self.ctrl_adv = False
-        self.ctrl_ip = "192.168.100.158"
+        self.ctrl_ip = ip_address("192.168.100.158")
         self.ctrl_port = 5533
         self.ctrl_adv_iface = "wlp2s0"
 
