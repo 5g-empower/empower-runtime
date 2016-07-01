@@ -117,10 +117,11 @@ class LVAPHandler(EmpowerAPIHandler):
 
                     wtp_addr = EtherAddress(block['wtp'])
                     wtp = RUNTIME.wtps[wtp_addr]
+                    hwaddr = EtherAddress(block['hwaddr'])
                     channel = int(block['channel'])
                     band = int(block['band'])
 
-                    r_block = ResourceBlock(wtp, channel, band)
+                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
                     pool.add(r_block)
 
                 lvap.scheduled_on = pool
