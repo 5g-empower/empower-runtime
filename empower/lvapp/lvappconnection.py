@@ -939,7 +939,7 @@ class LVAPPConnection(object):
         """
 
         flags = Container(no_ack=tx_policy.no_ack)
-        rates = sorted([int(x*2) for x in tx_policy.mcs])
+        rates = sorted([int(x * 2) for x in tx_policy.mcs])
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
