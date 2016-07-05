@@ -11,6 +11,7 @@
 
   function initialize() {
       initTab()
+      runLoader(loadComponents, '{{tenant.tenant_id}}')
       runLoader(loadCPPs, '{{tenant.tenant_id}}')
       runLoader(loadWTPs, '{{tenant.tenant_id}}')
       runLoader(loadLVNFs, '{{tenant.tenant_id}}')
@@ -26,6 +27,7 @@
 <div style="width: 1000px; margin-left: auto; margin-right: auto">
   <div class="tabs segmentedControlBase">
     <div class="button segmentedControl leftEnd tab"><span>Details: {{ tenant.tenant_name }}</span></div>
+    <div class="button segmentedControl tab"><span>Components</span></div>
     <div class="button segmentedControl tab"><span>LVAPs</span></div>
     <div class="button segmentedControl tab"><span>LVNFs</span></div>
     <div class="button segmentedControl tab"><span>CPPs</span></div>
@@ -58,6 +60,24 @@
 
         <div class="tabPanel">
 
+          <h1>Components</h1>
+
+          <p>From this page you can load tenant specific modules. Notice that you do not need to specify the tenant id. For example to load the mobilitymanager module you must use 'apps.mobilitymanager.mobilitymanager'.<p>
+
+          <table id="components" class="dump">
+            <tr>
+              <th>Components</th>
+              <th>Ctrl</th>
+            </tr>
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addComponent('{{ tenant.tenant_id }}')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+    <div class="tabPanel">
+
           <h1>Light Virtual Access Points</h1>
 
           <table id="lvaps" class="dump">
@@ -69,7 +89,7 @@
             </tr>
           </table>
 
-        </div>
+    </div>
 
     <div class="tabPanel">
 

@@ -39,7 +39,7 @@ class MobilityManager(EmpowerApp):
     Example:
 
         ./empower-runtime.py apps.mobilitymanager.mobilitymanager \
-            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
     def __init__(self, **kwargs):

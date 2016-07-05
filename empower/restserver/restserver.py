@@ -35,6 +35,7 @@ from uuid import UUID
 from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
@@ -985,7 +986,7 @@ class TenantHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
-class TenantComponentsHandler(EmpowerAPIHandler):
+class TenantComponentsHandler(EmpowerAPIHandlerUsers):
     """Components handler. Used to load/unload components."""
 
     HANDLERS = \
@@ -1147,7 +1148,7 @@ class TenantComponentsHandler(EmpowerAPIHandler):
 
             tenant_id = UUID(args[0])
 
-            argv = request['argv'].split(" ")
+            argv = request['argv'].strip().split(" ")
             argv.append("--tenant_id=%s" % tenant_id)
 
             components, components_order = _parse_args(argv)

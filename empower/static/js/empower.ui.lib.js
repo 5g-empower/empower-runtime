@@ -158,9 +158,14 @@ function loadFeeds() {
     });
 }
 
-function loadComponents() {
+function loadComponents(tenant) {
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/components"
+    } else {
+        url = "/api/v1/components"
+    }
     $.ajax({
-        url: "/api/v1/components",
+        url: url,
         type: 'GET',
         dataType: 'json',
         cache: false,
@@ -197,18 +202,26 @@ function loadComponents() {
     });
 }
 
-function addComponent() {
+function addComponent(tenant) {
     var table = document.getElementById('components');
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 3
-    mac.innerHTML = "<ul><li> \
+    if (tenant) {
+        mac.innerHTML = "<ul><li> \
+<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='e.g. empower.energino.energinoserver' \" size=\"60\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"component\" type=\"text\" value=\"e.g. empower.energino.energinoserver\" /> \
+<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerComponent('"+tenant+"')\"/> \
+<img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeRegisterComponentInputBox()\" /> \
+</div></li></ul>"
+    } else {
+        mac.innerHTML = "<ul><li> \
 <input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='e.g. empower.energino.energinoserver' \" size=\"60\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"component\" type=\"text\" value=\"e.g. empower.energino.energinoserver\" /> \
 <div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerComponent()\"/> \
 <img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeRegisterComponentInputBox()\" /> \
 </div></li></ul>"
+    }
 }
 
 function removeRegisterComponentInputBox() {
@@ -222,10 +235,14 @@ function removeRegisterComponentInputBox() {
     mac.innerHTML = "<a onClick=\"return addComponent()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
 }
 
-function registerComponent() {
+function registerComponent(tenant) {
     var args = document.getElementById("component").value;
     var label = document.getElementById("component").value;
-    url = "/api/v1/components"
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/components"
+    } else {
+        url = "/api/v1/components"
+    }
     data = '{"version" : "1.0", "argv" : "' + args + '"}'
     $.ajax({
         url: url,

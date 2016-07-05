@@ -102,6 +102,12 @@
 
           <h1>Components</h1>
 
+          <p>From this page you can load global modules, that is modules that do not require a tenant id. For example in order to load the wtpup module you must use 'event.wtpup'.</p>
+
+          <p>You can also load tenant specific modules by specifying the tenant id. For example to load the mobilitymanager module for a specific tenant you must use 'apps.mobilitymanager.mobilitymanager --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26'.<p>
+
+          <p>Notice however that in this case the module will not show up in this page. Instead you must log in again as regular user and then click on the components tab.</p>
+
           <table id="components" class="dump">
             <tr>
               <th>Components</th>
