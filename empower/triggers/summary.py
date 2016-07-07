@@ -287,7 +287,9 @@ class Summary(Module):
 
             elif pt_type == "DATA":
 
-                if recv[7] == 0xC0:
+                if recv[7] == 0x0:
+                    pt_subtype = "Data"
+                elif recv[7] == 0xC0:
                     pt_subtype = "QoS Null"
                 elif recv[7] == 0x64:
                     pt_subtype = "Null"
