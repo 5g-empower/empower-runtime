@@ -269,15 +269,15 @@ class Summary(Module):
             if pt_type == "MNGT":
 
                 if recv[7] == 0x00:
-                    pt_subtype = "Assoc Req"
+                    pt_subtype = "ASSOCREQ"
                 elif recv[7] == 0x10:
-                    pt_subtype = "Assoc Resp"
+                    pt_subtype = "ASSOC RESP"
                 elif recv[7] == 0x20:
-                    pt_subtype = "Auth Req"
+                    pt_subtype = "AUTH REQ"
                 elif recv[7] == 0x30:
-                    pt_subtype = "Auth Resp"
+                    pt_subtype = "AUTH RESP"
                 elif recv[7] == 0x80:
-                    pt_subtype = "Beacon"
+                    pt_subtype = "BEACON"
                 else:
                     pt_subtype = "UNKN (%s)" % recv[7]
 
@@ -288,11 +288,11 @@ class Summary(Module):
             elif pt_type == "DATA":
 
                 if recv[7] == 0x0:
-                    pt_subtype = "Data"
+                    pt_subtype = "DATA"
                 elif recv[7] == 0xC0:
-                    pt_subtype = "QoS Null"
+                    pt_subtype = "QOS NULL"
                 elif recv[7] == 0x64:
-                    pt_subtype = "Null"
+                    pt_subtype = "NULL"
                 else:
                     pt_subtype = "UNKN (%s)" % recv[7]
             else:
