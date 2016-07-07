@@ -176,6 +176,14 @@ class VirtualPortPropLvap(VirtualPortProp):
         if value and not isinstance(value, VirtualPort):
             raise KeyError("Expected VirtualPort, got %s" % type(key))
 
+        # if this is a virtual link definition then clear all the virtual
+        # port. this is because in this case there could be the default
+        # virtual port inserted by the handover procedure.
+        if value:
+            for match in list(self.keys()):
+                key = match_to_key(match)
+                self.__delitem__(key)
+
         # if encap is set, then all outgoing traffic must go to THE SAME
         # LVNF. This is because the outgoing traffic will be LWAPP
         # encapsulated and as such cannot be handled anyway by OF
@@ -183,16 +191,6 @@ class VirtualPortPropLvap(VirtualPortProp):
         # key the LWAPP src and dst addresses. Notice that this will send
         # as many intents as the number of blocks.
         if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
-
-            # remove old virtual links
-            to_be_removed = []
-
-            for match in self.keys():
-                key = match_to_key(match)
-                to_be_removed.append(key)
-
-            for key in to_be_removed:
-                self.__delitem__(key)
 
             # Set downlink and uplink virtual link(s)
 
@@ -210,9 +208,14 @@ class VirtualPortPropLvap(VirtualPortProp):
                     key['dpid'] = n_port.dpid
                     key['port_id'] = n_port.port_id
 
+                    if value:
+                        key['dl_src'] = self.lvap.addr
+                        key['dl_dst'] = value.hwaddr
+
                     match = key_to_match(key)
 
-                    intent = {'src_dpid': n_port.dpid,
+                    intent = {'version': '1.0',
+                              'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
                               'hwaddr': self.lvap.addr,
                               'match': match}
@@ -221,6 +224,10 @@ class VirtualPortPropLvap(VirtualPortProp):
                         intent['dst_dpid'] = value.dpid
                         intent['dst_port'] = value.ovs_port_id
 
+                    # remove virtual link
+                    if self.__contains__(key):
+                        self.__delitem__(key)
+
                     # add new virtual link
                     uuid = add_intent(intent)
                     self.__uuids__[match] = uuid
@@ -228,6 +235,12 @@ class VirtualPortPropLvap(VirtualPortProp):
                     dict.__setitem__(self, match, value)
 
                     break
+
+            # if this is not a new virtual link definition then ignore uplink
+            # port. This is because the old configuration is anyway deleted by
+            # the corresponding LVAP object.
+            if not value:
+                return
 
             for r_port in self.lvap.uplink.values():
 
@@ -241,21 +254,22 @@ class VirtualPortPropLvap(VirtualPortProp):
                     key = {}
                     key['dpid'] = n_port.dpid
                     key['port_id'] = n_port.port_id
-                    key['dl_src'] = n_port.hwaddr
-
-                    if value:
-                        key['dl_dst'] = value.hwaddr
+                    key['dl_src'] = self.lvap.addr
+                    key['dl_dst'] = value.hwaddr
 
                     match = key_to_match(key)
 
-                    intent = {'src_dpid': n_port.dpid,
+                    intent = {'version': '1.0',
+                              'src_dpid': n_port.dpid,
                               'src_port': n_port.port_id,
-                              'hwaddr': self.lvap.addr,
                               'match': match}
 
-                    if value:
-                        intent['dst_dpid'] = value.dpid
-                        intent['dst_port'] = value.ovs_port_id
+                    intent['dst_dpid'] = value.dpid
+                    intent['dst_port'] = value.ovs_port_id
+
+                    # remove virtual link
+                    if self.__contains__(key):
+                        self.__delitem__(key)
 
                     # add new virtual link
                     uuid = add_intent(intent)
@@ -266,9 +280,7 @@ class VirtualPortPropLvap(VirtualPortProp):
                     break
 
         # encap is not set, then all outgoing traffic can go to different
-        # LVNFs as specified by key. Remove only the key if it already
-        # exists. Notice that this will send as many intents as the number
-        # of blocks.
+        # LVNFs as specified by key. Remove the key only if it already exists.
         else:
 
             # Set downlink and uplink virtual link(s)
@@ -338,8 +350,7 @@ class VirtualPortPropLvap(VirtualPortProp):
                     # make sure that dl_src is specified, but only if I am
                     # defining a new virtual link. In case of handover the
                     # dl_src match shall not be specified
-                    if value:
-                        key['dl_src'] = self.lvap.addr
+                    key['dl_src'] = self.lvap.addr
 
                     match = key_to_match(key)
 
@@ -349,9 +360,12 @@ class VirtualPortPropLvap(VirtualPortProp):
                               'hwaddr': self.lvap.addr,
                               'match': match}
 
-                    if value:
-                        intent['dst_dpid'] = value.dpid
-                        intent['dst_port'] = value.ovs_port_id
+                    intent['dst_dpid'] = value.dpid
+                    intent['dst_port'] = value.ovs_port_id
+
+                    # remove virtual link
+                    if self.__contains__(key):
+                        self.__delitem__(key)
 
                     # add new virtual link
                     uuid = add_intent(intent)

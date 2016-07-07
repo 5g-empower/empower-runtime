@@ -182,13 +182,8 @@ class LVAP(object):
         if not self.__ports:
             return
 
-        to_be_removed = []
-
-        for match in self.__ports[0].next:
+        for match in list(self.__ports[0].next):
             key = match_to_key(match)
-            to_be_removed.append(key)
-
-        for key in to_be_removed:
             del self.__ports[0].next[key]
 
         del self.__ports[0]
@@ -215,7 +210,13 @@ class LVAP(object):
 
         # Save virtual links and delete them
         # TODO: Implement.
-        self.clear_ports()
+        if self.__ports:
+
+            for match in list(self.__ports[0].next):
+                key = match_to_key(match)
+                del self.__ports[0].next[key]
+
+            del self.__ports[0]
 
         if not self.wtp:
             return
