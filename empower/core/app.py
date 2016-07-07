@@ -20,6 +20,8 @@
 import tornado.ioloop
 import empower.logger
 
+from empower.core.resourcepool import ResourcePool
+
 from empower.main import RUNTIME
 
 DEFAULT_PERIOD = 5000
@@ -35,7 +37,7 @@ class EmpowerApp(object):
         self.app_name = self.__module__.split(".")[-1]
         self.params = []
         self.log = empower.logger.get_logger()
-        self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
+        self.worker = None
 
         for param in kwargs:
             if hasattr(self, param):
@@ -64,12 +66,13 @@ class EmpowerApp(object):
     def every(self, value):
         """Set loop period."""
 
-        self.log.info("Setting control loop interval to %u", value)
+        self.log.info("Setting control loop interval to %ums", int(value))
         self.__every = int(value)
 
     def start(self):
         """Start control loop."""
 
+        self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
         self.worker.start()
 
     def stop(self):
@@ -135,6 +138,19 @@ class EmpowerApp(object):
             return None
 
         return RUNTIME.tenants[self.tenant_id].lvaps[addr]
+
+    def blocks(self):
+        """Return all blocks in this Tenant."""
+
+        # Initialize the Resource Pool
+        pool = ResourcePool()
+
+        # Update the Resource Pool with all
+        # the available Resourse Blocks
+        for wtp in self.wtps():
+            pool = pool | wtp.supports
+
+        return pool
 
     def wtps(self):
         """Return WTPs in this tenant."""
