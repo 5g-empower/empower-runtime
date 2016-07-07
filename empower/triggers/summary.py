@@ -266,22 +266,36 @@ class Summary(Module):
             else:
                 pt_type = "UNKN (%s)" % recv[5]
 
-            if recv[7] == 0x00:
-                pt_subtype = "Assoc Req"
-            elif recv[7] == 0x10:
-                pt_subtype = "Assoc Resp"
-            elif recv[7] == 0x20:
-                pt_subtype = "Auth Req"
-            elif recv[7] == 0x30:
-                pt_subtype = "Auth Resp"
-            elif recv[7] == 0x80:
-                pt_subtype = "Beacon"
-            elif recv[7] == 0xC0:
-                pt_subtype = "QoS Null"
-            elif recv[7] == 0x64:
-                pt_subtype = "Null"
-            else:
+            if pt_type == "MNGT":
+
+                if recv[7] == 0x00:
+                    pt_subtype = "Assoc Req"
+                elif recv[7] == 0x10:
+                    pt_subtype = "Assoc Resp"
+                elif recv[7] == 0x20:
+                    pt_subtype = "Auth Req"
+                elif recv[7] == 0x30:
+                    pt_subtype = "Auth Resp"
+                elif recv[7] == 0x80:
+                    pt_subtype = "Beacon"
+                else:
+                    pt_subtype = "UNKN (%s)" % recv[7]
+
+            elif pt_type == "CTRL":
+
                 pt_subtype = "UNKN (%s)" % recv[7]
+
+            elif pt_type == "DATA":
+
+                if recv[7] == 0xC0:
+                    pt_subtype = "QoS Null"
+                elif recv[7] == 0x64:
+                    pt_subtype = "Null"
+                else:
+                    pt_subtype = "UNKN (%s)" % recv[7]
+            else:
+
+                raise ValueError("Invalid frame type: %s" % pt_type)
 
             frame = {'ra': EtherAddress(recv[0]),
                      'ta': EtherAddress(recv[1]),
