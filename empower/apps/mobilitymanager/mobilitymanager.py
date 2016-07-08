@@ -20,9 +20,6 @@
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
-from empower.datatypes.etheraddress import EtherAddress
-from empower.core.resourcepool import ResourcePool
-
 
 DEFAULT_LIMIT = -30
 
@@ -70,20 +67,7 @@ class MobilityManager(EmpowerApp):
 
         self.log.info("Running handover...")
 
-        # Initialize the Resource Pool
-        pool = ResourcePool()
-
-        # Update the Resource Pool with all
-        # the available Resourse Blocks
-        for wtp in self.wtps():
-            pool = pool | wtp.supports
-
-        # Select matching Resource Blocks
-        matches = pool & lvap.scheduled_on
-
-        # Filter Resource Blocks by RSSI
-        valid = [block for block in matches
-                 if block.ucqm[lvap.addr]['mov_rssi'] >= self.limit]
+        valid = self.blocks(lvap, self.limit)
 
         if not valid:
             return
@@ -119,8 +103,7 @@ class MobilityManager(EmpowerApp):
                       trigger.event['block'],
                       trigger.event['current'])
 
-        lvap_addr = EtherAddress(trigger.lvap)
-        lvap = self.lvap(lvap_addr)
+        lvap = self.lvap(trigger.lvap)
 
         if not lvap:
             return
