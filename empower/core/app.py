@@ -139,7 +139,7 @@ class EmpowerApp(object):
 
         return RUNTIME.tenants[self.tenant_id].lvaps[addr]
 
-    def blocks(self, lvap=None):
+    def blocks(self, lvap=None, limit=None):
         """Return all blocks in this Tenant."""
 
         # Initialize the Resource Pool
@@ -151,7 +151,16 @@ class EmpowerApp(object):
             pool = pool | wtp.supports
 
         if lvap:
-            return pool & lvap.scheduled_on
+
+            # Select matching Resource Blocks
+            matches = pool & lvap.scheduled_on
+
+            if limit:
+                # Filter Resource Blocks by RSSI
+                return [block for block in matches
+                        if block.ucqm[lvap.addr]['mov_rssi'] >= self.limit]
+
+            return matches
 
         return pool
 
