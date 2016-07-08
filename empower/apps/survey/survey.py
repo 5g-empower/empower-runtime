@@ -76,10 +76,10 @@ class Survey(EmpowerApp):
 
         for frame in summary.frames:
 
-            line = "%u,%.1f,%d,%u,%s,%s,%s,%s,%s\n" % \
-                (frame['tsft'], frame['rate'], frame['rssi'], frame['length'],
-                 frame['type'], frame['subtype'], frame['ra'], frame['ta'],
-                 frame['seq'])
+            line = "%u,%.1f,%s,%d,%u,%s,%s,%s,%s,%s\n" % \
+                (frame['tsft'], frame['rate'], frame['rtype'], frame['rssi'],
+                 frame['length'], frame['type'], frame['subtype'],
+                 frame['ra'], frame['ta'], frame['seq'])
 
             with open(filename, 'a') as file_d:
                 file_d.write(line)

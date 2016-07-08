@@ -139,7 +139,7 @@ class EmpowerApp(object):
 
         return RUNTIME.tenants[self.tenant_id].lvaps[addr]
 
-    def blocks(self):
+    def blocks(self, lvap=None):
         """Return all blocks in this Tenant."""
 
         # Initialize the Resource Pool
@@ -149,6 +149,9 @@ class EmpowerApp(object):
         # the available Resourse Blocks
         for wtp in self.wtps():
             pool = pool | wtp.supports
+
+        if lvap:
+            return pool & lvap.scheduled_on
 
         return pool
 

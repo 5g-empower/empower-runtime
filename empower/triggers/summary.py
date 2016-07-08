@@ -28,8 +28,10 @@ from construct import UBInt64
 from construct import Bytes
 from construct import Sequence
 from construct import Array
+from construct import BitStruct
+from construct import Padding
+from construct import Bit
 
-from empower.core.resourcepool import BT_L20
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
@@ -61,6 +63,10 @@ SUMMARY_ENTRY = Sequence("frames",
                          Bytes("ra", 6),
                          Bytes("ta", 6),
                          UBInt64("tsft"),
+                         BitStruct("flags",
+                                   Padding(6),
+                                   Bit("mcs"),
+                                   Padding(9)),
                          UBInt16("seq"),
                          SBInt8("rssi"),
                          UBInt8("rate"),
@@ -252,62 +258,72 @@ class Summary(Module):
 
         for recv in response.frames:
 
-            if self.block.band == BT_L20:
-                rate = int(recv[5]) / 2.0
+            if recv[3].mcs:
+                rate = int(recv[6])
             else:
-                rate = int(recv[5])
+                rate = float(recv[6]) / 2
 
-            if recv[6] == 0x00:
+            if recv[3].mcs:
+                rtype = "HT"
+            else:
+                rtype = "LE"
+
+            if recv[7] == 0x00:
                 pt_type = "MNGT"
-            elif recv[6] == 0x04:
+            elif recv[7] == 0x04:
                 pt_type = "CTRL"
-            elif recv[6] == 0x08:
+            elif recv[7] == 0x08:
                 pt_type = "DATA"
             else:
-                pt_type = "UNKN (%s)" % recv[5]
+                pt_type = "DATA (%s)" % recv[7]
 
             if pt_type == "MNGT":
 
-                if recv[7] == 0x00:
+                if recv[8] == 0x00:
                     pt_subtype = "ASSOCREQ"
-                elif recv[7] == 0x10:
-                    pt_subtype = "ASSOC RESP"
-                elif recv[7] == 0x20:
-                    pt_subtype = "AUTH REQ"
-                elif recv[7] == 0x30:
-                    pt_subtype = "AUTH RESP"
-                elif recv[7] == 0x80:
+                elif recv[8] == 0x10:
+                    pt_subtype = "ASSOCRESP"
+                elif recv[8] == 0x20:
+                    pt_subtype = "AUTHREQ"
+                elif recv[8] == 0x30:
+                    pt_subtype = "AUTHRESP"
+                elif recv[8] == 0x40:
+                    pt_subtype = "PROBEREQ"
+                elif recv[8] == 0x50:
+                    pt_subtype = "PROBERESP"
+                elif recv[8] == 0x80:
                     pt_subtype = "BEACON"
+                elif recv[8] == 0x90:
+                    pt_subtype = "ATIM"
+                elif recv[8] == 0xA0:
+                    pt_subtype = "DISASSOC"
+                elif recv[8] == 0xb0:
+                    pt_subtype = "AUTH"
+                elif recv[8] == 0xc0:
+                    pt_subtype = "DEAUTH"
+                elif recv[8] == 0xd0:
+                    pt_subtype = "ACTION"
                 else:
-                    pt_subtype = "UNKN (%s)" % recv[7]
+                    pt_subtype = "MNGT (%s)" % recv[8]
 
             elif pt_type == "CTRL":
 
-                pt_subtype = "UNKN (%s)" % recv[7]
+                pt_subtype = "UNKN (%s)" % recv[8]
 
             elif pt_type == "DATA":
 
-                if recv[7] == 0x0:
-                    pt_subtype = "DATA"
-                elif recv[7] == 0xC0:
-                    pt_subtype = "QOS NULL"
-                elif recv[7] == 0x64:
-                    pt_subtype = "NULL"
-                else:
-                    pt_subtype = "UNKN (%s)" % recv[7]
-            else:
-
-                raise ValueError("Invalid frame type: %s" % pt_type)
+                pt_subtype = "UNKN (%s)" % recv[8]
 
             frame = {'ra': EtherAddress(recv[0]),
                      'ta': EtherAddress(recv[1]),
                      'tsft': recv[2],
-                     'seq': recv[3],
-                     'rssi': recv[4],
+                     'seq': recv[4],
+                     'rssi': recv[5],
                      'rate': rate,
+                     'rtype': rtype,
                      'type': pt_type,
                      'subtype': pt_subtype,
-                     'length': recv[8]}
+                     'length': recv[9]}
 
             self.frames.append(frame)
 
