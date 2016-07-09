@@ -43,6 +43,7 @@ class Survey(EmpowerApp):
     def __init__(self, **kwargs):
         self.__addr = None
         EmpowerApp.__init__(self, **kwargs)
+        self.links = {}
         self.wtpup(callback=self.wtp_up_callback)
 
     @property
@@ -64,17 +65,52 @@ class Survey(EmpowerApp):
             self.summary(addr=self.addr, block=block,
                          callback=self.summary_callback)
 
+    def to_dict(self):
+        """ Return a JSON-serializable dictionary representing the Summary """
+
+        out = super().to_dict()
+
+        out['links'] = self.links
+
+        return out
+
     def summary_callback(self, summary):
         """ New stats available. """
 
         self.log.info("New summary from %s addr %s frames %u", summary.block,
                       summary.addr, len(summary.frames))
 
+        # per block log
         filename = "survey_%s_%u_%s.csv" % (summary.block.addr,
                                             summary.block.channel,
                                             BANDS[summary.block.band])
 
         for frame in summary.frames:
+
+            line = "%u,%g,%s,%d,%u,%s,%s,%s,%s,%s\n" % \
+                (frame['tsft'], frame['rate'], frame['rtype'], frame['rssi'],
+                 frame['length'], frame['type'], frame['subtype'],
+                 frame['ra'], frame['ta'], frame['seq'])
+
+            with open(filename, 'a') as file_d:
+                file_d.write(line)
+
+        # per link log
+        for frame in summary.frames:
+
+            link = "%s_%s_%u_%s" % (frame['ta'], summary.block.addr,
+                                    summary.block.channel,
+                                    BANDS[summary.block.band])
+
+            filename = "link_%s.csv" % link
+
+            if link not in self.links:
+                self.links[link] = {}
+
+            if frame['rssi'] not in self.links[link]:
+                self.links[link][frame['rssi']] = 0
+
+            self.links[link][frame['rssi']] += 1
 
             line = "%u,%g,%s,%d,%u,%s,%s,%s,%s,%s\n" % \
                 (frame['tsft'], frame['rate'], frame['rtype'], frame['rssi'],
