@@ -76,7 +76,7 @@ class Survey(EmpowerApp):
 
         for frame in summary.frames:
 
-            line = "%u,%.1f,%s,%d,%u,%s,%s,%s,%s,%s\n" % \
+            line = "%u,%g,%s,%d,%u,%s,%s,%s,%s,%s\n" % \
                 (frame['tsft'], frame['rate'], frame['rtype'], frame['rssi'],
                  frame['length'], frame['type'], frame['subtype'],
                  frame['ra'], frame['ta'], frame['seq'])
