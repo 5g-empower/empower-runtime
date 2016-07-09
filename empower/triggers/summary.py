@@ -308,6 +308,10 @@ class Summary(Module):
 
             elif pt_type == "CTRL":
 
+                pt_subtype = "UNKN (%s)" % recv[8]
+
+            elif pt_type == "DATA":
+
                 if recv[8] == 0x00:
                     pt_subtype = "DATA"
                 elif recv[8] == 0x40:
@@ -318,10 +322,6 @@ class Summary(Module):
                     pt_subtype = "QOSNULL"
                 else:
                     pt_subtype = "UNKN (%s)" % recv[8]
-
-            elif pt_type == "DATA":
-
-                pt_subtype = "UNKN (%s)" % recv[8]
 
             frame = {'ra': EtherAddress(recv[0]),
                      'ta': EtherAddress(recv[1]),
