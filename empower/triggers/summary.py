@@ -308,7 +308,16 @@ class Summary(Module):
 
             elif pt_type == "CTRL":
 
-                pt_subtype = "UNKN (%s)" % recv[8]
+                if recv[8] == 0x00:
+                    pt_subtype = "DATA"
+                elif recv[8] == 0x40:
+                    pt_subtype = "DATA"
+                elif recv[8] == 0x80:
+                    pt_subtype = "QOS"
+                elif recv[8] == 0xC0:
+                    pt_subtype = "QOSNULL"
+                else:
+                    pt_subtype = "UNKN (%s)" % recv[8]
 
             elif pt_type == "DATA":
 
