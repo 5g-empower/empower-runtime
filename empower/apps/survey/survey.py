@@ -98,9 +98,9 @@ class Survey(EmpowerApp):
         # per link log
         for frame in summary.frames:
 
-            link = "%s_%s_%u_%s"  % (frame['ta'], summary.block.addr, 
-                                     summary.block.channel,
-                                     BANDS[summary.block.band])
+            link = "%s_%s_%u_%s" % (frame['ta'], summary.block.addr,
+                                    summary.block.channel,
+                                    BANDS[summary.block.band])
 
             filename = "link_%s.csv" % link
 

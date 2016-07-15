@@ -25,6 +25,9 @@ from construct import Sequence
 from construct import Container
 from construct import Struct
 from construct import Array
+from construct import BitStruct
+from construct import Padding
+from construct import Bit
 
 from empower.core.resourcepool import BT_L20
 from empower.core.lvap import LVAP
@@ -41,8 +44,11 @@ PT_RATES_RESPONSE = 0x30
 
 RATES_ENTRY = Sequence("rates",
                        UBInt8("rate"),
+                       BitStruct("flags",
+                                 Padding(6),
+                                 Bit("mcs"),
+                                 Padding(9)),
                        UBInt32("prob"))
-
 
 RATES_REQUEST = Struct("rates_request", UBInt8("version"),
                        UBInt8("type"),
