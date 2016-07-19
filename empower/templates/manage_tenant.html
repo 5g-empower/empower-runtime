@@ -15,7 +15,7 @@
       runLoader(loadCPPs, '{{tenant.tenant_id}}')
       runLoader(loadWTPs, '{{tenant.tenant_id}}')
       runLoader(loadLVNFs, '{{tenant.tenant_id}}')
-      runLoader(loadLVAPs, '{{tenant.tenant_id}}')
+      lvapsInterval = runLoader(loadLVAPs, '{{tenant.tenant_id}}')
       runLoader(loadVBSPs, '{{tenant.tenant_id}}')
   }
 
@@ -84,7 +84,8 @@
             <tr>
               <th width="150px">Station</th>
               <th width="150px">SSID</th>
-              <th width="150px">BSSID</th>
+              <th width="150px">BSSID (Network)</th>
+              <th width="150px">BSSID (LVAP)</th>
               <th width="240px" colspan="2">WTP</th>
             </tr>
           </table>

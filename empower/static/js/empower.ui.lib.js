@@ -994,7 +994,7 @@ function selectVBSP() {
 
             tmp = "Select VBSP: <select id=\"select_vbsp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + "(" + data[stream].addr + ")</option>"
+                tmp += "<option value='" + data[stream].addr + "'>" + data[stream].addr + " (" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addVBSPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPSelectBox()\" /></div>"
@@ -1018,7 +1018,7 @@ function selectCPP() {
 
             tmp = "Select CPP: <select id=\"select_cpp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + "(" + data[stream].label + ")</option>"
+                tmp += "<option value='" + data[stream].addr + "'>" + data[stream].addr + " (" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addCPPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeCPPSelectBox()\" /></div>"
@@ -1640,7 +1640,7 @@ function selectWTP() {
 
             tmp = "Select WTP: <select id=\"select_wtp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + " (" + data[stream].label + ")</option>"
+                tmp += "<option value='" + data[stream].addr + "'>" + data[stream].addr + " (" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addWTPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeWTPSelectBox()\" /></div>"
