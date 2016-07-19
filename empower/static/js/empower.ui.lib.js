@@ -363,7 +363,7 @@ function loadPendingTenants(username, admin) {
                 var rowCount = table.rows.length;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 4
+                mac.colSpan = 5
                 mac.style.textAlign = "center"
                 mac.innerHTML = "No requests"
             }
@@ -994,7 +994,7 @@ function selectVBSP() {
 
             tmp = "Select VBSP: <select id=\"select_vbsp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + "</option>"
+                tmp += "<option>" + data[stream].addr + "(" + data[stream].addr + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addVBSPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPSelectBox()\" /></div>"
@@ -1018,7 +1018,7 @@ function selectCPP() {
 
             tmp = "Select CPP: <select id=\"select_cpp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + "</option>"
+                tmp += "<option>" + data[stream].addr + "(" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addCPPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeCPPSelectBox()\" /></div>"
@@ -1344,7 +1344,7 @@ function addMAC(group) {
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 2
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Roberto's iPhone \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Roberto's iPhone\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
@@ -1640,7 +1640,7 @@ function selectWTP() {
 
             tmp = "Select WTP: <select id=\"select_wtp\">"
             for (var stream in data) {
-                tmp += "<option>" + data[stream].addr + "</option>"
+                tmp += "<option>" + data[stream].addr + " (" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
             tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addWTPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeWTPSelectBox()\" /></div>"
