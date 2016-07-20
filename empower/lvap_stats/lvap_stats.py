@@ -160,7 +160,7 @@ class LVAPStats(Module):
                 rate = entry[0] / 2.0
             else:
                 rate = entry[0]
-            self.rates[rate] = {'prob': entry[1] / 180.0}
+            self.rates[rate] = {'prob': entry[2] / 180.0}
 
         # call callback
         self.handle_callback(self)
