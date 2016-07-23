@@ -142,8 +142,6 @@ class Summary(Module):
 
         elif isinstance(value, dict):
 
-            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
-
             if 'hwaddr' not in value:
                 raise ValueError("Missing field: hwaddr")
 
@@ -155,6 +153,8 @@ class Summary(Module):
 
             if 'wtp' not in value:
                 raise ValueError("Missing field: wtp")
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
             incoming = ResourcePool()
             block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),

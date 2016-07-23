@@ -446,9 +446,9 @@ def parse_global_args(arglist):
     parser = ArgumentParser(usage=usage)
 
     parser.add_argument("-r", "--host", dest="host", default="127.0.0.1",
-                        help="Specify the EmPOWER host; default='127.0.0.1'")
+                        help="REST server address; default='127.0.0.1'")
     parser.add_argument("-p", "--port", dest="port", default="8888",
-                        help="Specify the EmPOWER port; default=8888")
+                        help="REST server port; default=8888")
     parser.add_argument("-u", "--user", dest="user", default="root",
                         help="EmPOWER admin user; default='root'")
     parser.add_argument("-n", "--no-passwd", action="store_true",
