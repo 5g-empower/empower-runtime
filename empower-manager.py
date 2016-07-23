@@ -79,6 +79,16 @@ def pa_tenant_component_info(args, cmd):
     return args, leftovers
 
 
+def pa_load_component(args, cmd):
+    """ component info parser method. """
+
+    usage = "%s [<tenant_id>] <component>" % USAGE.format(cmd)
+    desc = DESCS[cmd]
+    (args, leftovers) = ArgumentParser(usage=usage,
+                                       description=desc).parse_known_args(args)
+    return args, leftovers
+
+
 def pa_list_tenant_components(args, cmd):
     """ component info parser method. """
 
@@ -270,6 +280,32 @@ def do_tenant_component_info(gargs, args, leftovers):
         print("%s: %s" % (key, value))
 
 
+def do_load_component(gargs, args, leftovers):
+    """ List component info. """
+
+    if len(leftovers) == 1:
+        url = '/api/v1/components'
+    elif len(leftovers) == 2:
+        uuid = UUID(leftovers[0])
+        url = '/api/v1/tenants/%s/components' % uuid
+    else:
+        print("Invalid parameter, run help tenant-component-info")
+        print_available_cmds()
+        sys.exit()
+
+    data = {"version": "1.0", "argv": leftovers[1]}
+    code, data = connect(gargs, ('POST', url), data)
+
+    if code[0] != 200:
+        print("%s %s" % code)
+        sys.exit()
+
+    print("componentd_id: %s" % leftovers[0])
+
+    for key, value in data.items():
+        print("%s: %s" % (key, value))
+
+
 def do_feed_on(gargs, args, leftovers):
     """ List component info. """
 
@@ -362,6 +398,7 @@ def run_connect(connection, headers, cmd, data=None):
 CMDS = {
     'help': (pa_help, do_help),
     'list-components': (pa_none, do_list_components),
+    'load-component': (pa_load_component, do_load_component),
     'list-tenant-components': (pa_list_tenant_components,
                                do_list_tenant_components),
     'component-info': (pa_component_info, do_component_info),
@@ -383,6 +420,7 @@ URL = "%s://%s%s:%s"
 
 DESCS = {
     'help': "Print help message.",
+    'load-component': "Load component.",
     'list-components': "List components.",
     'list-tenant-components': "List tenant components.",
     'component-info': "Displays components info.",
