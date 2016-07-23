@@ -23,6 +23,7 @@ import base64
 import json
 
 from http.client import HTTPConnection
+from uuid import UUID
 
 from argparse import ArgumentParser
 
@@ -62,6 +63,26 @@ def pa_component_info(args, cmd):
     """ component info parser method. """
 
     usage = "%s <component>" % USAGE.format(cmd)
+    desc = DESCS[cmd]
+    (args, leftovers) = ArgumentParser(usage=usage,
+                                       description=desc).parse_known_args(args)
+    return args, leftovers
+
+
+def pa_tenant_component_info(args, cmd):
+    """ component info parser method. """
+
+    usage = "%s <tenant_id> <component>" % USAGE.format(cmd)
+    desc = DESCS[cmd]
+    (args, leftovers) = ArgumentParser(usage=usage,
+                                       description=desc).parse_known_args(args)
+    return args, leftovers
+
+
+def pa_list_tenant_components(args, cmd):
+    """ component info parser method. """
+
+    usage = "%s <tenant_id>" % USAGE.format(cmd)
     desc = DESCS[cmd]
     (args, leftovers) = ArgumentParser(usage=usage,
                                        description=desc).parse_known_args(args)
@@ -110,7 +131,9 @@ def do_help(gargs, args, leftovers):
     """ Help execute method. """
 
     if len(leftovers) != 1:
-        raise ValueError
+        print("No command specified")
+        print_available_cmds()
+        sys.exit()
 
     try:
         (parse_args, _) = CMDS[leftovers[0]]
@@ -124,6 +147,26 @@ def do_list_components(gargs, args, leftovers):
     """ List currently defined components. """
 
     code, data = connect(gargs, ('GET', '/api/v1/components'))
+
+    if code[0] != 200:
+        print("%s %s" % code)
+        sys.exit()
+
+    for entry in data:
+        print(entry)
+
+
+def do_list_tenant_components(gargs, args, leftovers):
+    """ List currently defined components. """
+
+    if len(leftovers) != 1:
+        print("Invalid parameter, run help list-tenant-components")
+        print_available_cmds()
+        sys.exit()
+
+    tenant_id = UUID(leftovers[0])
+    url = '/api/v1/tenants/%s/components' % tenant_id
+    code, data = connect(gargs, ('GET', url))
 
     if code[0] != 200:
         print("%s %s" % code)
@@ -188,8 +231,34 @@ def do_list_feeds(gargs, args, leftovers):
 def do_component_info(gargs, args, leftovers):
     """ List component info. """
 
-    code, data = connect(gargs,
-                         ('GET', '/api/v1/components/%s' % leftovers[0]))
+    if len(leftovers) != 1:
+        print("Invalid parameter, run help component-info")
+        print_available_cmds()
+        sys.exit()
+
+    url = '/api/v1/components/%s' % leftovers[0]
+    code, data = connect(gargs, ('GET', url))
+
+    if code[0] != 200:
+        print("%s %s" % code)
+        sys.exit()
+
+    print("componentd_id: %s" % leftovers[0])
+
+    for key, value in data.items():
+        print("%s: %s" % (key, value))
+
+
+def do_tenant_component_info(gargs, args, leftovers):
+    """ List component info. """
+
+    if len(leftovers) != 2:
+        print("Invalid parameter, run help tenant-component-info")
+        print_available_cmds()
+        sys.exit()
+
+    url = '/api/v1/tenants/%s/components/%s' % tuple(leftovers)
+    code, data = connect(gargs, ('GET', url))
 
     if code[0] != 200:
         print("%s %s" % code)
@@ -293,7 +362,11 @@ def run_connect(connection, headers, cmd, data=None):
 CMDS = {
     'help': (pa_help, do_help),
     'list-components': (pa_none, do_list_components),
+    'list-tenant-components': (pa_list_tenant_components,
+                               do_list_tenant_components),
     'component-info': (pa_component_info, do_component_info),
+    'tenant-component-info': (pa_tenant_component_info,
+                              do_tenant_component_info),
     'list-wtps': (pa_none, do_list_wtps),
     'list-feeds': (pa_none, do_list_feeds),
     'feed-on': (pa_feed_on, do_feed_on),
@@ -311,7 +384,9 @@ URL = "%s://%s%s:%s"
 DESCS = {
     'help': "Print help message.",
     'list-components': "List components.",
+    'list-tenant-components': "List tenant components.",
     'component-info': "Displays components info.",
+    'tenant-component-info': "Displays tenant components info.",
     'list-wtps': "List WTPs.",
     'list-feeds': "List Feeds.",
     'feed-on': "Turn feed on.",
@@ -332,15 +407,15 @@ def parse_global_args(arglist):
 
     parser = ArgumentParser(usage=usage)
 
-    parser.add_argument("-a", "--hostname", dest="host", default="127.0.0.1",
+    parser.add_argument("-r", "--host", dest="host", default="127.0.0.1",
                         help="Specify the EmPOWER host; default='127.0.0.1'")
     parser.add_argument("-p", "--port", dest="port", default="8888",
-                        help="Specify the EmPOWER web port; default=8888")
+                        help="Specify the EmPOWER port; default=8888")
     parser.add_argument("-u", "--user", dest="user", default="root",
                         help="EmPOWER admin user; default='root'")
     parser.add_argument("-n", "--no-passwd", action="store_true",
                         dest="no_passwd", default=False,
-                        help="Run empowerctl with no password; default false")
+                        help="Run without password; default false")
     parser.add_argument("-f", "--passwd-file", dest="passwdfile",
                         default=None, help="Password file; default=none")
     parser.add_argument("-t", "--transport", dest="transport", default="http",
@@ -351,45 +426,38 @@ def parse_global_args(arglist):
     return args, arglist, parser
 
 
-def print_available_cmds(parser):
+def print_available_cmds():
     """ Print list of available commands. """
 
     cmds = [x for x in CMDS.keys()]
     cmds.remove('help')
     cmds.sort()
-    print(parser.format_help().strip())
-    print("\n Available commands are: ")
+    print("\nAvailable commands are: ")
     for cmd in cmds:
         print("   {0:25}     {1:10}".format(cmd, DESCS[cmd]))
-    print("\n See '%s help <command>' for more info." % sys.argv[0])
+    print("\nSee '%s help <command>' for more info." % sys.argv[0])
 
 
 def main():
     """ Parse argument list and execute command. """
 
-    try:
+    (gargs, rargs, parser) = parse_global_args(sys.argv[1:])
 
-        (gargs, rargs, parser) = parse_global_args(sys.argv[1:])
-
-        if len(rargs) < 1:
-            raise IndexError
-
-        (parse_args, do_func) = CMDS[rargs[0]]
-        (args, leftovers) = parse_args(rargs[1:], rargs[0])
-
-        do_func(gargs, args, leftovers)
-
-    except IndexError:
-
-        print("%s is an unknown command" % sys.argv[-1])
-        print_available_cmds(parser)
+    if len(sys.argv) == 1:
+        print(parser.format_help().strip())
+        print_available_cmds()
         sys.exit()
 
-    #except ValueError:
+    if len(rargs) < 1:
+        print("Unknown command")
+        print_available_cmds()
+        sys.exit()
 
-    #    print("Invalid parameters for command %s" % sys.argv[-1])
-    #    print_available_cmds(parser)
-    #    sys.exit()
+    (parse_args, do_func) = CMDS[rargs[0]]
+    (args, leftovers) = parse_args(rargs[1:], rargs[0])
+
+    do_func(gargs, args, leftovers)
+
 
 if __name__ == '__main__':
     main()
