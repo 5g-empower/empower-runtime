@@ -140,10 +140,7 @@ class LVAPPConnection(object):
         if self.wtp and not self.stream.closed():
             timeout = (self.wtp.period / 1000) * 3
             if (self.wtp.last_seen_ts + timeout) < time.time():
-                LOG.info('Client inactive %s at %r',
-                         self.wtp.addr,
-                         self.addr)
-
+                LOG.info('Client inactive %s at %r', self.wtp.addr, self.addr)
                 self.stream.close()
 
     def _on_read(self, line):
@@ -197,6 +194,7 @@ class LVAPPConnection(object):
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
             LOG.info("Hello from unknown WTP (%s)", wtp_addr)
+            self.stream.close()
             return
 
         LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
