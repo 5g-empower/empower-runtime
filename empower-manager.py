@@ -32,6 +32,7 @@ def get_connection(gargs):
 
     if gargs.transport == "http":
         conn = HTTPConnection(gargs.host, gargs.port)
+    else:
         raise ValueError("transport not supported: %s" % gargs.transport)
 
     if gargs.no_passwd:
@@ -281,7 +282,7 @@ def run_connect(connection, headers, cmd, data=None):
     connection.request(cmd[0], cmd[1], headers=headers, body=json.dumps(data))
     response = connection.getresponse()
 
-    str_response = response.readall().decode('utf-8')
+    str_response = response.read().decode('utf-8')
 
     if str_response:
         return (response.code, response.reason), json.loads(str_response)
@@ -384,11 +385,11 @@ def main():
         print_available_cmds(parser)
         sys.exit()
 
-    except ValueError:
+    #except ValueError:
 
-        print("Invalid parameters for command %s" % sys.argv[-1])
-        print_available_cmds(parser)
-        sys.exit()
+    #    print("Invalid parameters for command %s" % sys.argv[-1])
+    #    print_available_cmds(parser)
+    #    sys.exit()
 
 if __name__ == '__main__':
     main()
