@@ -157,7 +157,12 @@ class LVAPPConnection(object):
             self.stream.read_bytes(remaining, self._on_read)
             return
 
-        self._trigger_message(hdr.type)
+        try:
+            self._trigger_message(hdr.type)
+        except:
+            self.stream.close()
+            return
+
         self._wait()
 
     def _trigger_message(self, msg_type):
@@ -194,8 +199,7 @@ class LVAPPConnection(object):
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
             LOG.info("Hello from unknown WTP (%s)", wtp_addr)
-            self.stream.close()
-            return
+            raise KeyError("Hello from unknown WTP (%s)", wtp_addr)
 
         LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
 
