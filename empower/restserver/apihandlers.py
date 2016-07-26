@@ -70,7 +70,8 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
     def write_as_json(self, value):
         """Return reply as a json document."""
 
-        self.write(json.dumps(value, sort_keys=True, cls=EmpowerEncoder))
+        self.write(json.dumps(value, sort_keys=True, indent=4,
+                              cls=EmpowerEncoder))
 
     def prepare(self):
         """Prepare to handler reply."""
