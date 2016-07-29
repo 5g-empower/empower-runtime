@@ -67,10 +67,6 @@ class BasePNFDev(object):
         if not connection and self.__connection:
             self.__connection.send_bye_message_to_self()
 
-        if not self.__connection and connection:
-            self.__connection = connection
-            self.__connection.send_register_message_to_self()
-
         self.__connection = connection
 
     def to_dict(self):

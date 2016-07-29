@@ -55,7 +55,7 @@ function refreshLVAPs() {
                 var apLogo = ""
                 tmp = "<table width='100%'><tr>"
                 for (wtp in wtps) {
-                    if (wtps[wtp].addr == data[stream].wtp.addr) {
+                    if (wtps[wtp].connection) {
                         apLogo="ap_on.png"
                     } else {
                         apLogo="ap_off.png"

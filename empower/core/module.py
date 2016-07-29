@@ -544,4 +544,7 @@ class ModuleEventWorker(ModuleWorker):
             LOG.info("New event %s: (id=%u)", self.module.MODULE_NAME,
                      module.module_id)
 
-            module.handle_response(event)
+            try:
+                module.handle_response(event)
+            except Exception as ex:
+                LOG.exception(ex)

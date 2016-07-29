@@ -699,7 +699,7 @@ class LVAPPConnection(object):
 
         tx_policy = block.tx_policies[sta_addr]
 
-        tx_policy._mcs = set([float(x)/2 for x in status.mcs])
+        tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
         tx_policy._rts_cts = int(status.rts_cts)
         tx_policy._mcast = int(status.tx_mcast)
         tx_policy._ur_count = int(status.ur_mcast_count)
@@ -707,8 +707,7 @@ class LVAPPConnection(object):
 
         LOG.info("Port status %s", tx_policy)
 
-    @classmethod
-    def _handle_caps(cls, caps):
+    def _handle_caps(self, caps):
         """Handle an incoming CAPS message.
         Args:
             caps, a CAPS message
@@ -724,7 +723,7 @@ class LVAPPConnection(object):
             LOG.info("Caps response from unknown WTP (%s)", wtp_addr)
             return
 
-        LOG.info("Received caps response from %s", wtp_addr)
+        LOG.info("Received caps from %s", wtp_addr)
 
         for block in caps.blocks:
 
@@ -743,6 +742,8 @@ class LVAPPConnection(object):
                                        iface=iface)
 
             wtp.ports[network_port.port_id] = network_port
+
+        self.send_register_message_to_self()
 
     @classmethod
     def _handle_interference_map(cls, interference_map):
