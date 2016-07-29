@@ -32,7 +32,7 @@ class CPPUp(Module):
         """ Handle an REGISTER message.
 
         Args:
-            cpp, a CPP object
+            register, a register message
 
         Returns:
             None

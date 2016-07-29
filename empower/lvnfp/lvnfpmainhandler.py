@@ -263,12 +263,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
             pnfdev.ports[network_port.port_id] = network_port
 
-    def send_caps_requests(self):
-        """Send del CAP request message."""
-
-        caps = {}
-        self.send_message(PT_CAPS_REQUEST, caps)
-
     def _handle_error(self, error):
         """Handle an incoming ERROR message.
         Args:
