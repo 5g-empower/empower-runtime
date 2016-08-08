@@ -113,8 +113,7 @@ class EmpowerAppHomeHandler(tornado.web.RequestHandler):
     """
 
     HANDLERS = [r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/?",
-                r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/(.*)"
-                ]
+                r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/(.*)"]
 
     def get(self, *args):
 

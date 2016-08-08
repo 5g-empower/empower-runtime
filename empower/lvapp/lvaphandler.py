@@ -100,6 +100,9 @@ class LVAPHandler(EmpowerAPIHandler):
             if "wtp" not in request and "scheduled_on" not in request:
                 raise ValueError("missing wtp/scheduled_on element")
 
+            if "wtp" in request and "scheduled_on" in request:
+                raise ValueError("use either wtp or scheduled_on")
+
             lvap_addr = EtherAddress(args[0])
             lvap = RUNTIME.lvaps[lvap_addr]
 

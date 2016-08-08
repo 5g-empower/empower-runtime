@@ -176,40 +176,15 @@ class LVAP(object):
         # virtual ports (VNFs)
         self.__ports = {}
 
-    def clear_ports(self):
-        """Clear LVAP ports."""
-
-        if not self.__ports:
-            return
-
-        for match in list(self.__ports[0].next):
-            key = match_to_key(match)
-            del self.__ports[0].next[key]
-
-        del self.__ports[0]
-
     def set_ports(self):
         """Set virtual ports.
 
         This method is called everytime an LVAP is moved to another WTP. More
         preciselly it is called every time an assignment to the downlink
         property is made.
-
-        Consider an SFC like this:
-
-        lvap[0][dl_src=11:22:33:44:55:66] -> [0] dupes
-
-        In this case all outgoing virtual links must be preserved. Virtual
-        links should deleted and then recreated in order to keep the system in
-        the correct state.
-
-        In the current draft implementation virtual links are not restored.
-        Basically after an handover all virtual links must be reconfigured by
-        the application.
         """
 
-        # Save virtual links and delete them
-        # TODO: Implement.
+        # Delete all outgoing virtual link and then remove the entire port
         if self.__ports:
 
             for match in list(self.__ports[0].next):
@@ -241,8 +216,7 @@ class LVAP(object):
 
             break
 
-        # Restore virtual links
-        # TODO: Implement.
+        # Set default rule.
         if self.__ports:
             self.__ports[0].next[{}] = None
 
@@ -489,7 +463,7 @@ class LVAP(object):
         if not self.scheduled_on:
             return None
 
-        default_block = next(iter(self.scheduled_on.values()))
+        default_block = next(iter(self.scheduled_on.keys()))
         self.scheduled_on[default_block] = value
 
     @property

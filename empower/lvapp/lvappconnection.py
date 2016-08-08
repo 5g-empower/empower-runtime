@@ -493,29 +493,22 @@ class LVAPPConnection(object):
         self.wtp.ports = {}
         self.wtp.supports = ResourcePool()
 
-        # remove hosted LVAPs
-        to_be_removed = []
-        for lvap in RUNTIME.lvaps.values():
-            if lvap.wtp == self.wtp:
-                to_be_removed.append(lvap)
-
-        for lvap in to_be_removed:
-            LOG.info("Deleting LVAP: %s", lvap.addr)
-            for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
-                handler(lvap)
-            lvap.clear_ports()
-            del RUNTIME.lvaps[lvap.addr]
+        # remove host lvaps
+        for addr in list(RUNTIME.lvaps.keys()):
+            if RUNTIME.lvaps[addr].wtp == self.wtp:
+                lvap = RUNTIME.lvaps[addr]
+                LOG.info("Deleting LVAP: %s", lvap.addr)
+                for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
+                    handler(lvap)
+                del RUNTIME.lvaps[lvap.addr]
 
         # remove hosted vaps
-        to_be_removed = []
-        for tenant in RUNTIME.tenants.values():
-            for vap in tenant.vaps.values():
+        for tenant_id in RUNTIME.tenants.keys():
+            for vap_id in list(RUNTIME.tenants[tenant_id].vaps.keys()):
+                vap = RUNTIME.tenants[tenant_id].vaps[vap_id]
                 if vap.wtp == self.wtp:
-                    to_be_removed.append(vap)
-
-        for vap in to_be_removed:
-            LOG.info("Deleting VAP: %s", vap.net_bssid)
-            del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
+                    LOG.info("Deleting VAP: %s", vap.net_bssid)
+                    del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
