@@ -26,6 +26,8 @@ from empower.core.virtualport import VirtualPortLvap
 from empower.core.intent import match_to_key
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
+from empower.core.intent import send_intent
+from empower.core.intent import remove_intent
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -176,6 +178,9 @@ class LVAP(object):
         # virtual ports (VNFs)
         self.__ports = {}
 
+        # downlink intent uuid
+        self.downlink_intent = None
+
     def set_ports(self):
         """Set virtual ports.
 
@@ -216,9 +221,21 @@ class LVAP(object):
 
             break
 
-        # Set default rule.
-        if self.__ports:
-            self.__ports[0].next[{}] = None
+        # set/update intent
+        intent = {'version': '1.0',
+                  'ttp_dpid': self.__ports[0].dpid,
+                  'ttp_port': self.__ports[0].ovs_port_id,
+                  'match': {'dl_dst': self.addr}}
+
+        from empower.main import RUNTIME
+        from empower.intentserver import intentserver
+        name = intentserver.__name__
+        intent_server = RUNTIME.components[name]
+
+        if self.downlink_intent:
+            intent_server.remove_intent(self.downlink_intent)
+
+        self.downlink_intent = intent_server.send_intent(intent)
 
     @property
     def ports(self):

@@ -25,7 +25,7 @@ from empower.core.intent import key_to_match
 from empower.core.intent import match_to_key
 
 
-class VirtualPort():
+class VirtualPort(object):
     """Virtual port."""
 
     def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
@@ -71,7 +71,11 @@ class VirtualPortLvap(VirtualPort):
 
     def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
 
-        super().__init__(dpid, ovs_port_id, virtual_port_id, hwaddr, iface)
+        self.dpid = dpid
+        self.ovs_port_id = ovs_port_id
+        self.virtual_port_id = virtual_port_id
+        self.hwaddr = hwaddr
+        self.iface = iface
         self.next = VirtualPortPropLvap()
 
 
@@ -80,7 +84,11 @@ class VirtualPortLvnf(VirtualPort):
 
     def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
 
-        super().__init__(dpid, ovs_port_id, virtual_port_id, hwaddr, iface)
+        self.dpid = dpid
+        self.ovs_port_id = ovs_port_id
+        self.virtual_port_id = virtual_port_id
+        self.hwaddr = hwaddr
+        self.iface = iface
         self.next = VirtualPortPropLvnf()
 
 
@@ -93,7 +101,7 @@ class VirtualPortProp(dict):
     """
 
     def __init__(self):
-        super().__init__()
+        super(VirtualPortProp, self).__init__()
         self.__uuids__ = {}
 
     def __delitem__(self, key):
@@ -157,7 +165,7 @@ class VirtualPortPropLvap(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
     def __init__(self):
-        super().__init__()
+        super(VirtualPortPropLvap, self).__init__()
         self.lvap = None
 
     def __setitem__(self, key, value):

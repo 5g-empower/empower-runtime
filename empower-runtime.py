@@ -27,6 +27,7 @@ if __name__ == "__main__":
              'lvnfp.lvnfpserver',
              'lvapp.lvappserver',
              'energinoserver.energinoserver',
+             'intentserver.intentserver',
              'lvap_stats.lvap_stats',
              'events.wtpdown',
              'events.wtpup',
