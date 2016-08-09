@@ -210,7 +210,8 @@ class IntentServer(tornado.web.Application):
 
         return {'port': self.port,
                 'intent_host': self.intent_host,
-                'intent_port': self.intent_port}
+                'intent_port': self.intent_port,
+                'intent_url': self.intent_url}
 
 
 def launch(port=DEFAULT_PORT):
