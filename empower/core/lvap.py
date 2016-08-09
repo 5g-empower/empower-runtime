@@ -230,9 +230,9 @@ class LVAP(object):
         intent_server = RUNTIME.components[IntentServer.__module__]
 
         if self.downlink_intent:
-            intent_server.remove_intent(self.downlink_intent)
-
-        self.downlink_intent = intent_server.send_intent(intent)
+            intent_server.update_intent(self.downlink_intent, intent)
+        else:
+            self.downlink_intent = intent_server.send_intent(intent)
 
     @property
     def ports(self):

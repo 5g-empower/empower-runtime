@@ -100,7 +100,7 @@ class IntentServer(tornado.web.Application):
 
         body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
 
-        LOG.info("Creating intent: %s\n%s", "/intent/rules", body)
+        LOG.info("Creating intent:\n%s", body)
 
         headers = {
             'Content-type': 'application/json',
@@ -125,6 +125,43 @@ class IntentServer(tornado.web.Application):
                 uuid = UUID(url.path.split("/")[-1])
                 LOG.info("Result: %u %s (%s)", ret[0], ret[1], uuid)
 
+                return uuid
+
+            LOG.info("Result: %u %s", ret[0], ret[1])
+
+        except ConnectionRefusedError:
+            LOG.error("Intent interface not found")
+
+        except Exception as ex:
+            LOG.exception(ex)
+
+        return None
+
+    def update_intent(self, uuid, intent):
+        """Create new intent."""
+
+        body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
+
+        LOG.info("Updating intent: %s\n%s", uuid, body)
+
+        headers = {
+            'Content-type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        try:
+
+            conn = \
+                http.client.HTTPConnection(self.intent_host, self.intent_port)
+
+            conn.request("PUT", self.intent_url + "/%s" % uuid, body, headers)
+            response = conn.getresponse()
+            conn.close()
+
+            ret = (response.status, response.reason, response.read())
+
+            if ret[0] == 204:
+                LOG.info("Result: %u %s", ret[0], ret[1])
                 return uuid
 
             LOG.info("Result: %u %s", ret[0], ret[1])
