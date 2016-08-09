@@ -179,7 +179,7 @@ class LVAP(object):
         self.__ports = {}
 
         # downlink intent uuid
-        self.downlink_intent = None
+        self.dl_intent = None
 
     def set_ports(self):
         """Set virtual ports.
@@ -229,10 +229,10 @@ class LVAP(object):
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        if self.downlink_intent:
-            intent_server.update_intent(self.downlink_intent, intent)
+        if self.dl_intent:
+            intent_server.update_intent(self.dl_intent, intent)
         else:
-            self.downlink_intent = intent_server.send_intent(intent)
+            self.dl_intent = intent_server.send_intent(intent)
 
     @property
     def ports(self):
