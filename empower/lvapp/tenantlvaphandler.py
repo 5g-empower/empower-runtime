@@ -135,8 +135,8 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
                     channel = int(block['channel'])
                     band = int(block['band'])
 
-                    rb = ResourceBlock(wtp, channel, band)
-                    pool.add(rb)
+                    r_block = ResourceBlock(wtp, channel, band)
+                    pool.add(r_block)
 
                 lvap.scheduled_on = pool
 

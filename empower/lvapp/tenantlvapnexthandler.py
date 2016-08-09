@@ -32,7 +32,6 @@ import tornado.web
 
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.intent import match_to_key
 
 from empower.main import RUNTIME
 
@@ -67,7 +66,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) < 3 or len(args) > 4:
+            if len(args) != 3:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -85,13 +84,8 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
                 output[match] = value.to_dict() if value else {}
                 output[match]['uuid'] = port.next.uuids[match]
-                output[match]['match'] = match_to_key(match)
-                output[match]['unparsed'] = match
 
-            if len(args) == 4:
-                self.write_as_json(output[args[3]])
-            else:
-                self.write_as_json(output.values())
+            self.write_as_json(output.values())
 
             self.set_status(200, None)
 
