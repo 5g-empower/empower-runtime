@@ -23,11 +23,11 @@ from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
 from empower.core.virtualport import VirtualPortLvap
-from empower.core.intent import match_to_key
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
-from empower.core.intent import send_intent
-from empower.core.intent import remove_intent
+from empower.intentserver.intentserver import IntentServer
+
+from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -227,10 +227,7 @@ class LVAP(object):
                   'ttp_port': self.__ports[0].ovs_port_id,
                   'match': {'dl_dst': self.addr}}
 
-        from empower.main import RUNTIME
-        from empower.intentserver import intentserver
-        name = intentserver.__name__
-        intent_server = RUNTIME.components[name]
+        intent_server = RUNTIME.components[IntentServer.__module__]
 
         if self.downlink_intent:
             intent_server.remove_intent(self.downlink_intent)
