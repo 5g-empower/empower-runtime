@@ -21,7 +21,22 @@ from empower.core.app import EmpowerApp
 
 
 class HelloWorld(EmpowerApp):
+    """HelloWorld App.
+
+    Command Line Parameters:
+
+        tenant_id: tenant id
+        every: loop period in ms (optional, default 5000ms)
+
+    Example:
+
+        ./empower-runtime.py apps.helloworld.helloworld \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
+    """
+
     def loop(self):
+        """Periodic job."""
+
         print("Hello! World.")
 
 
