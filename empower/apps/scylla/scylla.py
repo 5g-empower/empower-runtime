@@ -28,27 +28,14 @@
 """EmPOWER application implementing an uplink/downlink decoupling mechanism."""
 
 from empower.core.app import EmpowerApp
-from empower.core.app import EmpowerAppHandler
-from empower.core.app import EmpowerAppHomeHandler
 from empower.core.app import DEFAULT_PERIOD
 
 
-class ScyllaHandler(EmpowerAppHandler):
-    pass
-
-
-class ScyllaHomeHandler(EmpowerAppHomeHandler):
-    pass
-
-
 class Scylla(EmpowerApp):
-
-    MODULE_NAME = "scylla"
-    MODULE_HANDLER = ScyllaHandler
-    MODULE_HOME_HANDLER = ScyllaHomeHandler
+    pass
 
 
-def launch(tenant, period=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return Scylla(tenant, every=period)
+    return Scylla(tenant_id=tenant_id, every=every)

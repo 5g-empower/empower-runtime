@@ -1,7 +1,5 @@
 
-imageId = "49313ecb-9d00-4b7d-b873-b55d3d9acbbb"
-
-selectedLvap = "00:18:DE:CC:D3:40"
+selectedLvap = "18:5E:0F:E2:10:8F"
 lvap = null
 
 selectedLvnf = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"
@@ -101,7 +99,7 @@ function loop() {
         // render next
         $.getJSON("/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
             function(data) {
-                if (data[""]) {
+                if (Object.keys(data).length > 0) {
                       html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain()' width='180'>"
                       $("#next").html(html)
                 } else {
@@ -151,7 +149,7 @@ function enableMultipleUplinks() {
         for (var j in wtps[i].supports) {
             block = wtps[i].supports[j]
             if (block.band == downlink.band && block.channel == downlink.channel) {
-                data["scheduled_on"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel})
+                data["scheduled_on"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
             }
         }
     }
@@ -190,7 +188,7 @@ function disableMultipleUplinks() {
     data = {"version":"1.0", "encap":"00:00:00:00:00:00", "scheduled_on": []}
 
     downlink = lvaps[selectedLvap].downlink[0]
-    data["scheduled_on"].push({'wtp':downlink.addr,'band': decodeBand(downlink.band),'channel':downlink.channel})
+    data["scheduled_on"].push({'wtp':downlink.addr,'band': decodeBand(downlink.band),'channel':downlink.channel,'hwaddr':downlink.hwaddr})
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
@@ -259,18 +257,15 @@ function lvnfUp(idLvnf) {
         $("#lvnf").html(html)
         $("#cpps").html("")
 
-        startReadHandler("in_0_count", addDataPoint, inputGraph2D, inputDataset, inputPrev)
-        startReadHandler("out_0_count", addDataPoint, outputGraph2D, outputDataset, outputPrev)
-
         // monitor dupes table
         data = {"version": "1.0",
-                "lvnf_id": selectedLvnf,
+                "lvnf": selectedLvnf,
                 "handler": "dupes_table",
                 "every": READ_HANDLERS_PERIOD}
 
         // create read_handler poller
         $.ajax({
-            url: "/api/v1/tenants/" + tenant_id + "/read_handler",
+            url: "/api/v1/tenants/" + tenant_id + "/lvnf_get",
             type: 'POST',
             dataType: 'json',
             data: JSON.stringify(data),
@@ -299,7 +294,7 @@ function lvnfUp(idLvnf) {
 
         // monitor lvnf_stats
         data = {"version": "1.0",
-                "lvnf_id": selectedLvnf,
+                "lvnf": selectedLvnf,
                 "every": READ_HANDLERS_PERIOD}
 
         // create lvnf_stats poller
@@ -315,9 +310,8 @@ function lvnfUp(idLvnf) {
             statusCode: {
                 201: function (data) {
                     console.log("LVNF stats poller created")
-                    setTimeout(function() {
-                        lvnfStats();
-                    }, AVERAGING_PERIOD)
+                    addDataPoint('tx_packets', inputGraph2D, inputDataset, inputPrev)
+                    addDataPoint('rx_packets', outputGraph2D, outputDataset, outputPrev)
                 },
                 400: function (data) {
                     alert(data.responseJSON.message);
@@ -335,10 +329,10 @@ function lvnfUp(idLvnf) {
 }
 
 function dupesTable() {
-    $.getJSON("/api/v1/tenants/" + tenant_id + "/read_handler", function(data) {
+    $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_get", function(data) {
         $('#dupes tr').slice(1).remove();
         for (var i in data) {
-            if (data[i].lvnf_id==selectedLvnf && data[i].handler=="dupes_table") {
+            if (data[i].lvnf==selectedLvnf && data[i].handler=="dupes_table") {
                 if (!data[i].samples || data[i].samples.length == 0) {
                     continue
                 }
@@ -355,23 +349,6 @@ function dupesTable() {
     });
 }
 
-function lvnfStats() {
-    $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_stats", function(data) {
-        for (var i in data) {
-            if (data[i].lvnf_id==selectedLvnf) {
-                if (!data[i].stats) {
-                    continue
-                }
-                rss = data[i].stats.memory_rss/1000000
-                vms = data[i].stats.memory_vms/1000000
-                $("#stats").html("RSS: " + rss.toFixed(2) + " Mbytes VMS: " + vms.toFixed(2) + " Mbytes")
-            }
-        }
-        setTimeout(function() {
-            lvnfStats();
-        }, AVERAGING_PERIOD)
-    });
-}
 function lvnfDown(idLvnf) {
     if (idLvnf == selectedLvnf) {
         console.log("LVNF " + selectedLvnf + " is down!")
@@ -401,12 +378,13 @@ function lvapDown(idLvap) {
 
 function chain() {
 
-    console.log("Chaining...")
+    console.log("Enabling multiple uplinks with encap...")
 
-    data = {"version":"1.0", "match":{}, "next": {"lvnf_id": selectedLvnf, "port_id": 0}}
+    encap = lvnfs[selectedLvnf].ports[0].hwaddr
+    data = {"version":"1.0", "encap":encap}
 
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
+        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
         type: 'PUT',
         dataType: 'json',
         data: JSON.stringify(data),
@@ -416,6 +394,43 @@ function chain() {
         },
         statusCode: {
             204: function (data) {
+                console.log("Encap enabled!")
+                setNextChain()
+            },
+            400: function (data) {
+                alert(data.responseJSON.message);
+            },
+            404: function (data) {
+                alert(data.responseJSON.message);
+            },
+            500: function (data) {
+                alert(data.responseJSON.message);
+            }
+        }
+    });
+
+}
+
+function setNextChain() {
+
+    console.log("Chaining...")
+
+    data = {"version":"1.0",
+            "match":"",
+            "next": {"lvnf_id": selectedLvnf, "port_id": 0}}
+
+    $.ajax({
+        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
+        type: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            204: function (data) {
+                console.log("Next enabled!")
                 console.log("Chaining completed!")
                 html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain()' width='180'>"
                 $("#next").html(html)
@@ -436,13 +451,23 @@ function chain() {
 
 function unchain() {
 
-    console.log("Unchaining...")
+    console.log("Disabling multiple uplinks with encap...")
 
-    data = {"version":"1.0", "match":{}}
+    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "scheduled_on": []}
+
+    for (var i in wtps) {
+        downlink = lvaps[selectedLvap].downlink[0]
+        for (var j in wtps[i].supports) {
+            block = wtps[i].supports[j]
+            if (block.band == downlink.band && block.channel == downlink.channel) {
+                data["scheduled_on"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
+            }
+        }
+    }
 
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
-        type: 'DELETE',
+        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
+        type: 'PUT',
         dataType: 'json',
         data: JSON.stringify(data),
         cache: false,
@@ -547,50 +572,18 @@ function undeployLvnf() {
 
 }
 
-function startReadHandler(handler, job, graph, dataset, prev) {
+function addDataPoint(type, graph, dataset, prev, timer) {
 
-    data = {"version": "1.0",
-            "lvnf_id": selectedLvnf,
-            "handler": handler,
-            "every": READ_HANDLERS_PERIOD}
-
-    $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/read_handler",
-        type: 'POST',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            201: function (data) {
-                console.log("Handler " + handler + " created")
-                job(handler, graph, dataset, prev)
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert(data.responseJSON.message);
-            },
-            500: function (data) {
-                alert(data.responseJSON.message);
-            }
-        }
-    });
-
-}
-
-function addDataPoint(handler, graph, dataset, prev, timer) {
-    $.getJSON("/api/v1/tenants/" + tenant_id + "/read_handler", function(data) {
+    $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_stats", function(data) {
         rate = 0.0
         found = false
         for (var i in data) {
-            if (data[i].handler==handler) {
+            if (data[i].lvnf==selectedLvnf) {
                 found = true
-                if (data[i].samples && data[i].samples.length > 0) {
-                    curr = parseInt(data[i].samples[0])
+                iface = lvnfs[selectedLvnf].ports['0'].iface
+                pkts = data[i]['stats'][iface][type]
+                if (pkts) {
+                    curr = parseInt(pkts)
                     if (prev > 0) {
                         rate = (curr - prev) / (AVERAGING_PERIOD / 1000)
                     }
@@ -600,7 +593,7 @@ function addDataPoint(handler, graph, dataset, prev, timer) {
             }
         }
         if (!found) {
-            console.log("Handler " + handler + " not found. Removing timer.")
+            console.log("LVNF Stats not found. Removing timer.")
             return
         }
         if (rate < 0.0) {
@@ -620,7 +613,7 @@ function addDataPoint(handler, graph, dataset, prev, timer) {
         });
         dataset.remove(oldIds);
         setTimeout(function() {
-            addDataPoint(handler, graph, dataset, prev);
+            addDataPoint(type, graph, dataset, prev);
         }, AVERAGING_PERIOD)
     });
 }

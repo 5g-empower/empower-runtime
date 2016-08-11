@@ -96,7 +96,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 lvaps/00:14:d3:45:aa:5c/ports/1/next
         """
 
@@ -116,6 +116,12 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             if "next" not in request:
                 raise ValueError("missing next element")
 
+            match = request['match']
+
+            if not isinstance(match, str):
+                raise ValueError("Field match must be a string, got %s",
+                                 type(match))
+
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
@@ -131,7 +137,6 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             next_port_id = int(request['next']['port_id'])
             next_port = next_lvnf.ports[next_port_id]
 
-            match = request['match']
             port.next[match] = next_port
 
             url = "/api/v1/tenants/%s/lvaps/%s/ports/%u/next/%s"
@@ -174,6 +179,12 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             if "match" not in request:
                 raise ValueError("missing match element")
 
+            match = request['match']
+
+            if not isinstance(match, str):
+                raise ValueError("Field match must be a string, got %s",
+                                 type(match))
+
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
@@ -182,8 +193,6 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
             port_id = int(args[2])
             port = lvap.ports[port_id]
-
-            match = request['match']
 
             del port.next[match]
 
