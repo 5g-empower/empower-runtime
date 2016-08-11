@@ -78,15 +78,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvap.ports[port_id]
 
-            output = {}
-
-            for match, value in port.next.items():
-
-                output[match] = value.to_dict() if value else {}
-                output[match]['uuid'] = port.next.uuids[match]
-
-            self.write_as_json(output.values())
-
+            self.write_as_json(port.next)
             self.set_status(200, None)
 
         except ValueError as ex:
@@ -94,7 +86,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def put(self, *args, **kwargs):
+    def post(self, *args, **kwargs):
         """Set next flow rules.
 
         Args:
@@ -142,6 +134,11 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             match = request['match']
             port.next[match] = next_port
 
+            url = "/api/v1/tenants/%s/lvaps/%s/ports/%u/next/%s"
+            tokens = (tenant_id, lvap_id, port_id, match)
+
+            self.set_header("Location", url % tokens)
+
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
@@ -163,8 +160,6 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
                    lvaps/00:14:d3:45:aa:5c/ports/1/next/
                    dl_src=00:18:DE:CC:D3:40;dpid=00:0D:B9:2F:56:64;port_id=2
         """
-
-        print("ciao")
 
         try:
 

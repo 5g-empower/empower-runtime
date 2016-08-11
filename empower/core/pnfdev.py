@@ -50,6 +50,15 @@ class BasePNFDev(object):
         self.every = 0
         self.ports = {}
 
+    def port(self, ifname="empower0"):
+        """Return empower0 port."""
+
+        for port in self.ports.values():
+            if port.iface == ifname:
+                return port
+
+        return None
+
     @property
     def connection(self):
         """Get the connection assigned to this PNFDev."""

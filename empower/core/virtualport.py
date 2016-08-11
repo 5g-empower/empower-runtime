@@ -19,6 +19,28 @@
 
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.intentserver.intentserver import IntentServer
+
+from empower.main import RUNTIME
+
+
+def ofmatch_d2s(key):
+    """Convert an OFMatch from dictionary to string."""
+
+    match = ";".join(["%s=%s" % x for x in sorted(key.items())])
+    return match
+
+
+def ofmatch_s2d(match):
+    """Convert an OFMatch from string to dictionary."""
+
+    key = {}
+
+    for token in match.split(";"):
+        key_t, value_t = token.split("=")
+        key[key_t] = value_t
+
+    return key
 
 
 class VirtualPort(object):
@@ -89,11 +111,10 @@ class VirtualPortLvnf(VirtualPort):
 
 
 class VirtualPortProp(dict):
-    """VirtualPortProp class.
+    """Maps Flows to VirtualPorts.
 
-    This maps Flows to VirtualPorts. Notice that the current implementation
-    only supports chaining of LVAPs with other LVNFs. Chaining of two LVNFs is
-    not implemented yet.
+    Flows are dictionary keys in the following format:
+        dl_src=11:22:33:44:55:66,tp_dst=80
     """
 
     def __init__(self):
@@ -106,55 +127,16 @@ class VirtualPortProp(dict):
         Remove entry from dictionary and remove flows.
         """
 
-        if not isinstance(key, dict):
-            raise KeyError("Expected dict, got %s" % type(key))
-
-        match = key_to_match(key)
+        intent_server = RUNTIME.components[IntentServer.__module__]
 
         # remove virtual links
-        if match in self.__uuids__:
-            del_intent(self.__uuids__[match])
-            del self.__uuids__[match]
+        if key in self.__uuids__:
+            for uuid in self.__uuids__[key]:
+                intent_server.remove_intent(uuid)
+            del self.__uuids__[key]
 
         # remove old entry
-        dict.__delitem__(self, match)
-
-    @property
-    def uuids(self):
-        """Return list of uuids."""
-
-        return self.__uuids__
-
-    def __getitem__(self, key):
-        """Return next virtual port.
-
-        Accepts as an input a dictionary with the openflow match rule for
-        the virtual port. Example:
-
-        key = {"dl_src": "aa:bb:cc:dd:ee:ff"}
-        """
-
-        if not isinstance(key, dict):
-            raise KeyError("Expected dict, got %s" % type(key))
-
-        match = key_to_match(key)
-        return dict.__getitem__(self, match)
-
-    def __contains__(self, key):
-        """Check if entry exists.
-
-        Accepts as an input a dictionary with the openflow match rule for
-        the virtual port. Example:
-
-        key = {"dl_src": "aa:bb:cc:dd:ee:ff"}
-        """
-
-        if not isinstance(key, dict):
-            raise KeyError("Expected dict, got %s" % type(key))
-
-        match = key_to_match(key)
-
-        return dict.__contains__(self, match)
+        dict.__delitem__(self, key)
 
 
 class VirtualPortPropLvap(VirtualPortProp):
@@ -163,6 +145,55 @@ class VirtualPortPropLvap(VirtualPortProp):
     def __init__(self):
         super(VirtualPortPropLvap, self).__init__()
         self.lvap = None
+
+    def __setitem__(self, key, value):
+        """Set virtual port configuration."""
+
+        if value and not isinstance(value, VirtualPort):
+            raise KeyError("Expected VirtualPort, got %s" % type(key))
+
+        # if encap is set, then all outgoing traffic must go to THE SAME
+        # LVNF. This is because the outgoing traffic will be LWAPP
+        # encapsulated and as such cannot be handled anyway by OF
+        # switches. Ignore totally the specified key and silently use as
+        # key the LWAPP src and dst addresses. Notice that this will send
+        # as many intents as the number of blocks.
+        if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
+
+            key = {'dl_src': self.lvap.addr, 'dl_dst': self.lvap.encap}
+
+            # remove virtual link
+            if self.__contains__(ofmatch_d2s(key)):
+                self.__delitem__(ofmatch_d2s(key))
+
+            self.__uuids__[ofmatch_d2s(key)] = []
+
+            intent_server = RUNTIME.components[IntentServer.__module__]
+
+            # Set downlink and uplink virtual link(s)
+            dl_blocks = list(self.lvap.downlink.values())
+            ul_blocks = list(self.lvap.uplink.values())
+            blocks = dl_blocks + ul_blocks
+
+            # r_port is a RadioPort object
+            for r_port in blocks:
+
+                n_port = r_port.block.radio.port()
+
+                # set/update intent
+                intent = {'version': '1.0',
+                          'ttp_dpid': value.dpid,
+                          'ttp_port': value.ovs_port_id,
+                          'stp_dpid': n_port.dpid,
+                          'stp_port': n_port.port_id,
+                          'match': key}
+
+                # add new virtual link
+                uuid = intent_server.send_intent(intent)
+                self.__uuids__[ofmatch_d2s(key)].append(uuid)
+
+                # add entry
+                dict.__setitem__(self, ofmatch_d2s(key), value)
 
 
 class VirtualPortPropLvnf(VirtualPortProp):

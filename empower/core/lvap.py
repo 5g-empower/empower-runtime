@@ -192,8 +192,7 @@ class LVAP(object):
         # Delete all outgoing virtual link and then remove the entire port
         if self.__ports:
 
-            for match in list(self.__ports[0].next):
-                key = match_to_key(match)
+            for key in list(self.__ports[0].next):
                 del self.__ports[0].next[key]
 
             del self.__ports[0]
