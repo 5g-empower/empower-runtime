@@ -159,41 +159,42 @@ class VirtualPortPropLvap(VirtualPortProp):
         # key the LWAPP src and dst addresses. Notice that this will send
         # as many intents as the number of blocks.
         if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
-
             key = {'dl_src': self.lvap.addr, 'dl_dst': self.lvap.encap}
+        else:
+            key = ofmatch_s2d(key)
 
-            # remove virtual link
-            if self.__contains__(ofmatch_d2s(key)):
-                self.__delitem__(ofmatch_d2s(key))
+        # remove virtual link
+        if self.__contains__(ofmatch_d2s(key)):
+            self.__delitem__(ofmatch_d2s(key))
 
-            self.__uuids__[ofmatch_d2s(key)] = []
+        self.__uuids__[ofmatch_d2s(key)] = []
 
-            intent_server = RUNTIME.components[IntentServer.__module__]
+        intent_server = RUNTIME.components[IntentServer.__module__]
 
-            # Set downlink and uplink virtual link(s)
-            dl_blocks = list(self.lvap.downlink.values())
-            ul_blocks = list(self.lvap.uplink.values())
-            blocks = dl_blocks + ul_blocks
+        # Set downlink and uplink virtual link(s)
+        dl_blocks = list(self.lvap.downlink.values())
+        ul_blocks = list(self.lvap.uplink.values())
+        blocks = dl_blocks + ul_blocks
 
-            # r_port is a RadioPort object
-            for r_port in blocks:
+        # r_port is a RadioPort object
+        for r_port in blocks:
 
-                n_port = r_port.block.radio.port()
+            n_port = r_port.block.radio.port()
 
-                # set/update intent
-                intent = {'version': '1.0',
-                          'ttp_dpid': value.dpid,
-                          'ttp_port': value.ovs_port_id,
-                          'stp_dpid': n_port.dpid,
-                          'stp_port': n_port.port_id,
-                          'match': key}
+            # set/update intent
+            intent = {'version': '1.0',
+                      'ttp_dpid': value.dpid,
+                      'ttp_port': value.ovs_port_id,
+                      'stp_dpid': n_port.dpid,
+                      'stp_port': n_port.port_id,
+                      'match': key}
 
-                # add new virtual link
-                uuid = intent_server.send_intent(intent)
-                self.__uuids__[ofmatch_d2s(key)].append(uuid)
+            # add new virtual link
+            uuid = intent_server.send_intent(intent)
+            self.__uuids__[ofmatch_d2s(key)].append(uuid)
 
-                # add entry
-                dict.__setitem__(self, ofmatch_d2s(key), value)
+            # add entry
+            dict.__setitem__(self, ofmatch_d2s(key), value)
 
 
 class VirtualPortPropLvnf(VirtualPortProp):
