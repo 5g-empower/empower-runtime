@@ -20,9 +20,10 @@
 from empower.core.pnfdev import BasePNFDev
 
 
-class VBSP(BasePNFDev):
+class VBS(BasePNFDev):
     """A Virtual Base Station Point.
 
+    Attributes:
     Attributes:
         addr: This PNFDev MAC address (EtherAddress)
         label: A human-radable description of this PNFDev (str)
@@ -32,26 +33,24 @@ class VBSP(BasePNFDev):
         feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         every: update period (in ms)
-        uplink_bytes: signalling channel uplink bytes
-        uplink_bit_rate: signalling channel uplink bit rate
-        downlink_bytes: signalling channel downlink bytes
-        downlink_bit_rate: signalling channel downlink bit rate
         ports: OVS ports
+        cc_configs: Configuration of each Component Carriers
+        ues: List of User Equipments attached to this VBS
     """
 
-    ALIAS = "vbsps"
-    SOLO = "vbsp"
+    ALIAS = "vbses"
+    SOLO = "vbs"
 
     def __init__(self, addr, label):
         super().__init__(addr, label)
-        self.enb_config = None
+        self.cc_configs = {}
         self.ues = {}
 
     def to_dict(self):
-        """Return a JSON-serializable dictionary representing the VBSP."""
+        """Return a JSON-serializable dictionary representing the VBS."""
 
         out = super().to_dict()
-        out['enb_config'] = self.enb_config,
+        out['cc_configs'] = self.cc_configs,
         out['ues'] = self.ues
 
         return out

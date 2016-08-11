@@ -33,10 +33,6 @@ class WTP(BasePNFDev):
         feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         every: update period (in ms)
-        uplink_bytes: signalling channel uplink bytes
-        uplink_bit_rate: signalling channel uplink bit rate
-        downlink_bytes: signalling channel downlink bytes
-        downlink_bit_rate: signalling channel downlink bit rate
         ports: OVS ports
         supports: set of resource blocks supported by the WTP
     """
