@@ -18,32 +18,6 @@
 """Network port."""
 
 
-class LQM(dict):
-
-    def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
-
-    def __getitem__(self, key):
-
-        try:
-
-            return dict.__getitem__(self, key)
-
-        except KeyError:
-
-            inf = {'addr': key,
-                   'tx_packets': 0,
-                   'rx_packets': 0,
-                   'tx_bytes': 0,
-                   'rx_bytes': 0,
-                   'tx_bit_rate': 0,
-                   'rx_bit_rate': 0,
-                   'tx_pkt_rate': 0,
-                   'rx_pkt_rate': 0}
-
-            return inf
-
-
 class NetworkPort():
     """Network Port."""
 
@@ -53,7 +27,6 @@ class NetworkPort():
         self.port_id = port_id
         self.hwaddr = hwaddr
         self.iface = iface
-        self.lqm = LQM()
 
     def to_dict(self):
         """Return JSON representation of the object."""
@@ -61,8 +34,7 @@ class NetworkPort():
         return {'dpid': self.dpid,
                 'port_id': self.port_id,
                 'hwaddr': self.hwaddr,
-                'iface': self.iface,
-                'lqm': self.lqm}
+                'iface': self.iface}
 
     def __hash__(self):
 

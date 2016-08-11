@@ -46,13 +46,13 @@ def ofmatch_s2d(match):
 class VirtualPort(object):
     """Virtual port."""
 
-    def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
+    def __init__(self, virtual_port_id, phy_port):
 
-        self.dpid = dpid
-        self.ovs_port_id = ovs_port_id
+        self.dpid = phy_port.dpid
+        self.ovs_port_id = phy_port.port_id
         self.virtual_port_id = virtual_port_id
-        self.hwaddr = hwaddr
-        self.iface = iface
+        self.hwaddr = phy_port.hwaddr
+        self.iface = phy_port.iface
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
@@ -85,29 +85,19 @@ class VirtualPort(object):
 
 
 class VirtualPortLvap(VirtualPort):
-    """ Virtual port associated to an LVAP."""
+    """Virtual port."""
 
-    def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
-
-        self.dpid = dpid
-        self.ovs_port_id = ovs_port_id
-        self.virtual_port_id = virtual_port_id
-        self.hwaddr = hwaddr
-        self.iface = iface
-        self.next = VirtualPortPropLvap()
+    def __init__(self, virtual_port_id, phy_port, obj):
+        super(VirtualPortLvap, self).__init__(virtual_port_id, phy_port)
+        self.next = VirtualPortPropLvap(obj)
 
 
 class VirtualPortLvnf(VirtualPort):
-    """ Virtual port associated to an LVAP."""
+    """Virtual port."""
 
-    def __init__(self, dpid, ovs_port_id, virtual_port_id, hwaddr, iface):
-
-        self.dpid = dpid
-        self.ovs_port_id = ovs_port_id
-        self.virtual_port_id = virtual_port_id
-        self.hwaddr = hwaddr
-        self.iface = iface
-        self.next = VirtualPortPropLvnf()
+    def __init__(self, virtual_port_id, phy_port, obj):
+        super(VirtualPortLvnf, self).__init__(virtual_port_id, phy_port)
+        self.next = VirtualPortPropLvnf(obj)
 
 
 class VirtualPortProp(dict):
@@ -117,9 +107,10 @@ class VirtualPortProp(dict):
         dl_src=11:22:33:44:55:66,tp_dst=80
     """
 
-    def __init__(self):
+    def __init__(self, obj):
         super(VirtualPortProp, self).__init__()
         self.__uuids__ = {}
+        self.obj = obj
 
     def __delitem__(self, key):
         """Clear virtual port configuration.
@@ -142,10 +133,6 @@ class VirtualPortProp(dict):
 class VirtualPortPropLvap(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
-    def __init__(self):
-        super(VirtualPortPropLvap, self).__init__()
-        self.lvap = None
-
     def __setitem__(self, key, value):
         """Set virtual port configuration."""
 
@@ -158,8 +145,8 @@ class VirtualPortPropLvap(VirtualPortProp):
         # switches. Ignore totally the specified key and silently use as
         # key the LWAPP src and dst addresses. Notice that this will send
         # as many intents as the number of blocks.
-        if self.lvap.encap != EtherAddress("00:00:00:00:00:00"):
-            key = {'dl_src': self.lvap.addr, 'dl_dst': self.lvap.encap}
+        if self.obj.encap != EtherAddress("00:00:00:00:00:00"):
+            key = {'dl_src': self.obj.addr, 'dl_dst': self.obj.encap}
         else:
             key = ofmatch_s2d(key)
 
@@ -172,8 +159,8 @@ class VirtualPortPropLvap(VirtualPortProp):
         intent_server = RUNTIME.components[IntentServer.__module__]
 
         # Set downlink and uplink virtual link(s)
-        dl_blocks = list(self.lvap.downlink.values())
-        ul_blocks = list(self.lvap.uplink.values())
+        dl_blocks = list(self.obj.downlink.values())
+        ul_blocks = list(self.obj.uplink.values())
         blocks = dl_blocks + ul_blocks
 
         # r_port is a RadioPort object
@@ -200,6 +187,4 @@ class VirtualPortPropLvap(VirtualPortProp):
 class VirtualPortPropLvnf(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
-    def __init__(self):
-        super().__init__()
-        self.lvnf = None
+    pass

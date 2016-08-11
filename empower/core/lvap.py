@@ -200,25 +200,9 @@ class LVAP(object):
         if not self.wtp:
             return
 
-        for port in self.wtp.ports.values():
-
-            if port.iface != "empower0":
-                continue
-
-            virtual_port = VirtualPortLvap(dpid=self.wtp.addr,
-                                           ovs_port_id=port.port_id,
-                                           virtual_port_id=0,
-                                           hwaddr=port.hwaddr,
-                                           iface=port.iface)
-
-            # These are needed because when assigning the next method of a
-            # virtual port I need to access the lvap configuration: encap, and
-            # downlinks/uplinks blocks
-            virtual_port.next.lvap = self
-
-            self.__ports[0] = virtual_port
-
-            break
+        self.__ports[0] = VirtualPortLvap(phy_port=self.wtp.port(),
+                                          virtual_port_id=0,
+                                          obj=self)
 
         # set/update intent
         intent = {'version': '1.0',
