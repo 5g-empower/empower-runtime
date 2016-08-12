@@ -81,7 +81,6 @@ class LVAPHandler(EmpowerAPIHandler):
 
         Request:
             version: the protocol version (1.0)
-            wtp: the new wtp address
 
         Example URLs:
             PUT /api/v1/lvaps/11:22:33:44:55:66
@@ -97,13 +96,8 @@ class LVAPHandler(EmpowerAPIHandler):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "wtp" not in request and "scheduled_on" not in request:
-                raise ValueError("missing wtp/scheduled_on element")
-
-            if "wtp" in request and "scheduled_on" in request:
-                raise ValueError("use either wtp or scheduled_on")
-
             lvap_addr = EtherAddress(args[0])
+
             lvap = RUNTIME.lvaps[lvap_addr]
 
             if "wtp" in request:
@@ -112,7 +106,7 @@ class LVAPHandler(EmpowerAPIHandler):
                 wtp = RUNTIME.wtps[wtp_addr]
                 lvap.wtp = wtp
 
-            if "scheduled_on" in request:
+            elif "scheduled_on" in request:
 
                 pool = ResourcePool()
 
@@ -128,6 +122,40 @@ class LVAPHandler(EmpowerAPIHandler):
                     pool.add(r_block)
 
                 lvap.scheduled_on = pool
+
+            elif "downlink" in request:
+
+                pool = ResourcePool()
+
+                for block in request["downlink"]:
+
+                    wtp_addr = EtherAddress(block['wtp'])
+                    wtp = RUNTIME.wtps[wtp_addr]
+                    hwaddr = EtherAddress(block['hwaddr'])
+                    channel = int(block['channel'])
+                    band = int(block['band'])
+
+                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
+                    pool.add(r_block)
+
+                lvap.downlink = pool
+
+            elif "uplink" in request:
+
+                pool = ResourcePool()
+
+                for block in request["uplink"]:
+
+                    wtp_addr = EtherAddress(block['wtp'])
+                    wtp = RUNTIME.wtps[wtp_addr]
+                    hwaddr = EtherAddress(block['hwaddr'])
+                    channel = int(block['channel'])
+                    band = int(block['band'])
+
+                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
+                    pool.add(r_block)
+
+                lvap.uplink = pool
 
             if "encap" in request:
 

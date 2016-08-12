@@ -48,34 +48,6 @@ PROCESS_M2 = "m_phase_2"
 PROCESS_M3 = "m_phase_3"
 
 
-def bind_handler(handler):
-
-    def handler_proxy(self, callback=None, every=-1, value=None):
-
-        from empower.handlers.read_handler import read_handler
-        from empower.handlers.write_handler import write_handler
-
-        if not value:
-
-            handler = read_handler(lvnf_id=self.lvnf_id,
-                                   handler=handler_proxy.handler,
-                                   every=every,
-                                   callback=callback)
-
-        else:
-
-            handler = write_handler(lvnf_id=self.lvnf_id,
-                                    handler=handler_proxy.handler,
-                                    every=every,
-                                    callback=callback,
-                                    value=value)
-
-        return handler
-
-    handler_proxy.handler = handler
-    return handler_proxy
-
-
 class LVNF(object):
     """A Light Virtual Network Function.
 
@@ -136,10 +108,6 @@ class LVNF(object):
         self.__migration_target = None
         self.__migration_profiler = 0
         self.last_delta = None
-
-        # bind handlers methods to object instance
-        for key in self.image.handlers:
-            setattr(self, key, types.MethodType(bind_handler(key), self))
 
     def __migration_queue_empty(self):
         """Check if all handlers in the migration queue are done."""
@@ -205,7 +173,7 @@ class LVNF(object):
                 return
 
             # Spawn new lvnf
-            LOG.info("LVNF %s migration: add %s!" %
+            LOG.info("LVNF %s migration: add %s!",
                      (self.lvnf_id, self.__migration_target.addr))
 
             self.__migration_target.\
@@ -267,7 +235,7 @@ class LVNF(object):
 
             else:
 
-                LOG.error("%s: got invalid new state: %s" %
+                LOG.error("%s: got invalid new state: %s",
                           (self.process, value))
 
         elif self.process == PROCESS_M2:
@@ -279,7 +247,7 @@ class LVNF(object):
             if value == PROCESS_STOPPED:
 
                 # setting migrated state
-                LOG.info("LVNF %s migration: transitioning to state %s." %
+                LOG.info("LVNF %s migration: transitioning to state %s.",
                          (self.lvnf_id, PROCESS_M3))
 
                 self.__process = PROCESS_M3
@@ -291,7 +259,7 @@ class LVNF(object):
 
             else:
 
-                LOG.error("%s: got invalid new state: %s" %
+                LOG.error("%s: got invalid new state: %s",
                           (self.process, value))
 
         else:
@@ -304,7 +272,7 @@ class LVNF(object):
         # profiling
         self.last_delta = time.time() - self.__migration_profiler
 
-        LOG.info("LVNF %s migration completed, elapsed time %u ms!" %
+        LOG.info("LVNF %s migration completed, elapsed time %u ms!",
                  (self.lvnf_id, self.last_delta * 1000))
 
         # reset migration data structures
@@ -313,7 +281,7 @@ class LVNF(object):
         self.__migration_profiler = 0
 
         # Set process status to RUNNING
-        LOG.info("LVNF %s migration: transitioning to state %s." %
+        LOG.info("LVNF %s migration: transitioning to state %s.",
                  (self.lvnf_id, PROCESS_RUNNING))
 
         self.__process = PROCESS_RUNNING
@@ -321,12 +289,12 @@ class LVNF(object):
     def __migration_read_state(self):
         """Read this LVNF state."""
 
-        LOG.info("LVNF %s migration: read state." % self.lvnf_id)
+        LOG.info("LVNF %s migration: read state.", self.lvnf_id)
 
         # call state handlers and fill migration queue
         for handler in self.image.state_handlers:
 
-            LOG.info("LVNF %s migration: reading %s" %
+            LOG.info("LVNF %s migration: reading %s",
                      (self.lvnf_id, handler))
 
             func = getattr(self, handler)
@@ -337,7 +305,7 @@ class LVNF(object):
     def __migration_read_callback(self, handler):
         """Migration callback."""
 
-        LOG.info("LVNF %s migration: got read handler %s" %
+        LOG.info("LVNF %s migration: got read handler %s",
                  (self.lvnf_id, handler.handler))
 
         # If queue is empty and lvnf add returned, then restore state
@@ -349,13 +317,13 @@ class LVNF(object):
     def __migration_restore_state(self):
 
         partial = time.time() - self.__migration_profiler
-        LOG.info("LVNF %s migration: add took %u ms!" %
+        LOG.info("LVNF %s migration: add took %u ms!",
                  (self.lvnf_id, partial * 1000))
 
-        LOG.info("LVNF %s migration: restoring state." % self.lvnf_id)
+        LOG.info("LVNF %s migration: restoring state.", self.lvnf_id)
 
         # remove old lvnf
-        LOG.info("LVNF %s migration: removing from %s!" %
+        LOG.info("LVNF %s migration: removing from %s!",
                  (self.lvnf_id, self.cpp.addr))
 
         self.cpp.connection.send_del_lvnf(self.lvnf_id)

@@ -44,7 +44,6 @@ from empower.lvnfp import PT_LVNF_LEAVE
 from empower.lvnfp import PT_BYE
 from empower.lvnfp import PT_REGISTER
 from empower.lvnfp import PT_VERSION
-from empower.lvnfp import PT_CAPS_REQUEST
 from empower.core.lvnf import LVNF
 from empower.core.virtualport import VirtualPortLvnf
 from empower.core.lvnf import PROCESS_RUNNING
@@ -159,10 +158,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                     to_be_removed.append(lvnf)
 
         for lvnf in to_be_removed:
-            LOG.info("LVNF LEAVE %s" % (lvnf.lvnf_id))
+            LOG.info("LVNF LEAVE %s", lvnf.lvnf_id)
             for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
                 handler(lvnf)
-            LOG.info("Deleting LVNF: %s" % lvnf.lvnf_id)
+            LOG.info("Deleting LVNF: %s", lvnf.lvnf_id)
             tenant = RUNTIME.tenants[lvnf.tenant_id]
             del tenant.lvnfs[lvnf.lvnf_id]
 
@@ -173,10 +172,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         message['type'] = message_type
         message['seq'] = self.pnfdev.seq
 
-        LOG.info("Sending %s seq %u" % (message['type'], message['seq']))
+        LOG.info("Sending %s seq %u", message['type'], message['seq'])
         self.write_message(json.dumps(message, cls=EmpowerEncoder))
 
-    def _handle_bye(self, pnfdev_bye):
+    def _handle_bye(self, _):
         """Handle an incoming PNFDEV_BYE message.
 
         Args:

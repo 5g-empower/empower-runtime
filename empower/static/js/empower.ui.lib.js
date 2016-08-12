@@ -1423,16 +1423,16 @@ function loadLVAPs(tenant) {
                 var lvap_bssid = row.insertCell(c++);
                 lvap_bssid.innerHTML = data[stream].lvap_bssid
                 var wtpField = row.insertCell(c++);
-                wtpField.innerHTML = data[stream].wtp.addr + " (" + data[stream].scheduled_on[0].channel + ", " + data[stream].scheduled_on[0].band + ")"
+                wtpField.innerHTML = data[stream].wtp.addr + " (" + data[stream].downlink[0].channel + ", " + data[stream].downlink[0].band + ")"
                 wtpField.id = "field_" + data[stream].addr
                 var wtpCtrl = row.insertCell(c++);
                 wtpCtrl.id = "ctrl_" + data[stream].addr
                 wtpCtrl.width = "24px"
                 wtpCtrl.align = "center"
                 if (tenant) {
-                    wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].scheduled_on[0].addr + "', '" + tenant + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
+                    wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].downlink[0].addr + "', '" + tenant + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
                 } else {
-                    wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].scheduled_on[0].addr + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
+                    wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].downlink[0].addr + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
                 }
             }
         },

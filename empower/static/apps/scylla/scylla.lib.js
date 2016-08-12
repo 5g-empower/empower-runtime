@@ -142,14 +142,14 @@ function enableMultipleUplinks() {
 
     console.log("Enabling multiple uplinks...")
 
-    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "scheduled_on": []}
+    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "uplink": []}
 
     for (var i in wtps) {
         downlink = lvaps[selectedLvap].downlink[0]
         for (var j in wtps[i].supports) {
             block = wtps[i].supports[j]
             if (block.band == downlink.band && block.channel == downlink.channel) {
-                data["scheduled_on"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
+                data["uplink"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
             }
         }
     }
@@ -185,10 +185,7 @@ function disableMultipleUplinks() {
 
     console.log("Disabling multiple uplinks...")
 
-    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "scheduled_on": []}
-
-    downlink = lvaps[selectedLvap].downlink[0]
-    data["scheduled_on"].push({'wtp':downlink.addr,'band': decodeBand(downlink.band),'channel':downlink.channel,'hwaddr':downlink.hwaddr})
+    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "uplink": []}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
@@ -381,7 +378,7 @@ function chain() {
     console.log("Enabling multiple uplinks with encap...")
 
     encap = lvnfs[selectedLvnf].ports[0].hwaddr
-    data = {"version":"1.0", "encap":encap}
+    data = {"version":"1.0", "encap": encap}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
@@ -576,11 +573,13 @@ function addDataPoint(type, graph, dataset, prev, timer) {
 
     $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_stats", function(data) {
         rate = 0.0
-        found = false
         for (var i in data) {
             if (data[i].lvnf==selectedLvnf) {
-                found = true
                 iface = lvnfs[selectedLvnf].ports['0'].iface
+                stats = data[i]['stats'][iface]
+                if (!stats) {
+                    break
+                }
                 pkts = data[i]['stats'][iface][type]
                 if (pkts) {
                     curr = parseInt(pkts)
@@ -591,10 +590,6 @@ function addDataPoint(type, graph, dataset, prev, timer) {
                 }
                 break
             }
-        }
-        if (!found) {
-            console.log("LVNF Stats not found. Removing timer.")
-            return
         }
         if (rate < 0.0) {
             rate = 0.0

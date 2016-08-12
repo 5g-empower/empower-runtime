@@ -53,6 +53,16 @@ class VirtualPort(object):
         self.virtual_port_id = virtual_port_id
         self.hwaddr = phy_port.hwaddr
         self.iface = phy_port.iface
+        self.next = None
+
+    def clear(self):
+        """Clear all outgoing links."""
+
+        if not self.next:
+            return
+
+        for key in list(self.next):
+            del self.next[key]
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
@@ -146,15 +156,15 @@ class VirtualPortPropLvap(VirtualPortProp):
         # key the LWAPP src and dst addresses. Notice that this will send
         # as many intents as the number of blocks.
         if self.obj.encap != EtherAddress("00:00:00:00:00:00"):
-            key = {'dl_src': self.obj.addr, 'dl_dst': self.obj.encap}
+            key = "dl_src=%s;dl_dst=%s" % (self.obj.addr, self.obj.encap)
         else:
-            key = ofmatch_s2d(key)
+            key = "dl_src=%s;" % self.obj.addr + ofmatch_s2d(key)
 
         # remove virtual link
-        if self.__contains__(ofmatch_d2s(key)):
-            self.__delitem__(ofmatch_d2s(key))
+        if self.__contains__(key):
+            self.__delitem__(key)
 
-        self.__uuids__[ofmatch_d2s(key)] = []
+        self.__uuids__[key] = []
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
@@ -174,17 +184,18 @@ class VirtualPortPropLvap(VirtualPortProp):
                       'ttp_port': value.ovs_port_id,
                       'stp_dpid': n_port.dpid,
                       'stp_port': n_port.port_id,
-                      'match': key}
+                      'match': ofmatch_s2d(key)}
 
             # add new virtual link
             uuid = intent_server.send_intent(intent)
-            self.__uuids__[ofmatch_d2s(key)].append(uuid)
+            self.__uuids__[key].append(uuid)
 
             # add entry
-            dict.__setitem__(self, ofmatch_d2s(key), value)
+            dict.__setitem__(self, key, value)
 
 
 class VirtualPortPropLvnf(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
     pass
+

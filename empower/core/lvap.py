@@ -41,7 +41,7 @@ class LVAP(object):
     hosted by multiple WTPs. More preciselly an LVAP can be scheduled on one,
     and onyl one resource block on the downlink direction and on multiple
     resource blocks on the uplink direction. The downlink resource block is
-    automatically the default uplink resource block. The default uplink
+    automatically also the default uplink resource block. The default uplink
     resource block is the resource block in charge of generating WiFi acks.
     Additional uplink resource blocks do not generate acks but can
     opportunistically receive and forward traffic. An unbound LVAP, i.e. an
@@ -72,8 +72,7 @@ class LVAP(object):
 
     This results in one resource block in the pool to be configured as
     downlink resource block (and thus also as default uplink resource block)
-    while the others will be configured as uplink resource blocks. The
-    downlink resource block is the one returned by the pop() method.
+    while the others will be configured as uplink resource blocks.
 
     A short cut is also provided:
 
@@ -81,17 +80,18 @@ class LVAP(object):
 
     The operation above will assign the default port policy to the LVAP.
 
-    To change the port configuration:
+    To change the port configuration the downlink resource block property must
+    be used:
 
-      port = lvap.scheduled_on[block]
+      port = lvap.downlink[block]
       port.tx_power = 20
 
     Where block is the ResourceBlock previously assigned. A new port
     configuration can be assigned in a single step with:
 
-      lvap.scheduled_on[block] = port
+      lvap.downlink[block] = port
 
-    where port is an instance of the Port class.
+    where port is an instance of the RadioPort class.
 
     The last line will trigger a Port update message if the entry already
     exists. If the entry does not exists and there are no other entries in
@@ -103,8 +103,8 @@ class LVAP(object):
     del lvap message) and create new ones (this will trigger an add lvap
     message):
 
-      del lvap.scheduled_on[old_block]
-      lvap.scheduled_on[new_block] = port
+      del lvap.downlink[old_block]
+      lvap.downlink[new_block] = port
 
     Attributes:
         addr: The client's MAC Address as an EtherAddress instance.
@@ -130,7 +130,7 @@ class LVAP(object):
           direction.
         uplink: the resource block assigned to this LVAP on the uplink
           direction.
-        scheduled_on: alias for the downlink property
+        scheduled_on: union of the downlink and uplink resource blocks
     """
 
     def __init__(self, addr, net_bssid_addr, lvap_bssid_addr):
@@ -191,10 +191,7 @@ class LVAP(object):
 
         # Delete all outgoing virtual link and then remove the entire port
         if self.__ports:
-
-            for key in list(self.__ports[0].next):
-                del self.__ports[0].next[key]
-
+            self.__ports[0].clear()
             del self.__ports[0]
 
         if not self.wtp:
@@ -329,61 +326,47 @@ class LVAP(object):
         self.refresh_lvap()
 
     @property
-    def scheduled_on(self):
+    def downlink(self):
         """ Get the resource blocks assigned to this LVAP in the downlink. """
 
         return self._downlink
 
-    @scheduled_on.setter
-    def scheduled_on(self, downlink):
-        """Assign default resource block to LVAP.
+    @downlink.setter
+    def downlink(self, blocks):
+        """Set downlink block.
 
-        Assign default resource block to LVAP. Accepts as input either a
-        ResourcePool or a ResourceBlock. If the resource pool has more than
-        one resource block then one random resource block is assigned as both
-        downlink and default uplink. The remaining resource blocks are
-        assigned as uplink only.
-
-        Args:
-            downlink: A ResourcePool or a ResourceBlock
+        Set the downlink block. Must receive as input a single resource block.
+        Uplinks are automatically cleared when setting a new downlink. Also
+        outgoing VNF links are cleared.
         """
 
-        # Null operation, just return
-        if not downlink:
-            return
-
-        if isinstance(downlink, ResourcePool):
-
-            pool = downlink
-
-        elif isinstance(downlink, ResourceBlock):
-
+        if isinstance(blocks, ResourcePool):
+            pool = blocks
+        elif isinstance(blocks, ResourceBlock):
             pool = ResourcePool()
-            pool.add(downlink)
-
+            pool.add(blocks)
         else:
+            raise TypeError("Invalid type: %s", type(blocks))
 
-            raise TypeError("Expected ResourcePool, ResourceBlock, got %s",
-                            type(downlink))
+        if len(pool) > 1:
+            raise ValueError("Downlink, too many blocks (%u)", len(blocks))
 
-        current = ResourcePool(list(self.downlink.keys()) +
-                               list(self.uplink.keys()))
+        current = ResourcePool(list(self._downlink.keys()))
 
-        # Null operation, just return, but before re-send configuration
-        # commands (ports and of tables)
+        # Null operation, just return, but before re-send intent configuration
         if current == pool:
             self.set_ports()
             return
 
         # clear downlink blocks
-        for block in list(self.downlink.keys()):
-            del self.downlink[block]
+        for block in list(self._downlink.keys()):
+            del self._downlink[block]
 
         # clear uplink blocks
-        for block in list(self.uplink.keys()):
-            del self.uplink[block]
+        for block in list(self._uplink.keys()):
+            del self._uplink[block]
 
-        # pick default resource block
+        # downlink block
         default_block = pool.pop()
 
         # If lvap is associated to a shared tenant. I need to reset the lvap
@@ -421,12 +404,7 @@ class LVAP(object):
 
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message
-        self.downlink[default_block] = RadioPort(self, default_block)
-
-        # assign remaining blocks (if any) to the uplink, this could
-        # trigger one or more send_add_lvap and a set_port (radio) messages
-        for block in pool:
-            self.uplink[block] = RadioPort(self, block)
+        self._downlink[default_block] = RadioPort(self, default_block)
 
         # set ports
         self.set_ports()
@@ -437,20 +415,85 @@ class LVAP(object):
 
         return self._uplink
 
-    @property
-    def downlink(self):
-        """ Get the resource blocks assigned to this LVAP in the downlink. """
+    @uplink.setter
+    def uplink(self, blocks):
+        """Set downlink block.
 
-        return self._downlink
+        Set the downlink block. Must receive as input a single resource block.
+        """
+
+        if isinstance(blocks, ResourcePool):
+            pool = blocks
+        elif isinstance(blocks, ResourceBlock):
+            pool = ResourcePool()
+            pool.add(blocks)
+        else:
+            raise TypeError("Invalid type: %s", type(blocks))
+
+        if len(pool) > 5:
+            raise ValueError("Downlink, too many blocks (%u)", len(blocks))
+
+        current = ResourcePool(list(self._uplink.keys()))
+
+        # Null operation, just return
+        if current == pool:
+            return
+
+        # make sure we are not overwriting a downlink block
+        downlink = ResourcePool(list(self._downlink.keys()))
+        pool = pool - downlink
+
+        # clear uplink blocks
+        for block in list(self._uplink.keys()):
+            del self._uplink[block]
+
+        # assign uplink blocks
+        for block in pool:
+            self._uplink[block] = RadioPort(self, block)
+
+    @property
+    def scheduled_on(self):
+        """ Get the resource blocks assigned to this LVAP in the uplink. """
+
+        return ResourcePool(list(self._downlink.keys()) +
+                            list(self._uplink.keys()))
+
+    @scheduled_on.setter
+    def scheduled_on(self, blocks):
+        """Assign default resource block to LVAP.
+
+        Assign default resource block to LVAP. Accepts as input either a
+        ResourcePool or a ResourceBlock. If the resource pool has more than
+        one resource block then one random resource block is assigned as both
+        downlink and default uplink. The remaining resource blocks are
+        assigned as uplink only.
+
+        Args:
+            downlink: A ResourcePool or a ResourceBlock
+        """
+
+        if isinstance(blocks, ResourcePool):
+            pool = blocks
+        elif isinstance(blocks, ResourceBlock):
+            pool = ResourcePool()
+            pool.add(blocks)
+        else:
+            raise TypeError("Invalid type: %s", type(blocks))
+
+        # set downlink block
+        self.downlink = pool.pop()
+
+        # set uplink blocks
+        self.uplink = pool
 
     @property
     def port(self):
         """Return the port on which this LVAP is scheduled. """
 
-        if not self.scheduled_on:
+        if not self.downlink:
             return None
 
-        default_port = next(iter(self.scheduled_on.values()))
+        default_port = next(iter(self.downlink.values()))
         return default_port
 
     @port.setter
@@ -460,36 +503,36 @@ class LVAP(object):
         if not self.scheduled_on:
             return None
 
-        default_block = next(iter(self.scheduled_on.keys()))
-        self.scheduled_on[default_block] = value
+        default_block = next(iter(self.downlink.keys()))
+        self.downlink[default_block] = value
 
     @property
     def default_block(self):
         """Return the default block on which this LVAP is scheduled on."""
 
-        if not self.scheduled_on:
+        if not self.downlink:
             return None
 
-        default_block = next(iter(self.scheduled_on.keys()))
+        default_block = next(iter(self.downlink.keys()))
         return default_block
 
     @property
     def wtp(self):
         """Return the wtp on which this LVAP is scheduled on."""
 
-        if not self.scheduled_on:
+        if not self.downlink:
             return None
 
-        default_block = next(iter(self.scheduled_on.keys()))
+        default_block = next(iter(self.downlink.keys()))
         return default_block.radio
 
     @wtp.setter
     def wtp(self, wtp):
         """Assigns LVAP to new wtp."""
 
-        default_block = next(iter(self.scheduled_on.keys()))
+        default_block = next(iter(self.downlink.keys()))
         matching = wtp.supports & ResourcePool([default_block])
-        self.scheduled_on = matching.pop() if matching else None
+        self.downlink = matching.pop() if matching else None
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
@@ -500,7 +543,6 @@ class LVAP(object):
                 'port': self.port,
                 'ports': self.ports,
                 'wtp': self.wtp,
-                'scheduled_on': [k for k in self.downlink.keys()],
                 'downlink': [k for k in self.downlink.keys()],
                 'uplink': [k for k in self.uplink.keys()],
                 'ssids': self.ssids,
