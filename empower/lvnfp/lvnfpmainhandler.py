@@ -41,17 +41,17 @@ from empower.lvnfp import PT_ADD_LVNF
 from empower.lvnfp import PT_DEL_LVNF
 from empower.lvnfp import PT_LVNF_JOIN
 from empower.lvnfp import PT_LVNF_LEAVE
+from empower.core.virtualport import VirtualPortLvnf
+from empower.core.lvnf import PROCESS_RUNNING
+from empower.core.lvnf import PROCESS_SPAWNING
+from empower.core.lvnf import PROCESS_STOPPING
+from empower.core.lvnf import PROCESS_MIGRATING_STOP
+from empower.core.lvnf import PROCESS_MIGRATING_START
+from empower.core.lvnf import PROCESS_STOPPED
 from empower.lvnfp import PT_BYE
 from empower.lvnfp import PT_REGISTER
 from empower.lvnfp import PT_VERSION
 from empower.core.lvnf import LVNF
-from empower.core.virtualport import VirtualPortLvnf
-from empower.core.lvnf import PROCESS_RUNNING
-from empower.core.lvnf import PROCESS_STOPPED
-from empower.core.lvnf import PROCESS_DONE
-from empower.core.lvnf import PROCESS_M1
-from empower.core.lvnf import PROCESS_M2
-from empower.core.lvnf import PROCESS_M3
 from empower.core.image import Image
 
 from empower.main import RUNTIME
@@ -203,19 +203,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         addr = EtherAddress(hello['addr'])
         pnfdev = self.server.pnfdevs[addr]
 
-        # compute delta if not new connection
-        if pnfdev.connection:
-
-            delta = time.time() - pnfdev.last_seen_ts
-
-            # downlink
-            dl_bytes = hello['downlink_bytes'] - pnfdev.downlink_bytes
-            pnfdev.downlink_bit_rate = int(dl_bytes / delta) * 8
-
-            # uplink
-            ul_bytes = hello['uplink_bytes'] - pnfdev.uplink_bytes
-            pnfdev.uplink_bit_rate = int(ul_bytes / delta) * 8
-
         # New connection
         if not pnfdev.connection:
 
@@ -234,9 +221,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         # Update PNFDev params
         pnfdev.every = hello['every']
         pnfdev.last_seen = hello['seq']
-        pnfdev.uplink_bytes = hello['uplink_bytes']
-        pnfdev.downlink_bytes = hello['downlink_bytes']
-
         pnfdev.last_seen_ts = time.time()
 
     def _handle_caps(self, caps):
@@ -262,30 +246,19 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
             pnfdev.ports[network_port.port_id] = network_port
 
-    def _handle_error(self, error):
-        """Handle an incoming ERROR message.
-        Args:
-            error, a ERROR message
-        Returns:
-            None
-        """
-
-        LOG.info("%s message from %s at %s seq %u code %u %s",
-                 error['type'], error['addr'], self.request.remote_ip,
-                 error['seq'], error['code'], error['message'])
-
     def send_del_lvnf(self, lvnf_id):
         """Send del LVNF."""
 
         undeploy = {'lvnf_id': lvnf_id}
         self.send_message(PT_DEL_LVNF, undeploy)
 
-    def send_add_lvnf(self, image, lvnf_id, tenant_id):
+    def send_add_lvnf(self, image, lvnf_id, tenant_id, context=None):
         """Send add LVNF."""
 
         deploy = {'lvnf_id': lvnf_id,
                   'tenant_id': tenant_id,
-                  'image': image.to_dict()}
+                  'image': image.to_dict(),
+                  'context': context}
 
         self.send_message(PT_ADD_LVNF, deploy)
 
@@ -307,7 +280,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         tenant = RUNTIME.tenants[tenant_id]
 
-        LOG.info("LVNF %s status update: %s", lvnf_id, status_lvnf['process'])
+        LOG.info("LVNF %s status update", lvnf_id)
 
         # Add lvnf to tenant if not present
         if lvnf_id not in tenant.lvnfs:
@@ -325,49 +298,33 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         lvnf = tenant.lvnfs[lvnf_id]
 
-        # Got a LVNF stop message, this could be due to a migration, i.e. the
-        # old LVNF being removed or as a response to a del_lvnf message from
-        # the controller.
-        if status_lvnf['process'] == PROCESS_STOPPED:
+        if lvnf.state in (None, PROCESS_RUNNING, PROCESS_SPAWNING,
+                          PROCESS_MIGRATING_START):
 
-            # A migration is undergoing, process stopped message must be
-            # ignored otherwise the LVNF state will be lost. Just set lvnf
-            # process property so migration can continue
-            if lvnf.process == PROCESS_M2:
-                lvnf.process = PROCESS_STOPPED
+            if status_lvnf['returncode']:
+
+                # Raise LVNF leave event
+                if lvnf.state:
+                    LOG.info("LVNF LEAVE %s", lvnf_id)
+                    handlers = self.server.pt_types_handlers[PT_LVNF_LEAVE]
+                    for handler in handlers:
+                        handler(lvnf)
+
+                lvnf.returncode = status_lvnf['returncode']
+                lvnf.contex = status_lvnf['context']
+
+                lvnf.state = PROCESS_STOPPED
+
+                # remove lvnf
+                del tenant.lvnfs[lvnf_id]
+
                 return
 
-            # this should not happen
-            if lvnf.cpp != cpp:
-                raise IOError("CPP mismatch")
-
-            # Stop messages must not arrive during migration
-            if lvnf.process in [PROCESS_M1, PROCESS_M3]:
-                raise IOError("Unknown LVNF")
-
-            # The status update is coming from the CPP where this LVNF was
-            # active, then this is the result of LVNF delete command coming
-            # from the controller.
-            LOG.info("LVNF LEAVE %s" % (lvnf_id))
-            for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
-                handler(lvnf)
-
-            LOG.info("Removing LVNF %s" % lvnf_id)
-            del tenant.lvnfs[lvnf_id]
-
-            return
-
-        # reset ports and returcode/message
-        lvnf.ports = {}
-        lvnf.returncode = None
-        lvnf.message = None
-
-        if status_lvnf['process'] == PROCESS_RUNNING:
-
             # Raise LVNF join event
-            if lvnf.process != PROCESS_RUNNING:
-                LOG.info("LVNF JOIN %s", lvnf_id)
-                for handler in self.server.pt_types_handlers[PT_LVNF_JOIN]:
+            if lvnf.state == PROCESS_SPAWNING:
+                LOG.info("LVNF JOIN %s", lvnf.lvnf_id)
+                handlers = self.server.pt_types_handlers[PT_LVNF_JOIN]
+                for handler in handlers:
                     handler(lvnf)
 
             # Configure ports
@@ -400,17 +357,47 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 
-        if status_lvnf['process'] == PROCESS_DONE:
-
-            # Raise LVNF leave event
-            if lvnf.process != PROCESS_DONE:
-                LOG.info("LVNF LEAVE %s" % (lvnf_id))
-                for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
-                    handler(lvnf)
-
-            # Set error message
             lvnf.returncode = status_lvnf['returncode']
-            lvnf.message = status_lvnf['message']
+            lvnf.contex = status_lvnf['context']
 
-        # set new process
-        lvnf.process = status_lvnf['process']
+            lvnf.state = PROCESS_RUNNING
+
+        elif lvnf.state == PROCESS_STOPPING:
+
+            if status_lvnf['returncode']:
+
+                # Raise LVNF leave event
+                if lvnf.state:
+                    LOG.info("LVNF LEAVE %s", lvnf_id)
+                    handlers = self.server.pt_types_handlers[PT_LVNF_LEAVE]
+                    for handler in handlers:
+                        handler(lvnf)
+
+                lvnf.returncode = status_lvnf['returncode']
+                lvnf.contex = status_lvnf['context']
+
+                lvnf.state = PROCESS_STOPPED
+
+                # remove lvnf
+                del tenant.lvnfs[lvnf_id]
+
+                return
+
+            IOError("No return code on stopping LVNF")
+
+        elif lvnf.state == PROCESS_MIGRATING_STOP:
+
+            if status_lvnf['returncode']:
+
+                lvnf.returncode = status_lvnf['returncode']
+                lvnf.context = status_lvnf['context']
+
+                lvnf.state = PROCESS_MIGRATING_START
+
+                return
+
+            IOError("No returncode on migrating LVNF")
+
+        else:
+
+            raise IOError("Invalid transistion")

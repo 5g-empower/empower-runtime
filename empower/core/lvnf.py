@@ -20,6 +20,8 @@
 import types
 import time
 
+from empower.main import RUNTIME
+
 import empower.logger
 LOG = empower.logger.get_logger()
 
@@ -29,23 +31,17 @@ PROCESS_SPAWNING = "spawning"
 # add lvnf message sent, status received (process is running)
 PROCESS_RUNNING = "running"
 
-# add lvnf message sent, status received (process terminated, check error)
-PROCESS_DONE = "done"
-
 # del lvnf message sent, no status received
 PROCESS_STOPPING = "stopping"
 
-# del lvnf message sent, status received
+# del lvnf message sent, status
 PROCESS_STOPPED = "stopped"
 
-# migration (phase 1)
-PROCESS_M1 = "m_phase_1"
+# del lvnf message sent, no status received yet
+PROCESS_MIGRATING_STOP = "migrating_stop"
 
-# migration (phase 2)
-PROCESS_M2 = "m_phase_2"
-
-# migration (phase 3)
-PROCESS_M3 = "m_phase_3"
+# add lvnf message sent, no status received yet
+PROCESS_MIGRATING_START = "migrating_start"
 
 
 class LVNF(object):
@@ -94,46 +90,127 @@ class LVNF(object):
             stopped, done)
     """
 
-    def __init__(self, lvnf_id, tenant_id, image, cpp=None):
+    def __init__(self, lvnf_id, tenant_id, image, cpp):
 
-        self.__cpp = cpp
         self.lvnf_id = lvnf_id
         self.tenant_id = tenant_id
         self.image = image
         self.ports = {}
-        self.message = None
         self.returncode = None
-        self.__process = None
-        self.__migration_queue = {}
-        self.__migration_target = None
-        self.__migration_profiler = 0
-        self.last_delta = None
-
-    def __migration_queue_empty(self):
-        """Check if all handlers in the migration queue are done."""
-
-        res = [x for x in self.__migration_queue.values() if x.retcode == 200]
-        return len(res) == len(self.__migration_queue)
+        self.context = None
+        self.__state = None
+        self.__cpp = cpp
+        self.__target_cpp = None
+        self.__migration_state = None
 
     def start(self):
         """Spawn LVNF."""
 
-        self.__process = PROCESS_SPAWNING
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        # send LVNF add message, the actual LVNF will be added upon
-        # receiving the lvnf status update message
-        self.cpp.connection.send_add_lvnf(self.image,
-                                          self.lvnf_id,
-                                          self.tenant_id)
+        if self.lvnf_id in tenant.lvnfs:
+            raise KeyError("Already defined %s", self.lvnf_id)
+
+        tenant.lvnfs[self.lvnf_id] = self
+
+        self.state = PROCESS_SPAWNING
 
     def stop(self):
         """Remove LVNF."""
 
-        self.__process = PROCESS_STOPPING
+        self.state = PROCESS_STOPPING
 
-        # send LVNF del message, the actual LVNF will be removed upon
-        # receiving the lvnf status update message
+    @property
+    def state(self):
+        """Return the state."""
+
+        return self.__state
+
+    @state.setter
+    def state(self, state):
+        """Set the CPP."""
+
+        LOG.info("LVNF %s transition %s->%s", self.lvnf_id, self.state, state)
+
+        if self.state:
+            method = "_%s_%s" % (self.state, state)
+        else:
+            method = "_none_%s" % state
+
+        if hasattr(self, method):
+            callback = getattr(self, method)
+            callback()
+            return
+
+        raise IOError("Invalid transistion %s -> %s" % (self.state, state))
+
+    def _running_spawning(self):
+
+        # set new state
+        self.__state = PROCESS_MIGRATING_STOP
+
+        # remove lvnf
         self.cpp.connection.send_del_lvnf(self.lvnf_id)
+
+    def _running_stopping(self):
+
+        # set new state
+        self.__state = PROCESS_STOPPING
+
+        # send LVNF del message
+        self.cpp.connection.send_del_lvnf(self.lvnf_id)
+
+    def _stopping_stopped(self):
+
+        # set new state
+        self.__state = PROCESS_STOPPED
+
+    def _spawning_running(self):
+
+        self.__state = PROCESS_RUNNING
+
+    def _spawning_stopped(self):
+
+        self.__state = PROCESS_STOPPED
+
+    def _running_migrating_stop(self):
+
+        # set new state
+        self.__state = PROCESS_MIGRATING_STOP
+        # remove lvnf
+        self.cpp.connection.send_del_lvnf(self.lvnf_id)
+
+    def _migrating_stop_migrating_start(self):
+
+        # set new cpp
+        self.cpp = self.__target_cpp
+
+        # set new state
+        self.__state = PROCESS_MIGRATING_START
+
+        # add lvnf
+        self.cpp.connection.send_add_lvnf(self.image, self.lvnf_id,
+                                          self.tenant_id, self.context)
+
+    def _migrating_start_running(self):
+
+        delta = int((time.time() - self.__migration_state) * 1000)
+        LOG.info("Migration took %sms", delta)
+        self.__state = PROCESS_RUNNING
+
+    def _none_spawning(self):
+
+        # set new state
+        self.__state = PROCESS_SPAWNING
+
+        # send LVNF add message
+        self.cpp.connection.send_add_lvnf(self.image,
+                                          self.lvnf_id,
+                                          self.tenant_id)
+
+    def _none_running(self):
+
+        self.__state = PROCESS_SPAWNING
 
     @property
     def cpp(self):
@@ -145,238 +222,45 @@ class LVNF(object):
     def cpp(self, cpp):
         """Set the CPP."""
 
-        # Process is spawning
-        if self.process == PROCESS_SPAWNING:
-            raise OSError("LVNF is spawning.")
+        if self.state == PROCESS_RUNNING:
 
-        # A migration is undergoing, ignore
-        if self.process in (PROCESS_M1, PROCESS_M2, PROCESS_M3):
-            raise OSError("LVNF migration undergoing.")
+            self.__migration_state = time.time()
 
-        # If cpp is set, and this is not a null assignment then start migration
-        if self.cpp and cpp:
+            # save target cpp
+            self.__target_cpp = cpp
 
-            LOG.info("LVNF %s start migration...", self.lvnf_id)
+            # move to new state
+            self.state = PROCESS_MIGRATING_STOP
 
-            # Set process status to MIGRATING
-            LOG.info("LVNF %s migration: transitioning to state %s.",
-                     self.lvnf_id, PROCESS_M1)
+        elif self.state == PROCESS_MIGRATING_STOP:
 
-            self.process = PROCESS_M1
-
-            # Aet target cpp
-            self.__migration_target = cpp
-            self.__migration_profiler = time.time()
-
-            if self.cpp == cpp:
-                self.__migration_done()
-                return
-
-            # Spawn new lvnf
-            LOG.info("LVNF %s migration: add %s!",
-                     (self.lvnf_id, self.__migration_target.addr))
-
-            self.__migration_target.\
-                connection.send_add_lvnf(self.image,
-                                         self.lvnf_id,
-                                         self.tenant_id)
-
-            # Read state
-            self.__migration_read_state()
-
-            # Done
-            return
-
-        # cpp was set, and this is a null assignment: just remove lvnf
-        if self.cpp and not cpp:
-            self.cpp.connection.send_del_lvnf(self.lvnf_id)
-            return
-
-        # cpp was not set, and this is not a null assignment: just add lvnf
-        if not self.cpp and cpp:
-            cpp.connection.send_add_lvnf(self.image,
-                                         self.lvnf_id,
-                                         self.tenant_id)
-
-        # cpp was not set, and this is a null assignment: do nothing
-        if not self.cpp and not cpp:
-            pass
-
-        # set cpp
-        self.__cpp = cpp
-
-    @property
-    def process(self):
-        """Return the process status."""
-
-        return self.__process
-
-    @process.setter
-    def process(self, value):
-        """Set the process."""
-
-        if self.process == PROCESS_M1:
-
-            # LVNF has been added. If also the migration queue is empty, the
-            # start restoring the state, otherwise return. In this case the
-            # state restoration will begin when the migration queue is empty.
-            if value == PROCESS_RUNNING:
-
-                # setting migrated state
-                LOG.info("LVNF %s migration: transitioning to state %s.",
-                         self.lvnf_id, PROCESS_M2)
-
-                self.__process = PROCESS_M2
-
-                if self.__migration_queue_empty():
-
-                    # restore state
-                    self.__migration_restore_state()
-
-            else:
-
-                LOG.error("%s: got invalid new state: %s",
-                          (self.process, value))
-
-        elif self.process == PROCESS_M2:
-
-            # LVNF has been removed, If also the migration queue is empty,
-            # then the migration queue is finished, otherwise return. In this
-            # case the migration will be completed when the migration queue is
-            # empty.
-            if value == PROCESS_STOPPED:
-
-                # setting migrated state
-                LOG.info("LVNF %s migration: transitioning to state %s.",
-                         (self.lvnf_id, PROCESS_M3))
-
-                self.__process = PROCESS_M3
-
-                if self.__migration_queue_empty():
-
-                    # migration finished
-                    self.__migration_done()
-
-            else:
-
-                LOG.error("%s: got invalid new state: %s",
-                          (self.process, value))
+            # set cpp
+            self.__cpp = cpp
+            self.__target_cpp = None
 
         else:
 
-            self.__process = value
-
-    def __migration_done(self):
-        """Migration done."""
-
-        # profiling
-        self.last_delta = time.time() - self.__migration_profiler
-
-        LOG.info("LVNF %s migration completed, elapsed time %u ms!",
-                 (self.lvnf_id, self.last_delta * 1000))
-
-        # reset migration data structures
-        self.__migration_queue = {}
-        self.__migration_target = None
-        self.__migration_profiler = 0
-
-        # Set process status to RUNNING
-        LOG.info("LVNF %s migration: transitioning to state %s.",
-                 (self.lvnf_id, PROCESS_RUNNING))
-
-        self.__process = PROCESS_RUNNING
-
-    def __migration_read_state(self):
-        """Read this LVNF state."""
-
-        LOG.info("LVNF %s migration: read state.", self.lvnf_id)
-
-        # call state handlers and fill migration queue
-        for handler in self.image.state_handlers:
-
-            LOG.info("LVNF %s migration: reading %s",
-                     (self.lvnf_id, handler))
-
-            func = getattr(self, handler)
-            module = func(callback=self.__migration_read_callback)
-
-            self.__migration_queue[module.module_id] = module
-
-    def __migration_read_callback(self, handler):
-        """Migration callback."""
-
-        LOG.info("LVNF %s migration: got read handler %s",
-                 (self.lvnf_id, handler.handler))
-
-        # If queue is empty and lvnf add returned, then restore state
-        if self.__migration_queue_empty() and self.process == PROCESS_M2:
-
-            # Restore state
-            self.__migration_restore_state()
-
-    def __migration_restore_state(self):
-
-        partial = time.time() - self.__migration_profiler
-        LOG.info("LVNF %s migration: add took %u ms!",
-                 (self.lvnf_id, partial * 1000))
-
-        LOG.info("LVNF %s migration: restoring state.", self.lvnf_id)
-
-        # remove old lvnf
-        LOG.info("LVNF %s migration: removing from %s!",
-                 (self.lvnf_id, self.cpp.addr))
-
-        self.cpp.connection.send_del_lvnf(self.lvnf_id)
-
-        # set cpp
-        self.__cpp = self.__migration_target
-
-        # setting old state
-        for key in self.__migration_queue:
-
-            value = self.__migration_queue[key].samples
-            handler = self.__migration_queue[key].handler
-
-            LOG.info("LVNF %s migration: writing %s." %
-                     (self.lvnf_id, handler))
-
-            func = getattr(self, handler)
-            module = func(value=value,
-                          callback=self.__migration_restore_callback)
-
-            self.__migration_queue[key] = module
-
-    def __migration_restore_callback(self, handler):
-
-        LOG.info("LVNF %s migration: got write handler %s %u %s" %
-                 (self.lvnf_id, handler.handler, handler.retcode,
-                  handler.samples))
-
-        # If queue is empty and lvnf del returned, then we are done
-        if self.__migration_queue_empty() and self.process == PROCESS_M3:
-
-            # migration finished
-            self.__migration_done()
+            IOError("Setting CPP on invalid state: %s" % self.state)
 
     def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the Poll """
+        """Return a JSON-serializable dictionary representing the Poll."""
 
         return {'lvnf_id': self.lvnf_id,
                 'image': self.image,
                 'tenant_id': self.tenant_id,
                 'cpp': self.cpp,
-                'process': self.process,
-                'message': self.message,
+                'state': self.state,
                 'returncode': self.returncode,
                 'ports': self.ports}
 
     def __eq__(self, other):
+
         if isinstance(other, LVNF):
             return self.lvnf_id == other.lvnf_id
+
         return False
 
     def __str__(self):
-        """ Return a string representation of the LVNF."""
 
         return "LVNF %s (nb_ports=%u)\n%s" % \
             (self.lvnf_id, self.image.nb_ports, self.image.vnf)

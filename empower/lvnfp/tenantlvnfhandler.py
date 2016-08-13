@@ -151,9 +151,6 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             else:
                 lvnf_id = uuid.UUID(args[1])
 
-            if lvnf_id in tenant.lvnfs:
-                raise ValueError("already defined %s" % lvnf_id)
-
             lvnf = LVNF(lvnf_id=lvnf_id,
                         tenant_id=tenant_id,
                         image=image,
@@ -163,8 +160,8 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        #except KeyError as ex:
+        #    self.send_error(404, message=ex)
 
         self.set_status(201, None)
 

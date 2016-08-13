@@ -1472,7 +1472,7 @@ function loadLVNFs(tenant) {
                 image.innerHTML = data[stream].image.vnf
 
                 var status = row.insertCell(c++);
-                status.innerHTML = data[stream].process
+                status.innerHTML = data[stream].state
 
                 var cpp = row.insertCell(c++);
                 cpp.innerHTML = data[stream].cpp.addr
