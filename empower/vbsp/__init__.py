@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" VBSP Server module. """
+"""VBSP Server module."""
 
 EMAGE_VERSION = 1
 
-PRT_VBSP_BYE = "agent_bye"
-PRT_VBSP_REGISTER = "agent_register"
+PRT_VBSP_BYE = "bye"
+PRT_VBSP_REGISTER = "register"
 PRT_VBSP_HELLO = "mHello"
 PRT_VBSP_UE_CONFIG_REQUEST = "ue_conf_req"
 PRT_VBSP_UE_CONFIG_RESPONSE = "ue_conf_repl"
