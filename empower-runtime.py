@@ -26,6 +26,7 @@ if __name__ == "__main__":
     ARGVS = ['restserver.restserver',
              'lvnfp.lvnfpserver',
              'lvapp.lvappserver',
+             'vbsp.vbspserver',
              'energinoserver.energinoserver',
              'intentserver.intentserver',
              'lvap_stats.lvap_stats',

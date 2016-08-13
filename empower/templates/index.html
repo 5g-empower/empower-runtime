@@ -15,7 +15,7 @@
       runLoader(loadPendingTenantsAdmin, '{{username}}')
       runLoader(loadUsers)
       runLoader(loadCPPs)
-      runLoader(loadVBSPs)
+      runLoader(loadVBSes)
       runLoader(loadWTPs)
       runLoader(loadMACs, 'allow')
       runLoader(loadMACs, 'deny')
@@ -42,7 +42,7 @@
           <div class="button segmentedControl tab"><span>Feeds</span></div>
           <div class="button segmentedControl tab"><span>LVAPs</span></div>
           <div class="button segmentedControl tab"><span>CPPs</span></div>
-          <div class="button segmentedControl tab"><span>VBSPs</span></div>
+          <div class="button segmentedControl tab"><span>VBSes</span></div>
           <div class="button segmentedControl tab"><span>WTPs</span></div>
           <div class="button segmentedControl tab"><span>ACL</span></div>
           <div class="button segmentedControl rightEnd tab"><span>Users</span></div>
@@ -172,9 +172,9 @@
 
           <h1>Virtual Basestation Points</h1>
 
-          <table id="vbsps" width="650" class="dump">
+          <table id="vbses" width="650" class="dump">
             <tr>
-              <td colspan="3" align="right"><a onClick="return addVBSP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+              <td colspan="3" align="right"><a onClick="return addVBS()"><img class="ctrl" src="/static/images/add.png" /></a></td>
             </tr>
           </table>
 

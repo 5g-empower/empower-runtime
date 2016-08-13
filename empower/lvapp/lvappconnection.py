@@ -118,6 +118,7 @@ class LVAPPConnection(object):
 
     def __init__(self, stream, addr, server):
         self.stream = stream
+        self.stream.set_nodelay(True)
         self.addr = addr
         self.server = server
         self.wtp = None
@@ -517,7 +518,7 @@ class LVAPPConnection(object):
             handler(self.wtp)
 
     def send_register_message_to_self(self):
-        """Send a unsollicited BYE message to senf."""
+        """Send a unsollicited REGISTER message to senf."""
 
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.wtp)

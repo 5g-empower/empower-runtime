@@ -15,25 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""(VBSP) User Equipment class."""
+"""User Equipment class."""
 
-from empower.datatypes.etheraddress import EtherAddress
-
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-def rnti_to_ether(rnti):
-    """Convert RNTU to EtherAddress."""
-
-    str_hex_value = format(rnti, 'x')
-    padding = '0' * (12 - len(str_hex_value))
-    mac_string = padding + str_hex_value
-    mac_string_array = \
-        [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
-
-    return EtherAddress(":".join(mac_string_array))
+from empower.core.utils import hex_to_ether
 
 
 class UE(object):
@@ -42,7 +26,7 @@ class UE(object):
     def __init__(self, rnti, vbsp, config, capabilities):
 
         self.rnti = rnti
-        self.ue_id = rnti_to_ether(self.rnti)
+        self.ue_id = hex_to_ether(self.rnti)
         self.vbsp = vbsp
         self.config = config
         self.capabilities = capabilities
@@ -60,8 +44,7 @@ class UE(object):
                 'capabilities': self.capabilities,
                 'rrc_measurements_config': self.rrc_measurements_config,
                 'primary_cell_rsrp': self.pcell_rsrp,
-                'primary_cell_rsrq': self.pcell_rsrq
-				}
+                'primary_cell_rsrq': self.pcell_rsrq}
 
     def __eq__(self, other):
         if isinstance(other, UE):

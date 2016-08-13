@@ -239,11 +239,11 @@ class TblWTP(TblPNFDev):
     }
 
 
-class TblVBSP(TblPNFDev):
+class TblVBS(TblPNFDev):
     """ Virtual Base Station Point. """
 
     __mapper_args__ = {
-        'polymorphic_identity': 'vbsps'
+        'polymorphic_identity': 'vbses'
     }
 
 

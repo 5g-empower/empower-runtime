@@ -31,7 +31,7 @@ class BasePNFDev(object):
         last_seen_ts: Timestamp of the last hello message received (int)
         feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
-        every: update period (in ms)
+        period: update period (in ms)
         ports: OVS ports
     """
 
@@ -47,7 +47,7 @@ class BasePNFDev(object):
         self.last_seen_ts = 0
         self.feed = None
         self.__seq = 0
-        self.every = 0
+        self.period = 0
         self.ports = {}
 
     def port(self, ifname="empower0"):
@@ -83,7 +83,7 @@ class BasePNFDev(object):
         return {'addr': self.addr,
                 'last_seen': self.last_seen,
                 'last_seen_ts': date,
-                'every': self.every,
+                'period': self.period,
                 'label': self.label,
                 'feed': self.feed,
                 'ports': self.ports,

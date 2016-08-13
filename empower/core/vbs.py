@@ -24,7 +24,6 @@ class VBS(BasePNFDev):
     """A Virtual Base Station Point.
 
     Attributes:
-    Attributes:
         addr: This PNFDev MAC address (EtherAddress)
         label: A human-radable description of this PNFDev (str)
         connection: Signalling channel connection (BasePNFPMainHandler)

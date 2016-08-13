@@ -786,11 +786,11 @@ function loadCPPs(tenant_id) {
     });
 }
 
-function removeVBSP(mac, tenant_id) {
+function removeVBS(mac, tenant_id) {
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/vbsps/" + mac
+        url = "/api/v1/tenants/" + tenant_id + "/vbses/" + mac
     } else {
-        url = "/api/v1/vbsps/" + mac
+        url = "/api/v1/vbses/" + mac
     }
     $.ajax({
         url: url,
@@ -801,7 +801,7 @@ function removeVBSP(mac, tenant_id) {
             request.setRequestHeader("Authorization", BASE_AUTH);
         },
         success: function (data) {
-            loadVBSPs()
+            loadVBSes()
         },
         statusCode: {
             400: function () {
@@ -987,19 +987,19 @@ function lvnfDown(idLvnf) {
 
 }
 
-function selectVBSP() {
+function selectVBS() {
 
-    $.getJSON("/api/v1/vbsps",
+    $.getJSON("/api/v1/vbses",
         function(data) {
 
-            tmp = "Select VBSP: <select id=\"select_vbsp\">"
+            tmp = "Select VBS: <select id=\"select_vbs\">"
             for (var stream in data) {
                 tmp += "<option value='" + data[stream].addr + "'>" + data[stream].addr + " (" + data[stream].label + ")</option>"
             }
             tmp += "</select>"
-            tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addVBSPtoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPSelectBox()\" /></div>"
+            tmp += "<div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"addVBStoTenant()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSSelectBox()\" /></div>"
 
-            var table = document.getElementById("vbsps");
+            var table = document.getElementById("vbses");
             var rowCount = table.rows.length - 1;
             var row = table.deleteRow(rowCount);
             var row = table.insertRow(rowCount);
@@ -1035,15 +1035,15 @@ function selectCPP() {
 
 }
 
-function removeVBSPSelectBox() {
-    var table = document.getElementById("vbsps");
+function removeVBSSelectBox() {
+    var table = document.getElementById("vbses");
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 3
     mac.align = "right"
-    mac.innerHTML = "<a onClick=\"return selectVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
+    mac.innerHTML = "<a onClick=\"return selectVBS()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
 function removeCPPSelectBox() {
@@ -1076,10 +1076,10 @@ function addCPPtoTenant() {
     });
 }
 
-function addVBSPtoTenant() {
-    var select = document.getElementById('select_vbsp');
+function addVBStoTenant() {
+    var select = document.getElementById('select_vbs');
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/vbsps/" + select.value,
+        url: "/api/v1/tenants/" + tenant_id + "/vbses/" + select.value,
         type: 'POST',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
@@ -1087,10 +1087,10 @@ function addVBSPtoTenant() {
         dataType: 'json',
         cache: false,
         success: function (data) {
-            removeVBSPSelectBox()
+            removeVBSSelectBox()
         },
         error: function (data) {
-            removeVBSPSelectBox()
+            removeVBSSelectBox()
         },
     });
 }
@@ -1687,13 +1687,13 @@ function addWTPtoTenant() {
     });
 }
 
-vbsps = {}
+vbses = {}
 
-function loadVBSPs(tenant_id) {
+function loadVBSes(tenant_id) {
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/vbsps"
+        url = "/api/v1/tenants/" + tenant_id + "/vbses"
     } else {
-        url = "/api/v1/vbsps"
+        url = "/api/v1/vbses"
     }
     $.ajax({
         url: url,
@@ -1701,7 +1701,7 @@ function loadVBSPs(tenant_id) {
         dataType: 'json',
         cache: false,
         success: function (data) {
-            var table = document.getElementById('vbsps');
+            var table = document.getElementById('vbses');
             var rowCount = table.rows.length - 1;
             while (rowCount--) {
                 if (rowCount < 0) {
@@ -1710,7 +1710,7 @@ function loadVBSPs(tenant_id) {
                 table.deleteRow(rowCount);
             }
             if (data.length == 0) {
-                var table = document.getElementById('vbsps');
+                var table = document.getElementById('vbses');
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
@@ -1720,7 +1720,7 @@ function loadVBSPs(tenant_id) {
             }
             for (var stream in data) {
                 value = data[stream].addr
-                var table = document.getElementById('vbsps');
+                var table = document.getElementById('vbses');
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var c = 0
@@ -1728,9 +1728,9 @@ function loadVBSPs(tenant_id) {
                 remove.align = "center"
                 remove.width = "24px"
                 if (tenant_id) {
-                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBSP('" + value + "', '" + tenant_id + "')\" />"
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBS('" + value + "', '" + tenant_id + "')\" />"
                 } else {
-                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBSP('" + value + "')\" />"
+                    remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeVBS('" + value + "')\" />"
                 }
                 var flag = row.insertCell(c++);
                 flag.align = "center"
@@ -1743,9 +1743,9 @@ function loadVBSPs(tenant_id) {
                 var mac = row.insertCell(c++);
                 mac.innerHTML = data[stream]['label'] + " (" + value + ")"
                 if (data[stream]['connection']) {
-                    mac.innerHTML += "<div class=\"details\" id=\"vbsp_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
+                    mac.innerHTML += "<div class=\"details\" id=\"vbs_" + stream + "\">at " + data[stream]['connection'] + ", last seen: " + data[stream]['last_seen'] + "</div>"
                 } else {
-                    mac.innerHTML += "<div class=\"details\" id=\"vbsp_" + stream + "\">Disconnected</div>"
+                    mac.innerHTML += "<div class=\"details\" id=\"vbs_" + stream + "\">Disconnected</div>"
                 }
             }
         },
@@ -1754,9 +1754,9 @@ function loadVBSPs(tenant_id) {
 
 function removeVNSP(mac, tenant_id) {
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/vbsps/" + mac
+        url = "/api/v1/tenants/" + tenant_id + "/vbses/" + mac
     } else {
-        url = "/api/v1/vbsps/" + mac
+        url = "/api/v1/vbses/" + mac
     }
     $.ajax({
         url: url,
@@ -1767,7 +1767,7 @@ function removeVNSP(mac, tenant_id) {
             request.setRequestHeader("Authorization", BASE_AUTH);
         },
         success: function (data) {
-            loadVBSPs()
+            loadVBSes()
         },
         statusCode: {
             400: function () {
@@ -1783,13 +1783,13 @@ function removeVNSP(mac, tenant_id) {
     });
 }
 
-function registerVBSP(tenant_id) {
-    var mac = document.getElementById("vbsp_mac").value;
-    var label = document.getElementById("vbsp_label").value;
+function registerVBS(tenant_id) {
+    var mac = document.getElementById("vbs_mac").value;
+    var label = document.getElementById("vbs_label").value;
     if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/vbsps"
+        url = "/api/v1/tenants/" + tenant_id + "/vbses"
     } else {
-        url = "/api/v1/vbsps"
+        url = "/api/v1/vbses"
     }
     data = '{  "version" : "1.0", "addr" : "' + mac + '", "label" : "' + label + '" }'
     $.ajax({
@@ -1803,14 +1803,14 @@ function registerVBSP(tenant_id) {
         },
         statusCode: {
             201: function (data) {
-                var table = document.getElementById('vbsps');
+                var table = document.getElementById('vbses');
                 var rowCount = table.rows.length - 1;
                 var row = table.deleteRow(rowCount);
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
                 mac.colSpan = 3
                 mac.align = "right"
-                mac.innerHTML = "<a onClick=\"return addVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                mac.innerHTML = "<a onClick=\"return addVBS()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
             },
             400: function () {
                 alert('Invalid MAC Address');
@@ -1825,24 +1825,24 @@ function registerVBSP(tenant_id) {
     });
 }
 
-function addVBSP() {
-    var table = document.getElementById('vbsps');
+function addVBS() {
+    var table = document.getElementById('vbses');
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbsp_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBSP Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbsp_label\" type=\"text\" value=\"Generic VBSP Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBSP()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSPInputBox()\" /></div></li></ul>"
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBS Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_label\" type=\"text\" value=\"Generic VBS Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBS()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSInputBox()\" /></div></li></ul>"
     mac.colSpan = 3
     mac.innerHTML = tmp
 }
 
-function removeVBSPInputBox() {
-    var table = document.getElementById('vbsps');
+function removeVBSInputBox() {
+    var table = document.getElementById('vbses');
     var rowCount = table.rows.length - 1;
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 3
     mac.align = "right"
-    mac.innerHTML = "<a onClick=\"return addVBSP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+    mac.innerHTML = "<a onClick=\"return addVBS()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
 }

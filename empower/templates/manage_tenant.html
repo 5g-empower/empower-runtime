@@ -16,7 +16,7 @@
       runLoader(loadWTPs, '{{tenant.tenant_id}}')
       runLoader(loadLVNFs, '{{tenant.tenant_id}}')
       lvapsInterval = runLoader(loadLVAPs, '{{tenant.tenant_id}}')
-      runLoader(loadVBSPs, '{{tenant.tenant_id}}')
+      runLoader(loadVBSes, '{{tenant.tenant_id}}')
   }
 
   </script>
@@ -31,7 +31,7 @@
     <div class="button segmentedControl tab"><span>LVAPs</span></div>
     <div class="button segmentedControl tab"><span>LVNFs</span></div>
     <div class="button segmentedControl tab"><span>CPPs</span></div>
-    <div class="button segmentedControl tab"><span>VBSPs</span></div>
+    <div class="button segmentedControl tab"><span>VBSes</span></div>
     <div class="button segmentedControl rightEnd tab"><span>WTPs</span></div>
   </div>
 </div>
@@ -123,9 +123,9 @@
 
       <h1>Virtual Basestation Points</h1>
 
-      <table id="vbsps" width="450px" class="dump">
+      <table id="vbses" width="450px" class="dump">
         <tr>
-          <td colspan="3" align="right"><a onClick="return selectVBSP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+          <td colspan="3" align="right"><a onClick="return selectVBS()"><img class="ctrl" src="/static/images/add.png" /></a></td>
         </tr>
       </table>
 

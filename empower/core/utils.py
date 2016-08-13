@@ -20,6 +20,23 @@
 from empower.datatypes.etheraddress import EtherAddress
 
 
+def hex_to_ether(in_hex):
+    """Convert RNTU to EtherAddress."""
+
+    str_hex_value = format(in_hex, 'x')
+    padding = '0' * (12 - len(str_hex_value))
+    mac_string = padding + str_hex_value
+    mac_string_array = \
+        [mac_string[i:i+2] for i in range(0, len(mac_string), 2)]
+
+    return EtherAddress(":".join(mac_string_array))
+
+
+def ether_to_hex(ether):
+
+    return 47710
+
+
 def generate_bssid(base_mac, sta_mac):
     """ Generate a new BSSID address. """
 
