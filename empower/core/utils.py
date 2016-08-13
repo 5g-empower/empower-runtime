@@ -21,7 +21,7 @@ from empower.datatypes.etheraddress import EtherAddress
 
 
 def hex_to_ether(in_hex):
-    """Convert RNTU to EtherAddress."""
+    """Convert Int to EtherAddress."""
 
     str_hex_value = format(in_hex, 'x')
     padding = '0' * (12 - len(str_hex_value))
@@ -33,8 +33,9 @@ def hex_to_ether(in_hex):
 
 
 def ether_to_hex(ether):
+    """Convert EtherAddress to Int."""
 
-    return 47710
+    return int.from_bytes(ether.to_raw(), byteorder='big')
 
 
 def generate_bssid(base_mac, sta_mac):
