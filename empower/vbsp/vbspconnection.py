@@ -37,6 +37,7 @@ LOG = empower.logger.get_logger()
 
 
 def create_header(t_id, b_id, msg_type, header):
+    """Create message header."""
 
     if not header:
         LOG.error("header parameter is None")
@@ -55,6 +56,7 @@ def create_header(t_id, b_id, msg_type, header):
 
 
 def serialize_message(message):
+    """Serialize message."""
 
     if not message:
         LOG.error("message parameter is None")
@@ -64,6 +66,7 @@ def serialize_message(message):
 
 
 def deserialize_message(serialized_data):
+    """De-Serialize message."""
 
     if not serialized_data:
         LOG.error("Received serialized data is None")
@@ -111,8 +114,8 @@ class VBSPConnection(object):
         return self.addr
 
     def _heartbeat_cb(self):
-        """ Check if wtp connection is still active. Disconnect if no hellos
-        have been received from the wtp for twice the hello period. """
+        """Check if connection is still active."""
+
         if self.vbs and not self.stream.closed():
             timeout = (self.vbs.period / 1000) * 3
             if (self.vbs.last_seen_ts + timeout) < time.time():
@@ -120,9 +123,11 @@ class VBSPConnection(object):
                 self.stream.close()
 
     def stream_send(self, message):
+        """Send message."""
+
         size = message.ByteSize()
 
-        LOG.info("Sent message of length %d" % size)
+        LOG.info("Sent message of length %d", size)
         LOG.info(message.__str__())
 
         size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
@@ -144,7 +149,7 @@ class VBSPConnection(object):
 
         if line is not None:
 
-            LOG.info("Received message of length %d" % len(line))
+            LOG.info("Received message of length %d", len(line))
 
             self.__buffer = self.__buffer + line
 
