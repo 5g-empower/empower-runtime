@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio, Supreeth Herle
+# Copyright (c) 2016 Supreeth Herle
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,13 +83,13 @@ class ModuleVBSPWorker(ModuleWorker):
     def handle_packet(self, response):
         """Handle response message."""
 
-        if response.module_id not in self.modules:
+        if response.head.t_id not in self.modules:
             return
 
-        module = self.modules[response.module_id]
+        module = self.modules[response.head.t_id]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response.module_id)
+                      response.head.t_id)
 
         module.handle_response(response)
 

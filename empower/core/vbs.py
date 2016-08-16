@@ -18,6 +18,7 @@
 """Virtual Base Station Point."""
 
 from empower.core.pnfdev import BasePNFDev
+from empower.core.utils import ether_to_hex
 
 
 class VBS(BasePNFDev):
@@ -44,6 +45,12 @@ class VBS(BasePNFDev):
         super().__init__(addr, label)
         self.cc_configs = {}
         self.ues = {}
+
+    @property
+    def enb_id(self):
+        """Return tenant id."""
+
+        return ether_to_hex(self.addr)
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the VBS."""

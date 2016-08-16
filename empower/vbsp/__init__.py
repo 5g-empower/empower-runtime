@@ -19,10 +19,13 @@
 
 EMAGE_VERSION = 1
 
+MAX_NUM_CCS = 1
+
 PRT_VBSP_BYE = "bye"
 PRT_VBSP_REGISTER = "register"
 PRT_VBSP_HELLO = "mHello"
 PRT_VBSP_CONFIGS = "mConfs"
+PRT_VBSP_STATS = "mStats"
 PRT_VBSP_UE_CONFIG_REQUEST = "ue_conf_req"
 PRT_VBSP_UE_CONFIG_RESPONSE = "ue_conf_repl"
 PRT_VBSP_ENB_CONFIG_REQUEST = "enb_conf_req"
@@ -32,6 +35,7 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_VBSP_REGISTER: None,
              PRT_VBSP_HELLO: "hello",
              PRT_VBSP_CONFIGS: "confs",
+             PRT_VBSP_STATS: "stats",
              PRT_VBSP_UE_CONFIG_REQUEST: None,
              PRT_VBSP_UE_CONFIG_RESPONSE: "ue_conf_repl",
              PRT_VBSP_ENB_CONFIG_REQUEST: None,
@@ -42,7 +46,5 @@ PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
                       PRT_VBSP_REGISTER: [],
                       PRT_VBSP_HELLO: [],
                       PRT_VBSP_CONFIGS: [],
-                      PRT_VBSP_UE_CONFIG_REQUEST: [],
                       PRT_VBSP_UE_CONFIG_RESPONSE: [],
-                      PRT_VBSP_ENB_CONFIG_REQUEST: [],
                       PRT_VBSP_ENB_CONFIG_RESPONSE: []}

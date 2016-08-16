@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
+# Copyright (c) 2016 Supreeth Herle
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ from empower.vbsp import EMAGE_VERSION
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
 from empower.vbsp import PRT_VBSP_CONFIGS
+from empower.vbsp import PRT_VBSP_STATS
 from empower.vbsp.messages import main_pb2
 from empower.vbsp.messages import configs_pb2
 from empower.core.utils import hex_to_ether
@@ -179,6 +180,13 @@ class VBSPConnection(object):
                 LOG.error("Unknown configs message type %u", config_type)
                 return
             msg_type = config_type
+
+        if msg_type == PRT_VBSP_STATS:
+            st_type = deserialized_msg.mStats.WhichOneof("stats_msg")
+            if not st_type or st_type not in self.server.pt_types:
+                LOG.error("Unknown stats message type %u", st_type)
+                return
+            msg_type = st_type
 
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
 
