@@ -41,6 +41,8 @@ if __name__ == "__main__":
              'triggers.summary',
              'events.cppdown',
              'events.cppup',
+             'events.vbsup',
+             'events.vbsdown',
              'events.lvnfjoin',
              'events.lvnfleave',
              'lvnf_ems.lvnf_get',

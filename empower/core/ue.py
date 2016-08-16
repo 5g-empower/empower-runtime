@@ -17,17 +17,14 @@
 
 """User Equipment class."""
 
-from empower.core.utils import hex_to_ether
-
 
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, rnti, vbsp, config, capabilities):
+    def __init__(self, rnti, vbs, config, capabilities):
 
         self.rnti = rnti
-        self.ue_id = hex_to_ether(self.rnti)
-        self.vbsp = vbsp
+        self.vbsp = vbs
         self.config = config
         self.capabilities = capabilities
         self.rrc_measurements_config = config
@@ -40,7 +37,6 @@ class UE(object):
 
         return {'rnti': self.rnti,
                 'vbsp': self.vbsp.addr,
-                'ue_id': self.ue_id,
                 'capabilities': self.capabilities,
                 'rrc_measurements_config': self.rrc_measurements_config,
                 'primary_cell_rsrp': self.pcell_rsrp,

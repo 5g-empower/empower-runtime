@@ -32,7 +32,11 @@ class WTPUp(Module):
         """This will be executed only once after initialization."""
 
         for wtp in RUNTIME.tenants[self.tenant_id].wtps.values():
-            self.handle_callback(wtp)
+
+            if not wtp.connection:
+                continue
+
+            wtp.connectionsend_register_message_to_self()
 
     def handle_response(self, wtp):
         """ Handle an REGISTER event.

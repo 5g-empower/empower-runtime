@@ -22,13 +22,17 @@ import tornado.ioloop
 import socket
 import sys
 
+from protobuf_to_dict import protobuf_to_dict
+
 from empower.vbsp import EMAGE_VERSION
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
+from empower.vbsp import PRT_VBSP_CONFIGS
 from empower.vbsp.messages import main_pb2
 from empower.vbsp.messages import configs_pb2
 from empower.core.utils import hex_to_ether
 from empower.core.utils import ether_to_hex
+from empower.core.ue import UE
 
 from empower.main import RUNTIME
 
@@ -128,7 +132,6 @@ class VBSPConnection(object):
         size = message.ByteSize()
 
         LOG.info("Sent message of length %d", size)
-        LOG.info(message.__str__())
 
         size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
@@ -149,8 +152,6 @@ class VBSPConnection(object):
 
         if line is not None:
 
-            LOG.info("Received message of length %d", len(line))
-
             self.__buffer = self.__buffer + line
 
             if len(line) == 4:
@@ -161,8 +162,6 @@ class VBSPConnection(object):
 
             deserialized_msg = deserialize_message(line)
 
-            LOG.info(deserialized_msg.__str__())
-
             self._trigger_message(deserialized_msg)
             self._wait()
 
@@ -171,8 +170,15 @@ class VBSPConnection(object):
         msg_type = deserialized_msg.WhichOneof("message")
 
         if not msg_type or msg_type not in self.server.pt_types:
-            LOG.error("Unknown message type %u", msg_type)
+            LOG.error("Unknown message type %s", msg_type)
             return
+
+        if msg_type == PRT_VBSP_CONFIGS:
+            config_type = deserialized_msg.mConfs.WhichOneof("config_msg")
+            if not config_type or config_type not in self.server.pt_types:
+                LOG.error("Unknown configs message type %u", config_type)
+                return
+            msg_type = config_type
 
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
 
@@ -211,10 +217,65 @@ class VBSPConnection(object):
             self.send_enb_conf_req()
             self.send_ue_conf_req()
             vbs.period = 5000
+            self.send_register_message_to_self()
 
         # Update VBSP params
         vbs.last_seen = main_msg.head.seq
         vbs.last_seen_ts = time.time()
+
+    def _handle_enb_conf_repl(self, message):
+        """Handle an incoming eNB configuration reply.
+
+        Args:
+            message, a emage_msg containing eNB configuration message
+        Returns:
+            None
+        """
+
+        vbs = RUNTIME.vbses[self.vbs.addr]
+        msg = protobuf_to_dict(message)
+
+        if "cell_conf" not in msg["mConfs"]["enb_conf_repl"]:
+            return
+
+        cc_configs = msg["mConfs"]["enb_conf_repl"]["cell_conf"]
+
+        for c_carrier in cc_configs:
+            cc_id = c_carrier["cc_id"]
+            vbs.cc_configs[cc_id] = c_carrier
+
+    def _handle_ue_conf_repl(self, message):
+        """Handle an incoming UE configuration reply.
+
+        Args:
+            message, a emage_msg containing UE configuration message
+        Returns:
+            None
+        """
+
+        vbs = RUNTIME.vbses[self.vbs.addr]
+        msg = protobuf_to_dict(message)
+
+        if "ue_conf" not in msg["mConfs"]["ue_conf_repl"]:
+            return
+
+        ue_configs = msg["mConfs"]["ue_conf_repl"]["ue_conf"]
+
+        for ue_config in ue_configs:
+
+            rnti = ue_config["rnti"]
+
+            if rnti not in vbs.ues:
+                vbs.ues[rnti] = UE(rnti, self.vbs, ue_config)
+
+            if "phy_conf" in ue_config:
+                vbs.ues[rnti].phy_config = ue_config["phy_conf"]
+
+            if "mac_conf" in ue_config:
+                vbs.ues[rnti].mac_config = ue_config["mac_conf"]
+
+            if "rrc_conf" in ue_config:
+                vbs.ues[rnti].rrc_config = ue_config["rrc_conf"]
 
     def send_enb_conf_req(self):
         """ Send request for eNB configuration """

@@ -34,7 +34,7 @@ from empower.vbsp.uehandler import UEHandler
 
 from empower.main import RUNTIME
 
-DEFAULT_PORT = 2233
+DEFAULT_PORT = 2210
 
 
 class TenantVBSHandler(BaseTenantPNFDevHandler):

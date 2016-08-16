@@ -17,60 +17,60 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import Module
-from empower.vbspp import PRT_VBSP_BYE
-from empower.vbspp.vbspserver import ModuleVBSPPEventWorker
+from empower.vbsp import PRT_VBSP_REGISTER
+from empower.vbsp.vbspserver import ModuleVBSPEventWorker
 
 from empower.main import RUNTIME
 
 
-class VBSPDown(Module):
-    """VBSPDown worker."""
+class VBSUp(Module):
+    """VBSUp worker."""
 
-    MODULE_NAME = "vbspdown"
+    MODULE_NAME = "vbsup"
 
-    def handle_response(self, vbsp):
-        """ Handle an BYE message.
+    def handle_response(self, vbs):
+        """ Handle a REGISTER message.
 
         Args:
-            vbsp, a VBSP object
+            vbs, a VBS object
 
         Returns:
             None
         """
 
-        vbsps = RUNTIME.tenants[self.tenant_id].vbsps
+        vbses = RUNTIME.tenants[self.tenant_id].vbses
 
-        if vbsp.addr not in vbsps:
+        if vbs.addr not in vbses:
             return
 
-        vbsp = vbsps[vbsp.addr]
+        vbs = vbses[vbs.addr]
 
-        self.handle_callback(vbsp)
+        self.handle_callback(vbs)
 
 
-class VBSPDownWorker(ModuleVBSPPEventWorker):
+class VBSUpWorker(ModuleVBSPEventWorker):
     """ Counter worker. """
 
     pass
 
 
-def vbspdown(**kwargs):
+def vbsup(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[VBSPDownWorker.__module__].add_module(**kwargs)
+    return RUNTIME.components[VBSUpWorker.__module__].add_module(**kwargs)
 
 
-def app_vbspdown(self, **kwargs):
+def app_vbsup(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
-    return vbspdown(**kwargs)
+    return vbsup(**kwargs)
 
 
-setattr(EmpowerApp, VBSPDown.MODULE_NAME, app_vbspdown)
+setattr(EmpowerApp, VBSUp.MODULE_NAME, app_vbsup)
 
 
 def launch():
     """Initialize the module."""
 
-    return VBSPDownWorker(VBSPDown, PRT_VBSP_BYE)
+    return VBSUpWorker(VBSUp, PRT_VBSP_REGISTER)

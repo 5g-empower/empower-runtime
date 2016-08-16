@@ -737,7 +737,7 @@ class LVAPPConnection(object):
 
             wtp.ports[network_port.port_id] = network_port
 
-        self.send_register_message_to_self()
+            self.send_register_message_to_self()
 
     @classmethod
     def _handle_interference_map(cls, interference_map):
