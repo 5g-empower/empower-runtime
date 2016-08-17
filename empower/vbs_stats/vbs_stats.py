@@ -71,35 +71,38 @@ class VBSStats(Module):
     def l2_stats_req(self, value):
         """Set configuration of layer 2 stats requested."""
 
+        if self.l2_stats_req:
+            raise ValueError("Cannot update configuration")
+
         if "report_type" not in value:
-            raise ValueError("missing report_type element")
+            raise ValueError("Missing report_type element")
 
         if value["report_type"] not in L2_STATS_TYPE:
             raise ValueError("Invalid report_type element")
 
         if "report_frequency" not in value:
-            raise ValueError("missing report_frequency element")
+            raise ValueError("Missing report_frequency element")
 
         if value["report_frequency"] not in L2_STATS_REPORT_FREQ:
             raise ValueError("Invalid report_frequency element")
 
         if value["report_frequency"] == "periodical":
             if "periodicity" not in value:
-                raise ValueError("missing periodicity element")
+                raise ValueError("Missing periodicity element")
 
         if "report_config" not in value:
-            raise ValueError("missing report_config element")
+            raise ValueError("Missing report_config element")
 
         if "ue_report_type" not in value["report_config"]:
-            raise ValueError("missing ue_report_type element")
+            raise ValueError("Missing ue_report_type element")
 
         ue_report_type = value["report_config"]["ue_report_type"]
 
         if "ue_report_flags" not in ue_report_type:
-            raise ValueError("missing ue_report_flags element")
+            raise ValueError("Missing ue_report_flags element")
 
         if len(ue_report_type["ue_report_flags"]) == 0:
-            raise ValueError("invalid ue_report_flags element")
+            raise ValueError("Invalid ue_report_flags element")
 
         for flag in ue_report_type["ue_report_flags"]:
             if flag not in L2_UE_STATS_TYPES:
@@ -122,12 +125,8 @@ class VBSStats(Module):
 
         if value["report_type"] == "cell":
 
-            if len(value["report_config"]["cell_report_type"]["cc_id"]) == 0:
+            if len(cell_report_type["cc_id"]) == 0:
                 raise ValueError("missing cc_id element")
-
-            for c_carrier in cell_report_type["cc_id"]:
-                if c_carrier >= MAX_NUM_CCS:
-                    raise ValueError("Invalid CC (Component Carrier) id value")
 
         if value["report_type"] == "ue":
 
@@ -201,12 +200,7 @@ class VBSStats(Module):
         connection = vbs.connection
         enb_id = connection.vbs.enb_id
 
-        if st_req_conf["report_frequency"] == "off":
-            create_header(self.module_id, enb_id,
-                          main_pb2.STATS_REQ, st_req.head)
-        else:
-            create_header(self.module_id, enb_id,
-                          main_pb2.STATS_REQ, st_req.head)
+        create_header(self.module_id, enb_id, main_pb2.STATS_REQ, st_req.head)
 
         if st_req_conf["report_frequency"] == "periodical":
             l2_st_req.subframe = st_req_conf["periodicity"]
@@ -215,12 +209,17 @@ class VBSStats(Module):
 
             comp_st = l2_st_req.comp_stats_req
 
-            if st_req_conf["report_frequency"] != "off":
-                for flag in rep_conf["cell_report_type"]["cell_report_flags"]:
-                    cc_report_flag |= L2_CELL_STATS_TYPES[flag]
+            for flag in rep_conf["cell_report_type"]["cell_report_flags"]:
+                cc_report_flag |= L2_CELL_STATS_TYPES[flag]
 
-                for flag in rep_conf["ue_report_type"]["ue_report_flags"]:
-                    ue_report_flag |= L2_UE_STATS_TYPES[flag]
+            for c_carrier in rep_conf["cell_report_type"]["cc_id"]:
+                comp_st.cc_id.append(c_carrier)
+
+            for flag in rep_conf["ue_report_type"]["ue_report_flags"]:
+                ue_report_flag |= L2_UE_STATS_TYPES[flag]
+
+            for rnti in rep_conf["ue_report_type"]["ue_rnti"]:
+                comp_st.rnti.append(rnti)
 
             comp_st.ue_report_flags = ue_report_flag
             comp_st.cell_report_flags = cc_report_flag
@@ -228,32 +227,24 @@ class VBSStats(Module):
         elif l2_st_req.type == statistics_pb2.L2ST_CELL:
 
             cell_st = l2_st_req.cell_stats_req
-            # Initialize the cc ids list with dummy value.
-            cell_st.cc_id.append(0)
 
-            if st_req_conf["report_frequency"] != "off":
-                del cell_st.cc_id[:]
-                for flag in rep_conf["cell_report_type"]["cell_report_flags"]:
-                    cc_report_flag |= L2_CELL_STATS_TYPES[flag]
+            for flag in rep_conf["cell_report_type"]["cell_report_flags"]:
+                cc_report_flag |= L2_CELL_STATS_TYPES[flag]
 
-                for c_carrier in rep_conf["cell_report_type"]["cc_id"]:
-                    cell_st.cc_id.append(c_carrier)
+            for c_carrier in rep_conf["cell_report_type"]["cc_id"]:
+                cell_st.cc_id.append(c_carrier)
 
             cell_st.report_flags = cc_report_flag
 
         elif l2_st_req.type == statistics_pb2.L2ST_UE:
 
             ue_st = l2_st_req.ue_stats_req
-            # Initialize the rnti ids list with dummy value.
-            ue_st.rnti.append(0)
 
-            if st_req_conf["report_frequency"] != "off":
-                del ue_st.rnti[:]
-                for flag in rep_conf["ue_report_type"]["ue_report_flags"]:
-                    ue_report_flag |= L2_UE_STATS_TYPES[flag]
+            for flag in rep_conf["ue_report_type"]["ue_report_flags"]:
+                ue_report_flag |= L2_UE_STATS_TYPES[flag]
 
-                for rnti in rep_conf["ue_report_type"]["ue_rnti"]:
-                    ue_st.rnti.append(rnti)
+            for rnti in rep_conf["ue_report_type"]["ue_rnti"]:
+                ue_st.rnti.append(rnti)
 
             ue_st.report_flags = ue_report_flag
 
@@ -261,9 +252,6 @@ class VBSStats(Module):
                       self.module_id)
 
         vbs.connection.stream_send(st_req)
-
-        if st_req_conf["report_frequency"] == "off":
-            self.worker.remove_module(st_req_conf["timer_id"])
 
     def handle_response(self, response):
         """Handle an incoming stats response message.

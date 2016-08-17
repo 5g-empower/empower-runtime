@@ -24,15 +24,14 @@ from empower.core.app import DEFAULT_PERIOD
 L2_STATS_REQ = {
     "report_type": "complete",
     "report_frequency": "once",
-    "timer_id": 0,
-    "periodicity": 5,
     "report_config": {
         "ue_report_type": {
             "ue_report_flags": ["power_headroom_report"],
+            "ue_rnti": [],
         },
         "cell_report_type": {
             "cell_report_flags": ["noise_interference"],
-            "cc_id": [0]
+            "cc_id": [],
         }
     }
 }
