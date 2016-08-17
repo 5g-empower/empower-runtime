@@ -210,7 +210,7 @@ class LVNF(object):
 
     def _none_running(self):
 
-        self.__state = PROCESS_SPAWNING
+        self.__state = PROCESS_RUNNING
 
     @property
     def cpp(self):

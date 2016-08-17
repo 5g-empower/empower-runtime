@@ -53,7 +53,7 @@ class VirtualPort(object):
         self.virtual_port_id = virtual_port_id
         self.hwaddr = phy_port.hwaddr
         self.iface = phy_port.iface
-        self.next = None
+        self.next = dict()
 
     def clear(self):
         """Clear all outgoing links."""
@@ -198,4 +198,3 @@ class VirtualPortPropLvnf(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
     pass
-
