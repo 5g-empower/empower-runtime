@@ -66,7 +66,7 @@ class VBSStatsPoller(EmpowerApp):
     def vbs_stats_callback(self, stats):
         """ New stats available. """
 
-        self.log.info("New vbs stats received ")
+        self.log.info("New vbs stats received")
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
