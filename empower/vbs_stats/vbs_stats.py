@@ -29,7 +29,6 @@ from empower.vbs_stats import L2_CELL_STATS_TYPES
 from empower.vbs_stats import L2_STATS_REPORT_FREQ
 from empower.vbs_stats import L2_UE_STATS_TYPES
 from empower.vbsp.vbspconnection import create_header
-from empower.vbsp import MAX_NUM_CCS
 from empower.vbs_stats import PRT_VBSP_L2_STATS_RESPONSE
 from empower.main import RUNTIME
 
@@ -98,6 +97,9 @@ class VBSStats(Module):
 
         ue_report_type = value["report_config"]["ue_report_type"]
 
+        if "ue_rnti" not in ue_report_type:
+            raise ValueError("missing ue_rnti element")
+
         if "ue_report_flags" not in ue_report_type:
             raise ValueError("Missing ue_report_flags element")
 
@@ -113,6 +115,9 @@ class VBSStats(Module):
 
         cell_report_type = value["report_config"]["cell_report_type"]
 
+        if "cc_id" not in cell_report_type:
+            raise ValueError("missing cc_id element")
+
         if "cell_report_flags" not in cell_report_type:
             raise ValueError("missing cell_report_flags element")
 
@@ -122,16 +127,6 @@ class VBSStats(Module):
         for flag in cell_report_type['cell_report_flags']:
             if flag not in L2_CELL_STATS_TYPES:
                 raise ValueError("Invalid cell_report_flag type")
-
-        if value["report_type"] == "cell":
-
-            if len(cell_report_type["cc_id"]) == 0:
-                raise ValueError("missing cc_id element")
-
-        if value["report_type"] == "ue":
-
-            if len(ue_report_type["ue_rnti"]) == 0:
-                raise ValueError("missing ue_rnti element")
 
         self._l2_stats_req = value
 
@@ -149,7 +144,8 @@ class VBSStats(Module):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.vbs == other.vbs
+        return super().__eq__(other) and self.vbs == other.vbs and \
+            self.l2_stats_req == other.l2_stats_req
 
     def to_dict(self):
         """ Return a JSON-serializable."""
@@ -250,6 +246,37 @@ class VBSStats(Module):
 
         self.log.info("Sending layer 2 stats request to %s (id=%u)", vbs.addr,
                       self.module_id)
+
+        vbs.connection.stream_send(st_req)
+
+    def cleanup(self):
+        """Remove this module."""
+
+        self.log.info("Cleanup %s (id=%u)", self.module_type, self.module_id)
+
+        vbses = RUNTIME.tenants[self.tenant_id].vbses
+
+        if self.vbs not in vbses:
+            return
+
+        vbs = vbses[self.vbs]
+
+        if not vbs.connection or vbs.connection.stream.closed():
+            self.log.info("VBS %s not connected", vbs.addr)
+            return
+
+        st_req = main_pb2.emage_msg()
+        st_req_msg = st_req.mStats
+        st_req_msg.type = statistics_pb2.L2_STATISTICS_REQUEST
+        l2_st_req = st_req_msg.l2_stats_req
+        l2_st_req.report_freq = statistics_pb2.REPF_OFF
+
+        connection = vbs.connection
+        enb_id = connection.vbs.enb_id
+
+        create_header(self.module_id, enb_id, main_pb2.STATS_REQ, st_req.head)
+
+        print(st_req)
 
         vbs.connection.stream_send(st_req)
 

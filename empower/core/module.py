@@ -175,12 +175,13 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
                 raise KeyError("Module %u not in tenant %s" % (module_id,
                                                                tenant_id))
 
-            self.server.remove_module(module_id)
+            module.unload()
 
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
+
         self.set_status(204, None)
 
 
@@ -209,10 +210,14 @@ class Module(object):
         self.__periodic = None
         self.log = empower.logger.get_logger()
 
+    def cleanup(self):
+        """Perform cleaup operation prior to module deletion."""
+
+        pass
+
     def unload(self):
         """Remove this module."""
 
-        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
         self.worker.remove_module(self.module_id)
 
     def handle_callback(self, serializable):
@@ -515,10 +520,18 @@ class ModuleWorker(object):
         """
 
         if module_id not in self.modules:
+            self.log.info("Unable to find module (id=%u)", self.module_id)
             return
 
-        if self.modules[module_id].every >= 0:
-            self.modules[module_id].stop()
+        module = self.modules[module_id]
+
+        self.log.info("Removing %s (id=%u)", module.module_type,
+                      module.module_id)
+
+        if module.every >= 0:
+            module.stop()
+
+        module.cleanup()
 
         del self.modules[module_id]
 

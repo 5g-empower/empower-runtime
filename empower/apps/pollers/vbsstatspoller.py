@@ -20,13 +20,21 @@
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
+UE_REPORT_FLAGS_ALL = ["buffer_status_report",
+                       "power_headroom_report",
+                       "rlc_buffer_status_report",
+                       "mac_ce_buffer_status_report",
+                       "downlink_cqi_report",
+                       "paging_buffer_status_report",
+                       "uplink_cqi_report"]
 
 L2_STATS_REQ = {
     "report_type": "complete",
-    "report_frequency": "once",
+    "report_frequency": "periodical",
+    "periodicity": 5,
     "report_config": {
         "ue_report_type": {
-            "ue_report_flags": ["power_headroom_report"],
+            "ue_report_flags": UE_REPORT_FLAGS_ALL,
             "ue_rnti": [],
         },
         "cell_report_type": {
@@ -60,6 +68,7 @@ class VBSStatsPoller(EmpowerApp):
 
         self.vbs_stats(vbs=vbs.addr,
                        l2_stats_req=L2_STATS_REQ,
+                       every=-1,
                        callback=self.vbs_stats_callback)
 
     def vbs_stats_callback(self, stats):

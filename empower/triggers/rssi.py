@@ -185,21 +185,13 @@ class RSSI(Module):
 
         if self.tenant_id not in RUNTIME.tenants:
             self.log.info("Tenant %s not found", self.tenant_id)
+            for wtp in list(self.wtps):
+                self.remove_rssi_from_wtp(wtp)
             self.unload()
             return
 
         for wtp in RUNTIME.tenants[self.tenant_id].wtps.values():
             self.add_rssi_to_wtp(wtp)
-
-    def unload(self):
-        """Remove this module."""
-
-        self.log.info("Removing %s (id=%u)", self.module_type, self.module_id)
-
-        for wtp in list(self.wtps):
-            self.remove_rssi_from_wtp(wtp)
-
-        self.worker.remove_module(self.module_id)
 
     def add_rssi_to_wtp(self, wtp):
         """Add RSSI to WTP."""

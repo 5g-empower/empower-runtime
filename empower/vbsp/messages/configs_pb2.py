@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='configs.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\rconfigs.proto\"2\n\x12\x65nb_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\r\n\x05\x63\x63_id\x18\x02 \x03(\r\"0\n\x11ue_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\x0c\n\x04rnti\x18\x02 \x03(\r\"2\n\x0bsg_info_msg\x12\x13\n\x0bperiodicity\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"h\n\x0esg_info_config\x12\x0b\n\x03sfn\x18\x01 \x01(\r\x12\x10\n\x08sib1_len\x18\x02 \x01(\r\x12\x15\n\rsi_window_len\x18\x03 \x01(\r\x12 \n\nsi_message\x18\x04 \x03(\x0b\x32\x0c.sg_info_msg\"\xe6\x04\n\x0f\x63\x65ll_phy_config\x12\x0b\n\x03pci\x18\x01 \x01(\r\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\x12\x19\n\x11pusch_hopp_offset\x18\x03 \x01(\r\x12 \n\thopp_mode\x18\x04 \x01(\x0e\x32\r.hopping_mode\x12\x0c\n\x04n_sb\x18\x05 \x01(\r\x12\"\n\tphich_res\x18\x06 \x01(\x0e\x32\x0f.phich_resource\x12\"\n\tphich_dur\x18\x07 \x01(\x0e\x32\x0f.phich_duration\x12\x1e\n\x16init_nr_PDCCH_OFDM_sym\x18\x08 \x01(\r\x12 \n\x07si_conf\x18\t \x01(\x0b\x32\x0f.sg_info_config\x12\r\n\x05\x64l_bw\x18\n \x01(\r\x12\r\n\x05ul_bw\x18\x0b \x01(\r\x12\x33\n\x11ul_cyc_prefix_len\x18\x0c \x01(\x0e\x32\x18.ul_cyclic_prefix_length\x12\x33\n\x11\x64l_cyc_prefix_len\x18\r \x01(\x0e\x32\x18.dl_cyclic_prefix_length\x12\x1b\n\x13\x61ntenna_ports_count\x18\x0e \x01(\r\x12\x1f\n\tdupl_mode\x18\x0f \x01(\x0e\x32\x0c.duplex_mode\x12\x18\n\x10prach_conf_index\x18\x10 \x01(\r\x12\x19\n\x11prach_freq_offset\x18\x11 \x01(\r\x12\x1b\n\x13ra_resp_window_size\x18\x12 \x01(\r\x12\x12\n\nn1PUCCH_AN\x18\x13 \x01(\r\x12\x18\n\x10\x64\x65ltaPUCCH_shift\x18\x14 \x01(\r\x12\x1a\n\x0c\x65nable_64QAM\x18\x15 \x01(\x0e\x32\x04.qam\"\x8f\x01\n\x0f\x63\x65ll_mac_config\x12\x11\n\tsf_assign\x18\x01 \x01(\r\x12!\n\x19special_subframe_patterns\x18\x02 \x01(\r\x12\x1c\n\x14mac_cont_resol_timer\x18\x03 \x01(\r\x12\x17\n\x0fmax_HARQ_Msg3Tx\x18\x04 \x01(\r\x12\x0f\n\x07nRB_cqi\x18\x05 \x01(\r\"\xa9\x01\n\x0f\x63\x65ll_rrc_config\x12\x1b\n\x13mbsfn_conf_rfperiod\x18\x01 \x03(\r\x12\x1b\n\x13mbsfn_conf_rfoffset\x18\x02 \x03(\r\x12\x1a\n\x12mbsfn_conf_sfalloc\x18\x03 \x03(\r\x12\x13\n\x0bsrs_sf_conf\x18\x04 \x01(\r\x12\x13\n\x0bsrs_bw_conf\x18\x05 \x01(\r\x12\x16\n\x0esrs_max_up_pts\x18\x06 \x01(\r\"\x88\x01\n\x0b\x63\x65ll_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\"\n\x08phy_conf\x18\x02 \x01(\x0b\x32\x10.cell_phy_config\x12\"\n\x08mac_conf\x18\x03 \x01(\x0b\x32\x10.cell_mac_config\x12\"\n\x08rrc_conf\x18\x04 \x01(\x0b\x32\x10.cell_rrc_config\"3\n\x10\x65nb_config_reply\x12\x1f\n\tcell_conf\x18\x01 \x03(\x0b\x32\x0c.cell_config\"\xc9\x01\n\ndrx_config\x12\x14\n\x0con_dur_timer\x18\x01 \x01(\r\x12\x17\n\x0f\x64rx_inact_timer\x18\x02 \x01(\r\x12\x17\n\x0f\x64rx_retrx_timer\x18\x03 \x01(\r\x12\x16\n\x0elong_drx_cycle\x18\x04 \x01(\r\x12#\n\x1blong_drx_cycle_start_offset\x18\x05 \x01(\r\x12\x17\n\x0fshort_drx_cycle\x18\x06 \x01(\r\x12\x1d\n\x15\x64rx_short_cycle_timer\x18\x07 \x01(\r\"\x9f\x01\n\nsps_config\x12\x17\n\x0fsps_interval_ul\x18\x01 \x01(\r\x12\x17\n\x0fsps_interval_dl\x18\x02 \x01(\r\x12\x17\n\x0fn_conf_sps_proc\x18\x03 \x01(\r\x12&\n\x1en1_PUCCH_AN_persistent_element\x18\x04 \x03(\r\x12\x1e\n\x16implicit_release_after\x18\x05 \x01(\r\"a\n\tsr_config\x12(\n\tsr_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x13\n\x0bsched_inter\x18\x02 \x01(\r\x12\x15\n\rdsr_trans_max\x18\x03 \x01(\r\"h\n\ncqi_config\x12)\n\ncqi_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x17\n\x0f\x63qi_sched_inter\x18\x02 \x01(\r\x12\x16\n\x0eri_sched_inter\x18\x03 \x01(\r\"\x82\x01\n\x0fue_capabilities\x12\x13\n\x0bhalf_duplex\x18\x01 \x01(\r\x12\x18\n\x10intra_SF_hopping\x18\x02 \x01(\r\x12\x12\n\ntype2_sb_1\x18\x03 \x01(\r\x12\x13\n\x0bue_category\x18\x04 \x01(\r\x12\x17\n\x0fres_alloc_type1\x18\x05 \x01(\r\"r\n\x0cscell_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\x13\n\x0bscell_index\x18\x02 \x01(\r\x12\x0f\n\x07use_ccs\x18\x03 \x01(\r\x12\x18\n\x10sched_cell_index\x18\x04 \x01(\r\x12\x13\n\x0bpdsch_start\x18\x05 \x01(\r\"y\n\rue_phy_config\x12\x1b\n\x07sr_conf\x18\x01 \x01(\x0b\x32\n.sr_config\x12\x19\n\x11transmission_mode\x18\x02 \x01(\r\x12\x30\n\x0eue_trx_antenna\x18\x03 \x01(\x0e\x32\x18.ue_transmission_antenna\"\xd2\x01\n\rue_mac_config\x12\x1c\n\x14time_alignment_timer\x18\x01 \x01(\r\x12\x14\n\x0ctti_bundling\x18\x02 \x01(\r\x12\x13\n\x0bmax_HARQ_tx\x18\x03 \x01(\r\x12#\n\x1b\x61\x63k_nack_simultaneous_trans\x18\x04 \x01(\r\x12!\n\x19simultaneous_ack_nack_cqi\x18\x05 \x01(\r\x12\x30\n\x0c\x61per_cqi_rep\x18\x06 \x01(\x0e\x32\x1a.aperiodic_cqi_report_mode\"\x82\x05\n\rue_rrc_config\x12\x1d\n\x08\x64rx_conf\x18\x01 \x01(\x0b\x32\x0b.drx_config\x12(\n\rmeas_gap_patt\x18\x02 \x01(\x0e\x32\x11.meas_gap_pattern\x12!\n\x19meas_gap_config_sf_offset\x18\x03 \x01(\r\x12\x1d\n\x08sps_conf\x18\x04 \x01(\x0b\x32\x0b.sps_config\x12\x1d\n\x08\x63qi_conf\x18\x05 \x01(\x0b\x32\x0b.cqi_config\x12 \n\x18ue_aggreg_max_bitrate_UL\x18\x06 \x01(\x04\x12 \n\x18ue_aggreg_max_bitrate_DL\x18\x07 \x01(\x04\x12&\n\x0c\x63\x61pabilities\x18\x08 \x01(\x0b\x32\x10.ue_capabilities\x12\x1d\n\x15\x62\x65ta_offset_ACK_index\x18\t \x01(\r\x12\x1c\n\x14\x62\x65ta_offset_RI_index\x18\n \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_CQI_index\x18\x0b \x01(\r\x12!\n\nscell_conf\x18\x0c \x03(\x0b\x32\r.scell_config\x12 \n\x18scell_deactivation_timer\x18\r \x01(\r\x12\x37\n\x12tdd_ack_nack_feedb\x18\x0e \x01(\x0e\x32\x1b.tdd_ack_nack_feedback_mode\x12\x1b\n\x13\x61\x63k_nack_rep_factor\x18\x0f \x01(\r\x12\x19\n\x11\x65xtended_bsr_size\x18\x10 \x01(\r\x12\x12\n\nca_support\x18\x11 \x01(\r\x12 \n\x18\x63ross_carrier_sched_supp\x18\x12 \x01(\r\x12\x13\n\x0bpcell_cc_id\x18\x13 \x01(\r\"\x7f\n\tue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12 \n\x08phy_conf\x18\x02 \x01(\x0b\x32\x0e.ue_phy_config\x12 \n\x08mac_conf\x18\x03 \x01(\x0b\x32\x0e.ue_mac_config\x12 \n\x08rrc_conf\x18\x04 \x01(\x0b\x32\x0e.ue_rrc_config\".\n\x0fue_config_reply\x12\x1b\n\x07ue_conf\x18\x01 \x03(\x0b\x32\n.ue_config\"\xe5\x01\n\x07\x63onfigs\x12\x1e\n\x04type\x18\x64 \x01(\x0e\x32\x10.config_msg_type\x12+\n\x0c\x65nb_conf_req\x18\x01 \x01(\x0b\x32\x13.enb_config_requestH\x00\x12*\n\renb_conf_repl\x18\x02 \x01(\x0b\x32\x11.enb_config_replyH\x00\x12)\n\x0bue_conf_req\x18\x03 \x01(\x0b\x32\x12.ue_config_requestH\x00\x12(\n\x0cue_conf_repl\x18\x04 \x01(\x0b\x32\x10.ue_config_replyH\x00\x42\x0c\n\nconfig_msg*c\n\x0f\x63onfig_msg_type\x12\x14\n\x10\x45NB_CONF_REQUEST\x10\x00\x12\x12\n\x0e\x45NB_CONF_REPLY\x10\x01\x12\x13\n\x0fUE_CONF_REQUEST\x10\x02\x12\x11\n\rUE_CONF_REPLY\x10\x03*/\n\x0chopping_mode\x12\x0c\n\x08HM_INTER\x10\x00\x12\x11\n\rHM_INTERINTRA\x10\x01*G\n\x0ephich_resource\x12\x10\n\x0cPR_ONE_SIXTH\x10\x00\x12\x0b\n\x07PR_HALF\x10\x01\x12\n\n\x06PR_ONE\x10\x02\x12\n\n\x06PR_TWO\x10\x03*>\n\x0ephich_duration\x12\x14\n\x10PHICH_DUR_NORMAL\x10\x00\x12\x16\n\x12PHICH_DUR_EXTENDED\x10\x01*G\n\x17ul_cyclic_prefix_length\x12\x14\n\x10UL_PREFIX_NORMAL\x10\x00\x12\x16\n\x12UL_PREFIX_EXTENDED\x10\x01*G\n\x17\x64l_cyclic_prefix_length\x12\x14\n\x10\x44L_PREFIX_NORMAL\x10\x00\x12\x16\n\x12\x44L_PREFIX_EXTENDED\x10\x01*%\n\x0b\x64uplex_mode\x12\n\n\x06\x44M_TDD\x10\x00\x12\n\n\x06\x44M_FDD\x10\x01*#\n\x03qam\x12\r\n\tMOD_16QAM\x10\x00\x12\r\n\tMOD_64QAM\x10\x01*9\n\x10meas_gap_pattern\x12\x0b\n\x07MGP_GP0\x10\x00\x12\x0b\n\x07MGP_GP1\x10\x01\x12\x0b\n\x07MGP_OFF\x10\x02*6\n\x14setup_release_action\x12\r\n\tSRA_SETUP\x10\x00\x12\x0f\n\x0bSRA_RELEASE\x10\x01*R\n\x17ue_transmission_antenna\x12\r\n\tUETA_NONE\x10\x00\x12\x12\n\x0eUETA_OPEN_LOOP\x10\x01\x12\x14\n\x10UETA_CLOSED_LOOP\x10\x02*u\n\x19\x61periodic_cqi_report_mode\x12\r\n\tACRM_RM12\x10\x00\x12\r\n\tACRM_RM20\x10\x01\x12\r\n\tACRM_RM22\x10\x02\x12\r\n\tACRM_RM30\x10\x03\x12\r\n\tACRM_RM31\x10\x04\x12\r\n\tACRM_NONE\x10\x05*H\n\x1atdd_ack_nack_feedback_mode\x12\x12\n\x0eTANFM_BUNDLING\x10\x00\x12\x16\n\x12TANFM_MULTIPLEXING\x10\x01*>\n\x0clayer_config\x12\n\n\x06LC_ALL\x10\x01\x12\n\n\x06LC_PHY\x10\x02\x12\n\n\x06LC_MAC\x10\x04\x12\n\n\x06LC_RRC\x10\x08')
+  serialized_pb=_b('\n\rconfigs.proto\"2\n\x12\x65nb_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\r\n\x05\x63\x63_id\x18\x02 \x03(\r\"0\n\x11ue_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\x0c\n\x04rnti\x18\x02 \x03(\r\"2\n\x0bsi_info_msg\x12\x13\n\x0bperiodicity\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"h\n\x0esi_info_config\x12\x0b\n\x03sfn\x18\x01 \x01(\r\x12\x10\n\x08sib1_len\x18\x02 \x01(\r\x12\x15\n\rsi_window_len\x18\x03 \x01(\r\x12 \n\nsi_message\x18\x04 \x03(\x0b\x32\x0c.si_info_msg\"\xe6\x04\n\x0f\x63\x65ll_phy_config\x12\x0b\n\x03pci\x18\x01 \x01(\r\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\x12\x19\n\x11pusch_hopp_offset\x18\x03 \x01(\r\x12 \n\thopp_mode\x18\x04 \x01(\x0e\x32\r.hopping_mode\x12\x0c\n\x04n_sb\x18\x05 \x01(\r\x12\"\n\tphich_res\x18\x06 \x01(\x0e\x32\x0f.phich_resource\x12\"\n\tphich_dur\x18\x07 \x01(\x0e\x32\x0f.phich_duration\x12\x1e\n\x16init_nr_PDCCH_OFDM_sym\x18\x08 \x01(\r\x12 \n\x07si_conf\x18\t \x01(\x0b\x32\x0f.si_info_config\x12\r\n\x05\x64l_bw\x18\n \x01(\r\x12\r\n\x05ul_bw\x18\x0b \x01(\r\x12\x33\n\x11ul_cyc_prefix_len\x18\x0c \x01(\x0e\x32\x18.ul_cyclic_prefix_length\x12\x33\n\x11\x64l_cyc_prefix_len\x18\r \x01(\x0e\x32\x18.dl_cyclic_prefix_length\x12\x1b\n\x13\x61ntenna_ports_count\x18\x0e \x01(\r\x12\x1f\n\tdupl_mode\x18\x0f \x01(\x0e\x32\x0c.duplex_mode\x12\x18\n\x10prach_conf_index\x18\x10 \x01(\r\x12\x19\n\x11prach_freq_offset\x18\x11 \x01(\r\x12\x1b\n\x13ra_resp_window_size\x18\x12 \x01(\r\x12\x12\n\nn1PUCCH_AN\x18\x13 \x01(\r\x12\x18\n\x10\x64\x65ltaPUCCH_shift\x18\x14 \x01(\r\x12\x1a\n\x0c\x65nable_64QAM\x18\x15 \x01(\x0e\x32\x04.qam\"\x8f\x01\n\x0f\x63\x65ll_mac_config\x12\x11\n\tsf_assign\x18\x01 \x01(\r\x12!\n\x19special_subframe_patterns\x18\x02 \x01(\r\x12\x1c\n\x14mac_cont_resol_timer\x18\x03 \x01(\r\x12\x17\n\x0fmax_HARQ_Msg3Tx\x18\x04 \x01(\r\x12\x0f\n\x07nRB_cqi\x18\x05 \x01(\r\"\xa9\x01\n\x0f\x63\x65ll_rrc_config\x12\x1b\n\x13mbsfn_conf_rfperiod\x18\x01 \x03(\r\x12\x1b\n\x13mbsfn_conf_rfoffset\x18\x02 \x03(\r\x12\x1a\n\x12mbsfn_conf_sfalloc\x18\x03 \x03(\r\x12\x13\n\x0bsrs_sf_conf\x18\x04 \x01(\r\x12\x13\n\x0bsrs_bw_conf\x18\x05 \x01(\r\x12\x16\n\x0esrs_max_up_pts\x18\x06 \x01(\r\"\x88\x01\n\x0b\x63\x65ll_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\"\n\x08phy_conf\x18\x02 \x01(\x0b\x32\x10.cell_phy_config\x12\"\n\x08mac_conf\x18\x03 \x01(\x0b\x32\x10.cell_mac_config\x12\"\n\x08rrc_conf\x18\x04 \x01(\x0b\x32\x10.cell_rrc_config\"3\n\x10\x65nb_config_reply\x12\x1f\n\tcell_conf\x18\x01 \x03(\x0b\x32\x0c.cell_config\"\xc9\x01\n\ndrx_config\x12\x14\n\x0con_dur_timer\x18\x01 \x01(\r\x12\x17\n\x0f\x64rx_inact_timer\x18\x02 \x01(\r\x12\x17\n\x0f\x64rx_retrx_timer\x18\x03 \x01(\r\x12\x16\n\x0elong_drx_cycle\x18\x04 \x01(\r\x12#\n\x1blong_drx_cycle_start_offset\x18\x05 \x01(\r\x12\x17\n\x0fshort_drx_cycle\x18\x06 \x01(\r\x12\x1d\n\x15\x64rx_short_cycle_timer\x18\x07 \x01(\r\"\x9f\x01\n\nsps_config\x12\x17\n\x0fsps_interval_ul\x18\x01 \x01(\r\x12\x17\n\x0fsps_interval_dl\x18\x02 \x01(\r\x12\x17\n\x0fn_conf_sps_proc\x18\x03 \x01(\r\x12&\n\x1en1_PUCCH_AN_persistent_element\x18\x04 \x03(\r\x12\x1e\n\x16implicit_release_after\x18\x05 \x01(\r\"a\n\tsr_config\x12(\n\tsr_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x13\n\x0bsched_inter\x18\x02 \x01(\r\x12\x15\n\rdsr_trans_max\x18\x03 \x01(\r\"h\n\ncqi_config\x12)\n\ncqi_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x17\n\x0f\x63qi_sched_inter\x18\x02 \x01(\r\x12\x16\n\x0eri_sched_inter\x18\x03 \x01(\r\"\x82\x01\n\x0fue_capabilities\x12\x13\n\x0bhalf_duplex\x18\x01 \x01(\r\x12\x18\n\x10intra_SF_hopping\x18\x02 \x01(\r\x12\x12\n\ntype2_sb_1\x18\x03 \x01(\r\x12\x13\n\x0bue_category\x18\x04 \x01(\r\x12\x17\n\x0fres_alloc_type1\x18\x05 \x01(\r\"r\n\x0cscell_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\x13\n\x0bscell_index\x18\x02 \x01(\r\x12\x0f\n\x07use_ccs\x18\x03 \x01(\r\x12\x18\n\x10sched_cell_index\x18\x04 \x01(\r\x12\x13\n\x0bpdsch_start\x18\x05 \x01(\r\"y\n\rue_phy_config\x12\x1b\n\x07sr_conf\x18\x01 \x01(\x0b\x32\n.sr_config\x12\x19\n\x11transmission_mode\x18\x02 \x01(\r\x12\x30\n\x0eue_trx_antenna\x18\x03 \x01(\x0e\x32\x18.ue_transmission_antenna\"\xd2\x01\n\rue_mac_config\x12\x1c\n\x14time_alignment_timer\x18\x01 \x01(\r\x12\x14\n\x0ctti_bundling\x18\x02 \x01(\r\x12\x13\n\x0bmax_HARQ_tx\x18\x03 \x01(\r\x12#\n\x1b\x61\x63k_nack_simultaneous_trans\x18\x04 \x01(\r\x12!\n\x19simultaneous_ack_nack_cqi\x18\x05 \x01(\r\x12\x30\n\x0c\x61per_cqi_rep\x18\x06 \x01(\x0e\x32\x1a.aperiodic_cqi_report_mode\"\x82\x05\n\rue_rrc_config\x12\x1d\n\x08\x64rx_conf\x18\x01 \x01(\x0b\x32\x0b.drx_config\x12(\n\rmeas_gap_patt\x18\x02 \x01(\x0e\x32\x11.meas_gap_pattern\x12!\n\x19meas_gap_config_sf_offset\x18\x03 \x01(\r\x12\x1d\n\x08sps_conf\x18\x04 \x01(\x0b\x32\x0b.sps_config\x12\x1d\n\x08\x63qi_conf\x18\x05 \x01(\x0b\x32\x0b.cqi_config\x12 \n\x18ue_aggreg_max_bitrate_UL\x18\x06 \x01(\x04\x12 \n\x18ue_aggreg_max_bitrate_DL\x18\x07 \x01(\x04\x12&\n\x0c\x63\x61pabilities\x18\x08 \x01(\x0b\x32\x10.ue_capabilities\x12\x1d\n\x15\x62\x65ta_offset_ACK_index\x18\t \x01(\r\x12\x1c\n\x14\x62\x65ta_offset_RI_index\x18\n \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_CQI_index\x18\x0b \x01(\r\x12!\n\nscell_conf\x18\x0c \x03(\x0b\x32\r.scell_config\x12 \n\x18scell_deactivation_timer\x18\r \x01(\r\x12\x37\n\x12tdd_ack_nack_feedb\x18\x0e \x01(\x0e\x32\x1b.tdd_ack_nack_feedback_mode\x12\x1b\n\x13\x61\x63k_nack_rep_factor\x18\x0f \x01(\r\x12\x19\n\x11\x65xtended_bsr_size\x18\x10 \x01(\r\x12\x12\n\nca_support\x18\x11 \x01(\r\x12 \n\x18\x63ross_carrier_sched_supp\x18\x12 \x01(\r\x12\x13\n\x0bpcell_cc_id\x18\x13 \x01(\r\"\x99\x01\n\tue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12\x18\n\x05state\x18\x02 \x01(\x0e\x32\t.ue_state\x12 \n\x08phy_conf\x18\x03 \x01(\x0b\x32\x0e.ue_phy_config\x12 \n\x08mac_conf\x18\x04 \x01(\x0b\x32\x0e.ue_mac_config\x12 \n\x08rrc_conf\x18\x05 \x01(\x0b\x32\x0e.ue_rrc_config\".\n\x0fue_config_reply\x12\x1b\n\x07ue_conf\x18\x01 \x03(\x0b\x32\n.ue_config\"\xe5\x01\n\x07\x63onfigs\x12\x1e\n\x04type\x18\x64 \x01(\x0e\x32\x10.config_msg_type\x12+\n\x0c\x65nb_conf_req\x18\x01 \x01(\x0b\x32\x13.enb_config_requestH\x00\x12*\n\renb_conf_repl\x18\x02 \x01(\x0b\x32\x11.enb_config_replyH\x00\x12)\n\x0bue_conf_req\x18\x03 \x01(\x0b\x32\x12.ue_config_requestH\x00\x12(\n\x0cue_conf_repl\x18\x04 \x01(\x0b\x32\x10.ue_config_replyH\x00\x42\x0c\n\nconfig_msg*c\n\x0f\x63onfig_msg_type\x12\x14\n\x10\x45NB_CONF_REQUEST\x10\x00\x12\x12\n\x0e\x45NB_CONF_REPLY\x10\x01\x12\x13\n\x0fUE_CONF_REQUEST\x10\x02\x12\x11\n\rUE_CONF_REPLY\x10\x03*/\n\x0chopping_mode\x12\x0c\n\x08HM_INTER\x10\x00\x12\x11\n\rHM_INTERINTRA\x10\x01*G\n\x0ephich_resource\x12\x10\n\x0cPR_ONE_SIXTH\x10\x00\x12\x0b\n\x07PR_HALF\x10\x01\x12\n\n\x06PR_ONE\x10\x02\x12\n\n\x06PR_TWO\x10\x03*>\n\x0ephich_duration\x12\x14\n\x10PHICH_DUR_NORMAL\x10\x00\x12\x16\n\x12PHICH_DUR_EXTENDED\x10\x01*G\n\x17ul_cyclic_prefix_length\x12\x14\n\x10UL_PREFIX_NORMAL\x10\x00\x12\x16\n\x12UL_PREFIX_EXTENDED\x10\x01*G\n\x17\x64l_cyclic_prefix_length\x12\x14\n\x10\x44L_PREFIX_NORMAL\x10\x00\x12\x16\n\x12\x44L_PREFIX_EXTENDED\x10\x01*%\n\x0b\x64uplex_mode\x12\n\n\x06\x44M_TDD\x10\x00\x12\n\n\x06\x44M_FDD\x10\x01*#\n\x03qam\x12\r\n\tMOD_16QAM\x10\x00\x12\r\n\tMOD_64QAM\x10\x01*9\n\x10meas_gap_pattern\x12\x0b\n\x07MGP_GP0\x10\x00\x12\x0b\n\x07MGP_GP1\x10\x01\x12\x0b\n\x07MGP_OFF\x10\x02*6\n\x14setup_release_action\x12\r\n\tSRA_SETUP\x10\x00\x12\x0f\n\x0bSRA_RELEASE\x10\x01*R\n\x17ue_transmission_antenna\x12\r\n\tUETA_NONE\x10\x00\x12\x12\n\x0eUETA_OPEN_LOOP\x10\x01\x12\x14\n\x10UETA_CLOSED_LOOP\x10\x02*u\n\x19\x61periodic_cqi_report_mode\x12\r\n\tACRM_RM12\x10\x00\x12\r\n\tACRM_RM20\x10\x01\x12\r\n\tACRM_RM22\x10\x02\x12\r\n\tACRM_RM30\x10\x03\x12\r\n\tACRM_RM31\x10\x04\x12\r\n\tACRM_NONE\x10\x05*H\n\x1atdd_ack_nack_feedback_mode\x12\x12\n\x0eTANFM_BUNDLING\x10\x00\x12\x16\n\x12TANFM_MULTIPLEXING\x10\x01*\x96\x01\n\x08ue_state\x12\x14\n\x10UES_RRC_INACTIVE\x10\x00\x12\x10\n\x0cUES_RRC_IDLE\x10\x01\x12\x17\n\x13UES_RRC_SI_RECEIVED\x10\x02\x12\x15\n\x11UES_RRC_CONNECTED\x10\x03\x12\x18\n\x14UES_RRC_RECONFIGURED\x10\x04\x12\x18\n\x14UES_RRC_HO_EXECUTION\x10\x05*>\n\x0clayer_config\x12\n\n\x06LC_ALL\x10\x01\x12\n\n\x06LC_PHY\x10\x02\x12\n\n\x06LC_MAC\x10\x04\x12\n\n\x06LC_RRC\x10\x08')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -49,8 +49,8 @@ _CONFIG_MSG_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3614,
-  serialized_end=3713,
+  serialized_start=3641,
+  serialized_end=3740,
 )
 _sym_db.RegisterEnumDescriptor(_CONFIG_MSG_TYPE)
 
@@ -72,8 +72,8 @@ _HOPPING_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3715,
-  serialized_end=3762,
+  serialized_start=3742,
+  serialized_end=3789,
 )
 _sym_db.RegisterEnumDescriptor(_HOPPING_MODE)
 
@@ -103,8 +103,8 @@ _PHICH_RESOURCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3764,
-  serialized_end=3835,
+  serialized_start=3791,
+  serialized_end=3862,
 )
 _sym_db.RegisterEnumDescriptor(_PHICH_RESOURCE)
 
@@ -126,8 +126,8 @@ _PHICH_DURATION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3837,
-  serialized_end=3899,
+  serialized_start=3864,
+  serialized_end=3926,
 )
 _sym_db.RegisterEnumDescriptor(_PHICH_DURATION)
 
@@ -149,8 +149,8 @@ _UL_CYCLIC_PREFIX_LENGTH = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3901,
-  serialized_end=3972,
+  serialized_start=3928,
+  serialized_end=3999,
 )
 _sym_db.RegisterEnumDescriptor(_UL_CYCLIC_PREFIX_LENGTH)
 
@@ -172,8 +172,8 @@ _DL_CYCLIC_PREFIX_LENGTH = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3974,
-  serialized_end=4045,
+  serialized_start=4001,
+  serialized_end=4072,
 )
 _sym_db.RegisterEnumDescriptor(_DL_CYCLIC_PREFIX_LENGTH)
 
@@ -195,8 +195,8 @@ _DUPLEX_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4047,
-  serialized_end=4084,
+  serialized_start=4074,
+  serialized_end=4111,
 )
 _sym_db.RegisterEnumDescriptor(_DUPLEX_MODE)
 
@@ -218,8 +218,8 @@ _QAM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4086,
-  serialized_end=4121,
+  serialized_start=4113,
+  serialized_end=4148,
 )
 _sym_db.RegisterEnumDescriptor(_QAM)
 
@@ -245,8 +245,8 @@ _MEAS_GAP_PATTERN = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4123,
-  serialized_end=4180,
+  serialized_start=4150,
+  serialized_end=4207,
 )
 _sym_db.RegisterEnumDescriptor(_MEAS_GAP_PATTERN)
 
@@ -268,8 +268,8 @@ _SETUP_RELEASE_ACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4182,
-  serialized_end=4236,
+  serialized_start=4209,
+  serialized_end=4263,
 )
 _sym_db.RegisterEnumDescriptor(_SETUP_RELEASE_ACTION)
 
@@ -295,8 +295,8 @@ _UE_TRANSMISSION_ANTENNA = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4238,
-  serialized_end=4320,
+  serialized_start=4265,
+  serialized_end=4347,
 )
 _sym_db.RegisterEnumDescriptor(_UE_TRANSMISSION_ANTENNA)
 
@@ -334,8 +334,8 @@ _APERIODIC_CQI_REPORT_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4322,
-  serialized_end=4439,
+  serialized_start=4349,
+  serialized_end=4466,
 )
 _sym_db.RegisterEnumDescriptor(_APERIODIC_CQI_REPORT_MODE)
 
@@ -357,12 +357,51 @@ _TDD_ACK_NACK_FEEDBACK_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4441,
-  serialized_end=4513,
+  serialized_start=4468,
+  serialized_end=4540,
 )
 _sym_db.RegisterEnumDescriptor(_TDD_ACK_NACK_FEEDBACK_MODE)
 
 tdd_ack_nack_feedback_mode = enum_type_wrapper.EnumTypeWrapper(_TDD_ACK_NACK_FEEDBACK_MODE)
+_UE_STATE = _descriptor.EnumDescriptor(
+  name='ue_state',
+  full_name='ue_state',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_INACTIVE', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_IDLE', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_SI_RECEIVED', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_CONNECTED', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_RECONFIGURED', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UES_RRC_HO_EXECUTION', index=5, number=5,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4543,
+  serialized_end=4693,
+)
+_sym_db.RegisterEnumDescriptor(_UE_STATE)
+
+ue_state = enum_type_wrapper.EnumTypeWrapper(_UE_STATE)
 _LAYER_CONFIG = _descriptor.EnumDescriptor(
   name='layer_config',
   full_name='layer_config',
@@ -388,8 +427,8 @@ _LAYER_CONFIG = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4515,
-  serialized_end=4577,
+  serialized_start=4695,
+  serialized_end=4757,
 )
 _sym_db.RegisterEnumDescriptor(_LAYER_CONFIG)
 
@@ -430,6 +469,12 @@ ACRM_RM31 = 4
 ACRM_NONE = 5
 TANFM_BUNDLING = 0
 TANFM_MULTIPLEXING = 1
+UES_RRC_INACTIVE = 0
+UES_RRC_IDLE = 1
+UES_RRC_SI_RECEIVED = 2
+UES_RRC_CONNECTED = 3
+UES_RRC_RECONFIGURED = 4
+UES_RRC_HO_EXECUTION = 5
 LC_ALL = 1
 LC_PHY = 2
 LC_MAC = 4
@@ -513,22 +558,22 @@ _UE_CONFIG_REQUEST = _descriptor.Descriptor(
 )
 
 
-_SG_INFO_MSG = _descriptor.Descriptor(
-  name='sg_info_msg',
-  full_name='sg_info_msg',
+_SI_INFO_MSG = _descriptor.Descriptor(
+  name='si_info_msg',
+  full_name='si_info_msg',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='periodicity', full_name='sg_info_msg.periodicity', index=0,
+      name='periodicity', full_name='si_info_msg.periodicity', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='length', full_name='sg_info_msg.length', index=1,
+      name='length', full_name='si_info_msg.length', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -551,36 +596,36 @@ _SG_INFO_MSG = _descriptor.Descriptor(
 )
 
 
-_SG_INFO_CONFIG = _descriptor.Descriptor(
-  name='sg_info_config',
-  full_name='sg_info_config',
+_SI_INFO_CONFIG = _descriptor.Descriptor(
+  name='si_info_config',
+  full_name='si_info_config',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='sfn', full_name='sg_info_config.sfn', index=0,
+      name='sfn', full_name='si_info_config.sfn', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sib1_len', full_name='sg_info_config.sib1_len', index=1,
+      name='sib1_len', full_name='si_info_config.sib1_len', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='si_window_len', full_name='sg_info_config.si_window_len', index=2,
+      name='si_window_len', full_name='si_info_config.si_window_len', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='si_message', full_name='sg_info_config.si_message', index=3,
+      name='si_message', full_name='si_info_config.si_message', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1605,22 +1650,29 @@ _UE_CONFIG = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='phy_conf', full_name='ue_config.phy_conf', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='state', full_name='ue_config.state', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='mac_conf', full_name='ue_config.mac_conf', index=2,
+      name='phy_conf', full_name='ue_config.phy_conf', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='rrc_conf', full_name='ue_config.rrc_conf', index=3,
+      name='mac_conf', full_name='ue_config.mac_conf', index=3,
       number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rrc_conf', full_name='ue_config.rrc_conf', index=4,
+      number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1637,8 +1689,8 @@ _UE_CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3205,
-  serialized_end=3332,
+  serialized_start=3206,
+  serialized_end=3359,
 )
 
 
@@ -1668,8 +1720,8 @@ _UE_CONFIG_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3334,
-  serialized_end=3380,
+  serialized_start=3361,
+  serialized_end=3407,
 )
 
 
@@ -1730,15 +1782,15 @@ _CONFIGS = _descriptor.Descriptor(
       name='config_msg', full_name='configs.config_msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3383,
-  serialized_end=3612,
+  serialized_start=3410,
+  serialized_end=3639,
 )
 
-_SG_INFO_CONFIG.fields_by_name['si_message'].message_type = _SG_INFO_MSG
+_SI_INFO_CONFIG.fields_by_name['si_message'].message_type = _SI_INFO_MSG
 _CELL_PHY_CONFIG.fields_by_name['hopp_mode'].enum_type = _HOPPING_MODE
 _CELL_PHY_CONFIG.fields_by_name['phich_res'].enum_type = _PHICH_RESOURCE
 _CELL_PHY_CONFIG.fields_by_name['phich_dur'].enum_type = _PHICH_DURATION
-_CELL_PHY_CONFIG.fields_by_name['si_conf'].message_type = _SG_INFO_CONFIG
+_CELL_PHY_CONFIG.fields_by_name['si_conf'].message_type = _SI_INFO_CONFIG
 _CELL_PHY_CONFIG.fields_by_name['ul_cyc_prefix_len'].enum_type = _UL_CYCLIC_PREFIX_LENGTH
 _CELL_PHY_CONFIG.fields_by_name['dl_cyc_prefix_len'].enum_type = _DL_CYCLIC_PREFIX_LENGTH
 _CELL_PHY_CONFIG.fields_by_name['dupl_mode'].enum_type = _DUPLEX_MODE
@@ -1759,6 +1811,7 @@ _UE_RRC_CONFIG.fields_by_name['cqi_conf'].message_type = _CQI_CONFIG
 _UE_RRC_CONFIG.fields_by_name['capabilities'].message_type = _UE_CAPABILITIES
 _UE_RRC_CONFIG.fields_by_name['scell_conf'].message_type = _SCELL_CONFIG
 _UE_RRC_CONFIG.fields_by_name['tdd_ack_nack_feedb'].enum_type = _TDD_ACK_NACK_FEEDBACK_MODE
+_UE_CONFIG.fields_by_name['state'].enum_type = _UE_STATE
 _UE_CONFIG.fields_by_name['phy_conf'].message_type = _UE_PHY_CONFIG
 _UE_CONFIG.fields_by_name['mac_conf'].message_type = _UE_MAC_CONFIG
 _UE_CONFIG.fields_by_name['rrc_conf'].message_type = _UE_RRC_CONFIG
@@ -1782,8 +1835,8 @@ _CONFIGS.oneofs_by_name['config_msg'].fields.append(
 _CONFIGS.fields_by_name['ue_conf_repl'].containing_oneof = _CONFIGS.oneofs_by_name['config_msg']
 DESCRIPTOR.message_types_by_name['enb_config_request'] = _ENB_CONFIG_REQUEST
 DESCRIPTOR.message_types_by_name['ue_config_request'] = _UE_CONFIG_REQUEST
-DESCRIPTOR.message_types_by_name['sg_info_msg'] = _SG_INFO_MSG
-DESCRIPTOR.message_types_by_name['sg_info_config'] = _SG_INFO_CONFIG
+DESCRIPTOR.message_types_by_name['si_info_msg'] = _SI_INFO_MSG
+DESCRIPTOR.message_types_by_name['si_info_config'] = _SI_INFO_CONFIG
 DESCRIPTOR.message_types_by_name['cell_phy_config'] = _CELL_PHY_CONFIG
 DESCRIPTOR.message_types_by_name['cell_mac_config'] = _CELL_MAC_CONFIG
 DESCRIPTOR.message_types_by_name['cell_rrc_config'] = _CELL_RRC_CONFIG
@@ -1814,6 +1867,7 @@ DESCRIPTOR.enum_types_by_name['setup_release_action'] = _SETUP_RELEASE_ACTION
 DESCRIPTOR.enum_types_by_name['ue_transmission_antenna'] = _UE_TRANSMISSION_ANTENNA
 DESCRIPTOR.enum_types_by_name['aperiodic_cqi_report_mode'] = _APERIODIC_CQI_REPORT_MODE
 DESCRIPTOR.enum_types_by_name['tdd_ack_nack_feedback_mode'] = _TDD_ACK_NACK_FEEDBACK_MODE
+DESCRIPTOR.enum_types_by_name['ue_state'] = _UE_STATE
 DESCRIPTOR.enum_types_by_name['layer_config'] = _LAYER_CONFIG
 
 enb_config_request = _reflection.GeneratedProtocolMessageType('enb_config_request', (_message.Message,), dict(
@@ -1830,19 +1884,19 @@ ue_config_request = _reflection.GeneratedProtocolMessageType('ue_config_request'
   ))
 _sym_db.RegisterMessage(ue_config_request)
 
-sg_info_msg = _reflection.GeneratedProtocolMessageType('sg_info_msg', (_message.Message,), dict(
-  DESCRIPTOR = _SG_INFO_MSG,
+si_info_msg = _reflection.GeneratedProtocolMessageType('si_info_msg', (_message.Message,), dict(
+  DESCRIPTOR = _SI_INFO_MSG,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:sg_info_msg)
+  # @@protoc_insertion_point(class_scope:si_info_msg)
   ))
-_sym_db.RegisterMessage(sg_info_msg)
+_sym_db.RegisterMessage(si_info_msg)
 
-sg_info_config = _reflection.GeneratedProtocolMessageType('sg_info_config', (_message.Message,), dict(
-  DESCRIPTOR = _SG_INFO_CONFIG,
+si_info_config = _reflection.GeneratedProtocolMessageType('si_info_config', (_message.Message,), dict(
+  DESCRIPTOR = _SI_INFO_CONFIG,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:sg_info_config)
+  # @@protoc_insertion_point(class_scope:si_info_config)
   ))
-_sym_db.RegisterMessage(sg_info_config)
+_sym_db.RegisterMessage(si_info_config)
 
 cell_phy_config = _reflection.GeneratedProtocolMessageType('cell_phy_config', (_message.Message,), dict(
   DESCRIPTOR = _CELL_PHY_CONFIG,
