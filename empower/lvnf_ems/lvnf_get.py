@@ -100,6 +100,7 @@ class LVNFGet(Module):
 
         if self.lvnf not in tenant.lvnfs:
             self.log.error("LVNF %s not found.", self.lvnf)
+            self.unload()
             return
 
         lvnf = tenant.lvnfs[self.lvnf]
