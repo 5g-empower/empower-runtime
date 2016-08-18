@@ -17,6 +17,9 @@
 
 """Image Class."""
 
+DEFAULT_HANDLERS = [["config", "config"],
+                    ["handlers", "handlers"]]
+
 
 class Image(object):
     """Image object representing a VNF template.
@@ -35,6 +38,7 @@ class Image(object):
         self.handlers = {}
         self.state_handlers = []
         self.add_handlers(handlers)
+        self.add_handlers(DEFAULT_HANDLERS)
         self.add_state_handlers(state_handlers)
 
     def add_handlers(self, handlers):

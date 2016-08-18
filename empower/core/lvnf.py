@@ -101,7 +101,8 @@ class LVNF(object):
         self.__state = None
         self.__cpp = cpp
         self.__target_cpp = None
-        self.__migration_state = None
+        self.__migration_timer = None
+        self.__creation_timer = None
 
     def start(self):
         """Spawn LVNF."""
@@ -167,6 +168,9 @@ class LVNF(object):
 
     def _spawning_running(self):
 
+        delta = int((time.time() - self.__creation_timer) * 1000)
+        LOG.info("LVNF %s started in %sms", self.lvnf_id, delta)
+
         self.__state = PROCESS_RUNNING
 
     def _spawning_stopped(self):
@@ -175,8 +179,12 @@ class LVNF(object):
 
     def _running_migrating_stop(self):
 
+        # set time
+        self.__migration_timer = time.time()
+
         # set new state
         self.__state = PROCESS_MIGRATING_STOP
+
         # remove lvnf
         self.cpp.connection.send_del_lvnf(self.lvnf_id)
 
@@ -194,11 +202,15 @@ class LVNF(object):
 
     def _migrating_start_running(self):
 
-        delta = int((time.time() - self.__migration_state) * 1000)
-        LOG.info("Migration took %sms", delta)
+        delta = int((time.time() - self.__migration_timer) * 1000)
+        LOG.info("LVNF %s migration took %sms", self.lvnf_id, delta)
+
         self.__state = PROCESS_RUNNING
 
     def _none_spawning(self):
+
+        # set timer
+        self.__creation_timer = time.time()
 
         # set new state
         self.__state = PROCESS_SPAWNING
@@ -223,8 +235,6 @@ class LVNF(object):
         """Set the CPP."""
 
         if self.state == PROCESS_RUNNING:
-
-            self.__migration_state = time.time()
 
             # save target cpp
             self.__target_cpp = cpp
