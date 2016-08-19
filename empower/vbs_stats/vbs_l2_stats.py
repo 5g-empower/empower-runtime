@@ -33,10 +33,10 @@ from empower.vbs_stats import PRT_VBSP_L2_STATS_RESPONSE
 from empower.main import RUNTIME
 
 
-class VBSStats(Module):
-    """ VBSStats object. """
+class VBSL2Stats(Module):
+    """ VBSL2Stats object. """
 
-    MODULE_NAME = "vbs_stats"
+    MODULE_NAME = "vbs_l2_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'vbs', 'l2_stats_req']
 
     def __init__(self):
@@ -92,41 +92,47 @@ class VBSStats(Module):
         if "report_config" not in value:
             raise ValueError("Missing report_config element")
 
-        if "ue_report_type" not in value["report_config"]:
-            raise ValueError("Missing ue_report_type element")
+        if value["report_type"] != "cell":
 
-        ue_report_type = value["report_config"]["ue_report_type"]
+            if "ue_report_type" not in value["report_config"]:
+                raise ValueError("Missing ue_report_type element")
 
-        if "ue_rnti" not in ue_report_type:
-            raise ValueError("missing ue_rnti element")
+            ue_report_type = value["report_config"]["ue_report_type"]
 
-        if "ue_report_flags" not in ue_report_type:
-            raise ValueError("Missing ue_report_flags element")
+            if value["report_type"] == "ue" and \
+                "ue_rnti" not in ue_report_type:
+                raise ValueError("missing ue_rnti element")
 
-        if len(ue_report_type["ue_report_flags"]) == 0:
-            raise ValueError("Invalid ue_report_flags element")
+            if "ue_report_flags" not in ue_report_type:
+                raise ValueError("Missing ue_report_flags element")
 
-        for flag in ue_report_type["ue_report_flags"]:
-            if flag not in L2_UE_STATS_TYPES:
-                raise ValueError("Invalid ue_report_flag type")
+            if len(ue_report_type["ue_report_flags"]) == 0:
+                raise ValueError("Invalid ue_report_flags element")
 
-        if "cell_report_type" not in value["report_config"]:
-            raise ValueError("missing cell_report_type element")
+            for flag in ue_report_type["ue_report_flags"]:
+                if flag not in L2_UE_STATS_TYPES:
+                    raise ValueError("Invalid ue_report_flag type")
 
-        cell_report_type = value["report_config"]["cell_report_type"]
+        if value["report_type"] != "ue":
 
-        if "cc_id" not in cell_report_type:
-            raise ValueError("missing cc_id element")
+            if "cell_report_type" not in value["report_config"]:
+                raise ValueError("missing cell_report_type element")
 
-        if "cell_report_flags" not in cell_report_type:
-            raise ValueError("missing cell_report_flags element")
+            cell_report_type = value["report_config"]["cell_report_type"]
 
-        if len(cell_report_type) == 0:
-            raise ValueError("invalid cell_report_flags element")
+            if value["report_type"] == "cell" and \
+                "cc_id" not in cell_report_type:
+                raise ValueError("missing cc_id element")
 
-        for flag in cell_report_type['cell_report_flags']:
-            if flag not in L2_CELL_STATS_TYPES:
-                raise ValueError("Invalid cell_report_flag type")
+            if "cell_report_flags" not in cell_report_type:
+                raise ValueError("missing cell_report_flags element")
+
+            if len(cell_report_type) == 0:
+                raise ValueError("invalid cell_report_flags element")
+
+            for flag in cell_report_type['cell_report_flags']:
+                if flag not in L2_CELL_STATS_TYPES:
+                    raise ValueError("Invalid cell_report_flag type")
 
         self._l2_stats_req = value
 
@@ -159,7 +165,7 @@ class VBSStats(Module):
         return out
 
     def run_once(self):
-        """Send out rate request."""
+        """Send out vbs layer 2 stats request."""
 
         if self.tenant_id not in RUNTIME.tenants:
             self.log.info("Tenant %s not found", self.tenant_id)
@@ -208,14 +214,8 @@ class VBSStats(Module):
             for flag in rep_conf["cell_report_type"]["cell_report_flags"]:
                 cc_report_flag |= L2_CELL_STATS_TYPES[flag]
 
-            for c_carrier in rep_conf["cell_report_type"]["cc_id"]:
-                comp_st.cc_id.append(c_carrier)
-
             for flag in rep_conf["ue_report_type"]["ue_report_flags"]:
                 ue_report_flag |= L2_UE_STATS_TYPES[flag]
-
-            for rnti in rep_conf["ue_report_type"]["ue_rnti"]:
-                comp_st.rnti.append(rnti)
 
             comp_st.ue_report_flags = ue_report_flag
             comp_st.cell_report_flags = cc_report_flag
@@ -276,8 +276,6 @@ class VBSStats(Module):
 
         create_header(self.module_id, enb_id, main_pb2.STATS_REQ, st_req.head)
 
-        print(st_req)
-
         vbs.connection.stream_send(st_req)
 
     def handle_response(self, response):
@@ -295,7 +293,7 @@ class VBSStats(Module):
         self.handle_callback(self)
 
 
-class VBSStatsWorker(ModuleVBSPWorker):
+class VBSL2StatsWorker(ModuleVBSPWorker):
     """ Counter worker. """
 
     pass
@@ -304,7 +302,7 @@ class VBSStatsWorker(ModuleVBSPWorker):
 def vbs_stats(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[VBSStatsWorker.__module__].add_module(**kwargs)
+    return RUNTIME.components[VBSL2StatsWorker.__module__].add_module(**kwargs)
 
 
 def bound_vbs_stats(self, **kwargs):
@@ -313,10 +311,10 @@ def bound_vbs_stats(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return vbs_stats(**kwargs)
 
-setattr(EmpowerApp, VBSStats.MODULE_NAME, bound_vbs_stats)
+setattr(EmpowerApp, VBSL2Stats.MODULE_NAME, bound_vbs_stats)
 
 
 def launch():
     """ Initialize the module. """
 
-    return VBSStatsWorker(VBSStats, PRT_VBSP_L2_STATS_RESPONSE)
+    return VBSL2StatsWorker(VBSL2Stats, PRT_VBSP_L2_STATS_RESPONSE)

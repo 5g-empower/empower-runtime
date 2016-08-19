@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""LVAP Statistics Poller Apps."""
+"""VBS Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
@@ -55,7 +55,7 @@ class VBSStatsPoller(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.pollers.lvapstatspoller \
+        ./empower-runtime.py apps.pollers.vbsstatspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
@@ -66,7 +66,7 @@ class VBSStatsPoller(EmpowerApp):
     def vbs_up_callback(self, vbs):
         """ New LVAP. """
 
-        self.vbs_stats(vbs=vbs.addr,
+        self.vbs_l2_stats(vbs=vbs.addr,
                        l2_stats_req=L2_STATS_REQ,
                        every=-1,
                        callback=self.vbs_stats_callback)
