@@ -336,8 +336,6 @@ class LVAP(object):
         """Set downlink block.
 
         Set the downlink block. Must receive as input a single resource block.
-        Uplinks are automatically cleared when setting a new downlink. Also
-        outgoing VNF links are cleared.
         """
 
         if isinstance(blocks, ResourcePool):
@@ -362,12 +360,12 @@ class LVAP(object):
         for block in list(self._downlink.keys()):
             del self._downlink[block]
 
-        # clear uplink blocks
-        for block in list(self._uplink.keys()):
-            del self._uplink[block]
-
         # downlink block
         default_block = pool.pop()
+
+        # if block is used in the uplink direction, then remove it first
+        if default_block in self._uplink:
+            del self._uplink[default_block]
 
         # If lvap is associated to a shared tenant. I need to reset the lvap
         # before moving it.
@@ -397,10 +395,6 @@ class LVAP(object):
             self.authentication_state = False
             self._assoc_id = 0
             self._lvap_bssid = net_bssid
-
-        else:
-
-            self._lvap_bssid = self.net_bssid
 
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message

@@ -157,8 +157,6 @@ class VirtualPortPropLvap(VirtualPortProp):
         # as many intents as the number of blocks.
         if self.obj.encap != EtherAddress("00:00:00:00:00:00"):
             key = "dl_src=%s;dl_dst=%s" % (self.obj.addr, self.obj.encap)
-        else:
-            key = "dl_src=%s;" % self.obj.addr + ofmatch_s2d(key)
 
         # remove virtual link
         if self.__contains__(key):
