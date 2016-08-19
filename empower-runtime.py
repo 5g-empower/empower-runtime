@@ -30,7 +30,7 @@ if __name__ == "__main__":
              'energinoserver.energinoserver',
              'intentserver.intentserver',
              'lvap_stats.lvap_stats',
-             'vbs_stats.vbs_stats',
+             'vbs_stats.vbs_l2_stats',
              'events.wtpdown',
              'events.wtpup',
              'events.lvapleave',
