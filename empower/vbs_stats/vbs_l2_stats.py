@@ -44,6 +44,7 @@ class VBSL2Stats(Module):
         Module.__init__(self)
 
         # parameters
+        self.every = -1
         self._vbs = None
         self._l2_stats_req = None
         self._l2_stats_reply = None
