@@ -30,10 +30,8 @@ class VBS(BasePNFDev):
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         every: update period (in ms)
-        ports: OVS ports
         cc_configs: Configuration of each Component Carriers
         ues: List of User Equipments attached to this VBS
     """
