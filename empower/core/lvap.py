@@ -363,7 +363,7 @@ class LVAP(object):
         # downlink block
         default_block = pool.pop()
 
-        # if block is used in the uplink direction, then remove it first
+        # check if block is also in the uplink, if so remove it
         if default_block in self._uplink:
             del self._uplink[default_block]
 

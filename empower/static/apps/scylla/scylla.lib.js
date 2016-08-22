@@ -375,7 +375,7 @@ function lvapDown(idLvap) {
 
 function chain() {
 
-    console.log("Enabling multiple uplinks with encap...")
+    console.log("Enabling encap...")
 
     encap = lvnfs[selectedLvnf].ports[0].hwaddr
     data = {"version":"1.0", "encap": encap}
@@ -412,8 +412,11 @@ function setNextChain() {
 
     console.log("Chaining...")
 
+    encap = lvnfs[selectedLvnf].ports[0].hwaddr
+    addr = lvnfs[selectedLvnf].addr
+
     data = {"version":"1.0",
-            "match":"",
+            "match":"dl_src=18:5E:0F:E2:10:8F,dl_dst=66:C3:CE:D9:05:51",
             "next": {"lvnf_id": selectedLvnf, "port_id": 0}}
 
     $.ajax({
@@ -448,25 +451,49 @@ function setNextChain() {
 
 function unchain() {
 
-    console.log("Disabling multiple uplinks with encap...")
+    console.log("Disabling encap...")
 
-    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "scheduled_on": []}
-
-    for (var i in wtps) {
-        downlink = lvaps[selectedLvap].downlink[0]
-        for (var j in wtps[i].supports) {
-            block = wtps[i].supports[j]
-            if (block.band == downlink.band && block.channel == downlink.channel) {
-                data["scheduled_on"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
-            }
-        }
-    }
+    data = {"version":"1.0", "encap": "00:00:00:00:00:00"}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
         type: 'PUT',
         dataType: 'json',
         data: JSON.stringify(data),
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            204: function (data) {
+                console.log("Encap enabled!")
+                unsetNextChain()
+            },
+            400: function (data) {
+                alert(data.responseJSON.message);
+            },
+            404: function (data) {
+                alert(data.responseJSON.message);
+            },
+            500: function (data) {
+                alert(data.responseJSON.message);
+            }
+        }
+    });
+
+}
+
+function unsetNextChain() {
+
+    console.log("Chaining...")
+
+    encap = lvnfs[selectedLvnf].ports[0].hwaddr
+    addr = lvnfs[selectedLvnf].addr
+
+    $.ajax({
+        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next/dl_src=18:5E:0F:E2:10:8F,dl_dst=66:C3:CE:D9:05:51",
+        type: 'DELETE',
+        dataType: 'json',
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);

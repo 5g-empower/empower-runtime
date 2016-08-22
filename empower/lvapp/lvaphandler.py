@@ -149,10 +149,8 @@ class LVAPHandler(EmpowerAPIHandler):
                 lvap.uplink = pool
 
             if "encap" in request:
-                if request["encap"]:
-                    encap = EtherAddress(os.urandom(6))
-                else:
-                    encap = EtherAddress("00:00:00:00:00:00")
+
+                encap = EtherAddress(request["encap"])
                 lvap.encap = encap
 
         except KeyError as ex:
