@@ -48,11 +48,12 @@ class VirtualPort(object):
 
     def __init__(self, virtual_port_id, phy_port):
 
+        self.virtual_port_id = virtual_port_id
         self.dpid = phy_port.dpid
         self.ovs_port_id = phy_port.port_id
-        self.virtual_port_id = virtual_port_id
         self.hwaddr = phy_port.hwaddr
         self.iface = phy_port.iface
+
         self.next = dict()
 
     def clear(self):

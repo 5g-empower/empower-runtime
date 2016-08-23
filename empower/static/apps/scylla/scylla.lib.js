@@ -44,13 +44,13 @@ function initialize() {
 var options = {
     start: vis.moment().add(-60, 'seconds'), // changed so its faster
     end: vis.moment(),
-    /*dataAxis: {
+    dataAxis: {
       left: {
         range: {
           min:0, max: 5
         }
       }
-    },*/
+    },
     drawPoints: {
         style: 'circle' // square, circle
     },
@@ -377,8 +377,7 @@ function chain() {
 
     console.log("Enabling encap...")
 
-    encap = lvnfs[selectedLvnf].ports[0].hwaddr
-    data = {"version":"1.0", "encap": encap}
+    data = {"version":"1.0", "encap": "66:C3:CE:D9:05:51"}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
@@ -412,11 +411,10 @@ function setNextChain() {
 
     console.log("Chaining...")
 
-    encap = lvnfs[selectedLvnf].ports[0].hwaddr
-    addr = lvnfs[selectedLvnf].addr
+    addr = lvaps[selectedLvap].addr
 
     data = {"version":"1.0",
-            "match":"dl_src=18:5E:0F:E2:10:8F,dl_dst=66:C3:CE:D9:05:51",
+            "match":"dl_src="+addr+",dl_dst=66:C3:CE:D9:05:51",
             "next": {"lvnf_id": selectedLvnf, "port_id": 0}}
 
     $.ajax({
@@ -487,11 +485,10 @@ function unsetNextChain() {
 
     console.log("Chaining...")
 
-    encap = lvnfs[selectedLvnf].ports[0].hwaddr
-    addr = lvnfs[selectedLvnf].addr
+    addr = lvaps[selectedLvap].addr
 
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next/dl_src=18:5E:0F:E2:10:8F,dl_dst=66:C3:CE:D9:05:51",
+        url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next/dl_src="+addr+",dl_dst=66:C3:CE:D9:05:51",
         type: 'DELETE',
         dataType: 'json',
         cache: false,

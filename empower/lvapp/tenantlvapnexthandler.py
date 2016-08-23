@@ -172,14 +172,13 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvap.ports[port_id]
 
-            print(args)
             match = args[3]
 
             del port.next[match]
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        #except KeyError as ex:
-        #    self.send_error(404, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
 
         self.set_status(204, None)

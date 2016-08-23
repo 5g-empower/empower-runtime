@@ -103,6 +103,7 @@ class LVNF(object):
         self.__target_cpp = None
         self.__migration_timer = None
         self.__creation_timer = None
+        self.__chains = []
 
     def start(self):
         """Spawn LVNF."""
@@ -188,6 +189,19 @@ class LVNF(object):
         # remove lvnf
         self.cpp.connection.send_del_lvnf(self.lvnf_id)
 
+        # look for LVAPs that points to this LVNF
+        self.__chains = []
+
+        for lvap in RUNTIME.lvaps.values():
+            for out_port in lvap.ports:
+                for rule in list(lvap.ports[out_port].next):
+                    v_port = lvap.ports[out_port].next[rule]
+                    in_port = v_port.virtual_port_id
+                    if v_port in self.ports.values():
+                        save = (lvap, rule, out_port, in_port)
+                        self.__chains.append(save)
+                        del lvap.ports[0].next[rule]
+
     def _migrating_stop_migrating_start(self):
 
         # set new cpp
@@ -202,10 +216,22 @@ class LVNF(object):
 
     def _migrating_start_running(self):
 
+        self.__state = PROCESS_RUNNING
+
         delta = int((time.time() - self.__migration_timer) * 1000)
         LOG.info("LVNF %s migration took %sms", self.lvnf_id, delta)
 
-        self.__state = PROCESS_RUNNING
+        LOG.info("Restoring chains")
+        for chain in self.__chains:
+            vnf = chain[0]
+            rule = chain[1]
+            out_port = chain[2]
+            in_port = chain[3]
+            LOG.info("LVAP %s port [%u] next [%s] -> %u", vnf.addr,
+                     out_port, rule, in_port)
+            vnf.ports[out_port].next[rule] = self.ports[in_port]
+
+        self.__chains = []
 
     def _none_spawning(self):
 
