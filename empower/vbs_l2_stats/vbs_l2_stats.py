@@ -18,18 +18,19 @@
 """VBS Stats Module."""
 
 from protobuf_to_dict import protobuf_to_dict
+
 from empower.vbsp.messages import statistics_pb2
 from empower.vbsp.messages import main_pb2
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import Module
-from empower.vbs_stats import L2_STATS_TYPE
-from empower.vbs_stats import L2_CELL_STATS_TYPES
-from empower.vbs_stats import L2_STATS_REPORT_FREQ
-from empower.vbs_stats import L2_UE_STATS_TYPES
+from empower.vbs_l2_stats import L2_STATS_TYPE
+from empower.vbs_l2_stats import L2_CELL_STATS_TYPES
+from empower.vbs_l2_stats import L2_STATS_REPORT_FREQ
+from empower.vbs_l2_stats import L2_UE_STATS_TYPES
 from empower.vbsp.vbspconnection import create_header
-from empower.vbs_stats import PRT_VBSP_L2_STATS_RESPONSE
+from empower.vbs_l2_stats import PRT_VBSP_L2_STATS_RESPONSE
 from empower.main import RUNTIME
 
 
