@@ -235,13 +235,15 @@ class SignalGraph(EmpowerApp):
         """Called when an VBS connects to a tenant."""
 
         # Append VBS to list of active VBSs
-        self.vbses.append(vbs)
+        if vbs not in self.vbses:
+            self.vbses.append(vbs)
 
     def vbs_down_callback(self, vbs):
         """Called when an VBS disconnects from a tenant."""
 
         # Removes VBS from list of active VBSs
-        self.vbses.remove(vbs)
+        if vbs in self.vbses:
+            self.vbses.remove(vbs)
 
     def get_neigh_cells(self, ue):
         """Fetches list of neighbor cells as seen by UE."""

@@ -104,6 +104,7 @@ class VBSPConnection(object):
         self.addr = addr
         self.server = server
         self.vbs = None
+        self.seq = 0
         self.stream.set_close_callback(self._on_disconnect)
         self.__buffer = b''
         self._hb_interval_ms = 500
@@ -129,6 +130,9 @@ class VBSPConnection(object):
 
     def stream_send(self, message):
         """Send message."""
+
+        # Update the sequence number of the messages
+        message.head.seq = self.seq + 1
 
         size = message.ByteSize()
 
@@ -164,6 +168,9 @@ class VBSPConnection(object):
                 return
 
             deserialized_msg = deserialize_message(line)
+
+            # Update the sequency number from received message
+            self.seq = deserialized_msg.head.seq
 
             LOG.info(deserialized_msg.__str__())
 
@@ -225,7 +232,6 @@ class VBSPConnection(object):
             self.vbs = vbs
             vbs.connection = self
             self.send_UEs_id_req()
-            # self.send_ue_conf_req()
 
             event_type = main_msg.WhichOneof("event_types")
             # Protobuf message to JSON format
@@ -301,19 +307,25 @@ class VBSPConnection(object):
         ues_id_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
-
         # Transaction identifier is zero by default.
         create_header(0, enb_id, ues_id_req.head)
 
-        conf_req = enb_req.mConfs
+        # Creatting a trigger message to fetch UE RNTIs
+        trigger_msg = main_pb2.trigger_event()
+        trigger_msg.action = main_pb2.EA_ADD
 
-        conf_req.type = configs_pb2.ENB_CONF_REQUEST
-        conf_req.enb_conf_req.layer = configs_pb2.LC_ALL
+        UEs_id_msg = configs_pb2.ues_id()
+        UEs_id_msg.req = configs_pb2.ues_id_req()
+        # UEs_id_msg.req = UEs_id_req_msg
 
-        LOG.info("Sending eNB config request to VBSP %s (%u)",
+        trigger_msg.mUEs_id = UEs_id_msg
+
+        ues_id_req.te = trigger_msg
+
+        LOG.info("Sending UEs request to VBS %s (%u)",
                  self.vbs.addr, enb_id)
 
-        self.stream_send(enb_req)
+        self.stream_send(ues_id_req)
 
     def send_ue_conf_req(self):
         """ Send request for UE configurations in eNB """

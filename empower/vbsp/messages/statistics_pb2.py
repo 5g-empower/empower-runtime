@@ -14,7 +14,7 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
-import empower.vbsp.messages.configs_pb2 as configs__pb2
+import configs_pb2 as configs__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
