@@ -139,7 +139,7 @@ class VBSPConnection(object):
         LOG.info("Sent message of length %d", size)
         LOG.info(message.__str__())
 
-        size_bytes = (socket.htonl(size + 4)).to_bytes(4, byteorder=self.endian)
+        size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
         buff = size_bytes + send_buff
 
@@ -310,17 +310,14 @@ class VBSPConnection(object):
         # Transaction identifier is zero by default.
         create_header(0, enb_id, ues_id_req.head)
 
-        # Creatting a trigger message to fetch UE RNTIs
-        trigger_msg = main_pb2.trigger_event()
+        # Creating a trigger message to fetch UE RNTIs
+        trigger_msg = ues_id_req.te
         trigger_msg.action = main_pb2.EA_ADD
 
-        UEs_id_msg = configs_pb2.ues_id()
-        UEs_id_msg.req = configs_pb2.ues_id_req()
-        # UEs_id_msg.req = UEs_id_req_msg
+        UEs_id_msg = trigger_msg.mUEs_id
+        UEs_id_req_msg = UEs_id_msg.req
 
-        trigger_msg.mUEs_id = UEs_id_msg
-
-        ues_id_req.te = trigger_msg
+        UEs_id_req_msg.dummy = 1
 
         LOG.info("Sending UEs request to VBS %s (%u)",
                  self.vbs.addr, enb_id)
