@@ -21,14 +21,19 @@ import time
 import tornado.ioloop
 import socket
 import sys
+import json
+from google.protobuf import json_format
 
+# WE CAN NOW STOP USING PROTOBUF_TO_DICT
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
+from empower.vbsp import PRT_VBSP_HELLO
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
-from empower.vbsp import PRT_VBSP_CONFIGS
-from empower.vbsp import PRT_VBSP_STATS
+from empower.vbsp import PRT_VBSP_TRIGGER_EVENT
+from empower.vbsp import PRT_VBSP_AGENT_SCHEDULED_EVENT
+from empower.vbsp import PRT_VBSP_SINGLE_EVENT
 from empower.vbsp.messages import main_pb2
 from empower.vbsp.messages import configs_pb2
 from empower.core.utils import hex_to_ether
@@ -40,8 +45,7 @@ from empower.main import RUNTIME
 import empower.logger
 LOG = empower.logger.get_logger()
 
-
-def create_header(t_id, b_id, msg_type, header):
+def create_header(t_id, b_id, header):
     """Create message header."""
 
     if not header:
@@ -52,10 +56,6 @@ def create_header(t_id, b_id, msg_type, header):
     header.t_id = t_id
     # Set the Base station identifier.
     header.b_id = b_id
-    # Set the type of message.
-    header.type = msg_type
-    # Module identifier is always set to zero. (OAI reasons)
-    header.m_id = 0
     # Start the sequence number for messages from zero.
     header.seq = 0
 
@@ -133,8 +133,9 @@ class VBSPConnection(object):
         size = message.ByteSize()
 
         LOG.info("Sent message of length %d", size)
+        LOG.info(message.__str__())
 
-        size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
+        size_bytes = (socket.htonl(size + 4)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
         buff = size_bytes + send_buff
 
@@ -152,6 +153,7 @@ class VBSPConnection(object):
         self.__buffer = b''
 
         if line is not None:
+            LOG.info("Received message of length %d" % len(line))
 
             self.__buffer = self.__buffer + line
 
@@ -163,30 +165,30 @@ class VBSPConnection(object):
 
             deserialized_msg = deserialize_message(line)
 
+            LOG.info(deserialized_msg.__str__())
+
             self._trigger_message(deserialized_msg)
             self._wait()
 
     def _trigger_message(self, deserialized_msg):
 
-        msg_type = deserialized_msg.WhichOneof("message")
+        event_type = deserialized_msg.WhichOneof("event_types")
+
+        if event_type == PRT_VBSP_SINGLE_EVENT:
+            msg_type = deserialized_msg.se.WhichOneof("events")
+        elif event_type == PRT_VBSP_AGENT_SCHEDULED_EVENT:
+            msg_type = deserialized_msg.sche.WhichOneof("events")
+        elif event_type == PRT_VBSP_TRIGGER_EVENT:
+            msg_type = deserialized_msg.te.WhichOneof("events")
+        else:
+            LOG.error("Unknown message event type %s", event_type)
 
         if not msg_type or msg_type not in self.server.pt_types:
             LOG.error("Unknown message type %s", msg_type)
             return
 
-        if msg_type == PRT_VBSP_CONFIGS:
-            config_type = deserialized_msg.mConfs.WhichOneof("config_msg")
-            if not config_type or config_type not in self.server.pt_types:
-                LOG.error("Unknown configs message type %u", config_type)
-                return
-            msg_type = config_type
-
-        if msg_type == PRT_VBSP_STATS:
-            st_type = deserialized_msg.mStats.WhichOneof("stats_msg")
-            if not st_type or st_type not in self.server.pt_types:
-                LOG.error("Unknown stats message type %u", st_type)
-                return
-            msg_type = st_type
+        if msg_type != PRT_VBSP_HELLO and self.vbs == None:
+            return
 
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
 
@@ -218,13 +220,18 @@ class VBSPConnection(object):
 
         LOG.info("Hello from %s, VBS %s", self.addr[0], vbs_id.to_str())
 
-        # If this is a new connection, then send enb config request (TODO).
+        # If this is a new connection, then send UEs ID request.
         if not vbs.connection:
             self.vbs = vbs
             vbs.connection = self
-            self.send_enb_conf_req()
-            self.send_ue_conf_req()
-            vbs.period = 5000
+            self.send_UEs_id_req()
+            # self.send_ue_conf_req()
+
+            event_type = main_msg.WhichOneof("event_types")
+            # Protobuf message to JSON format
+            hello_json = json.loads(json_format.MessageToJson(main_msg))
+
+            vbs.period = hello_json[event_type]["mHello"]["repl"]["period"]
             self.send_register_message_to_self()
 
         # Update VBSP params
@@ -276,6 +283,9 @@ class VBSPConnection(object):
             if rnti not in vbs.ues:
                 vbs.ues[rnti] = UE(rnti, self.vbs, ue_config)
 
+            if ue_config["state"] == configs_pb2.UES_RRC_INACTIVE:
+                del vbs.ues[rnti]
+
             if "phy_conf" in ue_config:
                 vbs.ues[rnti].phy_config = ue_config["phy_conf"]
 
@@ -285,15 +295,16 @@ class VBSPConnection(object):
             if "rrc_conf" in ue_config:
                 vbs.ues[rnti].rrc_config = ue_config["rrc_conf"]
 
-    def send_enb_conf_req(self):
-        """ Send request for eNB configuration """
+    def send_UEs_id_req(self):
+        """ Send request for UEs ID registered in VBS """
 
-        enb_req = main_pb2.emage_msg()
+        ues_id_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
 
         # Transaction identifier is zero by default.
-        create_header(0, enb_id, main_pb2.CONF_REQ, enb_req.head)
+        create_header(0, enb_id, ues_id_req.head)
+
         conf_req = enb_req.mConfs
 
         conf_req.type = configs_pb2.ENB_CONF_REQUEST
@@ -312,7 +323,7 @@ class VBSPConnection(object):
         enb_id = ether_to_hex(self.vbs.addr)
 
         # Transaction identifier is zero by default.
-        create_header(0, enb_id, main_pb2.CONF_REQ, ue_req.head)
+        create_header(0, enb_id, ue_req.head)
         conf_req = ue_req.mConfs
 
         conf_req.type = configs_pb2.UE_CONF_REQUEST
@@ -338,6 +349,9 @@ class VBSPConnection(object):
         # reset state
         self.vbs.last_seen = 0
         self.vbs.connection = None
+        self.vbs.ues = {}
+        self.vbs.cc_configs = {}
+        self.vbs.period = 0
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to self."""

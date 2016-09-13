@@ -23,29 +23,24 @@ from empower.core.utils import hex_to_ether
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, rnti, vbsp, config):
+    def __init__(self, rnti, vbs, config):
 
         self.rnti = rnti
         self.ue_id = hex_to_ether(self.rnti)
-        self.vbsp = vbsp
-        self.ue_state = config["state"]
-        self.phy_config = {}
-        self.mac_config = {}
-        self.rrc_config = {}
-        self.rrc_measurements = {}
+        self.vbs = vbs
+        self.rrc_meas_config = {}
+        self.rrc_meas = {}
         self.pcell_rsrp = None
         self.pcell_rsrq = None
 
     def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the LVAP """
+        """ Return a JSON-serializable dictionary representing the UE """
 
         return {'rnti': self.rnti,
-                'vbsp': self.vbsp.addr,
+                'vbs': self.vbs.addr,
                 'ue_id': self.ue_id,
-                'ue_state': self.ue_state,
-                'phy_config': self.phy_config,
-                'mac_config': self.mac_config,
-                'rrc_config': self.rrc_config,
+                'rrc_meas_config': self.rrc_meas_config,
+                'rrc_meas': self.rrc_meas,
                 'primary_cell_rsrp': self.pcell_rsrp,
                 'primary_cell_rsrq': self.pcell_rsrq}
 

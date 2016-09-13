@@ -23,61 +23,36 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='main.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\nmain.proto\x1a\x0bhello.proto\x1a\x10statistics.proto\x1a\rconfigs.proto\"e\n\x06header\x12\x16\n\x04type\x18\x01 \x01(\x0e\x32\x08.MsgType\x12\x0c\n\x04vers\x18\x02 \x01(\r\x12\x0c\n\x04\x62_id\x18\x03 \x01(\r\x12\x0c\n\x04m_id\x18\x04 \x01(\r\x12\x0b\n\x03seq\x18\x05 \x01(\r\x12\x0c\n\x04t_id\x18\x06 \x01(\r\"\x82\x01\n\temage_msg\x12\x15\n\x04head\x18\x01 \x01(\x0b\x32\x07.header\x12\x18\n\x06mHello\x18\x02 \x01(\x0b\x32\x06.helloH\x00\x12\x1d\n\x06mStats\x18\x03 \x01(\x0b\x32\x0b.statisticsH\x00\x12\x1a\n\x06mConfs\x18\x04 \x01(\x0b\x32\x08.configsH\x00\x42\t\n\x07message*n\n\x07MsgType\x12\x0b\n\x07INVALID\x10\x00\x12\r\n\tHELLO_REQ\x10\x01\x12\r\n\tHELLO_REP\x10\x02\x12\r\n\tSTATS_REQ\x10\x03\x12\r\n\tSTATS_REP\x10\x04\x12\x0c\n\x08\x43ONF_REQ\x10\x05\x12\x0c\n\x08\x43ONF_REP\x10\x06')
+  serialized_pb=_b('\n\nmain.proto\x1a\x0bhello.proto\x1a\x10statistics.proto\x1a\rconfigs.proto\"?\n\x06header\x12\x0c\n\x04vers\x18\x01 \x02(\r\x12\x0c\n\x04\x62_id\x18\x02 \x02(\r\x12\x0b\n\x03seq\x18\x03 \x02(\r\x12\x0c\n\x04t_id\x18\x04 \x02(\r\"~\n\x0csingle_event\x12\x18\n\x06mHello\x18\x01 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x02 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x03 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\x97\x01\n\x0eschedule_event\x12\x10\n\x08interval\x18\x01 \x01(\r\x12\x1d\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\r.event_action\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x04 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\xbe\x01\n\rtrigger_event\x12\x1d\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\r.event_action\x12\x18\n\x06mHello\x18\x02 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12\x1e\n\tmRRC_meas\x18\x04 \x01(\x0b\x32\t.rrc_measH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x05 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\x8d\x01\n\temage_msg\x12\x15\n\x04head\x18\x01 \x02(\x0b\x32\x07.header\x12\x1b\n\x02se\x18\x02 \x01(\x0b\x32\r.single_eventH\x00\x12\x1f\n\x04sche\x18\x03 \x01(\x0b\x32\x0f.schedule_eventH\x00\x12\x1c\n\x02te\x18\x04 \x01(\x0b\x32\x0e.trigger_eventH\x00\x42\r\n\x0b\x65vent_types*&\n\x0c\x65vent_action\x12\n\n\x06\x45\x41_ADD\x10\x00\x12\n\n\x06\x45\x41_DEL\x10\x01')
   ,
   dependencies=[hello__pb2.DESCRIPTOR,statistics__pb2.DESCRIPTOR,configs__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-_MSGTYPE = _descriptor.EnumDescriptor(
-  name='MsgType',
-  full_name='MsgType',
+_EVENT_ACTION = _descriptor.EnumDescriptor(
+  name='event_action',
+  full_name='event_action',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='INVALID', index=0, number=0,
+      name='EA_ADD', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='HELLO_REQ', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='HELLO_REP', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='STATS_REQ', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='STATS_REP', index=4, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CONF_REQ', index=5, number=5,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CONF_REP', index=6, number=6,
+      name='EA_DEL', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=296,
-  serialized_end=406,
+  serialized_start=744,
+  serialized_end=782,
 )
-_sym_db.RegisterEnumDescriptor(_MSGTYPE)
+_sym_db.RegisterEnumDescriptor(_EVENT_ACTION)
 
-MsgType = enum_type_wrapper.EnumTypeWrapper(_MSGTYPE)
-INVALID = 0
-HELLO_REQ = 1
-HELLO_REP = 2
-STATS_REQ = 3
-STATS_REP = 4
-CONF_REQ = 5
-CONF_REP = 6
+event_action = enum_type_wrapper.EnumTypeWrapper(_EVENT_ACTION)
+EA_ADD = 0
+EA_DEL = 1
 
 
 
@@ -89,43 +64,29 @@ _HEADER = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='header.type', index=0,
-      number=1, type=14, cpp_type=8, label=1,
+      name='vers', full_name='header.vers', index=0,
+      number=1, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='vers', full_name='header.vers', index=1,
-      number=2, type=13, cpp_type=3, label=1,
+      name='b_id', full_name='header.b_id', index=1,
+      number=2, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='b_id', full_name='header.b_id', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      name='seq', full_name='header.seq', index=2,
+      number=3, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='m_id', full_name='header.m_id', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='seq', full_name='header.seq', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='t_id', full_name='header.t_id', index=5,
-      number=6, type=13, cpp_type=3, label=1,
+      name='t_id', full_name='header.t_id', index=3,
+      number=4, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -143,40 +104,88 @@ _HEADER = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=60,
-  serialized_end=161,
+  serialized_end=123,
 )
 
 
-_EMAGE_MSG = _descriptor.Descriptor(
-  name='emage_msg',
-  full_name='emage_msg',
+_SINGLE_EVENT = _descriptor.Descriptor(
+  name='single_event',
+  full_name='single_event',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='head', full_name='emage_msg.head', index=0,
+      name='mHello', full_name='single_event.mHello', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='mHello', full_name='emage_msg.mHello', index=1,
+      name='mUEs_id', full_name='single_event.mUEs_id', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='mStats', full_name='emage_msg.mStats', index=2,
+      name='mUE_rrc_meas_conf', full_name='single_event.mUE_rrc_meas_conf', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='events', full_name='single_event.events',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=125,
+  serialized_end=251,
+)
+
+
+_SCHEDULE_EVENT = _descriptor.Descriptor(
+  name='schedule_event',
+  full_name='schedule_event',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='interval', full_name='schedule_event.interval', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='action', full_name='schedule_event.action', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mUEs_id', full_name='schedule_event.mUEs_id', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='mConfs', full_name='emage_msg.mConfs', index=3,
+      name='mUE_rrc_meas_conf', full_name='schedule_event.mUE_rrc_meas_conf', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -194,30 +203,187 @@ _EMAGE_MSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='message', full_name='emage_msg.message',
+      name='events', full_name='schedule_event.events',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=164,
-  serialized_end=294,
+  serialized_start=254,
+  serialized_end=405,
 )
 
-_HEADER.fields_by_name['type'].enum_type = _MSGTYPE
+
+_TRIGGER_EVENT = _descriptor.Descriptor(
+  name='trigger_event',
+  full_name='trigger_event',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='action', full_name='trigger_event.action', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mHello', full_name='trigger_event.mHello', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mUEs_id', full_name='trigger_event.mUEs_id', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mRRC_meas', full_name='trigger_event.mRRC_meas', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mUE_rrc_meas_conf', full_name='trigger_event.mUE_rrc_meas_conf', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='events', full_name='trigger_event.events',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=408,
+  serialized_end=598,
+)
+
+
+_EMAGE_MSG = _descriptor.Descriptor(
+  name='emage_msg',
+  full_name='emage_msg',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='head', full_name='emage_msg.head', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='se', full_name='emage_msg.se', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sche', full_name='emage_msg.sche', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='te', full_name='emage_msg.te', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='event_types', full_name='emage_msg.event_types',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=601,
+  serialized_end=742,
+)
+
+_SINGLE_EVENT.fields_by_name['mHello'].message_type = hello__pb2._HELLO
+_SINGLE_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
+_SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_SINGLE_EVENT.oneofs_by_name['events'].fields.append(
+  _SINGLE_EVENT.fields_by_name['mHello'])
+_SINGLE_EVENT.fields_by_name['mHello'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
+_SINGLE_EVENT.oneofs_by_name['events'].fields.append(
+  _SINGLE_EVENT.fields_by_name['mUEs_id'])
+_SINGLE_EVENT.fields_by_name['mUEs_id'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
+_SINGLE_EVENT.oneofs_by_name['events'].fields.append(
+  _SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'])
+_SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
+_SCHEDULE_EVENT.fields_by_name['action'].enum_type = _EVENT_ACTION
+_SCHEDULE_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
+_SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_SCHEDULE_EVENT.oneofs_by_name['events'].fields.append(
+  _SCHEDULE_EVENT.fields_by_name['mUEs_id'])
+_SCHEDULE_EVENT.fields_by_name['mUEs_id'].containing_oneof = _SCHEDULE_EVENT.oneofs_by_name['events']
+_SCHEDULE_EVENT.oneofs_by_name['events'].fields.append(
+  _SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'])
+_SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _SCHEDULE_EVENT.oneofs_by_name['events']
+_TRIGGER_EVENT.fields_by_name['action'].enum_type = _EVENT_ACTION
+_TRIGGER_EVENT.fields_by_name['mHello'].message_type = hello__pb2._HELLO
+_TRIGGER_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
+_TRIGGER_EVENT.fields_by_name['mRRC_meas'].message_type = statistics__pb2._RRC_MEAS
+_TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
+  _TRIGGER_EVENT.fields_by_name['mHello'])
+_TRIGGER_EVENT.fields_by_name['mHello'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
+_TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
+  _TRIGGER_EVENT.fields_by_name['mUEs_id'])
+_TRIGGER_EVENT.fields_by_name['mUEs_id'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
+_TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
+  _TRIGGER_EVENT.fields_by_name['mRRC_meas'])
+_TRIGGER_EVENT.fields_by_name['mRRC_meas'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
+_TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
+  _TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'])
+_TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
 _EMAGE_MSG.fields_by_name['head'].message_type = _HEADER
-_EMAGE_MSG.fields_by_name['mHello'].message_type = hello__pb2._HELLO
-_EMAGE_MSG.fields_by_name['mStats'].message_type = statistics__pb2._STATISTICS
-_EMAGE_MSG.fields_by_name['mConfs'].message_type = configs__pb2._CONFIGS
-_EMAGE_MSG.oneofs_by_name['message'].fields.append(
-  _EMAGE_MSG.fields_by_name['mHello'])
-_EMAGE_MSG.fields_by_name['mHello'].containing_oneof = _EMAGE_MSG.oneofs_by_name['message']
-_EMAGE_MSG.oneofs_by_name['message'].fields.append(
-  _EMAGE_MSG.fields_by_name['mStats'])
-_EMAGE_MSG.fields_by_name['mStats'].containing_oneof = _EMAGE_MSG.oneofs_by_name['message']
-_EMAGE_MSG.oneofs_by_name['message'].fields.append(
-  _EMAGE_MSG.fields_by_name['mConfs'])
-_EMAGE_MSG.fields_by_name['mConfs'].containing_oneof = _EMAGE_MSG.oneofs_by_name['message']
+_EMAGE_MSG.fields_by_name['se'].message_type = _SINGLE_EVENT
+_EMAGE_MSG.fields_by_name['sche'].message_type = _SCHEDULE_EVENT
+_EMAGE_MSG.fields_by_name['te'].message_type = _TRIGGER_EVENT
+_EMAGE_MSG.oneofs_by_name['event_types'].fields.append(
+  _EMAGE_MSG.fields_by_name['se'])
+_EMAGE_MSG.fields_by_name['se'].containing_oneof = _EMAGE_MSG.oneofs_by_name['event_types']
+_EMAGE_MSG.oneofs_by_name['event_types'].fields.append(
+  _EMAGE_MSG.fields_by_name['sche'])
+_EMAGE_MSG.fields_by_name['sche'].containing_oneof = _EMAGE_MSG.oneofs_by_name['event_types']
+_EMAGE_MSG.oneofs_by_name['event_types'].fields.append(
+  _EMAGE_MSG.fields_by_name['te'])
+_EMAGE_MSG.fields_by_name['te'].containing_oneof = _EMAGE_MSG.oneofs_by_name['event_types']
 DESCRIPTOR.message_types_by_name['header'] = _HEADER
+DESCRIPTOR.message_types_by_name['single_event'] = _SINGLE_EVENT
+DESCRIPTOR.message_types_by_name['schedule_event'] = _SCHEDULE_EVENT
+DESCRIPTOR.message_types_by_name['trigger_event'] = _TRIGGER_EVENT
 DESCRIPTOR.message_types_by_name['emage_msg'] = _EMAGE_MSG
-DESCRIPTOR.enum_types_by_name['MsgType'] = _MSGTYPE
+DESCRIPTOR.enum_types_by_name['event_action'] = _EVENT_ACTION
 
 header = _reflection.GeneratedProtocolMessageType('header', (_message.Message,), dict(
   DESCRIPTOR = _HEADER,
@@ -225,6 +391,27 @@ header = _reflection.GeneratedProtocolMessageType('header', (_message.Message,),
   # @@protoc_insertion_point(class_scope:header)
   ))
 _sym_db.RegisterMessage(header)
+
+single_event = _reflection.GeneratedProtocolMessageType('single_event', (_message.Message,), dict(
+  DESCRIPTOR = _SINGLE_EVENT,
+  __module__ = 'main_pb2'
+  # @@protoc_insertion_point(class_scope:single_event)
+  ))
+_sym_db.RegisterMessage(single_event)
+
+schedule_event = _reflection.GeneratedProtocolMessageType('schedule_event', (_message.Message,), dict(
+  DESCRIPTOR = _SCHEDULE_EVENT,
+  __module__ = 'main_pb2'
+  # @@protoc_insertion_point(class_scope:schedule_event)
+  ))
+_sym_db.RegisterMessage(schedule_event)
+
+trigger_event = _reflection.GeneratedProtocolMessageType('trigger_event', (_message.Message,), dict(
+  DESCRIPTOR = _TRIGGER_EVENT,
+  __module__ = 'main_pb2'
+  # @@protoc_insertion_point(class_scope:trigger_event)
+  ))
+_sym_db.RegisterMessage(trigger_event)
 
 emage_msg = _reflection.GeneratedProtocolMessageType('emage_msg', (_message.Message,), dict(
   DESCRIPTOR = _EMAGE_MSG,

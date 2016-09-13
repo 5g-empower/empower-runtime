@@ -74,6 +74,8 @@ class VBSL2Stats(Module):
         if self.l2_stats_req:
             raise ValueError("Cannot update configuration")
 
+        vbses = RUNTIME.tenants[self.tenant_id].vbses
+
         if "report_type" not in value:
             raise ValueError("Missing report_type element")
 
@@ -100,9 +102,13 @@ class VBSL2Stats(Module):
 
             ue_report_type = value["report_config"]["ue_report_type"]
 
-            if value["report_type"] == "ue" and \
-                "ue_rnti" not in ue_report_type:
-                raise ValueError("missing ue_rnti element")
+            if value["report_type"] == "ue":
+                if "ue_rnti" not in ue_report_type:
+                    raise ValueError("Missing ue_rnti element")
+
+                for ue_rnti in ue_report_type["ue_rnti"]:
+                    if ue_rnti not in vbses[self.vbs].ues:
+                        raise ValueError("Invalid UE rnti")
 
             if "ue_report_flags" not in ue_report_type:
                 raise ValueError("Missing ue_report_flags element")
@@ -117,19 +123,23 @@ class VBSL2Stats(Module):
         if value["report_type"] != "ue":
 
             if "cell_report_type" not in value["report_config"]:
-                raise ValueError("missing cell_report_type element")
+                raise ValueError("Missing cell_report_type element")
 
             cell_report_type = value["report_config"]["cell_report_type"]
 
-            if value["report_type"] == "cell" and \
-                "cc_id" not in cell_report_type:
-                raise ValueError("missing cc_id element")
+            if value["report_type"] == "cell":
+                if "cc_id" not in cell_report_type:
+                    raise ValueError("Missing cc_id element")
+
+                for cc_id in cell_report_type["cc_id"]:
+                    if cc_id >= MAX_NUM_CCS:
+                        raise ValueError("Invalid CC id")
 
             if "cell_report_flags" not in cell_report_type:
-                raise ValueError("missing cell_report_flags element")
+                raise ValueError("Missing cell_report_flags element")
 
             if len(cell_report_type) == 0:
-                raise ValueError("invalid cell_report_flags element")
+                raise ValueError("Invalid cell_report_flags element")
 
             for flag in cell_report_type['cell_report_flags']:
                 if flag not in L2_CELL_STATS_TYPES:
@@ -203,7 +213,7 @@ class VBSL2Stats(Module):
         connection = vbs.connection
         enb_id = connection.vbs.enb_id
 
-        create_header(self.module_id, enb_id, main_pb2.STATS_REQ, st_req.head)
+        create_header(self.module_id, enb_id, st_req.head)
 
         if st_req_conf["report_frequency"] == "periodical":
             l2_st_req.subframe = st_req_conf["periodicity"]
@@ -275,7 +285,7 @@ class VBSL2Stats(Module):
         connection = vbs.connection
         enb_id = connection.vbs.enb_id
 
-        create_header(self.module_id, enb_id, main_pb2.STATS_REQ, st_req.head)
+        create_header(self.module_id, enb_id, st_req.head)
 
         vbs.connection.stream_send(st_req)
 

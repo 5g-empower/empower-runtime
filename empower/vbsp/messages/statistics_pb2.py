@@ -14,407 +14,184 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
+import empower.vbsp.messages.configs_pb2 as configs__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='statistics.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x10statistics.proto\"\xfc\x01\n\nstatistics\x12\x1d\n\x04type\x18\x64 \x01(\x0e\x32\x0f.stats_msg_type\x12.\n\x0cl2_stats_req\x18\x01 \x01(\x0b\x32\x16.l2_statistics_requestH\x00\x12-\n\rl2_stats_repl\x18\x02 \x01(\x0b\x32\x14.l2_statistics_replyH\x00\x12\x31\n\x0crrc_meas_req\x18\x03 \x01(\x0b\x32\x19.rrc_measurements_requestH\x00\x12\x30\n\rrrc_meas_repl\x18\x04 \x01(\x0b\x32\x17.rrc_measurements_replyH\x00\x42\x0b\n\tstats_msg\"O\n\x16rrc_measurements_reply\x12\x0c\n\x04rnti\x18\x02 \x01(\r\x12\'\n\x0cmeasurements\x18\x03 \x01(\x0b\x32\x11.rrc_measurements\"y\n\x10rrc_measurements\x12\x0e\n\x06measId\x18\x01 \x01(\x05\x12\x12\n\nPCell_rsrp\x18\x02 \x01(\x05\x12\x12\n\nPCell_rsrq\x18\x03 \x01(\x05\x12-\n\nneigh_meas\x18\x04 \x01(\x0b\x32\x19.neigh_cells_measurements\"C\n\x18neigh_cells_measurements\x12\'\n\nEUTRA_meas\x18\x01 \x03(\x0b\x32\x13.EUTRA_measurements\"\x82\x01\n\x12\x45UTRA_measurements\x12\x14\n\x0cphys_cell_id\x18\x01 \x01(\x05\x12)\n\x08\x63gi_meas\x18\x02 \x01(\x0b\x32\x17.EUTRA_cgi_measurements\x12+\n\x0bmeas_result\x18\x03 \x01(\x0b\x32\x16.EUTRA_ref_signal_meas\"y\n\x16\x45UTRA_cgi_measurements\x12\"\n\x03\x63gi\x18\x01 \x01(\x0b\x32\x15.cell_global_id_EUTRA\x12\x1a\n\x12tracking_area_code\x18\x02 \x01(\r\x12\x1f\n\x07plmn_id\x18\x03 \x03(\x0b\x32\x0e.plmn_identity\")\n\rplmn_identity\x12\x0b\n\x03mnc\x18\x01 \x03(\r\x12\x0b\n\x03mcc\x18\x02 \x03(\r\"H\n\x14\x63\x65ll_global_id_EUTRA\x12\x1f\n\x07plmn_id\x18\x01 \x01(\x0b\x32\x0e.plmn_identity\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\"3\n\x15\x45UTRA_ref_signal_meas\x12\x0c\n\x04rsrp\x18\x01 \x01(\x05\x12\x0c\n\x04rsrq\x18\x02 \x01(\x05\"Z\n\x18rrc_measurements_request\x12\x0c\n\x04rnti\x18\x02 \x01(\r\x12\x30\n\x06\x63onfig\x18\x03 \x01(\x0b\x32 .rrc_measurements_request_config\"W\n\x1frrc_measurements_request_config\x12\x17\n\x0freport_interval\x18\x01 \x01(\r\x12\x1b\n\x13report_carrier_freq\x18\x02 \x01(\r\"m\n\x13l2_statistics_reply\x12(\n\tue_report\x18\x02 \x03(\x0b\x32\x15.ue_statistics_report\x12,\n\x0b\x63\x65ll_report\x18\x03 \x03(\x0b\x32\x17.cell_statistics_report\"o\n\x16\x63\x65ll_statistics_report\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\x14\n\x0creport_flags\x18\x02 \x01(\r\x12\x30\n\x0cnoise_interf\x18\x03 \x01(\x0b\x32\x1a.noise_interference_report\"E\n\x19noise_interference_report\x12\x0e\n\x06sfn_sf\x18\x01 \x01(\r\x12\x0b\n\x03rip\x18\x02 \x01(\r\x12\x0b\n\x03tnp\x18\x03 \x01(\r\"\xf3\x01\n\x14ue_statistics_report\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12\x14\n\x0creport_flags\x18\x02 \x01(\r\x12\x0b\n\x03\x62sr\x18\x03 \x03(\r\x12\x0b\n\x03phr\x18\x04 \x01(\r\x12 \n\x07rlc_bsr\x18\x05 \x03(\x0b\x32\x0f.rlc_bsr_report\x12\x17\n\x0fpending_mac_ces\x18\x06 \x01(\r\x12\x1e\n\x06\x64l_cqi\x18\x07 \x01(\x0b\x32\x0e.dl_cqi_report\x12\"\n\x03pbr\x18\x08 \x01(\x0b\x32\x15.paging_buffer_report\x12\x1e\n\x06ul_cqi\x18\t \x01(\x0b\x32\x0e.ul_cqi_report\"\xb6\x01\n\x0erlc_bsr_report\x12\r\n\x05lc_id\x18\x01 \x01(\r\x12\x15\n\rtx_queue_size\x18\x02 \x01(\r\x12\x1a\n\x12tx_queue_hol_delay\x18\x03 \x01(\r\x12!\n\x19retransmission_queue_size\x18\x04 \x01(\r\x12&\n\x1eretransmission_queue_hol_delay\x18\x05 \x01(\r\x12\x17\n\x0fstatus_pdu_size\x18\x06 \x01(\r\"?\n\rdl_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12\x1e\n\x06\x64l_csi\x18\x02 \x03(\x0b\x32\x0e.dl_csi_report\"\xd3\x02\n\rdl_csi_report\x12\x17\n\x0fserv_cell_index\x18\x01 \x01(\r\x12\n\n\x02ri\x18\x02 \x01(\r\x12\x17\n\x04type\x18\x03 \x01(\x0e\x32\t.csi_type\x12\x1a\n\x06p10csi\x18\x04 \x01(\x0b\x32\x08.csi_p10H\x00\x12\x1a\n\x06p11csi\x18\x05 \x01(\x0b\x32\x08.csi_p11H\x00\x12\x1a\n\x06p20csi\x18\x06 \x01(\x0b\x32\x08.csi_p20H\x00\x12\x1a\n\x06p21csi\x18\x07 \x01(\x0b\x32\x08.csi_p21H\x00\x12\x1a\n\x06\x61\x31\x32\x63si\x18\x08 \x01(\x0b\x32\x08.csi_a12H\x00\x12\x1a\n\x06\x61\x32\x32\x63si\x18\t \x01(\x0b\x32\x08.csi_a22H\x00\x12\x1a\n\x06\x61\x32\x30\x63si\x18\n \x01(\x0b\x32\x08.csi_a20H\x00\x12\x1a\n\x06\x61\x33\x30\x63si\x18\x0b \x01(\x0b\x32\x08.csi_a30H\x00\x12\x1a\n\x06\x61\x33\x31\x63si\x18\x0c \x01(\x0b\x32\x08.csi_a31H\x00\x42\x08\n\x06report\"\x19\n\x07\x63si_p10\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\")\n\x07\x63si_p11\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\"Y\n\x07\x63si_p20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x1c\n\x14\x62\x61ndwidth_part_index\x18\x03 \x01(\r\x12\x10\n\x08sb_index\x18\x04 \x01(\r\"h\n\x07\x63si_p21\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x02 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x03 \x03(\r\x12\x1b\n\x13\x62\x61\x64width_part_index\x18\x04 \x01(\r\x12\x10\n\x08sb_index\x18\x05 \x01(\r\")\n\x07\x63si_a12\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_pmi\x18\x02 \x03(\r\"Z\n\x07\x63si_a22\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\x12\x0e\n\x06sb_pmi\x18\x04 \x01(\r\x12\x0f\n\x07sb_list\x18\x05 \x03(\r\":\n\x07\x63si_a20\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x01(\r\x12\x0f\n\x07sb_list\x18\x03 \x03(\r\")\n\x07\x63si_a30\x12\x0e\n\x06wb_cqi\x18\x01 \x01(\r\x12\x0e\n\x06sb_cqi\x18\x02 \x03(\r\"C\n\x07\x63si_a31\x12\x0e\n\x06wb_cqi\x18\x01 \x03(\r\x12\x18\n\x06sb_cqi\x18\x02 \x03(\x0b\x32\x08.msb_cqi\x12\x0e\n\x06wb_pmi\x18\x03 \x01(\r\"\x19\n\x07msb_cqi\x12\x0e\n\x06sb_cqi\x18\x01 \x03(\r\"k\n\x0bpaging_info\x12\x14\n\x0cpaging_index\x18\x01 \x01(\r\x12\x1b\n\x13paging_message_size\x18\x02 \x01(\r\x12\x17\n\x0fpaging_subframe\x18\x03 \x01(\r\x12\x10\n\x08\x63\x63_index\x18\x04 \x01(\r\"5\n\x14paging_buffer_report\x12\x1d\n\x07pg_info\x18\x01 \x03(\x0b\x32\x0c.paging_info\"K\n\x06ul_cqi\x12\x1a\n\x04type\x18\x01 \x01(\x0e\x32\x0c.ul_cqi_type\x12\x0c\n\x04sinr\x18\x02 \x03(\r\x12\x17\n\x0fserv_cell_index\x18\x03 \x01(\r\":\n\rul_cqi_report\x12\x0e\n\x06sfn_sn\x18\x01 \x01(\r\x12\x19\n\x08\x63qi_meas\x18\x02 \x03(\x0b\x32\x07.ul_cqi\"\x9b\x02\n\x15l2_statistics_request\x12\x1c\n\x04type\x18\x02 \x01(\x0e\x32\x0e.l2_stats_type\x12)\n\x0breport_freq\x18\x03 \x01(\x0e\x32\x14.reporting_frequency\x12\x10\n\x08subframe\x18\x04 \x01(\r\x12\x32\n\x0e\x63\x65ll_stats_req\x18\x05 \x01(\x0b\x32\x18.cell_statistics_requestH\x00\x12.\n\x0cue_stats_req\x18\x06 \x01(\x0b\x32\x16.ue_statistics_requestH\x00\x12\x36\n\x0e\x63omp_stats_req\x18\x07 \x01(\x0b\x32\x1c.complete_statistics_requestH\x00\x42\x0b\n\tstats_req\"Q\n\x1b\x63omplete_statistics_request\x12\x19\n\x11\x63\x65ll_report_flags\x18\x01 \x01(\r\x12\x17\n\x0fue_report_flags\x18\x02 \x01(\r\">\n\x17\x63\x65ll_statistics_request\x12\r\n\x05\x63\x63_id\x18\x01 \x03(\r\x12\x14\n\x0creport_flags\x18\x02 \x01(\r\";\n\x15ue_statistics_request\x12\x0c\n\x04rnti\x18\x01 \x03(\r\x12\x14\n\x0creport_flags\x18\x02 \x01(\r*~\n\x0estats_msg_type\x12\x19\n\x15L2_STATISTICS_REQUEST\x10\x00\x12\x17\n\x13L2_STATISTICS_REPLY\x10\x01\x12\x1c\n\x18RRC_MEASUREMENTS_REQUEST\x10\x02\x12\x1a\n\x16RRC_MEASUREMENTS_REPLY\x10\x03*B\n\x0bmac_ce_type\x12\x0b\n\x07MCET_TA\x10\x01\x12\x0c\n\x08MCET_DRX\x10\x02\x12\x0b\n\x07MCET_CR\x10\x04\x12\x0b\n\x07MCET_CA\x10\x08*_\n\x0bul_cqi_type\x12\x0c\n\x08ULCT_SRS\x10\x00\x12\x0e\n\nULCT_PUSCH\x10\x01\x12\x10\n\x0cULCT_PUCCH_1\x10\x02\x12\x10\n\x0cULCT_PUCCH_2\x10\x03\x12\x0e\n\nULCT_PRACH\x10\x04*\x88\x01\n\x08\x63si_type\x12\x0c\n\x08\x43SIT_P10\x10\x00\x12\x0c\n\x08\x43SIT_P11\x10\x01\x12\x0c\n\x08\x43SIT_P20\x10\x02\x12\x0c\n\x08\x43SIT_P21\x10\x03\x12\x0c\n\x08\x43SIT_A12\x10\x04\x12\x0c\n\x08\x43SIT_A22\x10\x05\x12\x0c\n\x08\x43SIT_A20\x10\x06\x12\x0c\n\x08\x43SIT_A30\x10\x07\x12\x0c\n\x08\x43SIT_A31\x10\x08*>\n\rl2_stats_type\x12\x11\n\rL2ST_COMPLETE\x10\x00\x12\r\n\tL2ST_CELL\x10\x01\x12\x0b\n\x07L2ST_UE\x10\x02*\\\n\x13reporting_frequency\x12\r\n\tREPF_ONCE\x10\x00\x12\x13\n\x0fREPF_PERIODICAL\x10\x01\x12\x13\n\x0fREPF_CONTINUOUS\x10\x02\x12\x0c\n\x08REPF_OFF\x10\x03*-\n\x0f\x63\x65ll_stats_type\x12\x1a\n\x16\x43ST_NOISE_INTERFERENCE\x10\x01*\x80\x01\n\rue_stats_type\x12\x0c\n\x08UEST_BSR\x10\x01\x12\x0c\n\x08UEST_PRH\x10\x02\x12\x0f\n\x0bUEST_RLC_BS\x10\x04\x12\x12\n\x0eUEST_MAC_CE_BS\x10\x08\x12\x0f\n\x0bUEST_DL_CQI\x10\x10\x12\x0c\n\x08UEST_PBS\x10 \x12\x0f\n\x0bUEST_UL_CQI\x10@')
-)
+  serialized_pb=_b('\n\x10statistics.proto\x1a\rconfigs.proto\"\x84\x01\n\x0crrc_meas_req\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12\x16\n\x03rat\x18\x02 \x02(\x0e\x32\t.rat_type\x12\x11\n\x06measId\x18\x03 \x02(\x05:\x01\x30\x12\x1b\n\x05m_obj\x18\x04 \x01(\x0b\x32\x0c.meas_object\x12\x1e\n\x06r_conf\x18\x05 \x01(\x0b\x32\x0e.report_config\")\n\rplmn_identity\x12\x0b\n\x03mnc\x18\x01 \x01(\r\x12\x0b\n\x03mcc\x18\x02 \x01(\r\"H\n\x14\x63\x65ll_global_id_EUTRA\x12\x1f\n\x07plmn_id\x18\x01 \x01(\x0b\x32\x0e.plmn_identity\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\"y\n\x16\x45UTRA_cgi_measurements\x12\"\n\x03\x63gi\x18\x01 \x01(\x0b\x32\x15.cell_global_id_EUTRA\x12\x1a\n\x12tracking_area_code\x18\x02 \x01(\r\x12\x1f\n\x07plmn_id\x18\x03 \x03(\x0b\x32\x0e.plmn_identity\"3\n\x15\x45UTRA_ref_signal_meas\x12\x0c\n\x04rsrp\x18\x01 \x01(\x05\x12\x0c\n\x04rsrq\x18\x02 \x01(\x05\"\x82\x01\n\x12\x45UTRA_measurements\x12\x14\n\x0cphys_cell_id\x18\x01 \x01(\r\x12)\n\x08\x63gi_meas\x18\x02 \x01(\x0b\x32\x17.EUTRA_cgi_measurements\x12+\n\x0bmeas_result\x18\x03 \x01(\x0b\x32\x16.EUTRA_ref_signal_meas\"C\n\x18neigh_cells_measurements\x12\'\n\nEUTRA_meas\x18\x01 \x03(\x0b\x32\x13.EUTRA_measurements\"\xa7\x01\n\rrrc_meas_repl\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12!\n\x06status\x18\x02 \x02(\x0e\x32\x11.stats_req_status\x12\x0e\n\x06measId\x18\x03 \x01(\x05\x12\x12\n\nPCell_rsrp\x18\x04 \x01(\x05\x12\x12\n\nPCell_rsrq\x18\x05 \x01(\x05\x12-\n\nneigh_meas\x18\x06 \x01(\x0b\x32\x19.neigh_cells_measurements\"V\n\x08rrc_meas\x12\x1c\n\x03req\x18\x01 \x01(\x0b\x32\r.rrc_meas_reqH\x00\x12\x1e\n\x04repl\x18\x02 \x01(\x0b\x32\x0e.rrc_meas_replH\x00\x42\x0c\n\nrrc_meas_m*\x19\n\x08rat_type\x12\r\n\tRAT_EUTRA\x10\x00*8\n\x10stats_req_status\x12\x11\n\rSREQS_SUCCESS\x10\x00\x12\x11\n\rSREQS_FAILURE\x10\x01')
+  ,
+  dependencies=[configs__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-_STATS_MSG_TYPE = _descriptor.EnumDescriptor(
-  name='stats_msg_type',
-  full_name='stats_msg_type',
+_RAT_TYPE = _descriptor.EnumDescriptor(
+  name='rat_type',
+  full_name='rat_type',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='L2_STATISTICS_REQUEST', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='L2_STATISTICS_REPLY', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='RRC_MEASUREMENTS_REQUEST', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='RRC_MEASUREMENTS_REPLY', index=3, number=3,
+      name='RAT_EUTRA', index=0, number=0,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=3684,
-  serialized_end=3810,
+  serialized_start=923,
+  serialized_end=948,
 )
-_sym_db.RegisterEnumDescriptor(_STATS_MSG_TYPE)
+_sym_db.RegisterEnumDescriptor(_RAT_TYPE)
 
-stats_msg_type = enum_type_wrapper.EnumTypeWrapper(_STATS_MSG_TYPE)
-_MAC_CE_TYPE = _descriptor.EnumDescriptor(
-  name='mac_ce_type',
-  full_name='mac_ce_type',
+rat_type = enum_type_wrapper.EnumTypeWrapper(_RAT_TYPE)
+_STATS_REQ_STATUS = _descriptor.EnumDescriptor(
+  name='stats_req_status',
+  full_name='stats_req_status',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='MCET_TA', index=0, number=1,
+      name='SREQS_SUCCESS', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MCET_DRX', index=1, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MCET_CR', index=2, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MCET_CA', index=3, number=8,
+      name='SREQS_FAILURE', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=3812,
-  serialized_end=3878,
+  serialized_start=950,
+  serialized_end=1006,
 )
-_sym_db.RegisterEnumDescriptor(_MAC_CE_TYPE)
+_sym_db.RegisterEnumDescriptor(_STATS_REQ_STATUS)
 
-mac_ce_type = enum_type_wrapper.EnumTypeWrapper(_MAC_CE_TYPE)
-_UL_CQI_TYPE = _descriptor.EnumDescriptor(
-  name='ul_cqi_type',
-  full_name='ul_cqi_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='ULCT_SRS', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ULCT_PUSCH', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ULCT_PUCCH_1', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ULCT_PUCCH_2', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ULCT_PRACH', index=4, number=4,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3880,
-  serialized_end=3975,
-)
-_sym_db.RegisterEnumDescriptor(_UL_CQI_TYPE)
-
-ul_cqi_type = enum_type_wrapper.EnumTypeWrapper(_UL_CQI_TYPE)
-_CSI_TYPE = _descriptor.EnumDescriptor(
-  name='csi_type',
-  full_name='csi_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_P10', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_P11', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_P20', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_P21', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_A12', index=4, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_A22', index=5, number=5,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_A20', index=6, number=6,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_A30', index=7, number=7,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CSIT_A31', index=8, number=8,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3978,
-  serialized_end=4114,
-)
-_sym_db.RegisterEnumDescriptor(_CSI_TYPE)
-
-csi_type = enum_type_wrapper.EnumTypeWrapper(_CSI_TYPE)
-_L2_STATS_TYPE = _descriptor.EnumDescriptor(
-  name='l2_stats_type',
-  full_name='l2_stats_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='L2ST_COMPLETE', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='L2ST_CELL', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='L2ST_UE', index=2, number=2,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4116,
-  serialized_end=4178,
-)
-_sym_db.RegisterEnumDescriptor(_L2_STATS_TYPE)
-
-l2_stats_type = enum_type_wrapper.EnumTypeWrapper(_L2_STATS_TYPE)
-_REPORTING_FREQUENCY = _descriptor.EnumDescriptor(
-  name='reporting_frequency',
-  full_name='reporting_frequency',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='REPF_ONCE', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='REPF_PERIODICAL', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='REPF_CONTINUOUS', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='REPF_OFF', index=3, number=3,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4180,
-  serialized_end=4272,
-)
-_sym_db.RegisterEnumDescriptor(_REPORTING_FREQUENCY)
-
-reporting_frequency = enum_type_wrapper.EnumTypeWrapper(_REPORTING_FREQUENCY)
-_CELL_STATS_TYPE = _descriptor.EnumDescriptor(
-  name='cell_stats_type',
-  full_name='cell_stats_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='CST_NOISE_INTERFERENCE', index=0, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4274,
-  serialized_end=4319,
-)
-_sym_db.RegisterEnumDescriptor(_CELL_STATS_TYPE)
-
-cell_stats_type = enum_type_wrapper.EnumTypeWrapper(_CELL_STATS_TYPE)
-_UE_STATS_TYPE = _descriptor.EnumDescriptor(
-  name='ue_stats_type',
-  full_name='ue_stats_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='UEST_BSR', index=0, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_PRH', index=1, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_RLC_BS', index=2, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_MAC_CE_BS', index=3, number=8,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_DL_CQI', index=4, number=16,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_PBS', index=5, number=32,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UEST_UL_CQI', index=6, number=64,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4322,
-  serialized_end=4450,
-)
-_sym_db.RegisterEnumDescriptor(_UE_STATS_TYPE)
-
-ue_stats_type = enum_type_wrapper.EnumTypeWrapper(_UE_STATS_TYPE)
-L2_STATISTICS_REQUEST = 0
-L2_STATISTICS_REPLY = 1
-RRC_MEASUREMENTS_REQUEST = 2
-RRC_MEASUREMENTS_REPLY = 3
-MCET_TA = 1
-MCET_DRX = 2
-MCET_CR = 4
-MCET_CA = 8
-ULCT_SRS = 0
-ULCT_PUSCH = 1
-ULCT_PUCCH_1 = 2
-ULCT_PUCCH_2 = 3
-ULCT_PRACH = 4
-CSIT_P10 = 0
-CSIT_P11 = 1
-CSIT_P20 = 2
-CSIT_P21 = 3
-CSIT_A12 = 4
-CSIT_A22 = 5
-CSIT_A20 = 6
-CSIT_A30 = 7
-CSIT_A31 = 8
-L2ST_COMPLETE = 0
-L2ST_CELL = 1
-L2ST_UE = 2
-REPF_ONCE = 0
-REPF_PERIODICAL = 1
-REPF_CONTINUOUS = 2
-REPF_OFF = 3
-CST_NOISE_INTERFERENCE = 1
-UEST_BSR = 1
-UEST_PRH = 2
-UEST_RLC_BS = 4
-UEST_MAC_CE_BS = 8
-UEST_DL_CQI = 16
-UEST_PBS = 32
-UEST_UL_CQI = 64
+stats_req_status = enum_type_wrapper.EnumTypeWrapper(_STATS_REQ_STATUS)
+RAT_EUTRA = 0
+SREQS_SUCCESS = 0
+SREQS_FAILURE = 1
 
 
 
-_STATISTICS = _descriptor.Descriptor(
-  name='statistics',
-  full_name='statistics',
+_RRC_MEAS_REQ = _descriptor.Descriptor(
+  name='rrc_meas_req',
+  full_name='rrc_meas_req',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='statistics.type', index=0,
-      number=100, type=14, cpp_type=8, label=1,
+      name='rnti', full_name='rrc_meas_req.rnti', index=0,
+      number=1, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='l2_stats_req', full_name='statistics.l2_stats_req', index=1,
+      name='rat', full_name='rrc_meas_req.rat', index=1,
+      number=2, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='measId', full_name='rrc_meas_req.measId', index=2,
+      number=3, type=5, cpp_type=1, label=2,
+      has_default_value=True, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='m_obj', full_name='rrc_meas_req.m_obj', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='r_conf', full_name='rrc_meas_req.r_conf', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=36,
+  serialized_end=168,
+)
+
+
+_PLMN_IDENTITY = _descriptor.Descriptor(
+  name='plmn_identity',
+  full_name='plmn_identity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='mnc', full_name='plmn_identity.mnc', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='mcc', full_name='plmn_identity.mcc', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=170,
+  serialized_end=211,
+)
+
+
+_CELL_GLOBAL_ID_EUTRA = _descriptor.Descriptor(
+  name='cell_global_id_EUTRA',
+  full_name='cell_global_id_EUTRA',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='plmn_id', full_name='cell_global_id_EUTRA.plmn_id', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='l2_stats_repl', full_name='statistics.l2_stats_repl', index=2,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rrc_meas_req', full_name='statistics.rrc_meas_req', index=3,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rrc_meas_repl', full_name='statistics.rrc_meas_repl', index=4,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='stats_msg', full_name='statistics.stats_msg',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=21,
-  serialized_end=273,
-)
-
-
-_RRC_MEASUREMENTS_REPLY = _descriptor.Descriptor(
-  name='rrc_measurements_reply',
-  full_name='rrc_measurements_reply',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rnti', full_name='rrc_measurements_reply.rnti', index=0,
+      name='cell_id', full_name='cell_global_id_EUTRA.cell_id', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='measurements', full_name='rrc_measurements_reply.measurements', index=1,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -427,136 +204,8 @@ _RRC_MEASUREMENTS_REPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=275,
-  serialized_end=354,
-)
-
-
-_RRC_MEASUREMENTS = _descriptor.Descriptor(
-  name='rrc_measurements',
-  full_name='rrc_measurements',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='measId', full_name='rrc_measurements.measId', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='PCell_rsrp', full_name='rrc_measurements.PCell_rsrp', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='PCell_rsrq', full_name='rrc_measurements.PCell_rsrq', index=2,
-      number=3, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='neigh_meas', full_name='rrc_measurements.neigh_meas', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=356,
-  serialized_end=477,
-)
-
-
-_NEIGH_CELLS_MEASUREMENTS = _descriptor.Descriptor(
-  name='neigh_cells_measurements',
-  full_name='neigh_cells_measurements',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='EUTRA_meas', full_name='neigh_cells_measurements.EUTRA_meas', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=479,
-  serialized_end=546,
-)
-
-
-_EUTRA_MEASUREMENTS = _descriptor.Descriptor(
-  name='EUTRA_measurements',
-  full_name='EUTRA_measurements',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='phys_cell_id', full_name='EUTRA_measurements.phys_cell_id', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cgi_meas', full_name='EUTRA_measurements.cgi_meas', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='meas_result', full_name='EUTRA_measurements.meas_result', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=549,
-  serialized_end=679,
+  serialized_start=213,
+  serialized_end=285,
 )
 
 
@@ -600,84 +249,8 @@ _EUTRA_CGI_MEASUREMENTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=681,
-  serialized_end=802,
-)
-
-
-_PLMN_IDENTITY = _descriptor.Descriptor(
-  name='plmn_identity',
-  full_name='plmn_identity',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='mnc', full_name='plmn_identity.mnc', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mcc', full_name='plmn_identity.mcc', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=804,
-  serialized_end=845,
-)
-
-
-_CELL_GLOBAL_ID_EUTRA = _descriptor.Descriptor(
-  name='cell_global_id_EUTRA',
-  full_name='cell_global_id_EUTRA',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='plmn_id', full_name='cell_global_id_EUTRA.plmn_id', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cell_id', full_name='cell_global_id_EUTRA.cell_id', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=847,
-  serialized_end=919,
+  serialized_start=287,
+  serialized_end=408,
 )
 
 
@@ -714,27 +287,34 @@ _EUTRA_REF_SIGNAL_MEAS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=921,
-  serialized_end=972,
+  serialized_start=410,
+  serialized_end=461,
 )
 
 
-_RRC_MEASUREMENTS_REQUEST = _descriptor.Descriptor(
-  name='rrc_measurements_request',
-  full_name='rrc_measurements_request',
+_EUTRA_MEASUREMENTS = _descriptor.Descriptor(
+  name='EUTRA_measurements',
+  full_name='EUTRA_measurements',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='rnti', full_name='rrc_measurements_request.rnti', index=0,
-      number=2, type=13, cpp_type=3, label=1,
+      name='phys_cell_id', full_name='EUTRA_measurements.phys_cell_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='config', full_name='rrc_measurements_request.config', index=1,
+      name='cgi_meas', full_name='EUTRA_measurements.cgi_meas', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='meas_result', full_name='EUTRA_measurements.meas_result', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -752,976 +332,20 @@ _RRC_MEASUREMENTS_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=974,
-  serialized_end=1064,
+  serialized_start=464,
+  serialized_end=594,
 )
 
 
-_RRC_MEASUREMENTS_REQUEST_CONFIG = _descriptor.Descriptor(
-  name='rrc_measurements_request_config',
-  full_name='rrc_measurements_request_config',
+_NEIGH_CELLS_MEASUREMENTS = _descriptor.Descriptor(
+  name='neigh_cells_measurements',
+  full_name='neigh_cells_measurements',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='report_interval', full_name='rrc_measurements_request_config.report_interval', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='report_carrier_freq', full_name='rrc_measurements_request_config.report_carrier_freq', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1066,
-  serialized_end=1153,
-)
-
-
-_L2_STATISTICS_REPLY = _descriptor.Descriptor(
-  name='l2_statistics_reply',
-  full_name='l2_statistics_reply',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='ue_report', full_name='l2_statistics_reply.ue_report', index=0,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cell_report', full_name='l2_statistics_reply.cell_report', index=1,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1155,
-  serialized_end=1264,
-)
-
-
-_CELL_STATISTICS_REPORT = _descriptor.Descriptor(
-  name='cell_statistics_report',
-  full_name='cell_statistics_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cc_id', full_name='cell_statistics_report.cc_id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='report_flags', full_name='cell_statistics_report.report_flags', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='noise_interf', full_name='cell_statistics_report.noise_interf', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1266,
-  serialized_end=1377,
-)
-
-
-_NOISE_INTERFERENCE_REPORT = _descriptor.Descriptor(
-  name='noise_interference_report',
-  full_name='noise_interference_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sfn_sf', full_name='noise_interference_report.sfn_sf', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rip', full_name='noise_interference_report.rip', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tnp', full_name='noise_interference_report.tnp', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1379,
-  serialized_end=1448,
-)
-
-
-_UE_STATISTICS_REPORT = _descriptor.Descriptor(
-  name='ue_statistics_report',
-  full_name='ue_statistics_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rnti', full_name='ue_statistics_report.rnti', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='report_flags', full_name='ue_statistics_report.report_flags', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='bsr', full_name='ue_statistics_report.bsr', index=2,
-      number=3, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phr', full_name='ue_statistics_report.phr', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rlc_bsr', full_name='ue_statistics_report.rlc_bsr', index=4,
-      number=5, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='pending_mac_ces', full_name='ue_statistics_report.pending_mac_ces', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dl_cqi', full_name='ue_statistics_report.dl_cqi', index=6,
-      number=7, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='pbr', full_name='ue_statistics_report.pbr', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ul_cqi', full_name='ue_statistics_report.ul_cqi', index=8,
-      number=9, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1451,
-  serialized_end=1694,
-)
-
-
-_RLC_BSR_REPORT = _descriptor.Descriptor(
-  name='rlc_bsr_report',
-  full_name='rlc_bsr_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='lc_id', full_name='rlc_bsr_report.lc_id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tx_queue_size', full_name='rlc_bsr_report.tx_queue_size', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tx_queue_hol_delay', full_name='rlc_bsr_report.tx_queue_hol_delay', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='retransmission_queue_size', full_name='rlc_bsr_report.retransmission_queue_size', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='retransmission_queue_hol_delay', full_name='rlc_bsr_report.retransmission_queue_hol_delay', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='status_pdu_size', full_name='rlc_bsr_report.status_pdu_size', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1697,
-  serialized_end=1879,
-)
-
-
-_DL_CQI_REPORT = _descriptor.Descriptor(
-  name='dl_cqi_report',
-  full_name='dl_cqi_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sfn_sn', full_name='dl_cqi_report.sfn_sn', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dl_csi', full_name='dl_cqi_report.dl_csi', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1881,
-  serialized_end=1944,
-)
-
-
-_DL_CSI_REPORT = _descriptor.Descriptor(
-  name='dl_csi_report',
-  full_name='dl_csi_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='serv_cell_index', full_name='dl_csi_report.serv_cell_index', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ri', full_name='dl_csi_report.ri', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='type', full_name='dl_csi_report.type', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='p10csi', full_name='dl_csi_report.p10csi', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='p11csi', full_name='dl_csi_report.p11csi', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='p20csi', full_name='dl_csi_report.p20csi', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='p21csi', full_name='dl_csi_report.p21csi', index=6,
-      number=7, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='a12csi', full_name='dl_csi_report.a12csi', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='a22csi', full_name='dl_csi_report.a22csi', index=8,
-      number=9, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='a20csi', full_name='dl_csi_report.a20csi', index=9,
-      number=10, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='a30csi', full_name='dl_csi_report.a30csi', index=10,
-      number=11, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='a31csi', full_name='dl_csi_report.a31csi', index=11,
-      number=12, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='report', full_name='dl_csi_report.report',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=1947,
-  serialized_end=2286,
-)
-
-
-_CSI_P10 = _descriptor.Descriptor(
-  name='csi_p10',
-  full_name='csi_p10',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_p10.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2288,
-  serialized_end=2313,
-)
-
-
-_CSI_P11 = _descriptor.Descriptor(
-  name='csi_p11',
-  full_name='csi_p11',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_p11.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='wb_pmi', full_name='csi_p11.wb_pmi', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2315,
-  serialized_end=2356,
-)
-
-
-_CSI_P20 = _descriptor.Descriptor(
-  name='csi_p20',
-  full_name='csi_p20',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_p20.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_p20.sb_cqi', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='bandwidth_part_index', full_name='csi_p20.bandwidth_part_index', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_index', full_name='csi_p20.sb_index', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2358,
-  serialized_end=2447,
-)
-
-
-_CSI_P21 = _descriptor.Descriptor(
-  name='csi_p21',
-  full_name='csi_p21',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_p21.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='wb_pmi', full_name='csi_p21.wb_pmi', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_p21.sb_cqi', index=2,
-      number=3, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='badwidth_part_index', full_name='csi_p21.badwidth_part_index', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_index', full_name='csi_p21.sb_index', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2449,
-  serialized_end=2553,
-)
-
-
-_CSI_A12 = _descriptor.Descriptor(
-  name='csi_a12',
-  full_name='csi_a12',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_a12.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_pmi', full_name='csi_a12.sb_pmi', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2555,
-  serialized_end=2596,
-)
-
-
-_CSI_A22 = _descriptor.Descriptor(
-  name='csi_a22',
-  full_name='csi_a22',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_a22.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_a22.sb_cqi', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='wb_pmi', full_name='csi_a22.wb_pmi', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_pmi', full_name='csi_a22.sb_pmi', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_list', full_name='csi_a22.sb_list', index=4,
-      number=5, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2598,
-  serialized_end=2688,
-)
-
-
-_CSI_A20 = _descriptor.Descriptor(
-  name='csi_a20',
-  full_name='csi_a20',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_a20.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_a20.sb_cqi', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_list', full_name='csi_a20.sb_list', index=2,
-      number=3, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2690,
-  serialized_end=2748,
-)
-
-
-_CSI_A30 = _descriptor.Descriptor(
-  name='csi_a30',
-  full_name='csi_a30',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_a30.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_a30.sb_cqi', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2750,
-  serialized_end=2791,
-)
-
-
-_CSI_A31 = _descriptor.Descriptor(
-  name='csi_a31',
-  full_name='csi_a31',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='wb_cqi', full_name='csi_a31.wb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='csi_a31.sb_cqi', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='wb_pmi', full_name='csi_a31.wb_pmi', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2793,
-  serialized_end=2860,
-)
-
-
-_MSB_CQI = _descriptor.Descriptor(
-  name='msb_cqi',
-  full_name='msb_cqi',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sb_cqi', full_name='msb_cqi.sb_cqi', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2862,
-  serialized_end=2887,
-)
-
-
-_PAGING_INFO = _descriptor.Descriptor(
-  name='paging_info',
-  full_name='paging_info',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='paging_index', full_name='paging_info.paging_index', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='paging_message_size', full_name='paging_info.paging_message_size', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='paging_subframe', full_name='paging_info.paging_subframe', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cc_index', full_name='paging_info.cc_index', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2889,
-  serialized_end=2996,
-)
-
-
-_PAGING_BUFFER_REPORT = _descriptor.Descriptor(
-  name='paging_buffer_report',
-  full_name='paging_buffer_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='pg_info', full_name='paging_buffer_report.pg_info', index=0,
+      name='EUTRA_meas', full_name='neigh_cells_measurements.EUTRA_meas', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1739,139 +363,94 @@ _PAGING_BUFFER_REPORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2998,
-  serialized_end=3051,
+  serialized_start=596,
+  serialized_end=663,
 )
 
 
-_UL_CQI = _descriptor.Descriptor(
-  name='ul_cqi',
-  full_name='ul_cqi',
+_RRC_MEAS_REPL = _descriptor.Descriptor(
+  name='rrc_meas_repl',
+  full_name='rrc_meas_repl',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='ul_cqi.type', index=0,
-      number=1, type=14, cpp_type=8, label=1,
+      name='rnti', full_name='rrc_meas_repl.rnti', index=0,
+      number=1, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sinr', full_name='ul_cqi.sinr', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='serv_cell_index', full_name='ul_cqi.serv_cell_index', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3053,
-  serialized_end=3128,
-)
-
-
-_UL_CQI_REPORT = _descriptor.Descriptor(
-  name='ul_cqi_report',
-  full_name='ul_cqi_report',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sfn_sn', full_name='ul_cqi_report.sfn_sn', index=0,
-      number=1, type=13, cpp_type=3, label=1,
+      name='status', full_name='rrc_meas_repl.status', index=1,
+      number=2, type=14, cpp_type=8, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cqi_meas', full_name='ul_cqi_report.cqi_meas', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3130,
-  serialized_end=3188,
-)
-
-
-_L2_STATISTICS_REQUEST = _descriptor.Descriptor(
-  name='l2_statistics_request',
-  full_name='l2_statistics_request',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='type', full_name='l2_statistics_request.type', index=0,
-      number=2, type=14, cpp_type=8, label=1,
+      name='measId', full_name='rrc_meas_repl.measId', index=2,
+      number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='report_freq', full_name='l2_statistics_request.report_freq', index=1,
-      number=3, type=14, cpp_type=8, label=1,
+      name='PCell_rsrp', full_name='rrc_meas_repl.PCell_rsrp', index=3,
+      number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='subframe', full_name='l2_statistics_request.subframe', index=2,
-      number=4, type=13, cpp_type=3, label=1,
+      name='PCell_rsrq', full_name='rrc_meas_repl.PCell_rsrq', index=4,
+      number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cell_stats_req', full_name='l2_statistics_request.cell_stats_req', index=3,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_stats_req', full_name='l2_statistics_request.ue_stats_req', index=4,
+      name='neigh_meas', full_name='rrc_meas_repl.neigh_meas', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=666,
+  serialized_end=833,
+)
+
+
+_RRC_MEAS = _descriptor.Descriptor(
+  name='rrc_meas',
+  full_name='rrc_meas',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
     _descriptor.FieldDescriptor(
-      name='comp_stats_req', full_name='l2_statistics_request.comp_stats_req', index=5,
-      number=7, type=11, cpp_type=10, label=1,
+      name='req', full_name='rrc_meas.req', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='repl', full_name='rrc_meas.repl', index=1,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1888,302 +467,50 @@ _L2_STATISTICS_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='stats_req', full_name='l2_statistics_request.stats_req',
+      name='rrc_meas_m', full_name='rrc_meas.rrc_meas_m',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3191,
-  serialized_end=3474,
+  serialized_start=835,
+  serialized_end=921,
 )
 
-
-_COMPLETE_STATISTICS_REQUEST = _descriptor.Descriptor(
-  name='complete_statistics_request',
-  full_name='complete_statistics_request',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cell_report_flags', full_name='complete_statistics_request.cell_report_flags', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_report_flags', full_name='complete_statistics_request.ue_report_flags', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3476,
-  serialized_end=3557,
-)
-
-
-_CELL_STATISTICS_REQUEST = _descriptor.Descriptor(
-  name='cell_statistics_request',
-  full_name='cell_statistics_request',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cc_id', full_name='cell_statistics_request.cc_id', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='report_flags', full_name='cell_statistics_request.report_flags', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3559,
-  serialized_end=3621,
-)
-
-
-_UE_STATISTICS_REQUEST = _descriptor.Descriptor(
-  name='ue_statistics_request',
-  full_name='ue_statistics_request',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rnti', full_name='ue_statistics_request.rnti', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='report_flags', full_name='ue_statistics_request.report_flags', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3623,
-  serialized_end=3682,
-)
-
-_STATISTICS.fields_by_name['type'].enum_type = _STATS_MSG_TYPE
-_STATISTICS.fields_by_name['l2_stats_req'].message_type = _L2_STATISTICS_REQUEST
-_STATISTICS.fields_by_name['l2_stats_repl'].message_type = _L2_STATISTICS_REPLY
-_STATISTICS.fields_by_name['rrc_meas_req'].message_type = _RRC_MEASUREMENTS_REQUEST
-_STATISTICS.fields_by_name['rrc_meas_repl'].message_type = _RRC_MEASUREMENTS_REPLY
-_STATISTICS.oneofs_by_name['stats_msg'].fields.append(
-  _STATISTICS.fields_by_name['l2_stats_req'])
-_STATISTICS.fields_by_name['l2_stats_req'].containing_oneof = _STATISTICS.oneofs_by_name['stats_msg']
-_STATISTICS.oneofs_by_name['stats_msg'].fields.append(
-  _STATISTICS.fields_by_name['l2_stats_repl'])
-_STATISTICS.fields_by_name['l2_stats_repl'].containing_oneof = _STATISTICS.oneofs_by_name['stats_msg']
-_STATISTICS.oneofs_by_name['stats_msg'].fields.append(
-  _STATISTICS.fields_by_name['rrc_meas_req'])
-_STATISTICS.fields_by_name['rrc_meas_req'].containing_oneof = _STATISTICS.oneofs_by_name['stats_msg']
-_STATISTICS.oneofs_by_name['stats_msg'].fields.append(
-  _STATISTICS.fields_by_name['rrc_meas_repl'])
-_STATISTICS.fields_by_name['rrc_meas_repl'].containing_oneof = _STATISTICS.oneofs_by_name['stats_msg']
-_RRC_MEASUREMENTS_REPLY.fields_by_name['measurements'].message_type = _RRC_MEASUREMENTS
-_RRC_MEASUREMENTS.fields_by_name['neigh_meas'].message_type = _NEIGH_CELLS_MEASUREMENTS
-_NEIGH_CELLS_MEASUREMENTS.fields_by_name['EUTRA_meas'].message_type = _EUTRA_MEASUREMENTS
-_EUTRA_MEASUREMENTS.fields_by_name['cgi_meas'].message_type = _EUTRA_CGI_MEASUREMENTS
-_EUTRA_MEASUREMENTS.fields_by_name['meas_result'].message_type = _EUTRA_REF_SIGNAL_MEAS
+_RRC_MEAS_REQ.fields_by_name['rat'].enum_type = _RAT_TYPE
+_RRC_MEAS_REQ.fields_by_name['m_obj'].message_type = configs__pb2._MEAS_OBJECT
+_RRC_MEAS_REQ.fields_by_name['r_conf'].message_type = configs__pb2._REPORT_CONFIG
+_CELL_GLOBAL_ID_EUTRA.fields_by_name['plmn_id'].message_type = _PLMN_IDENTITY
 _EUTRA_CGI_MEASUREMENTS.fields_by_name['cgi'].message_type = _CELL_GLOBAL_ID_EUTRA
 _EUTRA_CGI_MEASUREMENTS.fields_by_name['plmn_id'].message_type = _PLMN_IDENTITY
-_CELL_GLOBAL_ID_EUTRA.fields_by_name['plmn_id'].message_type = _PLMN_IDENTITY
-_RRC_MEASUREMENTS_REQUEST.fields_by_name['config'].message_type = _RRC_MEASUREMENTS_REQUEST_CONFIG
-_L2_STATISTICS_REPLY.fields_by_name['ue_report'].message_type = _UE_STATISTICS_REPORT
-_L2_STATISTICS_REPLY.fields_by_name['cell_report'].message_type = _CELL_STATISTICS_REPORT
-_CELL_STATISTICS_REPORT.fields_by_name['noise_interf'].message_type = _NOISE_INTERFERENCE_REPORT
-_UE_STATISTICS_REPORT.fields_by_name['rlc_bsr'].message_type = _RLC_BSR_REPORT
-_UE_STATISTICS_REPORT.fields_by_name['dl_cqi'].message_type = _DL_CQI_REPORT
-_UE_STATISTICS_REPORT.fields_by_name['pbr'].message_type = _PAGING_BUFFER_REPORT
-_UE_STATISTICS_REPORT.fields_by_name['ul_cqi'].message_type = _UL_CQI_REPORT
-_DL_CQI_REPORT.fields_by_name['dl_csi'].message_type = _DL_CSI_REPORT
-_DL_CSI_REPORT.fields_by_name['type'].enum_type = _CSI_TYPE
-_DL_CSI_REPORT.fields_by_name['p10csi'].message_type = _CSI_P10
-_DL_CSI_REPORT.fields_by_name['p11csi'].message_type = _CSI_P11
-_DL_CSI_REPORT.fields_by_name['p20csi'].message_type = _CSI_P20
-_DL_CSI_REPORT.fields_by_name['p21csi'].message_type = _CSI_P21
-_DL_CSI_REPORT.fields_by_name['a12csi'].message_type = _CSI_A12
-_DL_CSI_REPORT.fields_by_name['a22csi'].message_type = _CSI_A22
-_DL_CSI_REPORT.fields_by_name['a20csi'].message_type = _CSI_A20
-_DL_CSI_REPORT.fields_by_name['a30csi'].message_type = _CSI_A30
-_DL_CSI_REPORT.fields_by_name['a31csi'].message_type = _CSI_A31
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['p10csi'])
-_DL_CSI_REPORT.fields_by_name['p10csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['p11csi'])
-_DL_CSI_REPORT.fields_by_name['p11csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['p20csi'])
-_DL_CSI_REPORT.fields_by_name['p20csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['p21csi'])
-_DL_CSI_REPORT.fields_by_name['p21csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['a12csi'])
-_DL_CSI_REPORT.fields_by_name['a12csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['a22csi'])
-_DL_CSI_REPORT.fields_by_name['a22csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['a20csi'])
-_DL_CSI_REPORT.fields_by_name['a20csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['a30csi'])
-_DL_CSI_REPORT.fields_by_name['a30csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_DL_CSI_REPORT.oneofs_by_name['report'].fields.append(
-  _DL_CSI_REPORT.fields_by_name['a31csi'])
-_DL_CSI_REPORT.fields_by_name['a31csi'].containing_oneof = _DL_CSI_REPORT.oneofs_by_name['report']
-_CSI_A31.fields_by_name['sb_cqi'].message_type = _MSB_CQI
-_PAGING_BUFFER_REPORT.fields_by_name['pg_info'].message_type = _PAGING_INFO
-_UL_CQI.fields_by_name['type'].enum_type = _UL_CQI_TYPE
-_UL_CQI_REPORT.fields_by_name['cqi_meas'].message_type = _UL_CQI
-_L2_STATISTICS_REQUEST.fields_by_name['type'].enum_type = _L2_STATS_TYPE
-_L2_STATISTICS_REQUEST.fields_by_name['report_freq'].enum_type = _REPORTING_FREQUENCY
-_L2_STATISTICS_REQUEST.fields_by_name['cell_stats_req'].message_type = _CELL_STATISTICS_REQUEST
-_L2_STATISTICS_REQUEST.fields_by_name['ue_stats_req'].message_type = _UE_STATISTICS_REQUEST
-_L2_STATISTICS_REQUEST.fields_by_name['comp_stats_req'].message_type = _COMPLETE_STATISTICS_REQUEST
-_L2_STATISTICS_REQUEST.oneofs_by_name['stats_req'].fields.append(
-  _L2_STATISTICS_REQUEST.fields_by_name['cell_stats_req'])
-_L2_STATISTICS_REQUEST.fields_by_name['cell_stats_req'].containing_oneof = _L2_STATISTICS_REQUEST.oneofs_by_name['stats_req']
-_L2_STATISTICS_REQUEST.oneofs_by_name['stats_req'].fields.append(
-  _L2_STATISTICS_REQUEST.fields_by_name['ue_stats_req'])
-_L2_STATISTICS_REQUEST.fields_by_name['ue_stats_req'].containing_oneof = _L2_STATISTICS_REQUEST.oneofs_by_name['stats_req']
-_L2_STATISTICS_REQUEST.oneofs_by_name['stats_req'].fields.append(
-  _L2_STATISTICS_REQUEST.fields_by_name['comp_stats_req'])
-_L2_STATISTICS_REQUEST.fields_by_name['comp_stats_req'].containing_oneof = _L2_STATISTICS_REQUEST.oneofs_by_name['stats_req']
-DESCRIPTOR.message_types_by_name['statistics'] = _STATISTICS
-DESCRIPTOR.message_types_by_name['rrc_measurements_reply'] = _RRC_MEASUREMENTS_REPLY
-DESCRIPTOR.message_types_by_name['rrc_measurements'] = _RRC_MEASUREMENTS
-DESCRIPTOR.message_types_by_name['neigh_cells_measurements'] = _NEIGH_CELLS_MEASUREMENTS
-DESCRIPTOR.message_types_by_name['EUTRA_measurements'] = _EUTRA_MEASUREMENTS
-DESCRIPTOR.message_types_by_name['EUTRA_cgi_measurements'] = _EUTRA_CGI_MEASUREMENTS
+_EUTRA_MEASUREMENTS.fields_by_name['cgi_meas'].message_type = _EUTRA_CGI_MEASUREMENTS
+_EUTRA_MEASUREMENTS.fields_by_name['meas_result'].message_type = _EUTRA_REF_SIGNAL_MEAS
+_NEIGH_CELLS_MEASUREMENTS.fields_by_name['EUTRA_meas'].message_type = _EUTRA_MEASUREMENTS
+_RRC_MEAS_REPL.fields_by_name['status'].enum_type = _STATS_REQ_STATUS
+_RRC_MEAS_REPL.fields_by_name['neigh_meas'].message_type = _NEIGH_CELLS_MEASUREMENTS
+_RRC_MEAS.fields_by_name['req'].message_type = _RRC_MEAS_REQ
+_RRC_MEAS.fields_by_name['repl'].message_type = _RRC_MEAS_REPL
+_RRC_MEAS.oneofs_by_name['rrc_meas_m'].fields.append(
+  _RRC_MEAS.fields_by_name['req'])
+_RRC_MEAS.fields_by_name['req'].containing_oneof = _RRC_MEAS.oneofs_by_name['rrc_meas_m']
+_RRC_MEAS.oneofs_by_name['rrc_meas_m'].fields.append(
+  _RRC_MEAS.fields_by_name['repl'])
+_RRC_MEAS.fields_by_name['repl'].containing_oneof = _RRC_MEAS.oneofs_by_name['rrc_meas_m']
+DESCRIPTOR.message_types_by_name['rrc_meas_req'] = _RRC_MEAS_REQ
 DESCRIPTOR.message_types_by_name['plmn_identity'] = _PLMN_IDENTITY
 DESCRIPTOR.message_types_by_name['cell_global_id_EUTRA'] = _CELL_GLOBAL_ID_EUTRA
+DESCRIPTOR.message_types_by_name['EUTRA_cgi_measurements'] = _EUTRA_CGI_MEASUREMENTS
 DESCRIPTOR.message_types_by_name['EUTRA_ref_signal_meas'] = _EUTRA_REF_SIGNAL_MEAS
-DESCRIPTOR.message_types_by_name['rrc_measurements_request'] = _RRC_MEASUREMENTS_REQUEST
-DESCRIPTOR.message_types_by_name['rrc_measurements_request_config'] = _RRC_MEASUREMENTS_REQUEST_CONFIG
-DESCRIPTOR.message_types_by_name['l2_statistics_reply'] = _L2_STATISTICS_REPLY
-DESCRIPTOR.message_types_by_name['cell_statistics_report'] = _CELL_STATISTICS_REPORT
-DESCRIPTOR.message_types_by_name['noise_interference_report'] = _NOISE_INTERFERENCE_REPORT
-DESCRIPTOR.message_types_by_name['ue_statistics_report'] = _UE_STATISTICS_REPORT
-DESCRIPTOR.message_types_by_name['rlc_bsr_report'] = _RLC_BSR_REPORT
-DESCRIPTOR.message_types_by_name['dl_cqi_report'] = _DL_CQI_REPORT
-DESCRIPTOR.message_types_by_name['dl_csi_report'] = _DL_CSI_REPORT
-DESCRIPTOR.message_types_by_name['csi_p10'] = _CSI_P10
-DESCRIPTOR.message_types_by_name['csi_p11'] = _CSI_P11
-DESCRIPTOR.message_types_by_name['csi_p20'] = _CSI_P20
-DESCRIPTOR.message_types_by_name['csi_p21'] = _CSI_P21
-DESCRIPTOR.message_types_by_name['csi_a12'] = _CSI_A12
-DESCRIPTOR.message_types_by_name['csi_a22'] = _CSI_A22
-DESCRIPTOR.message_types_by_name['csi_a20'] = _CSI_A20
-DESCRIPTOR.message_types_by_name['csi_a30'] = _CSI_A30
-DESCRIPTOR.message_types_by_name['csi_a31'] = _CSI_A31
-DESCRIPTOR.message_types_by_name['msb_cqi'] = _MSB_CQI
-DESCRIPTOR.message_types_by_name['paging_info'] = _PAGING_INFO
-DESCRIPTOR.message_types_by_name['paging_buffer_report'] = _PAGING_BUFFER_REPORT
-DESCRIPTOR.message_types_by_name['ul_cqi'] = _UL_CQI
-DESCRIPTOR.message_types_by_name['ul_cqi_report'] = _UL_CQI_REPORT
-DESCRIPTOR.message_types_by_name['l2_statistics_request'] = _L2_STATISTICS_REQUEST
-DESCRIPTOR.message_types_by_name['complete_statistics_request'] = _COMPLETE_STATISTICS_REQUEST
-DESCRIPTOR.message_types_by_name['cell_statistics_request'] = _CELL_STATISTICS_REQUEST
-DESCRIPTOR.message_types_by_name['ue_statistics_request'] = _UE_STATISTICS_REQUEST
-DESCRIPTOR.enum_types_by_name['stats_msg_type'] = _STATS_MSG_TYPE
-DESCRIPTOR.enum_types_by_name['mac_ce_type'] = _MAC_CE_TYPE
-DESCRIPTOR.enum_types_by_name['ul_cqi_type'] = _UL_CQI_TYPE
-DESCRIPTOR.enum_types_by_name['csi_type'] = _CSI_TYPE
-DESCRIPTOR.enum_types_by_name['l2_stats_type'] = _L2_STATS_TYPE
-DESCRIPTOR.enum_types_by_name['reporting_frequency'] = _REPORTING_FREQUENCY
-DESCRIPTOR.enum_types_by_name['cell_stats_type'] = _CELL_STATS_TYPE
-DESCRIPTOR.enum_types_by_name['ue_stats_type'] = _UE_STATS_TYPE
+DESCRIPTOR.message_types_by_name['EUTRA_measurements'] = _EUTRA_MEASUREMENTS
+DESCRIPTOR.message_types_by_name['neigh_cells_measurements'] = _NEIGH_CELLS_MEASUREMENTS
+DESCRIPTOR.message_types_by_name['rrc_meas_repl'] = _RRC_MEAS_REPL
+DESCRIPTOR.message_types_by_name['rrc_meas'] = _RRC_MEAS
+DESCRIPTOR.enum_types_by_name['rat_type'] = _RAT_TYPE
+DESCRIPTOR.enum_types_by_name['stats_req_status'] = _STATS_REQ_STATUS
 
-statistics = _reflection.GeneratedProtocolMessageType('statistics', (_message.Message,), dict(
-  DESCRIPTOR = _STATISTICS,
+rrc_meas_req = _reflection.GeneratedProtocolMessageType('rrc_meas_req', (_message.Message,), dict(
+  DESCRIPTOR = _RRC_MEAS_REQ,
   __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:statistics)
+  # @@protoc_insertion_point(class_scope:rrc_meas_req)
   ))
-_sym_db.RegisterMessage(statistics)
-
-rrc_measurements_reply = _reflection.GeneratedProtocolMessageType('rrc_measurements_reply', (_message.Message,), dict(
-  DESCRIPTOR = _RRC_MEASUREMENTS_REPLY,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:rrc_measurements_reply)
-  ))
-_sym_db.RegisterMessage(rrc_measurements_reply)
-
-rrc_measurements = _reflection.GeneratedProtocolMessageType('rrc_measurements', (_message.Message,), dict(
-  DESCRIPTOR = _RRC_MEASUREMENTS,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:rrc_measurements)
-  ))
-_sym_db.RegisterMessage(rrc_measurements)
-
-neigh_cells_measurements = _reflection.GeneratedProtocolMessageType('neigh_cells_measurements', (_message.Message,), dict(
-  DESCRIPTOR = _NEIGH_CELLS_MEASUREMENTS,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:neigh_cells_measurements)
-  ))
-_sym_db.RegisterMessage(neigh_cells_measurements)
-
-EUTRA_measurements = _reflection.GeneratedProtocolMessageType('EUTRA_measurements', (_message.Message,), dict(
-  DESCRIPTOR = _EUTRA_MEASUREMENTS,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:EUTRA_measurements)
-  ))
-_sym_db.RegisterMessage(EUTRA_measurements)
-
-EUTRA_cgi_measurements = _reflection.GeneratedProtocolMessageType('EUTRA_cgi_measurements', (_message.Message,), dict(
-  DESCRIPTOR = _EUTRA_CGI_MEASUREMENTS,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:EUTRA_cgi_measurements)
-  ))
-_sym_db.RegisterMessage(EUTRA_cgi_measurements)
+_sym_db.RegisterMessage(rrc_meas_req)
 
 plmn_identity = _reflection.GeneratedProtocolMessageType('plmn_identity', (_message.Message,), dict(
   DESCRIPTOR = _PLMN_IDENTITY,
@@ -2199,6 +526,13 @@ cell_global_id_EUTRA = _reflection.GeneratedProtocolMessageType('cell_global_id_
   ))
 _sym_db.RegisterMessage(cell_global_id_EUTRA)
 
+EUTRA_cgi_measurements = _reflection.GeneratedProtocolMessageType('EUTRA_cgi_measurements', (_message.Message,), dict(
+  DESCRIPTOR = _EUTRA_CGI_MEASUREMENTS,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:EUTRA_cgi_measurements)
+  ))
+_sym_db.RegisterMessage(EUTRA_cgi_measurements)
+
 EUTRA_ref_signal_meas = _reflection.GeneratedProtocolMessageType('EUTRA_ref_signal_meas', (_message.Message,), dict(
   DESCRIPTOR = _EUTRA_REF_SIGNAL_MEAS,
   __module__ = 'statistics_pb2'
@@ -2206,194 +540,33 @@ EUTRA_ref_signal_meas = _reflection.GeneratedProtocolMessageType('EUTRA_ref_sign
   ))
 _sym_db.RegisterMessage(EUTRA_ref_signal_meas)
 
-rrc_measurements_request = _reflection.GeneratedProtocolMessageType('rrc_measurements_request', (_message.Message,), dict(
-  DESCRIPTOR = _RRC_MEASUREMENTS_REQUEST,
+EUTRA_measurements = _reflection.GeneratedProtocolMessageType('EUTRA_measurements', (_message.Message,), dict(
+  DESCRIPTOR = _EUTRA_MEASUREMENTS,
   __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:rrc_measurements_request)
+  # @@protoc_insertion_point(class_scope:EUTRA_measurements)
   ))
-_sym_db.RegisterMessage(rrc_measurements_request)
+_sym_db.RegisterMessage(EUTRA_measurements)
 
-rrc_measurements_request_config = _reflection.GeneratedProtocolMessageType('rrc_measurements_request_config', (_message.Message,), dict(
-  DESCRIPTOR = _RRC_MEASUREMENTS_REQUEST_CONFIG,
+neigh_cells_measurements = _reflection.GeneratedProtocolMessageType('neigh_cells_measurements', (_message.Message,), dict(
+  DESCRIPTOR = _NEIGH_CELLS_MEASUREMENTS,
   __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:rrc_measurements_request_config)
+  # @@protoc_insertion_point(class_scope:neigh_cells_measurements)
   ))
-_sym_db.RegisterMessage(rrc_measurements_request_config)
+_sym_db.RegisterMessage(neigh_cells_measurements)
 
-l2_statistics_reply = _reflection.GeneratedProtocolMessageType('l2_statistics_reply', (_message.Message,), dict(
-  DESCRIPTOR = _L2_STATISTICS_REPLY,
+rrc_meas_repl = _reflection.GeneratedProtocolMessageType('rrc_meas_repl', (_message.Message,), dict(
+  DESCRIPTOR = _RRC_MEAS_REPL,
   __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:l2_statistics_reply)
+  # @@protoc_insertion_point(class_scope:rrc_meas_repl)
   ))
-_sym_db.RegisterMessage(l2_statistics_reply)
+_sym_db.RegisterMessage(rrc_meas_repl)
 
-cell_statistics_report = _reflection.GeneratedProtocolMessageType('cell_statistics_report', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_STATISTICS_REPORT,
+rrc_meas = _reflection.GeneratedProtocolMessageType('rrc_meas', (_message.Message,), dict(
+  DESCRIPTOR = _RRC_MEAS,
   __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:cell_statistics_report)
+  # @@protoc_insertion_point(class_scope:rrc_meas)
   ))
-_sym_db.RegisterMessage(cell_statistics_report)
-
-noise_interference_report = _reflection.GeneratedProtocolMessageType('noise_interference_report', (_message.Message,), dict(
-  DESCRIPTOR = _NOISE_INTERFERENCE_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:noise_interference_report)
-  ))
-_sym_db.RegisterMessage(noise_interference_report)
-
-ue_statistics_report = _reflection.GeneratedProtocolMessageType('ue_statistics_report', (_message.Message,), dict(
-  DESCRIPTOR = _UE_STATISTICS_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:ue_statistics_report)
-  ))
-_sym_db.RegisterMessage(ue_statistics_report)
-
-rlc_bsr_report = _reflection.GeneratedProtocolMessageType('rlc_bsr_report', (_message.Message,), dict(
-  DESCRIPTOR = _RLC_BSR_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:rlc_bsr_report)
-  ))
-_sym_db.RegisterMessage(rlc_bsr_report)
-
-dl_cqi_report = _reflection.GeneratedProtocolMessageType('dl_cqi_report', (_message.Message,), dict(
-  DESCRIPTOR = _DL_CQI_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:dl_cqi_report)
-  ))
-_sym_db.RegisterMessage(dl_cqi_report)
-
-dl_csi_report = _reflection.GeneratedProtocolMessageType('dl_csi_report', (_message.Message,), dict(
-  DESCRIPTOR = _DL_CSI_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:dl_csi_report)
-  ))
-_sym_db.RegisterMessage(dl_csi_report)
-
-csi_p10 = _reflection.GeneratedProtocolMessageType('csi_p10', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_P10,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_p10)
-  ))
-_sym_db.RegisterMessage(csi_p10)
-
-csi_p11 = _reflection.GeneratedProtocolMessageType('csi_p11', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_P11,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_p11)
-  ))
-_sym_db.RegisterMessage(csi_p11)
-
-csi_p20 = _reflection.GeneratedProtocolMessageType('csi_p20', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_P20,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_p20)
-  ))
-_sym_db.RegisterMessage(csi_p20)
-
-csi_p21 = _reflection.GeneratedProtocolMessageType('csi_p21', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_P21,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_p21)
-  ))
-_sym_db.RegisterMessage(csi_p21)
-
-csi_a12 = _reflection.GeneratedProtocolMessageType('csi_a12', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_A12,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_a12)
-  ))
-_sym_db.RegisterMessage(csi_a12)
-
-csi_a22 = _reflection.GeneratedProtocolMessageType('csi_a22', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_A22,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_a22)
-  ))
-_sym_db.RegisterMessage(csi_a22)
-
-csi_a20 = _reflection.GeneratedProtocolMessageType('csi_a20', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_A20,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_a20)
-  ))
-_sym_db.RegisterMessage(csi_a20)
-
-csi_a30 = _reflection.GeneratedProtocolMessageType('csi_a30', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_A30,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_a30)
-  ))
-_sym_db.RegisterMessage(csi_a30)
-
-csi_a31 = _reflection.GeneratedProtocolMessageType('csi_a31', (_message.Message,), dict(
-  DESCRIPTOR = _CSI_A31,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:csi_a31)
-  ))
-_sym_db.RegisterMessage(csi_a31)
-
-msb_cqi = _reflection.GeneratedProtocolMessageType('msb_cqi', (_message.Message,), dict(
-  DESCRIPTOR = _MSB_CQI,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:msb_cqi)
-  ))
-_sym_db.RegisterMessage(msb_cqi)
-
-paging_info = _reflection.GeneratedProtocolMessageType('paging_info', (_message.Message,), dict(
-  DESCRIPTOR = _PAGING_INFO,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:paging_info)
-  ))
-_sym_db.RegisterMessage(paging_info)
-
-paging_buffer_report = _reflection.GeneratedProtocolMessageType('paging_buffer_report', (_message.Message,), dict(
-  DESCRIPTOR = _PAGING_BUFFER_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:paging_buffer_report)
-  ))
-_sym_db.RegisterMessage(paging_buffer_report)
-
-ul_cqi = _reflection.GeneratedProtocolMessageType('ul_cqi', (_message.Message,), dict(
-  DESCRIPTOR = _UL_CQI,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:ul_cqi)
-  ))
-_sym_db.RegisterMessage(ul_cqi)
-
-ul_cqi_report = _reflection.GeneratedProtocolMessageType('ul_cqi_report', (_message.Message,), dict(
-  DESCRIPTOR = _UL_CQI_REPORT,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:ul_cqi_report)
-  ))
-_sym_db.RegisterMessage(ul_cqi_report)
-
-l2_statistics_request = _reflection.GeneratedProtocolMessageType('l2_statistics_request', (_message.Message,), dict(
-  DESCRIPTOR = _L2_STATISTICS_REQUEST,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:l2_statistics_request)
-  ))
-_sym_db.RegisterMessage(l2_statistics_request)
-
-complete_statistics_request = _reflection.GeneratedProtocolMessageType('complete_statistics_request', (_message.Message,), dict(
-  DESCRIPTOR = _COMPLETE_STATISTICS_REQUEST,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:complete_statistics_request)
-  ))
-_sym_db.RegisterMessage(complete_statistics_request)
-
-cell_statistics_request = _reflection.GeneratedProtocolMessageType('cell_statistics_request', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_STATISTICS_REQUEST,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:cell_statistics_request)
-  ))
-_sym_db.RegisterMessage(cell_statistics_request)
-
-ue_statistics_request = _reflection.GeneratedProtocolMessageType('ue_statistics_request', (_message.Message,), dict(
-  DESCRIPTOR = _UE_STATISTICS_REQUEST,
-  __module__ = 'statistics_pb2'
-  # @@protoc_insertion_point(class_scope:ue_statistics_request)
-  ))
-_sym_db.RegisterMessage(ue_statistics_request)
+_sym_db.RegisterMessage(rrc_meas)
 
 
 # @@protoc_insertion_point(module_scope)

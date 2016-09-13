@@ -20,210 +20,10 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='configs.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\rconfigs.proto\"2\n\x12\x65nb_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\r\n\x05\x63\x63_id\x18\x02 \x03(\r\"0\n\x11ue_config_request\x12\r\n\x05layer\x18\x01 \x01(\r\x12\x0c\n\x04rnti\x18\x02 \x03(\r\"2\n\x0bsi_info_msg\x12\x13\n\x0bperiodicity\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"h\n\x0esi_info_config\x12\x0b\n\x03sfn\x18\x01 \x01(\r\x12\x10\n\x08sib1_len\x18\x02 \x01(\r\x12\x15\n\rsi_window_len\x18\x03 \x01(\r\x12 \n\nsi_message\x18\x04 \x03(\x0b\x32\x0c.si_info_msg\"\xe6\x04\n\x0f\x63\x65ll_phy_config\x12\x0b\n\x03pci\x18\x01 \x01(\r\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\x12\x19\n\x11pusch_hopp_offset\x18\x03 \x01(\r\x12 \n\thopp_mode\x18\x04 \x01(\x0e\x32\r.hopping_mode\x12\x0c\n\x04n_sb\x18\x05 \x01(\r\x12\"\n\tphich_res\x18\x06 \x01(\x0e\x32\x0f.phich_resource\x12\"\n\tphich_dur\x18\x07 \x01(\x0e\x32\x0f.phich_duration\x12\x1e\n\x16init_nr_PDCCH_OFDM_sym\x18\x08 \x01(\r\x12 \n\x07si_conf\x18\t \x01(\x0b\x32\x0f.si_info_config\x12\r\n\x05\x64l_bw\x18\n \x01(\r\x12\r\n\x05ul_bw\x18\x0b \x01(\r\x12\x33\n\x11ul_cyc_prefix_len\x18\x0c \x01(\x0e\x32\x18.ul_cyclic_prefix_length\x12\x33\n\x11\x64l_cyc_prefix_len\x18\r \x01(\x0e\x32\x18.dl_cyclic_prefix_length\x12\x1b\n\x13\x61ntenna_ports_count\x18\x0e \x01(\r\x12\x1f\n\tdupl_mode\x18\x0f \x01(\x0e\x32\x0c.duplex_mode\x12\x18\n\x10prach_conf_index\x18\x10 \x01(\r\x12\x19\n\x11prach_freq_offset\x18\x11 \x01(\r\x12\x1b\n\x13ra_resp_window_size\x18\x12 \x01(\r\x12\x12\n\nn1PUCCH_AN\x18\x13 \x01(\r\x12\x18\n\x10\x64\x65ltaPUCCH_shift\x18\x14 \x01(\r\x12\x1a\n\x0c\x65nable_64QAM\x18\x15 \x01(\x0e\x32\x04.qam\"\x8f\x01\n\x0f\x63\x65ll_mac_config\x12\x11\n\tsf_assign\x18\x01 \x01(\r\x12!\n\x19special_subframe_patterns\x18\x02 \x01(\r\x12\x1c\n\x14mac_cont_resol_timer\x18\x03 \x01(\r\x12\x17\n\x0fmax_HARQ_Msg3Tx\x18\x04 \x01(\r\x12\x0f\n\x07nRB_cqi\x18\x05 \x01(\r\"\xa9\x01\n\x0f\x63\x65ll_rrc_config\x12\x1b\n\x13mbsfn_conf_rfperiod\x18\x01 \x03(\r\x12\x1b\n\x13mbsfn_conf_rfoffset\x18\x02 \x03(\r\x12\x1a\n\x12mbsfn_conf_sfalloc\x18\x03 \x03(\r\x12\x13\n\x0bsrs_sf_conf\x18\x04 \x01(\r\x12\x13\n\x0bsrs_bw_conf\x18\x05 \x01(\r\x12\x16\n\x0esrs_max_up_pts\x18\x06 \x01(\r\"\x88\x01\n\x0b\x63\x65ll_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\"\n\x08phy_conf\x18\x02 \x01(\x0b\x32\x10.cell_phy_config\x12\"\n\x08mac_conf\x18\x03 \x01(\x0b\x32\x10.cell_mac_config\x12\"\n\x08rrc_conf\x18\x04 \x01(\x0b\x32\x10.cell_rrc_config\"3\n\x10\x65nb_config_reply\x12\x1f\n\tcell_conf\x18\x01 \x03(\x0b\x32\x0c.cell_config\"\xc9\x01\n\ndrx_config\x12\x14\n\x0con_dur_timer\x18\x01 \x01(\r\x12\x17\n\x0f\x64rx_inact_timer\x18\x02 \x01(\r\x12\x17\n\x0f\x64rx_retrx_timer\x18\x03 \x01(\r\x12\x16\n\x0elong_drx_cycle\x18\x04 \x01(\r\x12#\n\x1blong_drx_cycle_start_offset\x18\x05 \x01(\r\x12\x17\n\x0fshort_drx_cycle\x18\x06 \x01(\r\x12\x1d\n\x15\x64rx_short_cycle_timer\x18\x07 \x01(\r\"\x9f\x01\n\nsps_config\x12\x17\n\x0fsps_interval_ul\x18\x01 \x01(\r\x12\x17\n\x0fsps_interval_dl\x18\x02 \x01(\r\x12\x17\n\x0fn_conf_sps_proc\x18\x03 \x01(\r\x12&\n\x1en1_PUCCH_AN_persistent_element\x18\x04 \x03(\r\x12\x1e\n\x16implicit_release_after\x18\x05 \x01(\r\"a\n\tsr_config\x12(\n\tsr_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x13\n\x0bsched_inter\x18\x02 \x01(\r\x12\x15\n\rdsr_trans_max\x18\x03 \x01(\r\"h\n\ncqi_config\x12)\n\ncqi_action\x18\x01 \x01(\x0e\x32\x15.setup_release_action\x12\x17\n\x0f\x63qi_sched_inter\x18\x02 \x01(\r\x12\x16\n\x0eri_sched_inter\x18\x03 \x01(\r\"\x90\x01\n\x0fue_capabilities\x12\x13\n\x0bhalf_duplex\x18\x01 \x03(\r\x12\x0c\n\x04\x62\x61nd\x18\x02 \x03(\r\x12\x18\n\x10intra_SF_hopping\x18\x03 \x01(\r\x12\x12\n\ntype2_sb_1\x18\x04 \x01(\r\x12\x13\n\x0bue_category\x18\x05 \x01(\r\x12\x17\n\x0fres_alloc_type1\x18\x06 \x01(\r\"r\n\x0cscell_config\x12\r\n\x05\x63\x63_id\x18\x01 \x01(\r\x12\x13\n\x0bscell_index\x18\x02 \x01(\r\x12\x0f\n\x07use_ccs\x18\x03 \x01(\r\x12\x18\n\x10sched_cell_index\x18\x04 \x01(\r\x12\x13\n\x0bpdsch_start\x18\x05 \x01(\r\"\x90\x01\n\rue_phy_config\x12\x1b\n\x07sr_conf\x18\x01 \x01(\x0b\x32\n.sr_config\x12\x30\n\x11transmission_mode\x18\x02 \x01(\x0e\x32\x15.ue_transmission_mode\x12\x30\n\x0eue_trx_antenna\x18\x03 \x01(\x0e\x32\x18.ue_transmission_antenna\"\xd2\x01\n\rue_mac_config\x12\x1c\n\x14time_alignment_timer\x18\x01 \x01(\r\x12\x14\n\x0ctti_bundling\x18\x02 \x01(\r\x12\x13\n\x0bmax_HARQ_tx\x18\x03 \x01(\r\x12#\n\x1b\x61\x63k_nack_simultaneous_trans\x18\x04 \x01(\r\x12!\n\x19simultaneous_ack_nack_cqi\x18\x05 \x01(\r\x12\x30\n\x0c\x61per_cqi_rep\x18\x06 \x01(\x0e\x32\x1a.aperiodic_cqi_report_mode\"\x82\x05\n\rue_rrc_config\x12\x1d\n\x08\x64rx_conf\x18\x01 \x01(\x0b\x32\x0b.drx_config\x12(\n\rmeas_gap_patt\x18\x02 \x01(\x0e\x32\x11.meas_gap_pattern\x12!\n\x19meas_gap_config_sf_offset\x18\x03 \x01(\r\x12\x1d\n\x08sps_conf\x18\x04 \x01(\x0b\x32\x0b.sps_config\x12\x1d\n\x08\x63qi_conf\x18\x05 \x01(\x0b\x32\x0b.cqi_config\x12 \n\x18ue_aggreg_max_bitrate_UL\x18\x06 \x01(\x04\x12 \n\x18ue_aggreg_max_bitrate_DL\x18\x07 \x01(\x04\x12&\n\x0c\x63\x61pabilities\x18\x08 \x01(\x0b\x32\x10.ue_capabilities\x12\x1d\n\x15\x62\x65ta_offset_ACK_index\x18\t \x01(\r\x12\x1c\n\x14\x62\x65ta_offset_RI_index\x18\n \x01(\r\x12\x1d\n\x15\x62\x65ta_offset_CQI_index\x18\x0b \x01(\r\x12!\n\nscell_conf\x18\x0c \x03(\x0b\x32\r.scell_config\x12 \n\x18scell_deactivation_timer\x18\r \x01(\r\x12\x37\n\x12tdd_ack_nack_feedb\x18\x0e \x01(\x0e\x32\x1b.tdd_ack_nack_feedback_mode\x12\x1b\n\x13\x61\x63k_nack_rep_factor\x18\x0f \x01(\r\x12\x19\n\x11\x65xtended_bsr_size\x18\x10 \x01(\r\x12\x12\n\nca_support\x18\x11 \x01(\r\x12 \n\x18\x63ross_carrier_sched_supp\x18\x12 \x01(\r\x12\x13\n\x0bpcell_cc_id\x18\x13 \x01(\r\"\x99\x01\n\tue_config\x12\x0c\n\x04rnti\x18\x01 \x01(\r\x12\x18\n\x05state\x18\x02 \x01(\x0e\x32\t.ue_state\x12 \n\x08phy_conf\x18\x03 \x01(\x0b\x32\x0e.ue_phy_config\x12 \n\x08mac_conf\x18\x04 \x01(\x0b\x32\x0e.ue_mac_config\x12 \n\x08rrc_conf\x18\x05 \x01(\x0b\x32\x0e.ue_rrc_config\".\n\x0fue_config_reply\x12\x1b\n\x07ue_conf\x18\x01 \x03(\x0b\x32\n.ue_config\"\xe5\x01\n\x07\x63onfigs\x12\x1e\n\x04type\x18\x64 \x01(\x0e\x32\x10.config_msg_type\x12+\n\x0c\x65nb_conf_req\x18\x01 \x01(\x0b\x32\x13.enb_config_requestH\x00\x12*\n\renb_conf_repl\x18\x02 \x01(\x0b\x32\x11.enb_config_replyH\x00\x12)\n\x0bue_conf_req\x18\x03 \x01(\x0b\x32\x12.ue_config_requestH\x00\x12(\n\x0cue_conf_repl\x18\x04 \x01(\x0b\x32\x10.ue_config_replyH\x00\x42\x0c\n\nconfig_msg*c\n\x0f\x63onfig_msg_type\x12\x14\n\x10\x45NB_CONF_REQUEST\x10\x00\x12\x12\n\x0e\x45NB_CONF_REPLY\x10\x01\x12\x13\n\x0fUE_CONF_REQUEST\x10\x02\x12\x11\n\rUE_CONF_REPLY\x10\x03*/\n\x0chopping_mode\x12\x0c\n\x08HM_INTER\x10\x00\x12\x11\n\rHM_INTERINTRA\x10\x01*G\n\x0ephich_resource\x12\x10\n\x0cPR_ONE_SIXTH\x10\x00\x12\x0b\n\x07PR_HALF\x10\x01\x12\n\n\x06PR_ONE\x10\x02\x12\n\n\x06PR_TWO\x10\x03*>\n\x0ephich_duration\x12\x14\n\x10PHICH_DUR_NORMAL\x10\x00\x12\x16\n\x12PHICH_DUR_EXTENDED\x10\x01*G\n\x17ul_cyclic_prefix_length\x12\x14\n\x10UL_PREFIX_NORMAL\x10\x00\x12\x16\n\x12UL_PREFIX_EXTENDED\x10\x01*G\n\x17\x64l_cyclic_prefix_length\x12\x14\n\x10\x44L_PREFIX_NORMAL\x10\x00\x12\x16\n\x12\x44L_PREFIX_EXTENDED\x10\x01*%\n\x0b\x64uplex_mode\x12\n\n\x06\x44M_TDD\x10\x00\x12\n\n\x06\x44M_FDD\x10\x01*#\n\x03qam\x12\r\n\tMOD_16QAM\x10\x00\x12\r\n\tMOD_64QAM\x10\x01*9\n\x10meas_gap_pattern\x12\x0b\n\x07MGP_GP0\x10\x00\x12\x0b\n\x07MGP_GP1\x10\x01\x12\x0b\n\x07MGP_OFF\x10\x02*6\n\x14setup_release_action\x12\r\n\tSRA_SETUP\x10\x00\x12\x0f\n\x0bSRA_RELEASE\x10\x01*R\n\x17ue_transmission_antenna\x12\r\n\tUETA_NONE\x10\x00\x12\x12\n\x0eUETA_OPEN_LOOP\x10\x01\x12\x14\n\x10UETA_CLOSED_LOOP\x10\x02*\x86\x01\n\x14ue_transmission_mode\x12\x0c\n\x08UETM_TM1\x10\x00\x12\x0c\n\x08UETM_TM2\x10\x01\x12\x0c\n\x08UETM_TM3\x10\x02\x12\x0c\n\x08UETM_TM4\x10\x03\x12\x0c\n\x08UETM_TM5\x10\x04\x12\x0c\n\x08UETM_TM6\x10\x05\x12\x0c\n\x08UETM_TM7\x10\x06\x12\x0c\n\x08UETM_TM8\x10\x07*u\n\x19\x61periodic_cqi_report_mode\x12\r\n\tACRM_RM12\x10\x00\x12\r\n\tACRM_RM20\x10\x01\x12\r\n\tACRM_RM22\x10\x02\x12\r\n\tACRM_RM30\x10\x03\x12\r\n\tACRM_RM31\x10\x04\x12\r\n\tACRM_NONE\x10\x05*H\n\x1atdd_ack_nack_feedback_mode\x12\x12\n\x0eTANFM_BUNDLING\x10\x00\x12\x16\n\x12TANFM_MULTIPLEXING\x10\x01*\x96\x01\n\x08ue_state\x12\x14\n\x10UES_RRC_INACTIVE\x10\x00\x12\x10\n\x0cUES_RRC_IDLE\x10\x01\x12\x17\n\x13UES_RRC_SI_RECEIVED\x10\x02\x12\x15\n\x11UES_RRC_CONNECTED\x10\x03\x12\x18\n\x14UES_RRC_RECONFIGURED\x10\x04\x12\x18\n\x14UES_RRC_HO_EXECUTION\x10\x05*>\n\x0clayer_config\x12\n\n\x06LC_ALL\x10\x01\x12\n\n\x06LC_PHY\x10\x02\x12\n\n\x06LC_MAC\x10\x04\x12\n\n\x06LC_RRC\x10\x08')
+  serialized_pb=_b('\n\rconfigs.proto\"$\n\x14ue_rrc_meas_conf_req\x12\x0c\n\x04rnti\x18\x01 \x02(\r\"\xd7\x01\n\x0fue_capabilities\x12\x0c\n\x04\x62\x61nd\x18\x01 \x03(\r\x12\x14\n\x0crelease_3gpp\x18\x02 \x01(\r\x12\x18\n\x10interFreq_SI_acq\x18\x03 \x01(\x08\x12\x18\n\x10intraFreq_SI_acq\x18\x04 \x01(\x08\x12\x14\n\x0c\x41\x35_A4_events\x18\x05 \x01(\x08\x12\x16\n\x0einterFreq_meas\x18\x06 \x01(\x08\x12\x1e\n\x16intraFreq_ref_per_meas\x18\x07 \x01(\x08\x12\x1e\n\x16interFreq_ref_per_meas\x18\x08 \x01(\x08\"N\n\x10\x63\x65lls_to_measure\x12\x13\n\x0bphy_cell_id\x18\x01 \x01(\r\x12%\n\x0coffset_range\x18\x02 \x01(\x0e\x32\x0f.Q_offset_range\"?\n\x0f\x62lacklist_cells\x12\x11\n\tstart_pci\x18\x01 \x01(\r\x12\x19\n\x05range\x18\x02 \x01(\x0e\x32\n.pci_range\"\x90\x01\n\x0emeas_obj_EUTRA\x12\x14\n\x0c\x63\x61rrier_freq\x18\x01 \x01(\r\x12!\n\x07meas_bw\x18\x02 \x01(\x0e\x32\x10.allowed_meas_bw\x12 \n\x05\x63\x65lls\x18\x03 \x03(\x0b\x32\x11.cells_to_measure\x12#\n\tbkl_cells\x18\x04 \x03(\x0b\x32\x10.blacklist_cells\"Y\n\x0bmeas_object\x12\x14\n\tmeasObjId\x18\x01 \x02(\x05:\x01\x30\x12(\n\rmeasObj_EUTRA\x18\x02 \x01(\x0b\x32\x0f.meas_obj_EUTRAH\x00\x42\n\n\x08meas_obj\"6\n\x0crep_conf_per\x12&\n\x07purpose\x18\x01 \x01(\x0e\x32\x15.periodic_rep_purpose\">\n\x0fthreshold_EUTRA\x12\x0e\n\x04RSRP\x18\x01 \x01(\x05H\x00\x12\x0e\n\x04RSRQ\x18\x02 \x01(\x05H\x00\x42\x0b\n\tthreshold\"5\n\x0brep_conf_a1\x12&\n\x0c\x61\x31_threshold\x18\x01 \x01(\x0b\x32\x10.threshold_EUTRA\"5\n\x0brep_conf_a2\x12&\n\x0c\x61\x32_threshold\x18\x01 \x01(\x0b\x32\x10.threshold_EUTRA\"9\n\x0brep_conf_a3\x12\x11\n\ta3_offset\x18\x01 \x01(\x05\x12\x17\n\x0freport_on_leave\x18\x02 \x01(\r\"5\n\x0brep_conf_a4\x12&\n\x0c\x61\x34_threshold\x18\x01 \x01(\x0b\x32\x10.threshold_EUTRA\"_\n\x0brep_conf_a5\x12\'\n\ra5_threshold1\x18\x01 \x01(\x0b\x32\x10.threshold_EUTRA\x12\'\n\ra5_threshold2\x18\x02 \x01(\x0b\x32\x10.threshold_EUTRA\"\xf1\x03\n\x0erep_conf_EUTRA\x12#\n\nperiodical\x18\x01 \x01(\x0b\x32\r.rep_conf_perH\x00\x12\x1a\n\x02\x61\x31\x18\x02 \x01(\x0b\x32\x0c.rep_conf_a1H\x00\x12\x1a\n\x02\x61\x32\x18\x03 \x01(\x0b\x32\x0c.rep_conf_a2H\x00\x12\x1a\n\x02\x61\x33\x18\x04 \x01(\x0b\x32\x0c.rep_conf_a3H\x00\x12\x1a\n\x02\x61\x34\x18\x05 \x01(\x0b\x32\x0c.rep_conf_a4H\x00\x12\x1a\n\x02\x61\x35\x18\x06 \x01(\x0b\x32\x0c.rep_conf_a5H\x00\x12\x12\n\nhysteresis\x18\x07 \x01(\x05\x12$\n\ntrigg_time\x18\x08 \x01(\x0e\x32\x10.time_to_trigger\x12&\n\x0btrigg_quant\x18\t \x01(\x0e\x32\x11.trigger_quantity\x12&\n\x0creport_quant\x18\n \x01(\x0e\x32\x10.report_quantity\x12\x15\n\rmax_rep_cells\x18\x0b \x01(\r\x12&\n\x0crep_interval\x18\x0c \x01(\x0e\x32\x10.report_interval\x12\"\n\nrep_amount\x18\r \x01(\x0e\x32\x0e.report_amount\x12\x33\n\x11ue_rxtx_time_diff\x18\x0e \x01(\x0e\x32\x18.ue_rxtx_time_differenceB\x0c\n\nconf_EUTRA\"Y\n\rreport_config\x12\x17\n\x0creportConfId\x18\x01 \x02(\x05:\x01\x30\x12#\n\x08rc_EUTRA\x18\x02 \x01(\x0b\x32\x0f.rep_conf_EUTRAH\x00\x42\n\n\x08rep_conf\"I\n\x0fmeas_identifier\x12\n\n\x02id\x18\x01 \x02(\x05\x12\x12\n\nmeasObj_id\x18\x02 \x02(\x05\x12\x16\n\x0ereport_conf_id\x18\x03 \x02(\x05\"\xbe\x02\n\x15ue_rrc_meas_conf_repl\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12 \n\x06status\x18\x02 \x02(\x0e\x32\x10.conf_req_status\x12 \n\x0cue_rrc_state\x18\x03 \x01(\x0e\x32\n.rrc_state\x12(\n\rmeas_gap_patt\x18\x04 \x01(\x0e\x32\x11.meas_gap_pattern\x12!\n\x19meas_gap_config_sf_offset\x18\x05 \x01(\r\x12&\n\x0c\x63\x61pabilities\x18\x06 \x01(\x0b\x32\x10.ue_capabilities\x12\x1b\n\x05m_obj\x18\x07 \x03(\x0b\x32\x0c.meas_object\x12\x1e\n\x06r_conf\x18\x08 \x03(\x0b\x32\x0e.report_config\x12!\n\x07meas_id\x18\t \x03(\x0b\x32\x10.meas_identifier\"v\n\x10ue_rrc_meas_conf\x12$\n\x03req\x18\x01 \x01(\x0b\x32\x15.ue_rrc_meas_conf_reqH\x00\x12&\n\x04repl\x18\x02 \x01(\x0b\x32\x16.ue_rrc_meas_conf_replH\x00\x42\x14\n\x12ue_rrc_meas_conf_m\"\x0c\n\nues_id_req\"[\n\x0bues_id_repl\x12 \n\x06status\x18\x01 \x02(\x0e\x32\x10.conf_req_status\x12\x13\n\x0b\x61\x63tive_rnti\x18\x02 \x03(\r\x12\x15\n\rinactive_rnti\x18\x03 \x03(\r\"N\n\x06ues_id\x12\x1a\n\x03req\x18\x01 \x01(\x0b\x32\x0b.ues_id_reqH\x00\x12\x1c\n\x04repl\x18\x02 \x01(\x0b\x32\x0c.ues_id_replH\x00\x42\n\n\x08ues_id_m*9\n\x10meas_gap_pattern\x12\x0b\n\x07MGP_GP0\x10\x00\x12\x0b\n\x07MGP_GP1\x10\x01\x12\x0b\n\x07MGP_OFF\x10\x02*\x91\x01\n\trrc_state\x12\x13\n\x0fRS_RRC_INACTIVE\x10\x00\x12\x0f\n\x0bRS_RRC_IDLE\x10\x01\x12\x16\n\x12RS_RRC_SI_RECEIVED\x10\x02\x12\x14\n\x10RS_RRC_CONNECTED\x10\x03\x12\x17\n\x13RS_RRC_RECONFIGURED\x10\x04\x12\x17\n\x13RS_RRC_HO_EXECUTION\x10\x05*_\n\x0f\x61llowed_meas_bw\x12\n\n\x06\x41MBW_6\x10\x00\x12\x0b\n\x07\x41MBW_15\x10\x01\x12\x0b\n\x07\x41MBW_25\x10\x02\x12\x0b\n\x07\x41MBW_50\x10\x03\x12\x0b\n\x07\x41MBW_75\x10\x04\x12\x0c\n\x08\x41MBW_100\x10\x05*\xc2\x03\n\x0eQ_offset_range\x12\r\n\tQOR_dB_24\x10\x00\x12\r\n\tQOR_dB_22\x10\x01\x12\r\n\tQOR_dB_20\x10\x02\x12\r\n\tQOR_dB_18\x10\x03\x12\r\n\tQOR_dB_16\x10\x04\x12\r\n\tQOR_dB_14\x10\x05\x12\r\n\tQOR_dB_12\x10\x06\x12\r\n\tQOR_dB_10\x10\x07\x12\x0c\n\x08QOR_dB_8\x10\x08\x12\x0c\n\x08QOR_dB_6\x10\t\x12\x0c\n\x08QOR_dB_5\x10\n\x12\x0c\n\x08QOR_dB_4\x10\x0b\x12\x0c\n\x08QOR_dB_3\x10\x0c\x12\x0c\n\x08QOR_dB_2\x10\r\x12\x0c\n\x08QOR_dB_1\x10\x0e\x12\x0b\n\x07QOR_dB0\x10\x0f\x12\x0b\n\x07QOR_dB1\x10\x10\x12\x0b\n\x07QOR_dB2\x10\x11\x12\x0b\n\x07QOR_dB3\x10\x12\x12\x0b\n\x07QOR_dB4\x10\x13\x12\x0b\n\x07QOR_dB5\x10\x14\x12\x0b\n\x07QOR_dB6\x10\x15\x12\x0b\n\x07QOR_dB8\x10\x16\x12\x0c\n\x08QOR_dB10\x10\x17\x12\x0c\n\x08QOR_dB12\x10\x18\x12\x0c\n\x08QOR_dB14\x10\x19\x12\x0c\n\x08QOR_dB16\x10\x1a\x12\x0c\n\x08QOR_dB18\x10\x1b\x12\x0c\n\x08QOR_dB20\x10\x1c\x12\x0c\n\x08QOR_dB22\x10\x1d\x12\x0c\n\x08QOR_dB24\x10\x1e*\xf3\x01\n\tpci_range\x12\x0b\n\x07PCIR_n4\x10\x00\x12\x0b\n\x07PCIR_n8\x10\x01\x12\x0c\n\x08PCIR_n12\x10\x02\x12\x0c\n\x08PCIR_n16\x10\x03\x12\x0c\n\x08PCIR_n24\x10\x04\x12\x0c\n\x08PCIR_n32\x10\x05\x12\x0c\n\x08PCIR_n48\x10\x06\x12\x0c\n\x08PCIR_n64\x10\x07\x12\x0c\n\x08PCIR_n84\x10\x08\x12\x0c\n\x08PCIR_n96\x10\t\x12\r\n\tPCIR_n128\x10\n\x12\r\n\tPCIR_n168\x10\x0b\x12\r\n\tPCIR_n252\x10\x0c\x12\r\n\tPCIR_n504\x10\r\x12\x0f\n\x0bPCIR_spare2\x10\x0e\x12\x0f\n\x0bPCIR_spare1\x10\x0f*\xa0\x02\n\x0ftime_to_trigger\x12\r\n\tTTRIG_ms0\x10\x00\x12\x0e\n\nTTRIG_ms40\x10\x01\x12\x0e\n\nTTRIG_ms64\x10\x02\x12\x0e\n\nTTRIG_ms80\x10\x03\x12\x0f\n\x0bTTRIG_ms100\x10\x04\x12\x0f\n\x0bTTRIG_ms128\x10\x05\x12\x0f\n\x0bTTRIG_ms160\x10\x06\x12\x0f\n\x0bTTRIG_ms256\x10\x07\x12\x0f\n\x0bTTRIG_ms320\x10\x08\x12\x0f\n\x0bTTRIG_ms480\x10\t\x12\x0f\n\x0bTTRIG_ms512\x10\n\x12\x0f\n\x0bTTRIG_ms640\x10\x0b\x12\x10\n\x0cTTRIG_ms1024\x10\x0c\x12\x10\n\x0cTTRIG_ms1280\x10\r\x12\x10\n\x0cTTRIG_ms2560\x10\x0e\x12\x10\n\x0cTTRIG_ms5120\x10\x0f*S\n\x14periodic_rep_purpose\x12 \n\x1cPERRP_REPORT_STRONGEST_CELLS\x10\x00\x12\x19\n\x15PERRP_REPORT_CGI_INFO\x10\x01*2\n\x10trigger_quantity\x12\x0e\n\nTRIGQ_RSRP\x10\x00\x12\x0e\n\nTRIGQ_RSRQ\x10\x01*@\n\x0freport_quantity\x12\x1e\n\x1aREPQ_SAME_AS_TRIGGER_QUANT\x10\x00\x12\r\n\tREPQ_BOTH\x10\x01*\xb7\x02\n\x0freport_interval\x12\x10\n\x0cREPINT_ms120\x10\x00\x12\x10\n\x0cREPINT_ms240\x10\x01\x12\x10\n\x0cREPINT_ms480\x10\x02\x12\x10\n\x0cREPINT_ms640\x10\x03\x12\x11\n\rREPINT_ms1024\x10\x04\x12\x11\n\rREPINT_ms2048\x10\x05\x12\x11\n\rREPINT_ms5120\x10\x06\x12\x12\n\x0eREPINT_ms10240\x10\x07\x12\x0f\n\x0bREPINT_min1\x10\x08\x12\x0f\n\x0bREPINT_min6\x10\t\x12\x10\n\x0cREPINT_min12\x10\n\x12\x10\n\x0cREPINT_min30\x10\x0b\x12\x10\n\x0cREPINT_min60\x10\x0c\x12\x11\n\rREPINT_spare3\x10\r\x12\x11\n\rREPINT_spare2\x10\x0e\x12\x11\n\rREPINT_spare1\x10\x0f*\x89\x01\n\rreport_amount\x12\x0c\n\x08REPAMT_1\x10\x00\x12\x0c\n\x08REPAMT_2\x10\x01\x12\x0c\n\x08REPAMT_4\x10\x02\x12\x0c\n\x08REPAMT_8\x10\x03\x12\r\n\tREPAMT_16\x10\x04\x12\r\n\tREPAMT_32\x10\x05\x12\r\n\tREPAMT_64\x10\x06\x12\x13\n\x0fREPAMT_infinity\x10\x07*-\n\x17ue_rxtx_time_difference\x12\x12\n\x0eUERXTXTD_SETUP\x10\x00*7\n\x0f\x63onf_req_status\x12\x11\n\rCREQS_SUCCESS\x10\x00\x12\x11\n\rCREQS_FAILURE\x10\x01')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-_CONFIG_MSG_TYPE = _descriptor.EnumDescriptor(
-  name='config_msg_type',
-  full_name='config_msg_type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='ENB_CONF_REQUEST', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ENB_CONF_REPLY', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UE_CONF_REQUEST', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UE_CONF_REPLY', index=3, number=3,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3679,
-  serialized_end=3778,
-)
-_sym_db.RegisterEnumDescriptor(_CONFIG_MSG_TYPE)
-
-config_msg_type = enum_type_wrapper.EnumTypeWrapper(_CONFIG_MSG_TYPE)
-_HOPPING_MODE = _descriptor.EnumDescriptor(
-  name='hopping_mode',
-  full_name='hopping_mode',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='HM_INTER', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='HM_INTERINTRA', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3780,
-  serialized_end=3827,
-)
-_sym_db.RegisterEnumDescriptor(_HOPPING_MODE)
-
-hopping_mode = enum_type_wrapper.EnumTypeWrapper(_HOPPING_MODE)
-_PHICH_RESOURCE = _descriptor.EnumDescriptor(
-  name='phich_resource',
-  full_name='phich_resource',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='PR_ONE_SIXTH', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='PR_HALF', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='PR_ONE', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='PR_TWO', index=3, number=3,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3829,
-  serialized_end=3900,
-)
-_sym_db.RegisterEnumDescriptor(_PHICH_RESOURCE)
-
-phich_resource = enum_type_wrapper.EnumTypeWrapper(_PHICH_RESOURCE)
-_PHICH_DURATION = _descriptor.EnumDescriptor(
-  name='phich_duration',
-  full_name='phich_duration',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='PHICH_DUR_NORMAL', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='PHICH_DUR_EXTENDED', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3902,
-  serialized_end=3964,
-)
-_sym_db.RegisterEnumDescriptor(_PHICH_DURATION)
-
-phich_duration = enum_type_wrapper.EnumTypeWrapper(_PHICH_DURATION)
-_UL_CYCLIC_PREFIX_LENGTH = _descriptor.EnumDescriptor(
-  name='ul_cyclic_prefix_length',
-  full_name='ul_cyclic_prefix_length',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='UL_PREFIX_NORMAL', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UL_PREFIX_EXTENDED', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=3966,
-  serialized_end=4037,
-)
-_sym_db.RegisterEnumDescriptor(_UL_CYCLIC_PREFIX_LENGTH)
-
-ul_cyclic_prefix_length = enum_type_wrapper.EnumTypeWrapper(_UL_CYCLIC_PREFIX_LENGTH)
-_DL_CYCLIC_PREFIX_LENGTH = _descriptor.EnumDescriptor(
-  name='dl_cyclic_prefix_length',
-  full_name='dl_cyclic_prefix_length',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='DL_PREFIX_NORMAL', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='DL_PREFIX_EXTENDED', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4039,
-  serialized_end=4110,
-)
-_sym_db.RegisterEnumDescriptor(_DL_CYCLIC_PREFIX_LENGTH)
-
-dl_cyclic_prefix_length = enum_type_wrapper.EnumTypeWrapper(_DL_CYCLIC_PREFIX_LENGTH)
-_DUPLEX_MODE = _descriptor.EnumDescriptor(
-  name='duplex_mode',
-  full_name='duplex_mode',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='DM_TDD', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='DM_FDD', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4112,
-  serialized_end=4149,
-)
-_sym_db.RegisterEnumDescriptor(_DUPLEX_MODE)
-
-duplex_mode = enum_type_wrapper.EnumTypeWrapper(_DUPLEX_MODE)
-_QAM = _descriptor.EnumDescriptor(
-  name='qam',
-  full_name='qam',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='MOD_16QAM', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MOD_64QAM', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=4151,
-  serialized_end=4186,
-)
-_sym_db.RegisterEnumDescriptor(_QAM)
-
-qam = enum_type_wrapper.EnumTypeWrapper(_QAM)
 _MEAS_GAP_PATTERN = _descriptor.EnumDescriptor(
   name='meas_gap_pattern',
   full_name='meas_gap_pattern',
@@ -245,316 +45,749 @@ _MEAS_GAP_PATTERN = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4188,
-  serialized_end=4245,
+  serialized_start=2391,
+  serialized_end=2448,
 )
 _sym_db.RegisterEnumDescriptor(_MEAS_GAP_PATTERN)
 
 meas_gap_pattern = enum_type_wrapper.EnumTypeWrapper(_MEAS_GAP_PATTERN)
-_SETUP_RELEASE_ACTION = _descriptor.EnumDescriptor(
-  name='setup_release_action',
-  full_name='setup_release_action',
+_RRC_STATE = _descriptor.EnumDescriptor(
+  name='rrc_state',
+  full_name='rrc_state',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='SRA_SETUP', index=0, number=0,
+      name='RS_RRC_INACTIVE', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='SRA_RELEASE', index=1, number=1,
+      name='RS_RRC_IDLE', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RS_RRC_SI_RECEIVED', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RS_RRC_CONNECTED', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RS_RRC_RECONFIGURED', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RS_RRC_HO_EXECUTION', index=5, number=5,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4247,
-  serialized_end=4301,
+  serialized_start=2451,
+  serialized_end=2596,
 )
-_sym_db.RegisterEnumDescriptor(_SETUP_RELEASE_ACTION)
+_sym_db.RegisterEnumDescriptor(_RRC_STATE)
 
-setup_release_action = enum_type_wrapper.EnumTypeWrapper(_SETUP_RELEASE_ACTION)
-_UE_TRANSMISSION_ANTENNA = _descriptor.EnumDescriptor(
-  name='ue_transmission_antenna',
-  full_name='ue_transmission_antenna',
+rrc_state = enum_type_wrapper.EnumTypeWrapper(_RRC_STATE)
+_ALLOWED_MEAS_BW = _descriptor.EnumDescriptor(
+  name='allowed_meas_bw',
+  full_name='allowed_meas_bw',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='UETA_NONE', index=0, number=0,
+      name='AMBW_6', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETA_OPEN_LOOP', index=1, number=1,
+      name='AMBW_15', index=1, number=1,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETA_CLOSED_LOOP', index=2, number=2,
+      name='AMBW_25', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='AMBW_50', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='AMBW_75', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='AMBW_100', index=5, number=5,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4303,
-  serialized_end=4385,
+  serialized_start=2598,
+  serialized_end=2693,
 )
-_sym_db.RegisterEnumDescriptor(_UE_TRANSMISSION_ANTENNA)
+_sym_db.RegisterEnumDescriptor(_ALLOWED_MEAS_BW)
 
-ue_transmission_antenna = enum_type_wrapper.EnumTypeWrapper(_UE_TRANSMISSION_ANTENNA)
-_UE_TRANSMISSION_MODE = _descriptor.EnumDescriptor(
-  name='ue_transmission_mode',
-  full_name='ue_transmission_mode',
+allowed_meas_bw = enum_type_wrapper.EnumTypeWrapper(_ALLOWED_MEAS_BW)
+_Q_OFFSET_RANGE = _descriptor.EnumDescriptor(
+  name='Q_offset_range',
+  full_name='Q_offset_range',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM1', index=0, number=0,
+      name='QOR_dB_24', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM2', index=1, number=1,
+      name='QOR_dB_22', index=1, number=1,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM3', index=2, number=2,
+      name='QOR_dB_20', index=2, number=2,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM4', index=3, number=3,
+      name='QOR_dB_18', index=3, number=3,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM5', index=4, number=4,
+      name='QOR_dB_16', index=4, number=4,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM6', index=5, number=5,
+      name='QOR_dB_14', index=5, number=5,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM7', index=6, number=6,
+      name='QOR_dB_12', index=6, number=6,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UETM_TM8', index=7, number=7,
+      name='QOR_dB_10', index=7, number=7,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_8', index=8, number=8,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_6', index=9, number=9,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_5', index=10, number=10,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_4', index=11, number=11,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_3', index=12, number=12,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_2', index=13, number=13,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB_1', index=14, number=14,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB0', index=15, number=15,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB1', index=16, number=16,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB2', index=17, number=17,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB3', index=18, number=18,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB4', index=19, number=19,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB5', index=20, number=20,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB6', index=21, number=21,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB8', index=22, number=22,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB10', index=23, number=23,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB12', index=24, number=24,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB14', index=25, number=25,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB16', index=26, number=26,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB18', index=27, number=27,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB20', index=28, number=28,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB22', index=29, number=29,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QOR_dB24', index=30, number=30,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4388,
-  serialized_end=4522,
+  serialized_start=2696,
+  serialized_end=3146,
 )
-_sym_db.RegisterEnumDescriptor(_UE_TRANSMISSION_MODE)
+_sym_db.RegisterEnumDescriptor(_Q_OFFSET_RANGE)
 
-ue_transmission_mode = enum_type_wrapper.EnumTypeWrapper(_UE_TRANSMISSION_MODE)
-_APERIODIC_CQI_REPORT_MODE = _descriptor.EnumDescriptor(
-  name='aperiodic_cqi_report_mode',
-  full_name='aperiodic_cqi_report_mode',
+Q_offset_range = enum_type_wrapper.EnumTypeWrapper(_Q_OFFSET_RANGE)
+_PCI_RANGE = _descriptor.EnumDescriptor(
+  name='pci_range',
+  full_name='pci_range',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='ACRM_RM12', index=0, number=0,
+      name='PCIR_n4', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACRM_RM20', index=1, number=1,
+      name='PCIR_n8', index=1, number=1,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACRM_RM22', index=2, number=2,
+      name='PCIR_n12', index=2, number=2,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACRM_RM30', index=3, number=3,
+      name='PCIR_n16', index=3, number=3,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACRM_RM31', index=4, number=4,
+      name='PCIR_n24', index=4, number=4,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACRM_NONE', index=5, number=5,
+      name='PCIR_n32', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n48', index=6, number=6,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n64', index=7, number=7,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n84', index=8, number=8,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n96', index=9, number=9,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n128', index=10, number=10,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n168', index=11, number=11,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n252', index=12, number=12,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_n504', index=13, number=13,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_spare2', index=14, number=14,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PCIR_spare1', index=15, number=15,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4524,
-  serialized_end=4641,
+  serialized_start=3149,
+  serialized_end=3392,
 )
-_sym_db.RegisterEnumDescriptor(_APERIODIC_CQI_REPORT_MODE)
+_sym_db.RegisterEnumDescriptor(_PCI_RANGE)
 
-aperiodic_cqi_report_mode = enum_type_wrapper.EnumTypeWrapper(_APERIODIC_CQI_REPORT_MODE)
-_TDD_ACK_NACK_FEEDBACK_MODE = _descriptor.EnumDescriptor(
-  name='tdd_ack_nack_feedback_mode',
-  full_name='tdd_ack_nack_feedback_mode',
+pci_range = enum_type_wrapper.EnumTypeWrapper(_PCI_RANGE)
+_TIME_TO_TRIGGER = _descriptor.EnumDescriptor(
+  name='time_to_trigger',
+  full_name='time_to_trigger',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='TANFM_BUNDLING', index=0, number=0,
+      name='TTRIG_ms0', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TANFM_MULTIPLEXING', index=1, number=1,
+      name='TTRIG_ms40', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms64', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms80', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms100', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms128', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms160', index=6, number=6,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms256', index=7, number=7,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms320', index=8, number=8,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms480', index=9, number=9,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms512', index=10, number=10,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms640', index=11, number=11,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms1024', index=12, number=12,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms1280', index=13, number=13,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms2560', index=14, number=14,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TTRIG_ms5120', index=15, number=15,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4643,
-  serialized_end=4715,
+  serialized_start=3395,
+  serialized_end=3683,
 )
-_sym_db.RegisterEnumDescriptor(_TDD_ACK_NACK_FEEDBACK_MODE)
+_sym_db.RegisterEnumDescriptor(_TIME_TO_TRIGGER)
 
-tdd_ack_nack_feedback_mode = enum_type_wrapper.EnumTypeWrapper(_TDD_ACK_NACK_FEEDBACK_MODE)
-_UE_STATE = _descriptor.EnumDescriptor(
-  name='ue_state',
-  full_name='ue_state',
+time_to_trigger = enum_type_wrapper.EnumTypeWrapper(_TIME_TO_TRIGGER)
+_PERIODIC_REP_PURPOSE = _descriptor.EnumDescriptor(
+  name='periodic_rep_purpose',
+  full_name='periodic_rep_purpose',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='UES_RRC_INACTIVE', index=0, number=0,
+      name='PERRP_REPORT_STRONGEST_CELLS', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UES_RRC_IDLE', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UES_RRC_SI_RECEIVED', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UES_RRC_CONNECTED', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UES_RRC_RECONFIGURED', index=4, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='UES_RRC_HO_EXECUTION', index=5, number=5,
+      name='PERRP_REPORT_CGI_INFO', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4718,
-  serialized_end=4868,
+  serialized_start=3685,
+  serialized_end=3768,
 )
-_sym_db.RegisterEnumDescriptor(_UE_STATE)
+_sym_db.RegisterEnumDescriptor(_PERIODIC_REP_PURPOSE)
 
-ue_state = enum_type_wrapper.EnumTypeWrapper(_UE_STATE)
-_LAYER_CONFIG = _descriptor.EnumDescriptor(
-  name='layer_config',
-  full_name='layer_config',
+periodic_rep_purpose = enum_type_wrapper.EnumTypeWrapper(_PERIODIC_REP_PURPOSE)
+_TRIGGER_QUANTITY = _descriptor.EnumDescriptor(
+  name='trigger_quantity',
+  full_name='trigger_quantity',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='LC_ALL', index=0, number=1,
+      name='TRIGQ_RSRP', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='LC_PHY', index=1, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='LC_MAC', index=2, number=4,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='LC_RRC', index=3, number=8,
+      name='TRIGQ_RSRQ', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=4870,
-  serialized_end=4932,
+  serialized_start=3770,
+  serialized_end=3820,
 )
-_sym_db.RegisterEnumDescriptor(_LAYER_CONFIG)
+_sym_db.RegisterEnumDescriptor(_TRIGGER_QUANTITY)
 
-layer_config = enum_type_wrapper.EnumTypeWrapper(_LAYER_CONFIG)
-ENB_CONF_REQUEST = 0
-ENB_CONF_REPLY = 1
-UE_CONF_REQUEST = 2
-UE_CONF_REPLY = 3
-HM_INTER = 0
-HM_INTERINTRA = 1
-PR_ONE_SIXTH = 0
-PR_HALF = 1
-PR_ONE = 2
-PR_TWO = 3
-PHICH_DUR_NORMAL = 0
-PHICH_DUR_EXTENDED = 1
-UL_PREFIX_NORMAL = 0
-UL_PREFIX_EXTENDED = 1
-DL_PREFIX_NORMAL = 0
-DL_PREFIX_EXTENDED = 1
-DM_TDD = 0
-DM_FDD = 1
-MOD_16QAM = 0
-MOD_64QAM = 1
+trigger_quantity = enum_type_wrapper.EnumTypeWrapper(_TRIGGER_QUANTITY)
+_REPORT_QUANTITY = _descriptor.EnumDescriptor(
+  name='report_quantity',
+  full_name='report_quantity',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='REPQ_SAME_AS_TRIGGER_QUANT', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPQ_BOTH', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=3822,
+  serialized_end=3886,
+)
+_sym_db.RegisterEnumDescriptor(_REPORT_QUANTITY)
+
+report_quantity = enum_type_wrapper.EnumTypeWrapper(_REPORT_QUANTITY)
+_REPORT_INTERVAL = _descriptor.EnumDescriptor(
+  name='report_interval',
+  full_name='report_interval',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms120', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms240', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms480', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms640', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms1024', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms2048', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms5120', index=6, number=6,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_ms10240', index=7, number=7,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_min1', index=8, number=8,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_min6', index=9, number=9,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_min12', index=10, number=10,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_min30', index=11, number=11,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_min60', index=12, number=12,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_spare3', index=13, number=13,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_spare2', index=14, number=14,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPINT_spare1', index=15, number=15,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=3889,
+  serialized_end=4200,
+)
+_sym_db.RegisterEnumDescriptor(_REPORT_INTERVAL)
+
+report_interval = enum_type_wrapper.EnumTypeWrapper(_REPORT_INTERVAL)
+_REPORT_AMOUNT = _descriptor.EnumDescriptor(
+  name='report_amount',
+  full_name='report_amount',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_1', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_2', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_4', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_8', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_16', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_32', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_64', index=6, number=6,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REPAMT_infinity', index=7, number=7,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4203,
+  serialized_end=4340,
+)
+_sym_db.RegisterEnumDescriptor(_REPORT_AMOUNT)
+
+report_amount = enum_type_wrapper.EnumTypeWrapper(_REPORT_AMOUNT)
+_UE_RXTX_TIME_DIFFERENCE = _descriptor.EnumDescriptor(
+  name='ue_rxtx_time_difference',
+  full_name='ue_rxtx_time_difference',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UERXTXTD_SETUP', index=0, number=0,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4342,
+  serialized_end=4387,
+)
+_sym_db.RegisterEnumDescriptor(_UE_RXTX_TIME_DIFFERENCE)
+
+ue_rxtx_time_difference = enum_type_wrapper.EnumTypeWrapper(_UE_RXTX_TIME_DIFFERENCE)
+_CONF_REQ_STATUS = _descriptor.EnumDescriptor(
+  name='conf_req_status',
+  full_name='conf_req_status',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='CREQS_SUCCESS', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CREQS_FAILURE', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4389,
+  serialized_end=4444,
+)
+_sym_db.RegisterEnumDescriptor(_CONF_REQ_STATUS)
+
+conf_req_status = enum_type_wrapper.EnumTypeWrapper(_CONF_REQ_STATUS)
 MGP_GP0 = 0
 MGP_GP1 = 1
 MGP_OFF = 2
-SRA_SETUP = 0
-SRA_RELEASE = 1
-UETA_NONE = 0
-UETA_OPEN_LOOP = 1
-UETA_CLOSED_LOOP = 2
-UETM_TM1 = 0
-UETM_TM2 = 1
-UETM_TM3 = 2
-UETM_TM4 = 3
-UETM_TM5 = 4
-UETM_TM6 = 5
-UETM_TM7 = 6
-UETM_TM8 = 7
-ACRM_RM12 = 0
-ACRM_RM20 = 1
-ACRM_RM22 = 2
-ACRM_RM30 = 3
-ACRM_RM31 = 4
-ACRM_NONE = 5
-TANFM_BUNDLING = 0
-TANFM_MULTIPLEXING = 1
-UES_RRC_INACTIVE = 0
-UES_RRC_IDLE = 1
-UES_RRC_SI_RECEIVED = 2
-UES_RRC_CONNECTED = 3
-UES_RRC_RECONFIGURED = 4
-UES_RRC_HO_EXECUTION = 5
-LC_ALL = 1
-LC_PHY = 2
-LC_MAC = 4
-LC_RRC = 8
+RS_RRC_INACTIVE = 0
+RS_RRC_IDLE = 1
+RS_RRC_SI_RECEIVED = 2
+RS_RRC_CONNECTED = 3
+RS_RRC_RECONFIGURED = 4
+RS_RRC_HO_EXECUTION = 5
+AMBW_6 = 0
+AMBW_15 = 1
+AMBW_25 = 2
+AMBW_50 = 3
+AMBW_75 = 4
+AMBW_100 = 5
+QOR_dB_24 = 0
+QOR_dB_22 = 1
+QOR_dB_20 = 2
+QOR_dB_18 = 3
+QOR_dB_16 = 4
+QOR_dB_14 = 5
+QOR_dB_12 = 6
+QOR_dB_10 = 7
+QOR_dB_8 = 8
+QOR_dB_6 = 9
+QOR_dB_5 = 10
+QOR_dB_4 = 11
+QOR_dB_3 = 12
+QOR_dB_2 = 13
+QOR_dB_1 = 14
+QOR_dB0 = 15
+QOR_dB1 = 16
+QOR_dB2 = 17
+QOR_dB3 = 18
+QOR_dB4 = 19
+QOR_dB5 = 20
+QOR_dB6 = 21
+QOR_dB8 = 22
+QOR_dB10 = 23
+QOR_dB12 = 24
+QOR_dB14 = 25
+QOR_dB16 = 26
+QOR_dB18 = 27
+QOR_dB20 = 28
+QOR_dB22 = 29
+QOR_dB24 = 30
+PCIR_n4 = 0
+PCIR_n8 = 1
+PCIR_n12 = 2
+PCIR_n16 = 3
+PCIR_n24 = 4
+PCIR_n32 = 5
+PCIR_n48 = 6
+PCIR_n64 = 7
+PCIR_n84 = 8
+PCIR_n96 = 9
+PCIR_n128 = 10
+PCIR_n168 = 11
+PCIR_n252 = 12
+PCIR_n504 = 13
+PCIR_spare2 = 14
+PCIR_spare1 = 15
+TTRIG_ms0 = 0
+TTRIG_ms40 = 1
+TTRIG_ms64 = 2
+TTRIG_ms80 = 3
+TTRIG_ms100 = 4
+TTRIG_ms128 = 5
+TTRIG_ms160 = 6
+TTRIG_ms256 = 7
+TTRIG_ms320 = 8
+TTRIG_ms480 = 9
+TTRIG_ms512 = 10
+TTRIG_ms640 = 11
+TTRIG_ms1024 = 12
+TTRIG_ms1280 = 13
+TTRIG_ms2560 = 14
+TTRIG_ms5120 = 15
+PERRP_REPORT_STRONGEST_CELLS = 0
+PERRP_REPORT_CGI_INFO = 1
+TRIGQ_RSRP = 0
+TRIGQ_RSRQ = 1
+REPQ_SAME_AS_TRIGGER_QUANT = 0
+REPQ_BOTH = 1
+REPINT_ms120 = 0
+REPINT_ms240 = 1
+REPINT_ms480 = 2
+REPINT_ms640 = 3
+REPINT_ms1024 = 4
+REPINT_ms2048 = 5
+REPINT_ms5120 = 6
+REPINT_ms10240 = 7
+REPINT_min1 = 8
+REPINT_min6 = 9
+REPINT_min12 = 10
+REPINT_min30 = 11
+REPINT_min60 = 12
+REPINT_spare3 = 13
+REPINT_spare2 = 14
+REPINT_spare1 = 15
+REPAMT_1 = 0
+REPAMT_2 = 1
+REPAMT_4 = 2
+REPAMT_8 = 3
+REPAMT_16 = 4
+REPAMT_32 = 5
+REPAMT_64 = 6
+REPAMT_infinity = 7
+UERXTXTD_SETUP = 0
+CREQS_SUCCESS = 0
+CREQS_FAILURE = 1
 
 
 
-_ENB_CONFIG_REQUEST = _descriptor.Descriptor(
-  name='enb_config_request',
-  full_name='enb_config_request',
+_UE_RRC_MEAS_CONF_REQ = _descriptor.Descriptor(
+  name='ue_rrc_meas_conf_req',
+  full_name='ue_rrc_meas_conf_req',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='layer', full_name='enb_config_request.layer', index=0,
-      number=1, type=13, cpp_type=3, label=1,
+      name='rnti', full_name='ue_rrc_meas_conf_req.rnti', index=0,
+      number=1, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cc_id', full_name='enb_config_request.cc_id', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -571,31 +804,73 @@ _ENB_CONFIG_REQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=17,
-  serialized_end=67,
+  serialized_end=53,
 )
 
 
-_UE_CONFIG_REQUEST = _descriptor.Descriptor(
-  name='ue_config_request',
-  full_name='ue_config_request',
+_UE_CAPABILITIES = _descriptor.Descriptor(
+  name='ue_capabilities',
+  full_name='ue_capabilities',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='layer', full_name='ue_config_request.layer', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rnti', full_name='ue_config_request.rnti', index=1,
-      number=2, type=13, cpp_type=3, label=3,
+      name='band', full_name='ue_capabilities.band', index=0,
+      number=1, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='release_3gpp', full_name='ue_capabilities.release_3gpp', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='interFreq_SI_acq', full_name='ue_capabilities.interFreq_SI_acq', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='intraFreq_SI_acq', full_name='ue_capabilities.intraFreq_SI_acq', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='A5_A4_events', full_name='ue_capabilities.A5_A4_events', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='interFreq_meas', full_name='ue_capabilities.interFreq_meas', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='intraFreq_ref_per_meas', full_name='ue_capabilities.intraFreq_ref_per_meas', index=6,
+      number=7, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='interFreq_ref_per_meas', full_name='ue_capabilities.interFreq_ref_per_meas', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -608,28 +883,28 @@ _UE_CONFIG_REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=69,
-  serialized_end=117,
+  serialized_start=56,
+  serialized_end=271,
 )
 
 
-_SI_INFO_MSG = _descriptor.Descriptor(
-  name='si_info_msg',
-  full_name='si_info_msg',
+_CELLS_TO_MEASURE = _descriptor.Descriptor(
+  name='cells_to_measure',
+  full_name='cells_to_measure',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='periodicity', full_name='si_info_msg.periodicity', index=0,
+      name='phy_cell_id', full_name='cells_to_measure.phy_cell_id', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='length', full_name='si_info_msg.length', index=1,
-      number=2, type=13, cpp_type=3, label=1,
+      name='offset_range', full_name='cells_to_measure.offset_range', index=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -646,41 +921,79 @@ _SI_INFO_MSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=119,
-  serialized_end=169,
+  serialized_start=273,
+  serialized_end=351,
 )
 
 
-_SI_INFO_CONFIG = _descriptor.Descriptor(
-  name='si_info_config',
-  full_name='si_info_config',
+_BLACKLIST_CELLS = _descriptor.Descriptor(
+  name='blacklist_cells',
+  full_name='blacklist_cells',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='sfn', full_name='si_info_config.sfn', index=0,
+      name='start_pci', full_name='blacklist_cells.start_pci', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sib1_len', full_name='si_info_config.sib1_len', index=1,
-      number=2, type=13, cpp_type=3, label=1,
+      name='range', full_name='blacklist_cells.range', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=353,
+  serialized_end=416,
+)
+
+
+_MEAS_OBJ_EUTRA = _descriptor.Descriptor(
+  name='meas_obj_EUTRA',
+  full_name='meas_obj_EUTRA',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='carrier_freq', full_name='meas_obj_EUTRA.carrier_freq', index=0,
+      number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='si_window_len', full_name='si_info_config.si_window_len', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      name='meas_bw', full_name='meas_obj_EUTRA.meas_bw', index=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='si_message', full_name='si_info_config.si_message', index=3,
+      name='cells', full_name='meas_obj_EUTRA.cells', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bkl_cells', full_name='meas_obj_EUTRA.bkl_cells', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -698,1133 +1011,28 @@ _SI_INFO_CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=171,
-  serialized_end=275,
+  serialized_start=419,
+  serialized_end=563,
 )
 
 
-_CELL_PHY_CONFIG = _descriptor.Descriptor(
-  name='cell_phy_config',
-  full_name='cell_phy_config',
+_MEAS_OBJECT = _descriptor.Descriptor(
+  name='meas_object',
+  full_name='meas_object',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='pci', full_name='cell_phy_config.pci', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
+      name='measObjId', full_name='meas_object.measObjId', index=0,
+      number=1, type=5, cpp_type=1, label=2,
+      has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cell_id', full_name='cell_phy_config.cell_id', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='pusch_hopp_offset', full_name='cell_phy_config.pusch_hopp_offset', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='hopp_mode', full_name='cell_phy_config.hopp_mode', index=3,
-      number=4, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_sb', full_name='cell_phy_config.n_sb', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phich_res', full_name='cell_phy_config.phich_res', index=5,
-      number=6, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phich_dur', full_name='cell_phy_config.phich_dur', index=6,
-      number=7, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='init_nr_PDCCH_OFDM_sym', full_name='cell_phy_config.init_nr_PDCCH_OFDM_sym', index=7,
-      number=8, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='si_conf', full_name='cell_phy_config.si_conf', index=8,
-      number=9, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dl_bw', full_name='cell_phy_config.dl_bw', index=9,
-      number=10, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ul_bw', full_name='cell_phy_config.ul_bw', index=10,
-      number=11, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ul_cyc_prefix_len', full_name='cell_phy_config.ul_cyc_prefix_len', index=11,
-      number=12, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dl_cyc_prefix_len', full_name='cell_phy_config.dl_cyc_prefix_len', index=12,
-      number=13, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='antenna_ports_count', full_name='cell_phy_config.antenna_ports_count', index=13,
-      number=14, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dupl_mode', full_name='cell_phy_config.dupl_mode', index=14,
-      number=15, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='prach_conf_index', full_name='cell_phy_config.prach_conf_index', index=15,
-      number=16, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='prach_freq_offset', full_name='cell_phy_config.prach_freq_offset', index=16,
-      number=17, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ra_resp_window_size', full_name='cell_phy_config.ra_resp_window_size', index=17,
-      number=18, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n1PUCCH_AN', full_name='cell_phy_config.n1PUCCH_AN', index=18,
-      number=19, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='deltaPUCCH_shift', full_name='cell_phy_config.deltaPUCCH_shift', index=19,
-      number=20, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='enable_64QAM', full_name='cell_phy_config.enable_64QAM', index=20,
-      number=21, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=278,
-  serialized_end=892,
-)
-
-
-_CELL_MAC_CONFIG = _descriptor.Descriptor(
-  name='cell_mac_config',
-  full_name='cell_mac_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sf_assign', full_name='cell_mac_config.sf_assign', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='special_subframe_patterns', full_name='cell_mac_config.special_subframe_patterns', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mac_cont_resol_timer', full_name='cell_mac_config.mac_cont_resol_timer', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='max_HARQ_Msg3Tx', full_name='cell_mac_config.max_HARQ_Msg3Tx', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='nRB_cqi', full_name='cell_mac_config.nRB_cqi', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=895,
-  serialized_end=1038,
-)
-
-
-_CELL_RRC_CONFIG = _descriptor.Descriptor(
-  name='cell_rrc_config',
-  full_name='cell_rrc_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='mbsfn_conf_rfperiod', full_name='cell_rrc_config.mbsfn_conf_rfperiod', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mbsfn_conf_rfoffset', full_name='cell_rrc_config.mbsfn_conf_rfoffset', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mbsfn_conf_sfalloc', full_name='cell_rrc_config.mbsfn_conf_sfalloc', index=2,
-      number=3, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='srs_sf_conf', full_name='cell_rrc_config.srs_sf_conf', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='srs_bw_conf', full_name='cell_rrc_config.srs_bw_conf', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='srs_max_up_pts', full_name='cell_rrc_config.srs_max_up_pts', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1041,
-  serialized_end=1210,
-)
-
-
-_CELL_CONFIG = _descriptor.Descriptor(
-  name='cell_config',
-  full_name='cell_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cc_id', full_name='cell_config.cc_id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phy_conf', full_name='cell_config.phy_conf', index=1,
+      name='measObj_EUTRA', full_name='meas_object.measObj_EUTRA', index=1,
       number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mac_conf', full_name='cell_config.mac_conf', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rrc_conf', full_name='cell_config.rrc_conf', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1213,
-  serialized_end=1349,
-)
-
-
-_ENB_CONFIG_REPLY = _descriptor.Descriptor(
-  name='enb_config_reply',
-  full_name='enb_config_reply',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cell_conf', full_name='enb_config_reply.cell_conf', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1351,
-  serialized_end=1402,
-)
-
-
-_DRX_CONFIG = _descriptor.Descriptor(
-  name='drx_config',
-  full_name='drx_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='on_dur_timer', full_name='drx_config.on_dur_timer', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='drx_inact_timer', full_name='drx_config.drx_inact_timer', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='drx_retrx_timer', full_name='drx_config.drx_retrx_timer', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='long_drx_cycle', full_name='drx_config.long_drx_cycle', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='long_drx_cycle_start_offset', full_name='drx_config.long_drx_cycle_start_offset', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='short_drx_cycle', full_name='drx_config.short_drx_cycle', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='drx_short_cycle_timer', full_name='drx_config.drx_short_cycle_timer', index=6,
-      number=7, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1405,
-  serialized_end=1606,
-)
-
-
-_SPS_CONFIG = _descriptor.Descriptor(
-  name='sps_config',
-  full_name='sps_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sps_interval_ul', full_name='sps_config.sps_interval_ul', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sps_interval_dl', full_name='sps_config.sps_interval_dl', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n_conf_sps_proc', full_name='sps_config.n_conf_sps_proc', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='n1_PUCCH_AN_persistent_element', full_name='sps_config.n1_PUCCH_AN_persistent_element', index=3,
-      number=4, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='implicit_release_after', full_name='sps_config.implicit_release_after', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1609,
-  serialized_end=1768,
-)
-
-
-_SR_CONFIG = _descriptor.Descriptor(
-  name='sr_config',
-  full_name='sr_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sr_action', full_name='sr_config.sr_action', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sched_inter', full_name='sr_config.sched_inter', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='dsr_trans_max', full_name='sr_config.dsr_trans_max', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1770,
-  serialized_end=1867,
-)
-
-
-_CQI_CONFIG = _descriptor.Descriptor(
-  name='cqi_config',
-  full_name='cqi_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cqi_action', full_name='cqi_config.cqi_action', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cqi_sched_inter', full_name='cqi_config.cqi_sched_inter', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ri_sched_inter', full_name='cqi_config.ri_sched_inter', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1869,
-  serialized_end=1973,
-)
-
-
-_UE_CAPABILITIES = _descriptor.Descriptor(
-  name='ue_capabilities',
-  full_name='ue_capabilities',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='half_duplex', full_name='ue_capabilities.half_duplex', index=0,
-      number=1, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='band', full_name='ue_capabilities.band', index=1,
-      number=2, type=13, cpp_type=3, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='intra_SF_hopping', full_name='ue_capabilities.intra_SF_hopping', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='type2_sb_1', full_name='ue_capabilities.type2_sb_1', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_category', full_name='ue_capabilities.ue_category', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='res_alloc_type1', full_name='ue_capabilities.res_alloc_type1', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1976,
-  serialized_end=2120,
-)
-
-
-_SCELL_CONFIG = _descriptor.Descriptor(
-  name='scell_config',
-  full_name='scell_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cc_id', full_name='scell_config.cc_id', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='scell_index', full_name='scell_config.scell_index', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='use_ccs', full_name='scell_config.use_ccs', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sched_cell_index', full_name='scell_config.sched_cell_index', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='pdsch_start', full_name='scell_config.pdsch_start', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2122,
-  serialized_end=2236,
-)
-
-
-_UE_PHY_CONFIG = _descriptor.Descriptor(
-  name='ue_phy_config',
-  full_name='ue_phy_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sr_conf', full_name='ue_phy_config.sr_conf', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='transmission_mode', full_name='ue_phy_config.transmission_mode', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_trx_antenna', full_name='ue_phy_config.ue_trx_antenna', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2239,
-  serialized_end=2383,
-)
-
-
-_UE_MAC_CONFIG = _descriptor.Descriptor(
-  name='ue_mac_config',
-  full_name='ue_mac_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='time_alignment_timer', full_name='ue_mac_config.time_alignment_timer', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tti_bundling', full_name='ue_mac_config.tti_bundling', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='max_HARQ_tx', full_name='ue_mac_config.max_HARQ_tx', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ack_nack_simultaneous_trans', full_name='ue_mac_config.ack_nack_simultaneous_trans', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='simultaneous_ack_nack_cqi', full_name='ue_mac_config.simultaneous_ack_nack_cqi', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='aper_cqi_rep', full_name='ue_mac_config.aper_cqi_rep', index=5,
-      number=6, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2386,
-  serialized_end=2596,
-)
-
-
-_UE_RRC_CONFIG = _descriptor.Descriptor(
-  name='ue_rrc_config',
-  full_name='ue_rrc_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='drx_conf', full_name='ue_rrc_config.drx_conf', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='meas_gap_patt', full_name='ue_rrc_config.meas_gap_patt', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='meas_gap_config_sf_offset', full_name='ue_rrc_config.meas_gap_config_sf_offset', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sps_conf', full_name='ue_rrc_config.sps_conf', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cqi_conf', full_name='ue_rrc_config.cqi_conf', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_aggreg_max_bitrate_UL', full_name='ue_rrc_config.ue_aggreg_max_bitrate_UL', index=5,
-      number=6, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_aggreg_max_bitrate_DL', full_name='ue_rrc_config.ue_aggreg_max_bitrate_DL', index=6,
-      number=7, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='capabilities', full_name='ue_rrc_config.capabilities', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='beta_offset_ACK_index', full_name='ue_rrc_config.beta_offset_ACK_index', index=8,
-      number=9, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='beta_offset_RI_index', full_name='ue_rrc_config.beta_offset_RI_index', index=9,
-      number=10, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='beta_offset_CQI_index', full_name='ue_rrc_config.beta_offset_CQI_index', index=10,
-      number=11, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='scell_conf', full_name='ue_rrc_config.scell_conf', index=11,
-      number=12, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='scell_deactivation_timer', full_name='ue_rrc_config.scell_deactivation_timer', index=12,
-      number=13, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tdd_ack_nack_feedb', full_name='ue_rrc_config.tdd_ack_nack_feedb', index=13,
-      number=14, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ack_nack_rep_factor', full_name='ue_rrc_config.ack_nack_rep_factor', index=14,
-      number=15, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='extended_bsr_size', full_name='ue_rrc_config.extended_bsr_size', index=15,
-      number=16, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ca_support', full_name='ue_rrc_config.ca_support', index=16,
-      number=17, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cross_carrier_sched_supp', full_name='ue_rrc_config.cross_carrier_sched_supp', index=17,
-      number=18, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='pcell_cc_id', full_name='ue_rrc_config.pcell_cc_id', index=18,
-      number=19, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2599,
-  serialized_end=3241,
-)
-
-
-_UE_CONFIG = _descriptor.Descriptor(
-  name='ue_config',
-  full_name='ue_config',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rnti', full_name='ue_config.rnti', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='state', full_name='ue_config.state', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phy_conf', full_name='ue_config.phy_conf', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='mac_conf', full_name='ue_config.mac_conf', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='rrc_conf', full_name='ue_config.rrc_conf', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3244,
-  serialized_end=3397,
-)
-
-
-_UE_CONFIG_REPLY = _descriptor.Descriptor(
-  name='ue_config_reply',
-  full_name='ue_config_reply',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='ue_conf', full_name='ue_config_reply.ue_conf', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3399,
-  serialized_end=3445,
-)
-
-
-_CONFIGS = _descriptor.Descriptor(
-  name='configs',
-  full_name='configs',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='type', full_name='configs.type', index=0,
-      number=100, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='enb_conf_req', full_name='configs.enb_conf_req', index=1,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='enb_conf_repl', full_name='configs.enb_conf_repl', index=2,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_conf_req', full_name='configs.ue_conf_req', index=3,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ue_conf_repl', full_name='configs.ue_conf_repl', index=4,
-      number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1841,189 +1049,823 @@ _CONFIGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='config_msg', full_name='configs.config_msg',
+      name='meas_obj', full_name='meas_object.meas_obj',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3448,
-  serialized_end=3677,
+  serialized_start=565,
+  serialized_end=654,
 )
 
-_SI_INFO_CONFIG.fields_by_name['si_message'].message_type = _SI_INFO_MSG
-_CELL_PHY_CONFIG.fields_by_name['hopp_mode'].enum_type = _HOPPING_MODE
-_CELL_PHY_CONFIG.fields_by_name['phich_res'].enum_type = _PHICH_RESOURCE
-_CELL_PHY_CONFIG.fields_by_name['phich_dur'].enum_type = _PHICH_DURATION
-_CELL_PHY_CONFIG.fields_by_name['si_conf'].message_type = _SI_INFO_CONFIG
-_CELL_PHY_CONFIG.fields_by_name['ul_cyc_prefix_len'].enum_type = _UL_CYCLIC_PREFIX_LENGTH
-_CELL_PHY_CONFIG.fields_by_name['dl_cyc_prefix_len'].enum_type = _DL_CYCLIC_PREFIX_LENGTH
-_CELL_PHY_CONFIG.fields_by_name['dupl_mode'].enum_type = _DUPLEX_MODE
-_CELL_PHY_CONFIG.fields_by_name['enable_64QAM'].enum_type = _QAM
-_CELL_CONFIG.fields_by_name['phy_conf'].message_type = _CELL_PHY_CONFIG
-_CELL_CONFIG.fields_by_name['mac_conf'].message_type = _CELL_MAC_CONFIG
-_CELL_CONFIG.fields_by_name['rrc_conf'].message_type = _CELL_RRC_CONFIG
-_ENB_CONFIG_REPLY.fields_by_name['cell_conf'].message_type = _CELL_CONFIG
-_SR_CONFIG.fields_by_name['sr_action'].enum_type = _SETUP_RELEASE_ACTION
-_CQI_CONFIG.fields_by_name['cqi_action'].enum_type = _SETUP_RELEASE_ACTION
-_UE_PHY_CONFIG.fields_by_name['sr_conf'].message_type = _SR_CONFIG
-_UE_PHY_CONFIG.fields_by_name['transmission_mode'].enum_type = _UE_TRANSMISSION_MODE
-_UE_PHY_CONFIG.fields_by_name['ue_trx_antenna'].enum_type = _UE_TRANSMISSION_ANTENNA
-_UE_MAC_CONFIG.fields_by_name['aper_cqi_rep'].enum_type = _APERIODIC_CQI_REPORT_MODE
-_UE_RRC_CONFIG.fields_by_name['drx_conf'].message_type = _DRX_CONFIG
-_UE_RRC_CONFIG.fields_by_name['meas_gap_patt'].enum_type = _MEAS_GAP_PATTERN
-_UE_RRC_CONFIG.fields_by_name['sps_conf'].message_type = _SPS_CONFIG
-_UE_RRC_CONFIG.fields_by_name['cqi_conf'].message_type = _CQI_CONFIG
-_UE_RRC_CONFIG.fields_by_name['capabilities'].message_type = _UE_CAPABILITIES
-_UE_RRC_CONFIG.fields_by_name['scell_conf'].message_type = _SCELL_CONFIG
-_UE_RRC_CONFIG.fields_by_name['tdd_ack_nack_feedb'].enum_type = _TDD_ACK_NACK_FEEDBACK_MODE
-_UE_CONFIG.fields_by_name['state'].enum_type = _UE_STATE
-_UE_CONFIG.fields_by_name['phy_conf'].message_type = _UE_PHY_CONFIG
-_UE_CONFIG.fields_by_name['mac_conf'].message_type = _UE_MAC_CONFIG
-_UE_CONFIG.fields_by_name['rrc_conf'].message_type = _UE_RRC_CONFIG
-_UE_CONFIG_REPLY.fields_by_name['ue_conf'].message_type = _UE_CONFIG
-_CONFIGS.fields_by_name['type'].enum_type = _CONFIG_MSG_TYPE
-_CONFIGS.fields_by_name['enb_conf_req'].message_type = _ENB_CONFIG_REQUEST
-_CONFIGS.fields_by_name['enb_conf_repl'].message_type = _ENB_CONFIG_REPLY
-_CONFIGS.fields_by_name['ue_conf_req'].message_type = _UE_CONFIG_REQUEST
-_CONFIGS.fields_by_name['ue_conf_repl'].message_type = _UE_CONFIG_REPLY
-_CONFIGS.oneofs_by_name['config_msg'].fields.append(
-  _CONFIGS.fields_by_name['enb_conf_req'])
-_CONFIGS.fields_by_name['enb_conf_req'].containing_oneof = _CONFIGS.oneofs_by_name['config_msg']
-_CONFIGS.oneofs_by_name['config_msg'].fields.append(
-  _CONFIGS.fields_by_name['enb_conf_repl'])
-_CONFIGS.fields_by_name['enb_conf_repl'].containing_oneof = _CONFIGS.oneofs_by_name['config_msg']
-_CONFIGS.oneofs_by_name['config_msg'].fields.append(
-  _CONFIGS.fields_by_name['ue_conf_req'])
-_CONFIGS.fields_by_name['ue_conf_req'].containing_oneof = _CONFIGS.oneofs_by_name['config_msg']
-_CONFIGS.oneofs_by_name['config_msg'].fields.append(
-  _CONFIGS.fields_by_name['ue_conf_repl'])
-_CONFIGS.fields_by_name['ue_conf_repl'].containing_oneof = _CONFIGS.oneofs_by_name['config_msg']
-DESCRIPTOR.message_types_by_name['enb_config_request'] = _ENB_CONFIG_REQUEST
-DESCRIPTOR.message_types_by_name['ue_config_request'] = _UE_CONFIG_REQUEST
-DESCRIPTOR.message_types_by_name['si_info_msg'] = _SI_INFO_MSG
-DESCRIPTOR.message_types_by_name['si_info_config'] = _SI_INFO_CONFIG
-DESCRIPTOR.message_types_by_name['cell_phy_config'] = _CELL_PHY_CONFIG
-DESCRIPTOR.message_types_by_name['cell_mac_config'] = _CELL_MAC_CONFIG
-DESCRIPTOR.message_types_by_name['cell_rrc_config'] = _CELL_RRC_CONFIG
-DESCRIPTOR.message_types_by_name['cell_config'] = _CELL_CONFIG
-DESCRIPTOR.message_types_by_name['enb_config_reply'] = _ENB_CONFIG_REPLY
-DESCRIPTOR.message_types_by_name['drx_config'] = _DRX_CONFIG
-DESCRIPTOR.message_types_by_name['sps_config'] = _SPS_CONFIG
-DESCRIPTOR.message_types_by_name['sr_config'] = _SR_CONFIG
-DESCRIPTOR.message_types_by_name['cqi_config'] = _CQI_CONFIG
+
+_REP_CONF_PER = _descriptor.Descriptor(
+  name='rep_conf_per',
+  full_name='rep_conf_per',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='purpose', full_name='rep_conf_per.purpose', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=656,
+  serialized_end=710,
+)
+
+
+_THRESHOLD_EUTRA = _descriptor.Descriptor(
+  name='threshold_EUTRA',
+  full_name='threshold_EUTRA',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='RSRP', full_name='threshold_EUTRA.RSRP', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='RSRQ', full_name='threshold_EUTRA.RSRQ', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='threshold', full_name='threshold_EUTRA.threshold',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=712,
+  serialized_end=774,
+)
+
+
+_REP_CONF_A1 = _descriptor.Descriptor(
+  name='rep_conf_a1',
+  full_name='rep_conf_a1',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='a1_threshold', full_name='rep_conf_a1.a1_threshold', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=776,
+  serialized_end=829,
+)
+
+
+_REP_CONF_A2 = _descriptor.Descriptor(
+  name='rep_conf_a2',
+  full_name='rep_conf_a2',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='a2_threshold', full_name='rep_conf_a2.a2_threshold', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=831,
+  serialized_end=884,
+)
+
+
+_REP_CONF_A3 = _descriptor.Descriptor(
+  name='rep_conf_a3',
+  full_name='rep_conf_a3',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='a3_offset', full_name='rep_conf_a3.a3_offset', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='report_on_leave', full_name='rep_conf_a3.report_on_leave', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=886,
+  serialized_end=943,
+)
+
+
+_REP_CONF_A4 = _descriptor.Descriptor(
+  name='rep_conf_a4',
+  full_name='rep_conf_a4',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='a4_threshold', full_name='rep_conf_a4.a4_threshold', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=945,
+  serialized_end=998,
+)
+
+
+_REP_CONF_A5 = _descriptor.Descriptor(
+  name='rep_conf_a5',
+  full_name='rep_conf_a5',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='a5_threshold1', full_name='rep_conf_a5.a5_threshold1', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a5_threshold2', full_name='rep_conf_a5.a5_threshold2', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1000,
+  serialized_end=1095,
+)
+
+
+_REP_CONF_EUTRA = _descriptor.Descriptor(
+  name='rep_conf_EUTRA',
+  full_name='rep_conf_EUTRA',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='periodical', full_name='rep_conf_EUTRA.periodical', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a1', full_name='rep_conf_EUTRA.a1', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a2', full_name='rep_conf_EUTRA.a2', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a3', full_name='rep_conf_EUTRA.a3', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a4', full_name='rep_conf_EUTRA.a4', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='a5', full_name='rep_conf_EUTRA.a5', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='hysteresis', full_name='rep_conf_EUTRA.hysteresis', index=6,
+      number=7, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='trigg_time', full_name='rep_conf_EUTRA.trigg_time', index=7,
+      number=8, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='trigg_quant', full_name='rep_conf_EUTRA.trigg_quant', index=8,
+      number=9, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='report_quant', full_name='rep_conf_EUTRA.report_quant', index=9,
+      number=10, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_rep_cells', full_name='rep_conf_EUTRA.max_rep_cells', index=10,
+      number=11, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rep_interval', full_name='rep_conf_EUTRA.rep_interval', index=11,
+      number=12, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rep_amount', full_name='rep_conf_EUTRA.rep_amount', index=12,
+      number=13, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ue_rxtx_time_diff', full_name='rep_conf_EUTRA.ue_rxtx_time_diff', index=13,
+      number=14, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='conf_EUTRA', full_name='rep_conf_EUTRA.conf_EUTRA',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=1098,
+  serialized_end=1595,
+)
+
+
+_REPORT_CONFIG = _descriptor.Descriptor(
+  name='report_config',
+  full_name='report_config',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='reportConfId', full_name='report_config.reportConfId', index=0,
+      number=1, type=5, cpp_type=1, label=2,
+      has_default_value=True, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rc_EUTRA', full_name='report_config.rc_EUTRA', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='rep_conf', full_name='report_config.rep_conf',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=1597,
+  serialized_end=1686,
+)
+
+
+_MEAS_IDENTIFIER = _descriptor.Descriptor(
+  name='meas_identifier',
+  full_name='meas_identifier',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='meas_identifier.id', index=0,
+      number=1, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='measObj_id', full_name='meas_identifier.measObj_id', index=1,
+      number=2, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='report_conf_id', full_name='meas_identifier.report_conf_id', index=2,
+      number=3, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1688,
+  serialized_end=1761,
+)
+
+
+_UE_RRC_MEAS_CONF_REPL = _descriptor.Descriptor(
+  name='ue_rrc_meas_conf_repl',
+  full_name='ue_rrc_meas_conf_repl',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='rnti', full_name='ue_rrc_meas_conf_repl.rnti', index=0,
+      number=1, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='status', full_name='ue_rrc_meas_conf_repl.status', index=1,
+      number=2, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ue_rrc_state', full_name='ue_rrc_meas_conf_repl.ue_rrc_state', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='meas_gap_patt', full_name='ue_rrc_meas_conf_repl.meas_gap_patt', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='meas_gap_config_sf_offset', full_name='ue_rrc_meas_conf_repl.meas_gap_config_sf_offset', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='capabilities', full_name='ue_rrc_meas_conf_repl.capabilities', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='m_obj', full_name='ue_rrc_meas_conf_repl.m_obj', index=6,
+      number=7, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='r_conf', full_name='ue_rrc_meas_conf_repl.r_conf', index=7,
+      number=8, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='meas_id', full_name='ue_rrc_meas_conf_repl.meas_id', index=8,
+      number=9, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1764,
+  serialized_end=2082,
+)
+
+
+_UE_RRC_MEAS_CONF = _descriptor.Descriptor(
+  name='ue_rrc_meas_conf',
+  full_name='ue_rrc_meas_conf',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='req', full_name='ue_rrc_meas_conf.req', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='repl', full_name='ue_rrc_meas_conf.repl', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='ue_rrc_meas_conf_m', full_name='ue_rrc_meas_conf.ue_rrc_meas_conf_m',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=2084,
+  serialized_end=2202,
+)
+
+
+_UES_ID_REQ = _descriptor.Descriptor(
+  name='ues_id_req',
+  full_name='ues_id_req',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2204,
+  serialized_end=2216,
+)
+
+
+_UES_ID_REPL = _descriptor.Descriptor(
+  name='ues_id_repl',
+  full_name='ues_id_repl',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='status', full_name='ues_id_repl.status', index=0,
+      number=1, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='active_rnti', full_name='ues_id_repl.active_rnti', index=1,
+      number=2, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='inactive_rnti', full_name='ues_id_repl.inactive_rnti', index=2,
+      number=3, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2218,
+  serialized_end=2309,
+)
+
+
+_UES_ID = _descriptor.Descriptor(
+  name='ues_id',
+  full_name='ues_id',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='req', full_name='ues_id.req', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='repl', full_name='ues_id.repl', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='ues_id_m', full_name='ues_id.ues_id_m',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=2311,
+  serialized_end=2389,
+)
+
+_CELLS_TO_MEASURE.fields_by_name['offset_range'].enum_type = _Q_OFFSET_RANGE
+_BLACKLIST_CELLS.fields_by_name['range'].enum_type = _PCI_RANGE
+_MEAS_OBJ_EUTRA.fields_by_name['meas_bw'].enum_type = _ALLOWED_MEAS_BW
+_MEAS_OBJ_EUTRA.fields_by_name['cells'].message_type = _CELLS_TO_MEASURE
+_MEAS_OBJ_EUTRA.fields_by_name['bkl_cells'].message_type = _BLACKLIST_CELLS
+_MEAS_OBJECT.fields_by_name['measObj_EUTRA'].message_type = _MEAS_OBJ_EUTRA
+_MEAS_OBJECT.oneofs_by_name['meas_obj'].fields.append(
+  _MEAS_OBJECT.fields_by_name['measObj_EUTRA'])
+_MEAS_OBJECT.fields_by_name['measObj_EUTRA'].containing_oneof = _MEAS_OBJECT.oneofs_by_name['meas_obj']
+_REP_CONF_PER.fields_by_name['purpose'].enum_type = _PERIODIC_REP_PURPOSE
+_THRESHOLD_EUTRA.oneofs_by_name['threshold'].fields.append(
+  _THRESHOLD_EUTRA.fields_by_name['RSRP'])
+_THRESHOLD_EUTRA.fields_by_name['RSRP'].containing_oneof = _THRESHOLD_EUTRA.oneofs_by_name['threshold']
+_THRESHOLD_EUTRA.oneofs_by_name['threshold'].fields.append(
+  _THRESHOLD_EUTRA.fields_by_name['RSRQ'])
+_THRESHOLD_EUTRA.fields_by_name['RSRQ'].containing_oneof = _THRESHOLD_EUTRA.oneofs_by_name['threshold']
+_REP_CONF_A1.fields_by_name['a1_threshold'].message_type = _THRESHOLD_EUTRA
+_REP_CONF_A2.fields_by_name['a2_threshold'].message_type = _THRESHOLD_EUTRA
+_REP_CONF_A4.fields_by_name['a4_threshold'].message_type = _THRESHOLD_EUTRA
+_REP_CONF_A5.fields_by_name['a5_threshold1'].message_type = _THRESHOLD_EUTRA
+_REP_CONF_A5.fields_by_name['a5_threshold2'].message_type = _THRESHOLD_EUTRA
+_REP_CONF_EUTRA.fields_by_name['periodical'].message_type = _REP_CONF_PER
+_REP_CONF_EUTRA.fields_by_name['a1'].message_type = _REP_CONF_A1
+_REP_CONF_EUTRA.fields_by_name['a2'].message_type = _REP_CONF_A2
+_REP_CONF_EUTRA.fields_by_name['a3'].message_type = _REP_CONF_A3
+_REP_CONF_EUTRA.fields_by_name['a4'].message_type = _REP_CONF_A4
+_REP_CONF_EUTRA.fields_by_name['a5'].message_type = _REP_CONF_A5
+_REP_CONF_EUTRA.fields_by_name['trigg_time'].enum_type = _TIME_TO_TRIGGER
+_REP_CONF_EUTRA.fields_by_name['trigg_quant'].enum_type = _TRIGGER_QUANTITY
+_REP_CONF_EUTRA.fields_by_name['report_quant'].enum_type = _REPORT_QUANTITY
+_REP_CONF_EUTRA.fields_by_name['rep_interval'].enum_type = _REPORT_INTERVAL
+_REP_CONF_EUTRA.fields_by_name['rep_amount'].enum_type = _REPORT_AMOUNT
+_REP_CONF_EUTRA.fields_by_name['ue_rxtx_time_diff'].enum_type = _UE_RXTX_TIME_DIFFERENCE
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['periodical'])
+_REP_CONF_EUTRA.fields_by_name['periodical'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['a1'])
+_REP_CONF_EUTRA.fields_by_name['a1'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['a2'])
+_REP_CONF_EUTRA.fields_by_name['a2'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['a3'])
+_REP_CONF_EUTRA.fields_by_name['a3'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['a4'])
+_REP_CONF_EUTRA.fields_by_name['a4'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA'].fields.append(
+  _REP_CONF_EUTRA.fields_by_name['a5'])
+_REP_CONF_EUTRA.fields_by_name['a5'].containing_oneof = _REP_CONF_EUTRA.oneofs_by_name['conf_EUTRA']
+_REPORT_CONFIG.fields_by_name['rc_EUTRA'].message_type = _REP_CONF_EUTRA
+_REPORT_CONFIG.oneofs_by_name['rep_conf'].fields.append(
+  _REPORT_CONFIG.fields_by_name['rc_EUTRA'])
+_REPORT_CONFIG.fields_by_name['rc_EUTRA'].containing_oneof = _REPORT_CONFIG.oneofs_by_name['rep_conf']
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['status'].enum_type = _CONF_REQ_STATUS
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['ue_rrc_state'].enum_type = _RRC_STATE
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['meas_gap_patt'].enum_type = _MEAS_GAP_PATTERN
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['capabilities'].message_type = _UE_CAPABILITIES
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['m_obj'].message_type = _MEAS_OBJECT
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['r_conf'].message_type = _REPORT_CONFIG
+_UE_RRC_MEAS_CONF_REPL.fields_by_name['meas_id'].message_type = _MEAS_IDENTIFIER
+_UE_RRC_MEAS_CONF.fields_by_name['req'].message_type = _UE_RRC_MEAS_CONF_REQ
+_UE_RRC_MEAS_CONF.fields_by_name['repl'].message_type = _UE_RRC_MEAS_CONF_REPL
+_UE_RRC_MEAS_CONF.oneofs_by_name['ue_rrc_meas_conf_m'].fields.append(
+  _UE_RRC_MEAS_CONF.fields_by_name['req'])
+_UE_RRC_MEAS_CONF.fields_by_name['req'].containing_oneof = _UE_RRC_MEAS_CONF.oneofs_by_name['ue_rrc_meas_conf_m']
+_UE_RRC_MEAS_CONF.oneofs_by_name['ue_rrc_meas_conf_m'].fields.append(
+  _UE_RRC_MEAS_CONF.fields_by_name['repl'])
+_UE_RRC_MEAS_CONF.fields_by_name['repl'].containing_oneof = _UE_RRC_MEAS_CONF.oneofs_by_name['ue_rrc_meas_conf_m']
+_UES_ID_REPL.fields_by_name['status'].enum_type = _CONF_REQ_STATUS
+_UES_ID.fields_by_name['req'].message_type = _UES_ID_REQ
+_UES_ID.fields_by_name['repl'].message_type = _UES_ID_REPL
+_UES_ID.oneofs_by_name['ues_id_m'].fields.append(
+  _UES_ID.fields_by_name['req'])
+_UES_ID.fields_by_name['req'].containing_oneof = _UES_ID.oneofs_by_name['ues_id_m']
+_UES_ID.oneofs_by_name['ues_id_m'].fields.append(
+  _UES_ID.fields_by_name['repl'])
+_UES_ID.fields_by_name['repl'].containing_oneof = _UES_ID.oneofs_by_name['ues_id_m']
+DESCRIPTOR.message_types_by_name['ue_rrc_meas_conf_req'] = _UE_RRC_MEAS_CONF_REQ
 DESCRIPTOR.message_types_by_name['ue_capabilities'] = _UE_CAPABILITIES
-DESCRIPTOR.message_types_by_name['scell_config'] = _SCELL_CONFIG
-DESCRIPTOR.message_types_by_name['ue_phy_config'] = _UE_PHY_CONFIG
-DESCRIPTOR.message_types_by_name['ue_mac_config'] = _UE_MAC_CONFIG
-DESCRIPTOR.message_types_by_name['ue_rrc_config'] = _UE_RRC_CONFIG
-DESCRIPTOR.message_types_by_name['ue_config'] = _UE_CONFIG
-DESCRIPTOR.message_types_by_name['ue_config_reply'] = _UE_CONFIG_REPLY
-DESCRIPTOR.message_types_by_name['configs'] = _CONFIGS
-DESCRIPTOR.enum_types_by_name['config_msg_type'] = _CONFIG_MSG_TYPE
-DESCRIPTOR.enum_types_by_name['hopping_mode'] = _HOPPING_MODE
-DESCRIPTOR.enum_types_by_name['phich_resource'] = _PHICH_RESOURCE
-DESCRIPTOR.enum_types_by_name['phich_duration'] = _PHICH_DURATION
-DESCRIPTOR.enum_types_by_name['ul_cyclic_prefix_length'] = _UL_CYCLIC_PREFIX_LENGTH
-DESCRIPTOR.enum_types_by_name['dl_cyclic_prefix_length'] = _DL_CYCLIC_PREFIX_LENGTH
-DESCRIPTOR.enum_types_by_name['duplex_mode'] = _DUPLEX_MODE
-DESCRIPTOR.enum_types_by_name['qam'] = _QAM
+DESCRIPTOR.message_types_by_name['cells_to_measure'] = _CELLS_TO_MEASURE
+DESCRIPTOR.message_types_by_name['blacklist_cells'] = _BLACKLIST_CELLS
+DESCRIPTOR.message_types_by_name['meas_obj_EUTRA'] = _MEAS_OBJ_EUTRA
+DESCRIPTOR.message_types_by_name['meas_object'] = _MEAS_OBJECT
+DESCRIPTOR.message_types_by_name['rep_conf_per'] = _REP_CONF_PER
+DESCRIPTOR.message_types_by_name['threshold_EUTRA'] = _THRESHOLD_EUTRA
+DESCRIPTOR.message_types_by_name['rep_conf_a1'] = _REP_CONF_A1
+DESCRIPTOR.message_types_by_name['rep_conf_a2'] = _REP_CONF_A2
+DESCRIPTOR.message_types_by_name['rep_conf_a3'] = _REP_CONF_A3
+DESCRIPTOR.message_types_by_name['rep_conf_a4'] = _REP_CONF_A4
+DESCRIPTOR.message_types_by_name['rep_conf_a5'] = _REP_CONF_A5
+DESCRIPTOR.message_types_by_name['rep_conf_EUTRA'] = _REP_CONF_EUTRA
+DESCRIPTOR.message_types_by_name['report_config'] = _REPORT_CONFIG
+DESCRIPTOR.message_types_by_name['meas_identifier'] = _MEAS_IDENTIFIER
+DESCRIPTOR.message_types_by_name['ue_rrc_meas_conf_repl'] = _UE_RRC_MEAS_CONF_REPL
+DESCRIPTOR.message_types_by_name['ue_rrc_meas_conf'] = _UE_RRC_MEAS_CONF
+DESCRIPTOR.message_types_by_name['ues_id_req'] = _UES_ID_REQ
+DESCRIPTOR.message_types_by_name['ues_id_repl'] = _UES_ID_REPL
+DESCRIPTOR.message_types_by_name['ues_id'] = _UES_ID
 DESCRIPTOR.enum_types_by_name['meas_gap_pattern'] = _MEAS_GAP_PATTERN
-DESCRIPTOR.enum_types_by_name['setup_release_action'] = _SETUP_RELEASE_ACTION
-DESCRIPTOR.enum_types_by_name['ue_transmission_antenna'] = _UE_TRANSMISSION_ANTENNA
-DESCRIPTOR.enum_types_by_name['ue_transmission_mode'] = _UE_TRANSMISSION_MODE
-DESCRIPTOR.enum_types_by_name['aperiodic_cqi_report_mode'] = _APERIODIC_CQI_REPORT_MODE
-DESCRIPTOR.enum_types_by_name['tdd_ack_nack_feedback_mode'] = _TDD_ACK_NACK_FEEDBACK_MODE
-DESCRIPTOR.enum_types_by_name['ue_state'] = _UE_STATE
-DESCRIPTOR.enum_types_by_name['layer_config'] = _LAYER_CONFIG
+DESCRIPTOR.enum_types_by_name['rrc_state'] = _RRC_STATE
+DESCRIPTOR.enum_types_by_name['allowed_meas_bw'] = _ALLOWED_MEAS_BW
+DESCRIPTOR.enum_types_by_name['Q_offset_range'] = _Q_OFFSET_RANGE
+DESCRIPTOR.enum_types_by_name['pci_range'] = _PCI_RANGE
+DESCRIPTOR.enum_types_by_name['time_to_trigger'] = _TIME_TO_TRIGGER
+DESCRIPTOR.enum_types_by_name['periodic_rep_purpose'] = _PERIODIC_REP_PURPOSE
+DESCRIPTOR.enum_types_by_name['trigger_quantity'] = _TRIGGER_QUANTITY
+DESCRIPTOR.enum_types_by_name['report_quantity'] = _REPORT_QUANTITY
+DESCRIPTOR.enum_types_by_name['report_interval'] = _REPORT_INTERVAL
+DESCRIPTOR.enum_types_by_name['report_amount'] = _REPORT_AMOUNT
+DESCRIPTOR.enum_types_by_name['ue_rxtx_time_difference'] = _UE_RXTX_TIME_DIFFERENCE
+DESCRIPTOR.enum_types_by_name['conf_req_status'] = _CONF_REQ_STATUS
 
-enb_config_request = _reflection.GeneratedProtocolMessageType('enb_config_request', (_message.Message,), dict(
-  DESCRIPTOR = _ENB_CONFIG_REQUEST,
+ue_rrc_meas_conf_req = _reflection.GeneratedProtocolMessageType('ue_rrc_meas_conf_req', (_message.Message,), dict(
+  DESCRIPTOR = _UE_RRC_MEAS_CONF_REQ,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:enb_config_request)
+  # @@protoc_insertion_point(class_scope:ue_rrc_meas_conf_req)
   ))
-_sym_db.RegisterMessage(enb_config_request)
-
-ue_config_request = _reflection.GeneratedProtocolMessageType('ue_config_request', (_message.Message,), dict(
-  DESCRIPTOR = _UE_CONFIG_REQUEST,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_config_request)
-  ))
-_sym_db.RegisterMessage(ue_config_request)
-
-si_info_msg = _reflection.GeneratedProtocolMessageType('si_info_msg', (_message.Message,), dict(
-  DESCRIPTOR = _SI_INFO_MSG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:si_info_msg)
-  ))
-_sym_db.RegisterMessage(si_info_msg)
-
-si_info_config = _reflection.GeneratedProtocolMessageType('si_info_config', (_message.Message,), dict(
-  DESCRIPTOR = _SI_INFO_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:si_info_config)
-  ))
-_sym_db.RegisterMessage(si_info_config)
-
-cell_phy_config = _reflection.GeneratedProtocolMessageType('cell_phy_config', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_PHY_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:cell_phy_config)
-  ))
-_sym_db.RegisterMessage(cell_phy_config)
-
-cell_mac_config = _reflection.GeneratedProtocolMessageType('cell_mac_config', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_MAC_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:cell_mac_config)
-  ))
-_sym_db.RegisterMessage(cell_mac_config)
-
-cell_rrc_config = _reflection.GeneratedProtocolMessageType('cell_rrc_config', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_RRC_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:cell_rrc_config)
-  ))
-_sym_db.RegisterMessage(cell_rrc_config)
-
-cell_config = _reflection.GeneratedProtocolMessageType('cell_config', (_message.Message,), dict(
-  DESCRIPTOR = _CELL_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:cell_config)
-  ))
-_sym_db.RegisterMessage(cell_config)
-
-enb_config_reply = _reflection.GeneratedProtocolMessageType('enb_config_reply', (_message.Message,), dict(
-  DESCRIPTOR = _ENB_CONFIG_REPLY,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:enb_config_reply)
-  ))
-_sym_db.RegisterMessage(enb_config_reply)
-
-drx_config = _reflection.GeneratedProtocolMessageType('drx_config', (_message.Message,), dict(
-  DESCRIPTOR = _DRX_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:drx_config)
-  ))
-_sym_db.RegisterMessage(drx_config)
-
-sps_config = _reflection.GeneratedProtocolMessageType('sps_config', (_message.Message,), dict(
-  DESCRIPTOR = _SPS_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:sps_config)
-  ))
-_sym_db.RegisterMessage(sps_config)
-
-sr_config = _reflection.GeneratedProtocolMessageType('sr_config', (_message.Message,), dict(
-  DESCRIPTOR = _SR_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:sr_config)
-  ))
-_sym_db.RegisterMessage(sr_config)
-
-cqi_config = _reflection.GeneratedProtocolMessageType('cqi_config', (_message.Message,), dict(
-  DESCRIPTOR = _CQI_CONFIG,
-  __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:cqi_config)
-  ))
-_sym_db.RegisterMessage(cqi_config)
+_sym_db.RegisterMessage(ue_rrc_meas_conf_req)
 
 ue_capabilities = _reflection.GeneratedProtocolMessageType('ue_capabilities', (_message.Message,), dict(
   DESCRIPTOR = _UE_CAPABILITIES,
@@ -2032,54 +1874,138 @@ ue_capabilities = _reflection.GeneratedProtocolMessageType('ue_capabilities', (_
   ))
 _sym_db.RegisterMessage(ue_capabilities)
 
-scell_config = _reflection.GeneratedProtocolMessageType('scell_config', (_message.Message,), dict(
-  DESCRIPTOR = _SCELL_CONFIG,
+cells_to_measure = _reflection.GeneratedProtocolMessageType('cells_to_measure', (_message.Message,), dict(
+  DESCRIPTOR = _CELLS_TO_MEASURE,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:scell_config)
+  # @@protoc_insertion_point(class_scope:cells_to_measure)
   ))
-_sym_db.RegisterMessage(scell_config)
+_sym_db.RegisterMessage(cells_to_measure)
 
-ue_phy_config = _reflection.GeneratedProtocolMessageType('ue_phy_config', (_message.Message,), dict(
-  DESCRIPTOR = _UE_PHY_CONFIG,
+blacklist_cells = _reflection.GeneratedProtocolMessageType('blacklist_cells', (_message.Message,), dict(
+  DESCRIPTOR = _BLACKLIST_CELLS,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_phy_config)
+  # @@protoc_insertion_point(class_scope:blacklist_cells)
   ))
-_sym_db.RegisterMessage(ue_phy_config)
+_sym_db.RegisterMessage(blacklist_cells)
 
-ue_mac_config = _reflection.GeneratedProtocolMessageType('ue_mac_config', (_message.Message,), dict(
-  DESCRIPTOR = _UE_MAC_CONFIG,
+meas_obj_EUTRA = _reflection.GeneratedProtocolMessageType('meas_obj_EUTRA', (_message.Message,), dict(
+  DESCRIPTOR = _MEAS_OBJ_EUTRA,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_mac_config)
+  # @@protoc_insertion_point(class_scope:meas_obj_EUTRA)
   ))
-_sym_db.RegisterMessage(ue_mac_config)
+_sym_db.RegisterMessage(meas_obj_EUTRA)
 
-ue_rrc_config = _reflection.GeneratedProtocolMessageType('ue_rrc_config', (_message.Message,), dict(
-  DESCRIPTOR = _UE_RRC_CONFIG,
+meas_object = _reflection.GeneratedProtocolMessageType('meas_object', (_message.Message,), dict(
+  DESCRIPTOR = _MEAS_OBJECT,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_rrc_config)
+  # @@protoc_insertion_point(class_scope:meas_object)
   ))
-_sym_db.RegisterMessage(ue_rrc_config)
+_sym_db.RegisterMessage(meas_object)
 
-ue_config = _reflection.GeneratedProtocolMessageType('ue_config', (_message.Message,), dict(
-  DESCRIPTOR = _UE_CONFIG,
+rep_conf_per = _reflection.GeneratedProtocolMessageType('rep_conf_per', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_PER,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_config)
+  # @@protoc_insertion_point(class_scope:rep_conf_per)
   ))
-_sym_db.RegisterMessage(ue_config)
+_sym_db.RegisterMessage(rep_conf_per)
 
-ue_config_reply = _reflection.GeneratedProtocolMessageType('ue_config_reply', (_message.Message,), dict(
-  DESCRIPTOR = _UE_CONFIG_REPLY,
+threshold_EUTRA = _reflection.GeneratedProtocolMessageType('threshold_EUTRA', (_message.Message,), dict(
+  DESCRIPTOR = _THRESHOLD_EUTRA,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:ue_config_reply)
+  # @@protoc_insertion_point(class_scope:threshold_EUTRA)
   ))
-_sym_db.RegisterMessage(ue_config_reply)
+_sym_db.RegisterMessage(threshold_EUTRA)
 
-configs = _reflection.GeneratedProtocolMessageType('configs', (_message.Message,), dict(
-  DESCRIPTOR = _CONFIGS,
+rep_conf_a1 = _reflection.GeneratedProtocolMessageType('rep_conf_a1', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_A1,
   __module__ = 'configs_pb2'
-  # @@protoc_insertion_point(class_scope:configs)
+  # @@protoc_insertion_point(class_scope:rep_conf_a1)
   ))
-_sym_db.RegisterMessage(configs)
+_sym_db.RegisterMessage(rep_conf_a1)
+
+rep_conf_a2 = _reflection.GeneratedProtocolMessageType('rep_conf_a2', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_A2,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:rep_conf_a2)
+  ))
+_sym_db.RegisterMessage(rep_conf_a2)
+
+rep_conf_a3 = _reflection.GeneratedProtocolMessageType('rep_conf_a3', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_A3,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:rep_conf_a3)
+  ))
+_sym_db.RegisterMessage(rep_conf_a3)
+
+rep_conf_a4 = _reflection.GeneratedProtocolMessageType('rep_conf_a4', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_A4,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:rep_conf_a4)
+  ))
+_sym_db.RegisterMessage(rep_conf_a4)
+
+rep_conf_a5 = _reflection.GeneratedProtocolMessageType('rep_conf_a5', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_A5,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:rep_conf_a5)
+  ))
+_sym_db.RegisterMessage(rep_conf_a5)
+
+rep_conf_EUTRA = _reflection.GeneratedProtocolMessageType('rep_conf_EUTRA', (_message.Message,), dict(
+  DESCRIPTOR = _REP_CONF_EUTRA,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:rep_conf_EUTRA)
+  ))
+_sym_db.RegisterMessage(rep_conf_EUTRA)
+
+report_config = _reflection.GeneratedProtocolMessageType('report_config', (_message.Message,), dict(
+  DESCRIPTOR = _REPORT_CONFIG,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:report_config)
+  ))
+_sym_db.RegisterMessage(report_config)
+
+meas_identifier = _reflection.GeneratedProtocolMessageType('meas_identifier', (_message.Message,), dict(
+  DESCRIPTOR = _MEAS_IDENTIFIER,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:meas_identifier)
+  ))
+_sym_db.RegisterMessage(meas_identifier)
+
+ue_rrc_meas_conf_repl = _reflection.GeneratedProtocolMessageType('ue_rrc_meas_conf_repl', (_message.Message,), dict(
+  DESCRIPTOR = _UE_RRC_MEAS_CONF_REPL,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:ue_rrc_meas_conf_repl)
+  ))
+_sym_db.RegisterMessage(ue_rrc_meas_conf_repl)
+
+ue_rrc_meas_conf = _reflection.GeneratedProtocolMessageType('ue_rrc_meas_conf', (_message.Message,), dict(
+  DESCRIPTOR = _UE_RRC_MEAS_CONF,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:ue_rrc_meas_conf)
+  ))
+_sym_db.RegisterMessage(ue_rrc_meas_conf)
+
+ues_id_req = _reflection.GeneratedProtocolMessageType('ues_id_req', (_message.Message,), dict(
+  DESCRIPTOR = _UES_ID_REQ,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:ues_id_req)
+  ))
+_sym_db.RegisterMessage(ues_id_req)
+
+ues_id_repl = _reflection.GeneratedProtocolMessageType('ues_id_repl', (_message.Message,), dict(
+  DESCRIPTOR = _UES_ID_REPL,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:ues_id_repl)
+  ))
+_sym_db.RegisterMessage(ues_id_repl)
+
+ues_id = _reflection.GeneratedProtocolMessageType('ues_id', (_message.Message,), dict(
+  DESCRIPTOR = _UES_ID,
+  __module__ = 'configs_pb2'
+  # @@protoc_insertion_point(class_scope:ues_id)
+  ))
+_sym_db.RegisterMessage(ues_id)
 
 
 # @@protoc_insertion_point(module_scope)
