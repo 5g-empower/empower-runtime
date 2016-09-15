@@ -12,9 +12,10 @@
     <link rel="stylesheet" type="text/css" href="/static/apps/signalgraph/signalgraph.css" />
 
     <script type="text/javascript" src="/static/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+    <!-- <script src="https://d3js.org/d3.v4.js"></script> -->
     <script type="text/javascript" src="/static/js/d3.js"></script>
     <script type="text/javascript" src="/static/js/c3.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
 
     <script type="text/javascript" src="/static/js/empower.ui.lib.js"></script>
     <script type="text/javascript" src="/static/apps/signalgraph/signalgraph.lib.js"></script>
@@ -72,6 +73,20 @@
                 <label class="btn btn-primary">
                   <input type="radio" name="statRadio" autocomplete="off" value="rssi"> RSSI (Wifi)
                 </label>
+              </div>
+
+            </div>
+
+            <div class="row boxshadow" id="ueSelectBoxRow">
+
+              <div class="col-xs-6 col-sm-4" id="divLabel">
+                <label for="ueSelect">Select UE:</label>
+              </div>
+
+              <div class="col-xs-12 col-sm-8">
+                <select class="form-control" data-width="auto" id="ueSelect">
+                  <option selected value> --- Select an option --- </option>
+                </select>
               </div>
 
             </div>
