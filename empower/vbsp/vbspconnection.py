@@ -22,9 +22,7 @@ import tornado.ioloop
 import socket
 import sys
 import json
-from google.protobuf import json_format
 
-# WE CAN NOW STOP USING PROTOBUF_TO_DICT
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
@@ -234,72 +232,88 @@ class VBSPConnection(object):
             self.send_UEs_id_req()
 
             event_type = main_msg.WhichOneof("event_types")
-            # Protobuf message to JSON format
-            hello_json = json.loads(json_format.MessageToJson(main_msg))
+            msg = protobuf_to_dict(main_msg)
 
-            vbs.period = hello_json[event_type]["mHello"]["repl"]["period"]
+            vbs.period = msg[event_type]["mHello"]["repl"]["period"]
             self.send_register_message_to_self()
 
         # Update VBSP params
         vbs.last_seen = main_msg.head.seq
         vbs.last_seen_ts = time.time()
 
-    def _handle_enb_conf_repl(self, message):
-        """Handle an incoming eNB configuration reply.
+    def _handle_UEs_id_repl(self, main_msg):
+        """Handle an incoming UEs ID reply.
 
         Args:
-            message, a emage_msg containing eNB configuration message
+            message, a emage_msg containing UE IDs (RNTIs)
         Returns:
             None
         """
 
-        vbs = RUNTIME.vbses[self.vbs.addr]
-        msg = protobuf_to_dict(message)
+        active_ues = []
+        inactive_ues = []
 
-        if "cell_conf" not in msg["mConfs"]["enb_conf_repl"]:
+        event_type = main_msg.WhichOneof("event_types")
+        msg = protobuf_to_dict(main_msg)
+        ues_id_msg_repl = msg[event_type]["mUEs_id"]["repl"]
+
+        if ues_id_msg_repl["status"] != configs_pb2.CREQS_SUCCESS:
             return
 
-        cc_configs = msg["mConfs"]["enb_conf_repl"]["cell_conf"]
+        # List of active UEs
+        if "active_rnti" in ues_id_msg_repl:
+            active_ues.extend(ues_id_msg_repl["active_rnti"])
+        # List of inactive UEs
+        if "inactive_rnti" in ues_id_msg_repl:
+            inactive_ues.extend(ues_id_msg_repl["inactive_rnti"])
 
-        for c_carrier in cc_configs:
-            cc_id = c_carrier["cc_id"]
-            vbs.cc_configs[cc_id] = c_carrier
+        for rnti in active_ues:
+            if rnti not in self.vbs.ues:
+                self.vbs.ues[rnti] = UE(rnti, self.vbs)
 
-    def _handle_ue_conf_repl(self, message):
-        """Handle an incoming UE configuration reply.
+        existing_rntis = []
+        existing_rntis.extend(self.vbs.ues.keys())
+
+        for rnti in existing_rntis:
+            if rnti not in active_ues:
+                # Handling of UE down must be handled
+                del self.vbs.ues[rnti]
+
+    def _handle_rrc_meas_conf_repl(self, main_msg):
+        """Handle an incoming UE's RRC Measurements configuration reply.
 
         Args:
-            message, a emage_msg containing UE configuration message
+            message, a emage_msg containing RRC Measurements configuration in UE
         Returns:
             None
         """
 
-        vbs = RUNTIME.vbses[self.vbs.addr]
-        msg = protobuf_to_dict(message)
+        event_type = main_msg.WhichOneof("event_types")
+        msg = protobuf_to_dict(main_msg)
+        rrc_m_conf_repl = msg[event_type]["mUE_rrc_meas_conf"]["repl"]
 
-        if "ue_conf" not in msg["mConfs"]["ue_conf_repl"]:
+        rnti = rrc_m_conf_repl["rnti"]
+
+        if rnti not in self.vbs.ues:
             return
 
-        ue_configs = msg["mConfs"]["ue_conf_repl"]["ue_conf"]
+        ue = self.vbs.ues[rnti]
 
-        for ue_config in ue_configs:
+        if rrc_m_conf_repl["status"] != configs_pb2.CREQS_SUCCESS:
+            return
 
-            rnti = ue_config["rnti"]
+        del rrc_m_conf_repl["rnti"]
+        del rrc_m_conf_repl["status"]
 
-            if rnti not in vbs.ues:
-                vbs.ues[rnti] = UE(rnti, self.vbs, ue_config)
+        if "ue_rrc_state" in rrc_m_conf_repl:
+            ue.rrc_state = rrc_m_conf_repl["ue_rrc_state"]
+            del rrc_m_conf_repl["ue_rrc_state"]
 
-            if ue_config["state"] == configs_pb2.UES_RRC_INACTIVE:
-                del vbs.ues[rnti]
+        if "capabilities" in rrc_m_conf_repl:
+            ue.capabilities = rrc_m_conf_repl["capabilities"]
+            del rrc_m_conf_repl["capabilities"]
 
-            if "phy_conf" in ue_config:
-                vbs.ues[rnti].phy_config = ue_config["phy_conf"]
-
-            if "mac_conf" in ue_config:
-                vbs.ues[rnti].mac_config = ue_config["mac_conf"]
-
-            if "rrc_conf" in ue_config:
-                vbs.ues[rnti].rrc_config = ue_config["rrc_conf"]
+        ue.rrc_meas_config = rrc_m_conf_repl
 
     def send_UEs_id_req(self):
         """ Send request for UEs ID registered in VBS """
@@ -324,24 +338,28 @@ class VBSPConnection(object):
 
         self.stream_send(ues_id_req)
 
-    def send_ue_conf_req(self):
-        """ Send request for UE configurations in eNB """
+    def send_rrc_meas_conf_req(self, ue):
+        """ Sends a request for RRC measurements configuration of UE """
 
-        ue_req = main_pb2.emage_msg()
+        rrc_m_conf_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
-
         # Transaction identifier is zero by default.
-        create_header(0, enb_id, ue_req.head)
-        conf_req = ue_req.mConfs
+        create_header(0, enb_id, rrc_m_conf_req.head)
 
-        conf_req.type = configs_pb2.UE_CONF_REQUEST
-        conf_req.ue_conf_req.layer = configs_pb2.LC_ALL
+        # Creating a trigger message to fetch UE RNTIs
+        trigger_msg = rrc_m_conf_req.te
+        trigger_msg.action = main_pb2.EA_ADD
 
-        LOG.info("Sending UE config request to VBSP %s (%u)",
+        rrc_m_conf_msg = trigger_msg.mUE_rrc_meas_conf
+        rrc_m_conf_req_msg = rrc_m_conf_msg.req
+
+        rrc_m_conf_req_msg.rnti = ue.rnti
+
+        LOG.info("Sending UEs RRC measurement config request to VBS %s (%u)",
                  self.vbs.addr, enb_id)
 
-        self.stream_send(ue_req)
+        self.stream_send(rrc_m_conf_req)
 
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
@@ -359,7 +377,6 @@ class VBSPConnection(object):
         self.vbs.last_seen = 0
         self.vbs.connection = None
         self.vbs.ues = {}
-        self.vbs.cc_configs = {}
         self.vbs.period = 0
 
     def send_bye_message_to_self(self):

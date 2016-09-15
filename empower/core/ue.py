@@ -17,21 +17,26 @@
 
 """User Equipment class."""
 
+
 from empower.core.utils import hex_to_ether
 
 
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, rnti, vbs, config):
+    def __init__(self, rnti, vbs):
 
         self.rnti = rnti
         self.ue_id = hex_to_ether(self.rnti)
         self.vbs = vbs
+        self.rrc_state = None
+        self.capabilities = {}
         self.rrc_meas_config = {}
         self.rrc_meas = {}
         self.pcell_rsrp = None
         self.pcell_rsrq = None
+
+        self.vbs.connection.send_rrc_meas_conf_req(self)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
@@ -39,6 +44,8 @@ class UE(object):
         return {'rnti': self.rnti,
                 'vbs': self.vbs.addr,
                 'ue_id': self.ue_id,
+                'rrc_state': self.rrc_state,
+                'capabilities': self.capabilities,
                 'rrc_meas_config': self.rrc_meas_config,
                 'rrc_meas': self.rrc_meas,
                 'primary_cell_rsrp': self.pcell_rsrp,
@@ -54,3 +61,5 @@ class UE(object):
     def __ne__(self, other):
 
         return not self.__eq__(other)
+
+
