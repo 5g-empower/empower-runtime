@@ -81,11 +81,17 @@
 }
 
 #chartRow {
-	height: 680px;
+	height: 630px;
 	margin: auto;
 }
 
-svg {
+#ueSelectBoxRow {
+	margin: auto;
+	height: 50px;
+	margin-bottom: 10px;
+}
+
+svg.nw_graph {
 	background-color: #FFF;
 	cursor: pointer;
 	-webkit-user-select: none;

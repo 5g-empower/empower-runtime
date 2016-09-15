@@ -1,11 +1,12 @@
 jQuery(document).ready(function($){
 
 loadVBSPsSelectBox(tenant_id);
+loadUEsSelectBox();
 
 /* SVG for D3 dimensions. */
 var area_width  = 550,
     area_height = 680,
-    colors = d3.scale.category10();
+    colors = d3.scale.category20();
 
 /* Nodes and links of the graph. */
 var nodes = [],
@@ -13,6 +14,7 @@ var nodes = [],
 
 var svg = d3.select('#graphRow')
     .append('svg')
+    .attr('class', 'nw_graph')
     .attr('width', area_width)
     .attr('height', area_height);
 
@@ -28,13 +30,14 @@ var div = d3.select('body')
     .attr('class', 'tooltip')
     .style('opacity', 0);
 
-/* Mouse event vars. */
-var selected_node = null,
-    mousedown_node = null;
 
 fetchSignalData(tenant_id);
 
 function fetchSignalData(tenant_id) {
+
+    /* Clean the nodes and link arrays. */
+    nodes.splice(0, nodes.length);
+    links.splice(0, links.length);
 
     setTimeout(function () {
 
@@ -44,9 +47,7 @@ function fetchSignalData(tenant_id) {
                 return;
             }
 
-            /* Clean the nodes and link arrays. */
-            nodes.splice(0, nodes.length);
-            links.splice(0, links.length);
+            updateSignalGraph();
 
             var graph_data = data['graphData']
 
@@ -115,7 +116,7 @@ function updateSignalGraph() {
         .style('background-color', '#FFFFFF');
 
     /* Grouping of links. */
-    var p = paths.selectAll('path').data(links);
+    var p = paths.selectAll('path').data(links, function(d) { return d.source.id + "-" + d.target.id; });
 
     /* Adding new links. */
     p.enter().append('svg:path')
@@ -152,10 +153,12 @@ function updateSignalGraph() {
     /* LTE base stations group. */
     var es = enbs
         .selectAll('g')
-        .data(nodes.filter(function(d) { return d.entity === "enb"; }));
+        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
 
     /* Adding new base stations. */
-    var gl = es.enter().append('svg:g');
+    var gl = es.enter()
+                .append('svg:g')
+                .filter(function(d) { return d.entity === "enb"; });
 
     gl.attr('transform', function(d) {
         return 'translate(' + (d.x - 25) + ',' + (d.y - 25) + ')';
@@ -178,7 +181,7 @@ function updateSignalGraph() {
                 .style("top", (d3.event.pageY - 28) + "px");
 
             // enlarge target node
-            d3.select(this).attr('transform', 'scale(1.2)');
+            // d3.select(this).attr('transform', 'scale(1.2)');
         })
         .on('mouseout', function(d) {
             // unenlarge target node
@@ -191,10 +194,12 @@ function updateSignalGraph() {
     /* WTPs group. */
     var ws = wtps
         .selectAll('g')
-        .data(nodes.filter(function(d) { return d.entity === "wtp"; }));
+        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
 
     /* Adding new WTPs. */
-    var gwt = ws.enter().append('svg:g');
+    var gwt = ws.enter()
+                .append('svg:g')
+                .filter(function(d) { return d.entity === "wtp"; });
 
     gwt.attr('transform', function(d) {
         return 'translate(' + (d.x - 20) + ',' + (d.y - 20) + ')';
@@ -217,7 +222,7 @@ function updateSignalGraph() {
                 .style("top", (d3.event.pageY - 28) + "px");
 
             // enlarge target node
-            d3.select(this).attr('transform', 'scale(1.2)');
+            // d3.select(this).attr('transform', 'scale(1.2)');
         })
         .on('mouseout', function(d) {
             // unenlarge target node
@@ -230,14 +235,16 @@ function updateSignalGraph() {
     /* UEs group. */
     var us = ues
         .selectAll('g')
-        .data(nodes.filter(function(d) { return d.entity === "ue"; }));
+        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
 
     /* Update existing nodes (selected visual states)*/
     us.selectAll('circle')
-        .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); });
+        .style('fill', function(d) { return colors(d.id); });
 
     /* Adding new UEs. */
-    var gue = us.enter().append('svg:g');
+    var gue = us.enter()
+                .append('svg:g')
+                .filter(function(d) { return d.entity === "ue"; });
 
     gue.attr('transform', function(d) {
         return 'translate(' + d.x + ',' + d.y + ')';
@@ -246,7 +253,7 @@ function updateSignalGraph() {
     gue.append('svg:circle')
         .attr('class', 'ue')
         .attr('r', 13)
-        .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
+        .style('fill', function(d) { return colors(d.id); })
         .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
         .style('stroke-width', '2.5px')
         .on("mouseover", function(d) {
@@ -261,23 +268,11 @@ function updateSignalGraph() {
                 .style("top", (d3.event.pageY - 28) + "px");
 
             // enlarge target node
-            d3.select(this).attr('transform', 'scale(1.2)');
+            // d3.select(this).attr('transform', 'scale(1.2)');
         })
         .on('mouseout', function(d) {
             // unenlarge target node
             d3.select(this).attr('transform', '');
-        })
-        .on('mousedown', function(d) {
-            // select node
-            mousedown_node = d;
-
-            if(mousedown_node === selected_node) {
-                selected_node = null;
-            }
-            else {
-                selected_node = mousedown_node;
-            }
-            updateSignalGraph();
         });
 
     /* Show UE IDs. */
@@ -353,67 +348,146 @@ function loadVBSPsSelectBox(tenant_id) {
     }, 3000);
 }
 
+function loadUEsSelectBox() {
+
+    setTimeout(function() {
+
+        var selected_vbsp = $("#vbsSelect :selected").val();
+
+        if ((selected_vbsp !== "") && (selected_vbsp !== null)) {
+
+            $.getJSON("/api/v1/vbses/"+ selected_vbsp + "/ues/", function(data) {
+
+                var selectUEMenu = $('#ueSelect');
+
+                var ue_values = [];
+
+                $("#ueSelect option").each(function() {
+                    ue_values.push($(this).val());
+                });
+
+                /* Check whether the selected ue still exists or not. */
+                var selected_ue = $("#ueSelect :selected").val();
+                if (selected_ue !== "") {
+                    var ue_exist_flag = false;
+                    for (ue_index in data) {
+                        if (selected_ue == data[ue_index].rnti) {
+                            ue_exist_flag = true;
+                            break;
+                        }
+                    }
+
+                    if (!ue_exist_flag){
+                        $("#ueSelect option").filter(function(index) {
+                            return $(this).val() == selected_ue;
+                        }).remove();
+                        ue_values.splice(ue_values.indexOf(selected_ue),1);
+                    }
+                }
+
+                /* Check if all the ues in the options still exist or not. */
+                $.each(ue_values, function(index, value) {
+                    if (value !== ""){
+                        var exist_flag = false;
+                        for (ue_index in data) {
+                            if (value == data[ue_index].rnti) {
+                                exist_flag = true;
+                                data.splice(ue_index,1);
+                                break;
+                            }
+                        }
+                        if (!exist_flag){
+                            $("#ueSelect option").filter(function(index) {
+                                return $(this).val() == value;
+                            }).remove();
+                        }
+                    }
+                });
+
+                $.each(data, function(index, ue) {
+                    selectUEMenu.append("<option value= "+ ue.rnti +">" + ue.rnti + "</option>");
+                });
+                loadUEsSelectBox();
+            });
+        } else {
+            loadUEsSelectBox();
+        }
+    }, 3000);
+}
+
 var signalChart = c3.generate({
     bindto: '#chartRow',
     data: {
-        x: 'time',
         columns: [
-            ['time', null]
-        ]
+        ],
+        type: 'spline'
     }
 });
 
-function updateSignalChart() {
+var data_set = {};
+var prevStatType = "";
 
-    var prevStatType = "";
+function updateSignalChart() {
 
     setTimeout(function() {
 
         var selected_vbsp = $("#vbsSelect :selected").val();
         var statsType = $('#statsType input:radio:checked').val();
+        var selected_ue = $("#ueSelect :selected").val();
 
         if ((selected_vbsp === "") || (selected_vbsp === null) ||
-                                                    (selected_node === null)) {
+                (selected_ue === null) || (selected_ue === "") ||
+                    (statsType === "") || (statsType === null) ||
+                        (prevStatType !== statsType && prevStatType !== "")) {
+
             signalChart.unload();
             prevStatType = "";
+            data_set = {};
             updateSignalChart();
         } else {
-            $.getJSON("/api/v1/vbses/" + selected_vbsp + "/ues/" + selected_node.node_id,
+
+            $.getJSON("/api/v1/vbses/" + selected_vbsp + "/ues/" + selected_ue,
 
                 function(data) {
 
-                /* Clear chart if switching from different stats type. */
-                if (prevStatType !== statsType) {
-                    signalChart.unload();
-                }
                 prevStatType = statsType;
 
-                var date_now = new Date();
-                var time_now = date_now.getTime();
-
-                /* We get {"message": "404: *****"} in case of unsuccessful req.
-                 *
-                */
-                if ((!data.message) && (data != null) &&
-                                                    (statsType !== 'rssi')) {
-
-                    signalChart.load({
-                                columns: [
-                                    ['time', time_now]
-                                ]
-                    });
+                if ((data != null) && (statsType !== 'rssi')) {
 
                     if (statsType === 'rsrp') {
+
+                        if (!('prsrp' in data_set)) {
+                            data_set['prsrp'] = ['prsrp', data['primary_cell_rsrp']];
+                        } else {
+                            data_set['prsrp'].push(data['primary_cell_rsrp']);
+                            if (data_set['prsrp'].length > 30) {
+                                /* Remove first object*/
+                                data_set['prsrp'].splice(1, 1);
+                            }
+                        }
+
                         signalChart.load({
-                                    columns: [
-                                        ['prsrp', data['primary_cell_rsrp']]
-                                    ]
+                                columns: [
+                                    data_set['prsrp']
+                                ]
                         });
+
                     } else {
+
+                        if (!('prsrq' in data_set)) {
+                            data_set['prsrq'] = ['prsrq', data['primary_cell_rsrq']];
+                        } else {
+                            data_set['prsrq'].push(data['primary_cell_rsrq']);
+                            if (data_set['prsrq'].length > 30) {
+                                /* Remove first object*/
+                                data_set['prsrq'].splice(1, 1);
+                            }
+                        }
+
                         signalChart.load({
-                                    columns: [
-                                        ['prsrq', data['primary_cell_rsrq']]
-                                    ]
+                                columns: [
+                                    data_set['prsrq']
+                                ]
                         });
                     }
 
@@ -426,15 +500,37 @@ function updateSignalChart() {
                             var index = 'PCI:' + cell.toString();
 
                             if (statsType === 'rsrp') {
+
+                                if (!(index in data_set)) {
+                                    data_set[index] = [index, meas[cell].rsrp];
+                                } else {
+                                    data_set[index].push(meas[cell].rsrp);
+                                    if (data_set[index].length > 30) {
+                                        /* Remove first object*/
+                                        data_set[index].splice(1, 1);
+                                    }
+                                }
+
                                 signalChart.load({
                                     columns: [
-                                        [index, meas[cell].rsrp]
+                                        data_set[index]
                                     ]
                                 });
                             } else {
+
+                                if (!(index in data_set)) {
+                                    data_set[index] = [index, meas[cell].rsrq];
+                                } else {
+                                    data_set[index].push(meas[cell].rsrq);
+                                    if (data_set[index].length > 30) {
+                                        /* Remove first object*/
+                                        data_set[index].splice(1, 1);
+                                    }
+                                }
+
                                 signalChart.load({
                                     columns: [
-                                        [index, meas[cell].rsrq]
+                                        data_set[index]
                                     ]
                                 });
                             }

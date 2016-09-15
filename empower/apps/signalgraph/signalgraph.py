@@ -17,8 +17,7 @@
 
 """Signal strength visulization app."""
 
-import numpy as np
-from random import randrange as rd
+import random
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
@@ -30,6 +29,8 @@ GRAPH_TOP_BOTTOM_MARGIN = 30
 GRAPH_LEFT_RIGHT_MARGIN = 30
 GRAPH_MAX_WIDTH = 550 - GRAPH_LEFT_RIGHT_MARGIN
 GRAPH_MAX_HEIGHT = 680 - GRAPH_TOP_BOTTOM_MARGIN
+MIN_DISTANCE = 50
+N_XY = 300
 
 class SignalGraph(EmpowerApp):
     """Signal strength visulization app.
@@ -49,186 +50,46 @@ class SignalGraph(EmpowerApp):
         EmpowerApp.__init__(self, **kwargs)
         self.vbses = []
         self.graphData = {}
-        self.coord_x = np.random.uniform(
-                                        low = GRAPH_LEFT_RIGHT_MARGIN,
-                                        high = GRAPH_MAX_WIDTH,
-                                        size = 500)
-        self.coord_y = np.random.uniform(
-                                        low = GRAPH_TOP_BOTTOM_MARGIN,
-                                        high = GRAPH_MAX_HEIGHT,
-                                        size = 500)
+
+        self.coord = self.get_coordinates()
 
         self.vbsup(callback=self.vbs_up_callback)
         self.vbsdown(callback=self.vbs_down_callback)
+
+    def get_coordinates(self):
+
+        rangeX = (GRAPH_LEFT_RIGHT_MARGIN, GRAPH_MAX_WIDTH)
+        rangeY = (GRAPH_TOP_BOTTOM_MARGIN, GRAPH_MAX_HEIGHT)
+
+        deltas = set()
+        for x in range(-MIN_DISTANCE, MIN_DISTANCE + 1):
+            for y in range(-MIN_DISTANCE, MIN_DISTANCE + 1):
+                if (x * x) + (y * y) >= MIN_DISTANCE * MIN_DISTANCE:
+                    deltas.add((x,y))
+
+        randPoints = []
+        excluded = set()
+        count = 0
+        while count < N_XY:
+            x = random.randrange(*rangeX)
+            y = random.randrange(*rangeY)
+
+            if (x, y) in excluded:
+                continue
+
+            randPoints.append((x, y))
+            count += 1
+
+            excluded.update((x + dx, y + dy) for (dx, dy) in deltas)
+
+        return randPoints
 
     def to_dict(self):
         """Return json-serializable representation of the object."""
 
         out = super().to_dict()
-        # out['graphData'] = self.graphData
-        nodes = [{
-                    'id': 0,
-                    'node_id': 3617,
-                    'entity': 'enb',
-                    'tooltip': 'eNB Id',
-                    'x': self.coord_x[0],
-                    'y': self.coord_y[0]
-                },
-                {
-                    'id': 1,
-                    'node_id': 206,
-                    'entity': 'enb',
-                    'tooltip': 'PCI',
-                    'x': self.coord_x[1],
-                    'y': self.coord_y[1]
-                },
-                {
-                    'id': 2,
-                    'node_id': 198,
-                    'entity': 'enb',
-                    'tooltip': 'PCI',
-                    'x': self.coord_x[2],
-                    'y': self.coord_y[2]
-                }
-                ,{
-                    'id': 3,
-                    'node_id': 15,
-                    'entity': 'enb',
-                    'tooltip': 'PCI',
-                    'x': self.coord_x[3],
-                    'y': self.coord_y[3]
-                },
-                {
-                    'id': 4,
-                    'node_id': 56171,
-                    'entity': 'ue',
-                    'tooltip': 'RNTI',
-                    'x': self.coord_x[4],
-                    'y': self.coord_y[4]
-                },
-                {
-                    'id': 5,
-                    'node_id': 33456,
-                    'entity': 'ue',
-                    'tooltip': 'RNTI',
-                    'x': self.coord_x[5],
-                    'y': self.coord_y[5]
-                },
-                {
-                    'id': 6,
-                    'node_id': '00:00:00:00:0F:21',
-                    'entity': 'wtp',
-                    'tooltip': 'MAC',
-                    'x': self.coord_x[6],
-                    'y': self.coord_y[6]
-                }]
+        out['graphData'] = self.graphData
 
-        links = [{
-                    'src': 0,
-                    'dst': 4,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'orange',
-                    'entity': 'lte',
-                    'width': 6
-                },
-                {
-                    'src': 0,
-                    'dst': 5,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'orange',
-                    'entity': 'lte',
-                    'width': 6
-                },
-                {
-                    'src': 1,
-                    'dst': 4,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 2,
-                    'dst': 4,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 3,
-                    'dst': 4,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 1,
-                    'dst': 5,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 2,
-                    'dst': 5,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 3,
-                    'dst': 5,
-                    'rsrp': rd(-140, -44, 1),
-                    'rsrq': rd(-19, -3, 1),
-                    'rssi': None,
-                    'color': 'black',
-                    'entity': 'lte',
-                    'width': 4
-                },
-                {
-                    'src': 6,
-                    'dst': 4,
-                    'rsrp': None,
-                    'rsrq': None,
-                    'rssi': rd(-100, -50, 1),
-                    'color': 'lightgreen',
-                    'entity': 'wifi',
-                    'width': 6
-                },
-                {
-                    'src': 6,
-                    'dst': 5,
-                    'rsrp': None,
-                    'rsrq': None,
-                    'rssi': rd(-100, -50, 1),
-                    'color': 'lightgreen',
-                    'entity': 'wifi',
-                    'width': 6
-                }]
-
-        out['graphData'] = {}
-        out['graphData']['00:00:00:00:0E:21'] = {
-                                                'nodes': nodes,
-                                                'links': links
-                                                }
         return out
 
     def vbs_up_callback(self, vbs):
@@ -254,7 +115,7 @@ class SignalGraph(EmpowerApp):
 
         for m in measurements.keys():
             # Append the Physical Cell ID of neighboring cells
-            neigh_cells.extend(m)
+            neigh_cells.append(m)
 
         return neigh_cells
 
@@ -277,8 +138,8 @@ class SignalGraph(EmpowerApp):
                             'node_id': vbs.enb_id,
                             'entity': 'enb',
                             'tooltip': 'eNB Id',
-                            'x': self.coord_x[node_id],
-                            'y': self.coord_y[node_id]
+                            'x': self.coord[node_id][0],
+                            'y': self.coord[node_id][1]
                           }
 
             graph_nodes.append(serving_vbs)
@@ -290,18 +151,18 @@ class SignalGraph(EmpowerApp):
                 # Append the UE's info
                 graph_nodes.append({
                                     'id': node_id,
-                                    'node_id': ue.rnti,
+                                    'node_id': vbs.ues[ue].rnti,
                                     'entity': 'ue',
                                     'tooltip': 'RNTI',
-                                    'x': self.coord_x[node_id],
-                                    'y': self.coord_y[node_id]
+                                    'x': self.coord[node_id][0],
+                                    'y': self.coord[node_id][1]
                                   })
 
                 # Index of UE in nodes array
                 ue_index = node_id
 
                 # Neighbor cells list per UE
-                cells = self.get_neigh_cells(ue)
+                cells = self.get_neigh_cells(vbs.ues[ue])
 
                 for cell in cells:
                     if cell not in neigh_cells:
@@ -313,8 +174,8 @@ class SignalGraph(EmpowerApp):
                                             'node_id': cell,
                                             'entity': 'enb',
                                             'tooltip': 'PCI',
-                                            'x': self.coord_x[node_id],
-                                            'y': self.coord_y[node_id]
+                                            'x': self.coord[node_id][0],
+                                            'y': self.coord[node_id][1]
                                             })
 
                 # Index of cell in nodes array
@@ -322,30 +183,30 @@ class SignalGraph(EmpowerApp):
 
                 # Store primary cell measurements per UE
                 for n in graph_nodes:
-                    if (n.node_id == vbs.enb_id) and (n.entity == 'enb'):
-                        cell_index = n.id
+                    if (n['node_id'] == vbs.enb_id) and (n['entity'] == 'enb'):
+                        cell_index = n['id']
                         break
 
                 graph_links.append({
                                     'src': cell_index,
                                     'dst': ue_index,
-                                    'rsrp': ue.pcell_rsrp,
-                                    'rsrq': ue.pcell_rsrq,
+                                    'rsrp': vbs.ues[ue].pcell_rsrp,
+                                    'rsrq': vbs.ues[ue].pcell_rsrq,
                                     'rssi': None,
                                     'entity': 'lte',
                                     'color': 'orange',
                                     'width': 6
                                     })
 
-                measurements = ue.rrc_meas
+                measurements = vbs.ues[ue].rrc_meas
 
                 for key, m in measurements.items():
 
                     cell_index = 0
 
                     for n in graph_nodes:
-                        if (n.node_id == key) and (n.entity == 'enb'):
-                            cell_index = n.id
+                        if (n['node_id'] == key) and (n['entity'] == 'enb'):
+                            cell_index = n['id']
                             break
                     # Add each link for a measured neighbor cell
                     graph_links.append({
@@ -359,7 +220,7 @@ class SignalGraph(EmpowerApp):
                                             'width': 4
                                        })
 
-            self.graphData[vbs.addr] = {
+            self.graphData[(vbs.addr).to_str()] = {
                                             'nodes': graph_nodes,
                                             'links': graph_links
                                        }
