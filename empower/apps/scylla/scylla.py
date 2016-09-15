@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""EmPOWER application implementing an uplink/downlink decoupling mechanism."""
+"""EmPOWER application implementing an uplink/downlink decoupling mechanism with LVNF Chaining."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
@@ -29,3 +29,4 @@ def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
     return Scylla(tenant_id=tenant_id, every=every)
+

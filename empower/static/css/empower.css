@@ -85,6 +85,18 @@ h1 {
     border: 0;
 }
 
+#next1>img {
+    max-width:90px;
+}
+
+#next2>img {
+    max-width:90px;
+}
+
+#next3>img {
+    max-width:90px;
+}
+
 .dump-centered th, .dump-centered td {
     font-family: Pontano Sans, Cantarell, sans-serif;
     font-size: 12pt;
@@ -207,3 +219,6 @@ li {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
 }
+
+
+

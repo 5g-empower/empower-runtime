@@ -38,6 +38,16 @@ def ofmatch_s2d(match):
 
     for token in match.split(","):
         key_t, value_t = token.split("=")
+
+        if key_t == 'dl_vlan':
+            value_t = int(value_t)
+
+        if key_t == 'dl_type':
+            value_t = int(value_t)
+
+        if key_t == 'nw_proto':
+            value_t = int(value_t)
+
         key[key_t] = value_t
 
     return key
@@ -187,4 +197,29 @@ class VirtualPortPropLvap(VirtualPortProp):
 class VirtualPortPropLvnf(VirtualPortProp):
     """VirtualPortProp class for LVAPs."""
 
-    pass
+    def __setitem__(self, key, value):
+        """Set virtual port configuration."""
+
+        if value and not isinstance(value, VirtualPort):
+            raise KeyError("Expected VirtualPort, got %s" % type(key))
+
+        # remove virtual link
+        if self.__contains__(key):
+            self.__delitem__(key)
+
+        self.__uuids__[key] = []
+
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        # set intent(add stp_dpid and stp_port
+        intent = {'version': '1.0',
+                  'ttp_dpid': value.dpid,
+                  'ttp_port': value.ovs_port_id,
+                  'match': ofmatch_s2d(key)}
+
+        # add new virtual link
+        uuid = intent_server.send_intent(intent)
+        self.__uuids__[key].append(uuid)
+
+        # add entry
+        dict.__setitem__(self, key, value)
