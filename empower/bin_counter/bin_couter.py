@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Common counters module."""
+"""Common bin_counter module."""
 
 from construct import UBInt8
 from construct import Bytes
@@ -60,10 +60,10 @@ STATS_RESPONSE = \
            Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, STATS))
 
 
-class Counters(Module):
+class BinCounter(Module):
     """ PacketsCounter object. """
 
-    MODULE_NAME = "counters"
+    MODULE_NAME = "bin_counter"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvap']
 
     def __init__(self):
@@ -248,30 +248,30 @@ class Counters(Module):
         self.handle_callback(self)
 
 
-class CountersWorker(ModuleLVAPPWorker):
+class BinCounterWorker(ModuleLVAPPWorker):
     """Counter worker."""
 
     pass
 
 
-def counters(**kwargs):
+def bin_counter(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[CountersWorker.__module__]
+    worker = RUNTIME.components[BinCounterWorker.__module__]
     return worker.add_module(**kwargs)
 
 
-def bound_counters(self, **kwargs):
+def bound_bin_counter(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
     kwargs['lvap'] = self.addr
-    return counters(**kwargs)
+    return bin_counter(**kwargs)
 
-setattr(LVAP, Counters.MODULE_NAME, bound_counters)
+setattr(LVAP, BinCounter.MODULE_NAME, bound_bin_counter)
 
 
 def launch():
     """ Initialize the module. """
 
-    return CountersWorker(Counters, PT_STATS_RESPONSE, STATS_RESPONSE)
+    return BinCounterWorker(BinCounter, PT_STATS_RESPONSE, STATS_RESPONSE)

@@ -211,7 +211,8 @@ class VirtualPortPropLvnf(VirtualPortProp):
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        # set intent(add stp_dpid and stp_port
+        # set/update intent
+        # TODO: Must add stp dpid/port
         intent = {'version': '1.0',
                   'ttp_dpid': value.dpid,
                   'ttp_port': value.ovs_port_id,
