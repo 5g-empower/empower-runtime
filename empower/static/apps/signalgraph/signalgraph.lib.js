@@ -1,8 +1,71 @@
 jQuery(document).ready(function($){
 
+function send_rrc_req() {
+
+var selected_ue = $("#ueSelect :selected").val();
+
+    if (selected_ue !== "") {
+
+        var url = "/api/v1/tenants/" + tenant_id + "/vbs_rrc_stats";
+
+        var data = '{\
+            "version": "1.0",\
+            "vbs": "00:00:00:00:0E:21",\
+            "ue":' + selected_ue + ',\
+            "meas_req": {\
+            "rat_type": "EUTRA",\
+            "cell_to_measure": [],\
+            "blacklist_cells": [],\
+            "bandwidth": 50,\
+            "carrier_freq": 6400,\
+            "report_type": "periodical_ref_signal",\
+            "threshold1" : {\
+                              "type": "RSRP",\
+                              "value": 20\
+                          },\
+             "threshold2" : {\
+                              "type": "RSRP",\
+                              "value": 50\
+                          },\
+            "report_interval": 10,\
+            "trigger_quantity": "RSRP",\
+            "num_of_reports": "infinite",\
+            "max_report_cells": 3,\
+            "a3_offset": 5\
+            }\
+        }'
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            data: data,
+            cache: false,
+            beforeSend: function (request) {
+                request.setRequestHeader("Authorization", "Basic Zm9vOmZvbw==");
+            },
+            statusCode: {
+                201: function (data) {
+                },
+                400: function (data) {
+                    alert(data.responseJSON.message);
+                },
+                404: function (data) {
+                    alert('Component not found');
+                },
+                500: function (data) {
+                    alert('Internal error');
+                }
+            }
+        });
+    }
+}
+
+$("#ueSelect").on("click", send_rrc_req);
+
 /* SVG for D3 dimensions. */
 var area_width  = 550,
-    area_height = 680,
+    area_height = 760,
     colors = d3.scale.category20();
 
 /* Nodes and links of the graph. */
@@ -113,7 +176,6 @@ function fetchSignalData(tenant_id) {
 
 }
 
-
 /* Update graph. */
 function updateSignalGraph() {
 
@@ -134,9 +196,9 @@ function updateSignalGraph() {
         .style('stroke', function(d) { return d.color; })
         .style('stroke-width', function(d) { return d.width; })
         .classed('neigh_cell', function(d) { return (d.width == 4); })
-        .classed('inactive_wtp', function(d) {
-            return (d.entity === "wifi" && d.width == 4);
-        })
+        // .classed('inactive_wtp', function(d) {
+        //     return (d.entity === "wifi" && d.width == 4);
+        // })
         .on("mouseover", function(d) {
             div.transition()
                 .duration(500)
@@ -309,7 +371,16 @@ function loadUEsSelectBox() {
         for (var id in nodes) {
             var n = nodes[id];
             if (n["entity"] === 'ue') {
-                ue_data.push(n);
+                var node = {
+                                id: n.id,
+                                node_id: n.node_id,
+                                entity: n.entity,
+                                tooltip: n.tooltip,
+                                x: n.x,
+                                y: n.y,
+                                fixed: true
+                           };
+                ue_data.push(node);
             }
         }
 
@@ -386,7 +457,7 @@ function updateSignalChart() {
 
         } else {
 
-            var ls = []
+            var ls = links.slice(0);
 
             prevStatType = statsType;
 
@@ -394,10 +465,10 @@ function updateSignalChart() {
 
                 for (var id in links) {
                     var li = links[id];
-                    if (li["entity"] === "lte" &&
+                    if (li["entity"] !== "lte" &&
                         ((li["source"].node_id === selected_ue)
-                                    || (li["target"].node_id === selected_ue))) {
-                        ls.push(li);
+                                    && (li["target"].node_id === selected_ue))) {
+                        ls.splice(id, 1);
                     }
                 }
 
@@ -452,10 +523,10 @@ function updateSignalChart() {
 
                 for (var id in links) {
                     var li = links[id];
-                    if (li["entity"] === "wifi" &&
+                    if (li["entity"] !== "wifi" &&
                         ((li["source"].node_id === selected_ue)
-                                    || (li["target"].node_id === selected_ue))) {
-                        ls.push(li);
+                                    && (li["target"].node_id === selected_ue))) {
+                        ls.splice(id, 1);
                     }
                 }
 
@@ -489,7 +560,6 @@ function updateSignalChart() {
                 }
             }
         }
-
         updateSignalChart();
     }, 3000);
 }

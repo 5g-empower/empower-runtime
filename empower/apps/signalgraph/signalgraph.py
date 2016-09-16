@@ -132,11 +132,7 @@ class SignalGraph(EmpowerApp):
     def ucqm_callback(self, poller):
         """Called when a UCQM response is received from a WTP."""
 
-        import time
-
         lvaps = RUNTIME.lvaps
-
-        wtps = RUNTIME.wtps
 
         for addr in poller.maps.values():
 
@@ -154,7 +150,7 @@ class SignalGraph(EmpowerApp):
                 if poller.block.addr.to_str() not in self.wtps:
                     self.wtps.append(poller.block.addr.to_str())
 
-                self.wifi_data[addr['addr'].to_str()] = \
+                self.wifi_data[poller.block.addr.to_str()] = \
                             {
                                 'rssi': addr['mov_rssi'],
                                 'wtp': poller.block.addr.to_str(),
@@ -288,14 +284,12 @@ class SignalGraph(EmpowerApp):
                                             'width': 4
                                        })
 
-                if UE_MAC_ADDR1 in self.wifi_data:
+                wtp_index = 0
 
-                    wtp_index = 0
-
-                    data = self.wifi_data[UE_MAC_ADDR1]
+                for k, v in self.wifi_data.items():
 
                     for n in graph_nodes:
-                        if (n['node_id'] == data['wtp'])  \
+                        if (n['node_id'] == v['wtp'])  \
                                                     and (n['entity'] == 'wtp'):
                             wtp_index = n['id']
                             break
@@ -303,7 +297,7 @@ class SignalGraph(EmpowerApp):
                     color = 'black'
                     width = 4
 
-                    if data['active'] == 1:
+                    if v['active'] == 1:
                         width = 6
                         color = 'lightgreen'
 
@@ -313,7 +307,7 @@ class SignalGraph(EmpowerApp):
                                         'dst': ue_index,
                                         'rsrp': None,
                                         'rsrq': None,
-                                        'rssi': data['rssi'],
+                                        'rssi': v['rssi'],
                                         'entity': 'wifi',
                                         'color': color,
                                         'width': width
