@@ -158,7 +158,7 @@ class Maps(Module):
 
         req = Container(version=PT_VERSION,
                         type=self.PT_REQUEST,
-                        length=26,
+                        length=20,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
