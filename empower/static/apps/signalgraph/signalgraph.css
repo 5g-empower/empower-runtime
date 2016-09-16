@@ -3,12 +3,6 @@
 	height: 800px;
 }
 
-#vbsSelectBoxRow {
-	margin: auto;
-	height: 55px;
-	margin-bottom: 10px;
-}
-
 #statsRadioRow {
 	text-align: center;
 	margin: auto;
@@ -116,6 +110,10 @@ path.link {
 }*/
 
 path.link.neigh_cell {
+	stroke-dasharray: 10,2;
+}
+
+path.link.inactive_wtp {
 	stroke-dasharray: 10,2;
 }
 

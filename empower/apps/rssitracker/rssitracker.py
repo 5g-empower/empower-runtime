@@ -65,14 +65,12 @@ class RSSITracker(EmpowerApp):
 
         for block in wtp.supports:
 
-            ucqm(addrs=self.addrs,
-                 block=block,
+            ucqm(block=block,
                  tenant_id=self.tenant.tenant_id,
                  every=self.every,
                  callback=self.ucqm_callback)
 
-            ncqm(addrs=self.addrs,
-                 block=block,
+            ncqm(block=block,
                  tenant_id=self.tenant.tenant_id,
                  every=self.every,
                  callback=self.ncqm_callback)

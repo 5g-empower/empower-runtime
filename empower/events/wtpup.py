@@ -36,7 +36,7 @@ class WTPUp(Module):
             if not wtp.connection:
                 continue
 
-            wtp.connectionsend_register_message_to_self()
+            wtp.connection.send_register_message_to_self()
 
     def handle_response(self, wtp):
         """ Handle an REGISTER event.

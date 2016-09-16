@@ -34,7 +34,6 @@ class UCQM(Maps):
     MODULE_NAME = "ucqm"
     PT_REQUEST = PT_POLLER_REQUEST
 
-
 class UCQMWorker(ModuleLVAPPWorker):
     """User channel quality map worker."""
 

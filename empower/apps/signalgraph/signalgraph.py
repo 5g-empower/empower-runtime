@@ -22,15 +22,22 @@ import random
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.main import RUNTIME
+from empower.maps.ucqm import ucqm
+from empower.maps.ncqm import ncqm
+from empower.events.wtpup import wtpup
+
+from empower.main import RUNTIME
 
 DEFAULT_SIGNALGRAPH_PERIOD = 2000
 
-GRAPH_TOP_BOTTOM_MARGIN = 30
-GRAPH_LEFT_RIGHT_MARGIN = 30
+GRAPH_TOP_BOTTOM_MARGIN = 40
+GRAPH_LEFT_RIGHT_MARGIN = 40
 GRAPH_MAX_WIDTH = 550 - GRAPH_LEFT_RIGHT_MARGIN
-GRAPH_MAX_HEIGHT = 680 - GRAPH_TOP_BOTTOM_MARGIN
-MIN_DISTANCE = 50
+GRAPH_MAX_HEIGHT = 750 - GRAPH_TOP_BOTTOM_MARGIN
+MIN_DISTANCE = 45
 N_XY = 300
+
+UE_MAC_ADDR1 = 'A0:39:F7:4C:AB:87'
 
 class SignalGraph(EmpowerApp):
     """Signal strength visulization app.
@@ -48,13 +55,19 @@ class SignalGraph(EmpowerApp):
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)
-        self.vbses = []
         self.graphData = {}
+
+        self.vbses = []
+
+        self.wtps = []
+        self.wifi_data = {}
 
         self.coord = self.get_coordinates()
 
         self.vbsup(callback=self.vbs_up_callback)
         self.vbsdown(callback=self.vbs_down_callback)
+
+        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def get_coordinates(self):
 
@@ -106,6 +119,49 @@ class SignalGraph(EmpowerApp):
         if vbs in self.vbses:
             self.vbses.remove(vbs)
 
+    def wtp_up_callback(self, wtp):
+        """Called when a new WTP connects to the controller."""
+
+        for block in wtp.supports:
+
+            ucqm(block=block,
+                 tenant_id=self.tenant.tenant_id,
+                 every=5000,
+                 callback=self.ucqm_callback)
+
+    def ucqm_callback(self, poller):
+        """Called when a UCQM response is received from a WTP."""
+
+        import time
+
+        lvaps = RUNTIME.lvaps
+
+        wtps = RUNTIME.wtps
+
+        for addr in poller.maps.values():
+
+            if addr['addr'].to_str() == UE_MAC_ADDR1 and lvaps[addr['addr']] \
+                                                and lvaps[addr['addr']].wtp:
+
+                active_flag = 1
+
+                if (lvaps[addr['addr']].wtp != poller.block.addr):
+                    active_flag = 0
+                elif ((lvaps[addr['addr']].wtp == poller.block.addr and \
+                            (lvaps[addr['addr']].association_state == False))):
+                    active_flag = 0
+
+                if poller.block.addr.to_str() not in self.wtps:
+                    self.wtps.append(poller.block.addr.to_str())
+
+                self.wifi_data[addr['addr'].to_str()] = \
+                            {
+                                'rssi': addr['mov_rssi'],
+                                'wtp': poller.block.addr.to_str(),
+                                'active': active_flag
+                            }
+
+
     def get_neigh_cells(self, ue):
         """Fetches list of neighbor cells as seen by UE."""
 
@@ -122,16 +178,28 @@ class SignalGraph(EmpowerApp):
     def loop(self):
         """ Periodic job. """
 
-        for vbs in self.vbses:
+        node_id = 0
+        # Contains all links between cells and UEs
+        graph_links = []
+        # Contains all nodes in the graph
+        graph_nodes = []
 
-            node_id = 0
+        for wtp in self.wtps:
+            # Append the WTP's info
+            graph_nodes.append({
+                                'id': node_id,
+                                'node_id': wtp,
+                                'entity': 'wtp',
+                                'tooltip': 'MAC',
+                                'x': self.coord[node_id][0],
+                                'y': self.coord[node_id][1]
+                              })
+            node_id += 1
+
+        for vbs in self.vbses:
 
             # List containing all the neighbor cells of all UEs
             neigh_cells = []
-            # Contains all links between cells and UEs
-            graph_links = []
-            # Contains all nodes in the graph
-            graph_nodes = []
 
             serving_vbs = {
                             'id': node_id,
@@ -220,10 +288,41 @@ class SignalGraph(EmpowerApp):
                                             'width': 4
                                        })
 
-            self.graphData[(vbs.addr).to_str()] = {
-                                            'nodes': graph_nodes,
-                                            'links': graph_links
-                                       }
+                if UE_MAC_ADDR1 in self.wifi_data:
+
+                    wtp_index = 0
+
+                    data = self.wifi_data[UE_MAC_ADDR1]
+
+                    for n in graph_nodes:
+                        if (n['node_id'] == data['wtp'])  \
+                                                    and (n['entity'] == 'wtp'):
+                            wtp_index = n['id']
+                            break
+
+                    color = 'black'
+                    width = 4
+
+                    if data['active'] == 1:
+                        width = 6
+                        color = 'lightgreen'
+
+                    # Add each link for a measured WTP
+                    graph_links.append({
+                                        'src': wtp_index,
+                                        'dst': ue_index,
+                                        'rsrp': None,
+                                        'rsrq': None,
+                                        'rssi': data['rssi'],
+                                        'entity': 'wifi',
+                                        'color': color,
+                                        'width': width
+                                       })
+
+        self.graphData = {
+                            'nodes': graph_nodes,
+                            'links': graph_links
+                          }
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """

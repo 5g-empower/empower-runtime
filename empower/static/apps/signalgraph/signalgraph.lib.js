@@ -1,8 +1,5 @@
 jQuery(document).ready(function($){
 
-loadVBSPsSelectBox(tenant_id);
-loadUEsSelectBox();
-
 /* SVG for D3 dimensions. */
 var area_width  = 550,
     area_height = 680,
@@ -30,14 +27,19 @@ var div = d3.select('body')
     .attr('class', 'tooltip')
     .style('opacity', 0);
 
+var signalChart = c3.generate({
+    bindto: '#chartRow',
+    data: {
+        columns: [
+        ],
+        type: 'spline'
+    }
+});
+
 
 fetchSignalData(tenant_id);
 
 function fetchSignalData(tenant_id) {
-
-    /* Clean the nodes and link arrays. */
-    nodes.splice(0, nodes.length);
-    links.splice(0, links.length);
 
     setTimeout(function () {
 
@@ -47,63 +49,67 @@ function fetchSignalData(tenant_id) {
                 return;
             }
 
+            /* Clean the nodes and link arrays. */
+            nodes.splice(0, nodes.length);
+            links.splice(0, links.length);
+
             updateSignalGraph();
 
             var graph_data = data['graphData']
 
-            Object.keys(graph_data).forEach(function(vbs) {
-
-                var selected_vbsp = $("#vbsSelect :selected").val();
-
-                if ((selected_vbsp !== "") && (selected_vbsp == vbs)) {
-
-                    for (var i in graph_data[vbs].nodes) {
-                        var n = graph_data[vbs].nodes[i];
-                        var node = {
-                                    id: n.id,
-                                    node_id: n.node_id,
-                                    entity: n.entity,
-                                    tooltip: n.tooltip,
-                                    x: n.x,
-                                    y: (area_height - n.y),
-                                    fixed: true
-                                   };
-                        nodes.push(node);
-                    }
-
-                    for (var i in graph_data[vbs].links) {
-                        var l = graph_data[vbs].links[i];
-
-                        var source, target;
-
-                        for (var m in nodes) {
-                            if (nodes[m].id == l.src) {
-                                source = nodes[m];
-                            }
-                            if (nodes[m].id == l.dst) {
-                                target = nodes[m];
-                            }
-                        }
-
-                        var link = {
-                            source: source,
-                            target: target,
-                            rsrp: l.rsrp,
-                            rsrq: l.rsrq,
-                            rssi: l.rssi,
-                            color: l.color,
-                            width: l.width,
-                            entity: l.entity
-                        }
-                        links.push(link);
-                    }
+            // Object.keys(graph_data).forEach(function(vbs) {
+            if ("nodes" in graph_data) {
+                for (var i in graph_data.nodes) {
+                    var n = graph_data.nodes[i];
+                    var node = {
+                                id: n.id,
+                                node_id: n.node_id,
+                                entity: n.entity,
+                                tooltip: n.tooltip,
+                                x: n.x,
+                                y: (area_height - n.y),
+                                fixed: true
+                               };
+                    nodes.push(node);
                 }
-            });
+
+                for (var i in graph_data.links) {
+                    var l = graph_data.links[i];
+
+                    var source, target;
+
+                    for (var m in nodes) {
+                        if (nodes[m].id == l.src) {
+                            source = nodes[m];
+                        }
+                        if (nodes[m].id == l.dst) {
+                            target = nodes[m];
+                        }
+                    }
+
+                    var link = {
+                        source: source,
+                        target: target,
+                        rsrp: l.rsrp,
+                        rsrq: l.rsrq,
+                        rssi: l.rssi,
+                        color: l.color,
+                        width: l.width,
+                        entity: l.entity
+                    }
+                    links.push(link);
+                }
+            }
+
+            // });
+
             updateSignalGraph();
+            loadUEsSelectBox();
+            // updateSignalChart();
             fetchSignalData(tenant_id);
         });
 
-    }, 3000);
+    }, 5000);
 
 }
 
@@ -128,6 +134,9 @@ function updateSignalGraph() {
         .style('stroke', function(d) { return d.color; })
         .style('stroke-width', function(d) { return d.width; })
         .classed('neigh_cell', function(d) { return (d.width == 4); })
+        .classed('inactive_wtp', function(d) {
+            return (d.entity === "wifi" && d.width == 4);
+        })
         .on("mouseover", function(d) {
             div.transition()
                 .duration(500)
@@ -288,141 +297,73 @@ function updateSignalGraph() {
     us.exit().remove();
 }
 
-function loadVBSPsSelectBox(tenant_id) {
 
-    setTimeout(function() {
-
-        $.getJSON("/api/v1/tenants/" + tenant_id + "/vbses", function(data) {
-
-            var selectVBSPMenu = $('#vbsSelect');
-
-            var vbsp_values = [];
-
-            $("#vbsSelect option").each(function() {
-                vbsp_values.push($(this).val());
-            });
-
-            /* Check whether the selected vbsp still exists or not. */
-            var selected_vbsp = $("#vbsSelect :selected").val();
-            if (selected_vbsp !== "") {
-                var vbsp_exist_flag = false;
-                for (vbsp_index in data) {
-                    if (selected_vbsp == data[vbsp_index].addr) {
-                        vbsp_exist_flag = true;
-                        break;
-                    }
-                }
-
-                if (!vbsp_exist_flag){
-                    $("#vbsSelect option").filter(function(index) {
-                        return $(this).val() == selected_vbsp;
-                    }).remove();
-                    vbsp_values.splice(vbsp_values.indexOf(selected_vbsp),1);
-                }
-            }
-
-            /* Check if all the vbsp in the options still exist or not. */
-            $.each(vbsp_values, function(index, value) {
-                if (value !== ""){
-                    var exist_flag = false;
-                    for (vbsp_index in data) {
-                        if (value == data[vbsp_index].addr) {
-                            exist_flag = true;
-                            data.splice(vbsp_index,1);
-                            break;
-                        }
-                    }
-                    if (!exist_flag){
-                        $("#vbsSelect option").filter(function(index) {
-                            return $(this).val() == value;
-                        }).remove();
-                    }
-                }
-            });
-
-            $.each(data, function(index, vbsp) {
-                selectVBSPMenu.append("<option value= "+ vbsp.addr +">" + vbsp.label + " (" + vbsp.addr + ")" + "</option>");
-            });
-            loadVBSPsSelectBox(tenant_id);
-        });
-    }, 3000);
-}
+var UE_MAC_ADDR1 = "A0:39:F7:4C:AB:87"
 
 function loadUEsSelectBox() {
 
-    setTimeout(function() {
+    if ((nodes !== null) && (nodes !== undefined) && (nodes !== [])) {
 
-        var selected_vbsp = $("#vbsSelect :selected").val();
+        var ue_data = []
 
-        if ((selected_vbsp !== "") && (selected_vbsp !== null)) {
+        for (var id in nodes) {
+            var n = nodes[id];
+            if (n["entity"] === 'ue') {
+                ue_data.push(n);
+            }
+        }
 
-            $.getJSON("/api/v1/vbses/"+ selected_vbsp + "/ues/", function(data) {
+        var selectUEMenu = $('#ueSelect');
 
-                var selectUEMenu = $('#ueSelect');
+        var ue_values = [];
 
-                var ue_values = [];
+        $("#ueSelect option").each(function() {
+            ue_values.push($(this).val());
+        });
 
-                $("#ueSelect option").each(function() {
-                    ue_values.push($(this).val());
-                });
+        /* Check whether the selected ue still exists or not. */
+        var selected_ue = $("#ueSelect :selected").val();
+        if (selected_ue !== "") {
+            var ue_exist_flag = false;
+            for (ue_index in ue_data) {
+                if (selected_ue == ue_data[ue_index].node_id) {
+                    ue_exist_flag = true;
+                    break;
+                }
+            }
 
-                /* Check whether the selected ue still exists or not. */
-                var selected_ue = $("#ueSelect :selected").val();
-                if (selected_ue !== "") {
-                    var ue_exist_flag = false;
-                    for (ue_index in data) {
-                        if (selected_ue == data[ue_index].rnti) {
-                            ue_exist_flag = true;
-                            break;
-                        }
-                    }
+            if (!ue_exist_flag) {
+                $("#ueSelect option").filter(function(index) {
+                    return $(this).val() == selected_ue;
+                }).remove();
+                ue_values.splice(ue_values.indexOf(selected_ue),1);
+            }
+        }
 
-                    if (!ue_exist_flag){
-                        $("#ueSelect option").filter(function(index) {
-                            return $(this).val() == selected_ue;
-                        }).remove();
-                        ue_values.splice(ue_values.indexOf(selected_ue),1);
+        /* Check if all the ues in the options still exist or not. */
+        $.each(ue_values, function(index, value) {
+            if (value !== ""){
+                var exist_flag = false;
+                for (ue_index in ue_data) {
+                    if (value == ue_data[ue_index].node_id) {
+                        exist_flag = true;
+                        ue_data.splice(ue_index,1);
+                        break;
                     }
                 }
+                if (!exist_flag){
+                    $("#ueSelect option").filter(function(index) {
+                        return $(this).val() == value;
+                    }).remove();
+                }
+            }
+        });
 
-                /* Check if all the ues in the options still exist or not. */
-                $.each(ue_values, function(index, value) {
-                    if (value !== ""){
-                        var exist_flag = false;
-                        for (ue_index in data) {
-                            if (value == data[ue_index].rnti) {
-                                exist_flag = true;
-                                data.splice(ue_index,1);
-                                break;
-                            }
-                        }
-                        if (!exist_flag){
-                            $("#ueSelect option").filter(function(index) {
-                                return $(this).val() == value;
-                            }).remove();
-                        }
-                    }
-                });
-
-                $.each(data, function(index, ue) {
-                    selectUEMenu.append("<option value= "+ ue.rnti +">" + ue.rnti + "</option>");
-                });
-                loadUEsSelectBox();
-            });
-        } else {
-            loadUEsSelectBox();
-        }
-    }, 3000);
-}
-
-var signalChart = c3.generate({
-    bindto: '#chartRow',
-    data: {
-        columns: [
-        ],
-        type: 'spline'
+        $.each(ue_data, function(index, ue) {
+            selectUEMenu.append("<option value= "+ ue.node_id +">" + ue.node_id + "</option>");
+        });
     }
-});
+}
 
 var data_set = {};
 var prevStatType = "";
@@ -431,11 +372,10 @@ function updateSignalChart() {
 
     setTimeout(function() {
 
-        var selected_vbsp = $("#vbsSelect :selected").val();
         var statsType = $('#statsType input:radio:checked').val();
         var selected_ue = $("#ueSelect :selected").val();
 
-        if ((selected_vbsp === "") || (selected_vbsp === null) ||
+        if ((links === null) || (links === undefined) ||
                 (selected_ue === null) || (selected_ue === "") ||
                     (statsType === "") || (statsType === null) ||
                         (prevStatType !== statsType && prevStatType !== "")) {
@@ -443,109 +383,114 @@ function updateSignalChart() {
             signalChart.unload();
             prevStatType = "";
             data_set = {};
-            updateSignalChart();
+
         } else {
 
-            $.getJSON("/api/v1/vbses/" + selected_vbsp + "/ues/" + selected_ue,
+            var ls = []
 
-                function(data) {
+            prevStatType = statsType;
 
-                prevStatType = statsType;
+            if (statsType !== 'rssi') {
 
-                if ((data != null) && (statsType !== 'rssi')) {
+                for (var id in links) {
+                    var li = links[id];
+                    if (li["entity"] === "lte" &&
+                        ((li["source"].node_id === selected_ue)
+                                    || (li["target"].node_id === selected_ue))) {
+                        ls.push(li);
+                    }
+                }
 
+                for (var i in ls) {
+
+                    var l = ls[i];
+
+                    var index = null;
+
+                    if (l["source"].node_id === selected_ue) {
+                        index = l["target"].tooltip + ":" + l["target"].node_id.toString();
+                    } else {
+                        index = l["source"].tooltip + ":" + l["source"].node_id.toString();
+                    }
                     if (statsType === 'rsrp') {
 
-                        if (!('prsrp' in data_set)) {
-                            data_set['prsrp'] = ['prsrp', data['primary_cell_rsrp']];
+                        if (!(index in data_set)) {
+                            data_set[index] = [index, l["rsrp"]];
                         } else {
-                            data_set['prsrp'].push(data['primary_cell_rsrp']);
-                            if (data_set['prsrp'].length > 30) {
+                            data_set[index].push(l["rsrp"]);
+                            if (data_set[index].length > 30) {
                                 /* Remove first object*/
-                                data_set['prsrp'].splice(1, 1);
+                                data_set[index].splice(1, 1);
                             }
                         }
 
                         signalChart.load({
-                                columns: [
-                                    data_set['prsrp']
-                                ]
+                            columns: [
+                                data_set[index]
+                            ]
                         });
-
                     } else {
 
-                        if (!('prsrq' in data_set)) {
-                            data_set['prsrq'] = ['prsrq', data['primary_cell_rsrq']];
+                        if (!(index in data_set)) {
+                            data_set[index] = [index, l["rsrq"]];
                         } else {
-                            data_set['prsrq'].push(data['primary_cell_rsrq']);
-                            if (data_set['prsrq'].length > 30) {
+                            data_set[index].push(l["rsrq"]);
+                            if (data_set[index].length > 30) {
                                 /* Remove first object*/
-                                data_set['prsrq'].splice(1, 1);
+                                data_set[index].splice(1, 1);
                             }
                         }
 
                         signalChart.load({
-                                columns: [
-                                    data_set['prsrq']
-                                ]
-                        });
-                    }
-
-                    var meas = data["rrc_meas"]
-
-                    if (meas != null) {
-
-                        Object.keys(meas).forEach(function(cell) {
-
-                            var index = 'PCI:' + cell.toString();
-
-                            if (statsType === 'rsrp') {
-
-                                if (!(index in data_set)) {
-                                    data_set[index] = [index, meas[cell].rsrp];
-                                } else {
-                                    data_set[index].push(meas[cell].rsrp);
-                                    if (data_set[index].length > 30) {
-                                        /* Remove first object*/
-                                        data_set[index].splice(1, 1);
-                                    }
-                                }
-
-                                signalChart.load({
-                                    columns: [
-                                        data_set[index]
-                                    ]
-                                });
-                            } else {
-
-                                if (!(index in data_set)) {
-                                    data_set[index] = [index, meas[cell].rsrq];
-                                } else {
-                                    data_set[index].push(meas[cell].rsrq);
-                                    if (data_set[index].length > 30) {
-                                        /* Remove first object*/
-                                        data_set[index].splice(1, 1);
-                                    }
-                                }
-
-                                signalChart.load({
-                                    columns: [
-                                        data_set[index]
-                                    ]
-                                });
-                            }
+                            columns: [
+                                data_set[index]
+                            ]
                         });
                     }
                 }
-                updateSignalChart();
-            }).fail(function(jqXHR) {
-                if (jqXHR.status == 404) {
-                    updateSignalChart();
-                } else {
-                    updateSignalChart();
+            } else if ((links != null) && (statsType === 'rssi')) {
+
+                for (var id in links) {
+                    var li = links[id];
+                    if (li["entity"] === "wifi" &&
+                        ((li["source"].node_id === selected_ue)
+                                    || (li["target"].node_id === selected_ue))) {
+                        ls.push(li);
+                    }
                 }
-            });
+
+                for (var i in ls) {
+
+                    var l = ls[i];
+
+                    var index = null;
+
+                    if (l["source"].node_id === selected_ue) {
+                        index = l["target"].tooltip + ":" + l["target"].node_id.toString();
+                    } else {
+                        index = l["source"].tooltip + ":" + l["source"].node_id.toString();
+                    }
+
+                    if (!(index in data_set)) {
+                        data_set[index] = [index, l["rssi"]];
+                    } else {
+                        data_set[index].push(l["rssi"]);
+                        if (data_set[index].length > 30) {
+                            /* Remove first object*/
+                            data_set[index].splice(1, 1);
+                        }
+                    }
+
+                    signalChart.load({
+                        columns: [
+                            data_set[index]
+                        ]
+                    });
+                }
+            }
         }
+
+        updateSignalChart();
     }, 3000);
 }
 

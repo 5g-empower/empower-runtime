@@ -27,6 +27,7 @@ class UE(object):
     def __init__(self, rnti, vbs):
 
         self.rnti = rnti
+        self.mac_addr = None
         self.ue_id = hex_to_ether(self.rnti)
         self.vbs = vbs
         self.rrc_state = None
