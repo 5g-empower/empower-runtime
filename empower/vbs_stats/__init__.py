@@ -26,8 +26,8 @@ RRC_STATS_RAT_TYPE = {
     "EUTRA": statistics_pb2.RAT_EUTRA
 }
 
-RRC_STATS_REPORT_CONF_TYPE = [
-                        "periodical_ref_signal", "A1", "A2", "A3", "A4", "A5"]
+RRC_STATS_REPORT_CONF_TYPE = \
+    ["periodical_ref_signal", "A1", "A2", "A3", "A4", "A5"]
 
 RRC_STATS_EVENT_THRESHOLD_TYPE = ["RSRP", "RSRQ"]
 
@@ -67,5 +67,3 @@ RRC_STATS_BW = {
     75: configs_pb2.AMBW_75,
     100: configs_pb2.AMBW_100
 }
-
-

@@ -27,7 +27,6 @@ from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import Module
 from empower.vbs_stats import RRC_STATS_RAT_TYPE
 from empower.vbs_stats import RRC_STATS_REPORT_CONF_TYPE
-from empower.vbs_stats import RRC_STATS_EVENT_THRESHOLD_TYPE
 from empower.vbs_stats import RRC_STATS_TRIGGER_QUANT
 from empower.vbs_stats import RRC_STATS_BW
 from empower.vbs_stats import RRC_STATS_REPORT_INTR
@@ -36,6 +35,7 @@ from empower.vbs_stats import PRT_VBSP_RRC_STATS
 from empower.vbsp.vbspconnection import create_header
 from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
+
 
 class VBSRRCStats(Module):
     """ VBSRRCStats object. """
@@ -96,8 +96,6 @@ class VBSRRCStats(Module):
         if self.meas_req:
             raise ValueError("Cannot update configuration")
 
-        vbses = RUNTIME.tenants[self.tenant_id].vbses
-
         if "rat_type" not in value:
             raise ValueError("Missing measurement RAT type")
 
@@ -128,11 +126,11 @@ class VBSRRCStats(Module):
         if value["report_type"] == "A3" and "a3_offset" not in value:
             raise ValueError("Missing a3_offset parameter for A3 event")
 
-        if value["report_type"] in ["A1", "A2", "A4", "A5"] and \
-                                                "threshold1" not in value:
+        if value["report_type"] in ["A1", "A2", "A4", "A5"] and "threshold1" not in value:
+
             raise ValueError("Missing threshold1 parameter for given event")
 
-        if value["report_type"] in  ["A1", "A2", "A4", "A5"]:
+        if value["report_type"] in ["A1", "A2", "A4", "A5"]:
 
             if "type" not in value["threshold1"]:
                 raise ValueError("Missing threshold1 type parameter")
@@ -152,7 +150,7 @@ class VBSRRCStats(Module):
                 raise ValueError("Missing threshold2 value parameter")
 
             if value["threshold2"]["type"] != value["threshold1"]["type"]:
-                raise ValueError("Both threshold1 and threshold2 must be equal")
+                raise ValueError("threshold1 and threshold2 must be equal")
 
         if "report_interval" not in value:
             raise ValueError("Missing interval between reports parameter")
@@ -175,7 +173,7 @@ class VBSRRCStats(Module):
         if "max_report_cells" not in value:
             raise ValueError("Missing max_report_cells parameter")
 
-        if value["max_report_cells"] > 8 or  value["max_report_cells"] < 1:
+        if value["max_report_cells"] > 8 or value["max_report_cells"] < 1:
             raise ValueError("Max. cells to report must be b/w 1 & 8")
 
         self._meas_req = value
@@ -469,7 +467,8 @@ class VBSRRCStatsWorker(ModuleVBSPWorker):
 def vbs_RRC_stats(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[VBSRRCStatsWorker.__module__].add_module(**kwargs)
+    return \
+        RUNTIME.components[VBSRRCStatsWorker.__module__].add_module(**kwargs)
 
 
 def bound_vbs_RRC_stats(self, **kwargs):
