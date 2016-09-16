@@ -21,14 +21,17 @@ import time
 import tornado.ioloop
 import socket
 import sys
+import json
 
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
+from empower.vbsp import PRT_VBSP_HELLO
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
-from empower.vbsp import PRT_VBSP_CONFIGS
-from empower.vbsp import PRT_VBSP_STATS
+from empower.vbsp import PRT_VBSP_TRIGGER_EVENT
+from empower.vbsp import PRT_VBSP_AGENT_SCHEDULED_EVENT
+from empower.vbsp import PRT_VBSP_SINGLE_EVENT
 from empower.vbsp.messages import main_pb2
 from empower.vbsp.messages import configs_pb2
 from empower.core.utils import hex_to_ether
@@ -40,8 +43,7 @@ from empower.main import RUNTIME
 import empower.logger
 LOG = empower.logger.get_logger()
 
-
-def create_header(t_id, b_id, msg_type, header):
+def create_header(t_id, b_id, header):
     """Create message header."""
 
     if not header:
@@ -52,10 +54,6 @@ def create_header(t_id, b_id, msg_type, header):
     header.t_id = t_id
     # Set the Base station identifier.
     header.b_id = b_id
-    # Set the type of message.
-    header.type = msg_type
-    # Module identifier is always set to zero. (OAI reasons)
-    header.m_id = 0
     # Start the sequence number for messages from zero.
     header.seq = 0
 
@@ -104,6 +102,7 @@ class VBSPConnection(object):
         self.addr = addr
         self.server = server
         self.vbs = None
+        self.seq = 0
         self.stream.set_close_callback(self._on_disconnect)
         self.__buffer = b''
         self._hb_interval_ms = 500
@@ -130,9 +129,13 @@ class VBSPConnection(object):
     def stream_send(self, message):
         """Send message."""
 
+        # Update the sequence number of the messages
+        message.head.seq = self.seq + 1
+
         size = message.ByteSize()
 
         LOG.info("Sent message of length %d", size)
+        LOG.info(message.__str__())
 
         size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
@@ -152,6 +155,7 @@ class VBSPConnection(object):
         self.__buffer = b''
 
         if line is not None:
+            LOG.info("Received message of length %d" % len(line))
 
             self.__buffer = self.__buffer + line
 
@@ -163,30 +167,33 @@ class VBSPConnection(object):
 
             deserialized_msg = deserialize_message(line)
 
+            # Update the sequency number from received message
+            self.seq = deserialized_msg.head.seq
+
+            LOG.info(deserialized_msg.__str__())
+
             self._trigger_message(deserialized_msg)
             self._wait()
 
     def _trigger_message(self, deserialized_msg):
 
-        msg_type = deserialized_msg.WhichOneof("message")
+        event_type = deserialized_msg.WhichOneof("event_types")
+
+        if event_type == PRT_VBSP_SINGLE_EVENT:
+            msg_type = deserialized_msg.se.WhichOneof("events")
+        elif event_type == PRT_VBSP_AGENT_SCHEDULED_EVENT:
+            msg_type = deserialized_msg.sche.WhichOneof("events")
+        elif event_type == PRT_VBSP_TRIGGER_EVENT:
+            msg_type = deserialized_msg.te.WhichOneof("events")
+        else:
+            LOG.error("Unknown message event type %s", event_type)
 
         if not msg_type or msg_type not in self.server.pt_types:
             LOG.error("Unknown message type %s", msg_type)
             return
 
-        if msg_type == PRT_VBSP_CONFIGS:
-            config_type = deserialized_msg.mConfs.WhichOneof("config_msg")
-            if not config_type or config_type not in self.server.pt_types:
-                LOG.error("Unknown configs message type %u", config_type)
-                return
-            msg_type = config_type
-
-        if msg_type == PRT_VBSP_STATS:
-            st_type = deserialized_msg.mStats.WhichOneof("stats_msg")
-            if not st_type or st_type not in self.server.pt_types:
-                LOG.error("Unknown stats message type %u", st_type)
-                return
-            msg_type = st_type
+        if msg_type != PRT_VBSP_HELLO and self.vbs == None:
+            return
 
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
 
@@ -218,110 +225,141 @@ class VBSPConnection(object):
 
         LOG.info("Hello from %s, VBS %s", self.addr[0], vbs_id.to_str())
 
-        # If this is a new connection, then send enb config request (TODO).
+        # If this is a new connection, then send UEs ID request.
         if not vbs.connection:
             self.vbs = vbs
             vbs.connection = self
-            self.send_enb_conf_req()
-            self.send_ue_conf_req()
-            vbs.period = 5000
+            self.send_UEs_id_req()
+
+            event_type = main_msg.WhichOneof("event_types")
+            msg = protobuf_to_dict(main_msg)
+
+            vbs.period = msg[event_type]["mHello"]["repl"]["period"]
             self.send_register_message_to_self()
 
         # Update VBSP params
         vbs.last_seen = main_msg.head.seq
         vbs.last_seen_ts = time.time()
 
-    def _handle_enb_conf_repl(self, message):
-        """Handle an incoming eNB configuration reply.
+    def _handle_UEs_id_repl(self, main_msg):
+        """Handle an incoming UEs ID reply.
 
         Args:
-            message, a emage_msg containing eNB configuration message
+            message, a emage_msg containing UE IDs (RNTIs)
         Returns:
             None
         """
 
-        vbs = RUNTIME.vbses[self.vbs.addr]
-        msg = protobuf_to_dict(message)
+        active_ues = []
+        inactive_ues = []
 
-        if "cell_conf" not in msg["mConfs"]["enb_conf_repl"]:
+        event_type = main_msg.WhichOneof("event_types")
+        msg = protobuf_to_dict(main_msg)
+        ues_id_msg_repl = msg[event_type]["mUEs_id"]["repl"]
+
+        if ues_id_msg_repl["status"] != configs_pb2.CREQS_SUCCESS:
             return
 
-        cc_configs = msg["mConfs"]["enb_conf_repl"]["cell_conf"]
+        # List of active UEs
+        if "active_rnti" in ues_id_msg_repl:
+            active_ues.extend(ues_id_msg_repl["active_rnti"])
+        # List of inactive UEs
+        if "inactive_rnti" in ues_id_msg_repl:
+            inactive_ues.extend(ues_id_msg_repl["inactive_rnti"])
 
-        for c_carrier in cc_configs:
-            cc_id = c_carrier["cc_id"]
-            vbs.cc_configs[cc_id] = c_carrier
+        for rnti in active_ues:
+            if rnti not in self.vbs.ues:
+                self.vbs.ues[rnti] = UE(rnti, self.vbs)
 
-    def _handle_ue_conf_repl(self, message):
-        """Handle an incoming UE configuration reply.
+        existing_rntis = []
+        existing_rntis.extend(self.vbs.ues.keys())
+
+        for rnti in existing_rntis:
+            if rnti not in active_ues:
+                # Handling of UE down must be handled
+                del self.vbs.ues[rnti]
+
+    def _handle_rrc_meas_conf_repl(self, main_msg):
+        """Handle an incoming UE's RRC Measurements configuration reply.
 
         Args:
-            message, a emage_msg containing UE configuration message
+            message, a emage_msg containing RRC Measurements configuration in UE
         Returns:
             None
         """
 
-        vbs = RUNTIME.vbses[self.vbs.addr]
-        msg = protobuf_to_dict(message)
+        event_type = main_msg.WhichOneof("event_types")
+        msg = protobuf_to_dict(main_msg)
+        rrc_m_conf_repl = msg[event_type]["mUE_rrc_meas_conf"]["repl"]
 
-        if "ue_conf" not in msg["mConfs"]["ue_conf_repl"]:
+        rnti = rrc_m_conf_repl["rnti"]
+
+        if rnti not in self.vbs.ues:
             return
 
-        ue_configs = msg["mConfs"]["ue_conf_repl"]["ue_conf"]
+        ue = self.vbs.ues[rnti]
 
-        for ue_config in ue_configs:
+        if rrc_m_conf_repl["status"] != configs_pb2.CREQS_SUCCESS:
+            return
 
-            rnti = ue_config["rnti"]
+        del rrc_m_conf_repl["rnti"]
+        del rrc_m_conf_repl["status"]
 
-            if rnti not in vbs.ues:
-                vbs.ues[rnti] = UE(rnti, self.vbs, ue_config)
+        if "ue_rrc_state" in rrc_m_conf_repl:
+            ue.rrc_state = rrc_m_conf_repl["ue_rrc_state"]
+            del rrc_m_conf_repl["ue_rrc_state"]
 
-            if "phy_conf" in ue_config:
-                vbs.ues[rnti].phy_config = ue_config["phy_conf"]
+        if "capabilities" in rrc_m_conf_repl:
+            ue.capabilities = rrc_m_conf_repl["capabilities"]
+            del rrc_m_conf_repl["capabilities"]
 
-            if "mac_conf" in ue_config:
-                vbs.ues[rnti].mac_config = ue_config["mac_conf"]
+        ue.rrc_meas_config = rrc_m_conf_repl
 
-            if "rrc_conf" in ue_config:
-                vbs.ues[rnti].rrc_config = ue_config["rrc_conf"]
+    def send_UEs_id_req(self):
+        """ Send request for UEs ID registered in VBS """
 
-    def send_enb_conf_req(self):
-        """ Send request for eNB configuration """
-
-        enb_req = main_pb2.emage_msg()
-
-        enb_id = ether_to_hex(self.vbs.addr)
-
-        # Transaction identifier is zero by default.
-        create_header(0, enb_id, main_pb2.CONF_REQ, enb_req.head)
-        conf_req = enb_req.mConfs
-
-        conf_req.type = configs_pb2.ENB_CONF_REQUEST
-        conf_req.enb_conf_req.layer = configs_pb2.LC_ALL
-
-        LOG.info("Sending eNB config request to VBSP %s (%u)",
-                 self.vbs.addr, enb_id)
-
-        self.stream_send(enb_req)
-
-    def send_ue_conf_req(self):
-        """ Send request for UE configurations in eNB """
-
-        ue_req = main_pb2.emage_msg()
+        ues_id_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
-
         # Transaction identifier is zero by default.
-        create_header(0, enb_id, main_pb2.CONF_REQ, ue_req.head)
-        conf_req = ue_req.mConfs
+        create_header(0, enb_id, ues_id_req.head)
 
-        conf_req.type = configs_pb2.UE_CONF_REQUEST
-        conf_req.ue_conf_req.layer = configs_pb2.LC_ALL
+        # Creating a trigger message to fetch UE RNTIs
+        trigger_msg = ues_id_req.te
+        trigger_msg.action = main_pb2.EA_ADD
 
-        LOG.info("Sending UE config request to VBSP %s (%u)",
+        UEs_id_msg = trigger_msg.mUEs_id
+        UEs_id_req_msg = UEs_id_msg.req
+
+        UEs_id_req_msg.dummy = 1
+
+        LOG.info("Sending UEs request to VBS %s (%u)",
                  self.vbs.addr, enb_id)
 
-        self.stream_send(ue_req)
+        self.stream_send(ues_id_req)
+
+    def send_rrc_meas_conf_req(self, ue):
+        """ Sends a request for RRC measurements configuration of UE """
+
+        rrc_m_conf_req = main_pb2.emage_msg()
+
+        enb_id = ether_to_hex(self.vbs.addr)
+        # Transaction identifier is zero by default.
+        create_header(0, enb_id, rrc_m_conf_req.head)
+
+        # Creating a trigger message to fetch UE RNTIs
+        trigger_msg = rrc_m_conf_req.te
+        trigger_msg.action = main_pb2.EA_ADD
+
+        rrc_m_conf_msg = trigger_msg.mUE_rrc_meas_conf
+        rrc_m_conf_req_msg = rrc_m_conf_msg.req
+
+        rrc_m_conf_req_msg.rnti = ue.rnti
+
+        LOG.info("Sending UEs RRC measurement config request to VBS %s (%u)",
+                 self.vbs.addr, enb_id)
+
+        self.stream_send(rrc_m_conf_req)
 
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
@@ -338,6 +376,8 @@ class VBSPConnection(object):
         # reset state
         self.vbs.last_seen = 0
         self.vbs.connection = None
+        self.vbs.ues = {}
+        self.vbs.period = 0
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to self."""

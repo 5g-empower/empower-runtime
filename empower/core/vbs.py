@@ -41,7 +41,6 @@ class VBS(BasePNFDev):
 
     def __init__(self, addr, label):
         super().__init__(addr, label)
-        self.cc_configs = {}
         self.ues = {}
 
     @property
@@ -54,7 +53,6 @@ class VBS(BasePNFDev):
         """Return a JSON-serializable dictionary representing the VBS."""
 
         out = super().to_dict()
-        out['cc_configs'] = self.cc_configs,
         out['ues'] = self.ues
 
         return out
