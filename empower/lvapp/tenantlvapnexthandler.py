@@ -30,9 +30,9 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant/LVAP/Port/Next Handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/?",
+                r"/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:;=]*)/?"]
+                r"/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
 
     def initialize(self, server):
         self.server = server
@@ -53,7 +53,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) != 3:
+            if len(args) < 3 or len(args) > 4:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -65,13 +65,18 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvap.ports[port_id]
 
-            self.write_as_json(port.next)
-            self.set_status(200, None)
+            if len(args) == 3:
+                self.write_as_json(port.next)
+            else:
+                match = args[3]
+                self.write_as_json(port.next[match])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
+
+        self.set_status(200, None)
 
     def post(self, *args, **kwargs):
         """Set next flow rules.
@@ -136,7 +141,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-        self.set_status(204, None)
+        self.set_status(201, None)
 
     def delete(self, *args, **kwargs):
         """Delete next flow rules.
@@ -155,22 +160,8 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) != 3:
+            if len(args) != 4:
                 raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "match" not in request:
-                raise ValueError("missing match element")
-
-            match = request['match']
-
-            if not isinstance(match, str):
-                raise ValueError("Field match must be a string, got %s",
-                                 type(match))
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
@@ -180,6 +171,8 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
             port_id = int(args[2])
             port = lvap.ports[port_id]
+
+            match = args[3]
 
             del port.next[match]
 

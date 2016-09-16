@@ -369,6 +369,42 @@ class Module(object):
         pass
 
 
+class ModuleTrigger(Module):
+    """Module Trigger object.
+
+    Works like the module object. The only difference is that the every
+    parameter is ignored.
+    """
+
+    def start(self):
+        """Start worker."""
+
+        self.run_once()
+
+    def stop(self):
+        """Stop worker."""
+
+        pass
+
+    def to_dict(self):
+        """Return JSON-serializable representation of the object."""
+
+        out = {'id': self.module_id,
+               'module_type': self.module_type,
+               'tenant_id': self.tenant_id,
+               'callback': self.callback}
+
+        return out
+
+    def __eq__(self, other):
+
+        if isinstance(other, Module):
+            return self.module_type == other.module_type and \
+                self.tenant_id == other.tenant_id
+
+        return False
+
+
 class ModuleWorker(object):
     """Module worker.
 

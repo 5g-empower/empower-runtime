@@ -36,6 +36,7 @@ if __name__ == "__main__":
              'events.lvapleave',
              'events.lvapjoin',
              'counters.counters',
+             'txp_bin_counter.txp_bin_counter',
              'maps.ucqm',
              'maps.ncqm',
              'triggers.rssi',
@@ -48,7 +49,6 @@ if __name__ == "__main__":
              'events.lvnfleave',
              'lvnf_ems.lvnf_get',
              'lvnf_ems.lvnf_set',
-             'lvnf_stats.lvnf_stats',
-             ]
+             'lvnf_stats.lvnf_stats']
 
     main(ARGVS)

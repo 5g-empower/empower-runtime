@@ -27,7 +27,7 @@ from empower.main import RUNTIME
 def ofmatch_d2s(key):
     """Convert an OFMatch from dictionary to string."""
 
-    match = ";".join(["%s=%s" % x for x in sorted(key.items())])
+    match = ",".join(["%s=%s" % x for x in sorted(key.items())])
     return match
 
 
@@ -36,7 +36,7 @@ def ofmatch_s2d(match):
 
     key = {}
 
-    for token in match.split(";"):
+    for token in match.split(","):
         key_t, value_t = token.split("=")
         key[key_t] = value_t
 
@@ -48,11 +48,12 @@ class VirtualPort(object):
 
     def __init__(self, virtual_port_id, phy_port):
 
+        self.virtual_port_id = virtual_port_id
         self.dpid = phy_port.dpid
         self.ovs_port_id = phy_port.port_id
-        self.virtual_port_id = virtual_port_id
         self.hwaddr = phy_port.hwaddr
         self.iface = phy_port.iface
+
         self.next = dict()
 
     def clear(self):
@@ -148,15 +149,6 @@ class VirtualPortPropLvap(VirtualPortProp):
 
         if value and not isinstance(value, VirtualPort):
             raise KeyError("Expected VirtualPort, got %s" % type(key))
-
-        # if encap is set, then all outgoing traffic must go to THE SAME
-        # LVNF. This is because the outgoing traffic will be LWAPP
-        # encapsulated and as such cannot be handled anyway by OF
-        # switches. Ignore totally the specified key and silently use as
-        # key the LWAPP src and dst addresses. Notice that this will send
-        # as many intents as the number of blocks.
-        if self.obj.encap != EtherAddress("00:00:00:00:00:00"):
-            key = "dl_src=%s;dl_dst=%s" % (self.obj.addr, self.obj.encap)
 
         # remove virtual link
         if self.__contains__(key):

@@ -26,8 +26,6 @@ from urllib.parse import urlparse
 
 from empower.core.jsonserializer import EmpowerEncoder
 
-from empower.main import RUNTIME
-
 import empower.logger
 LOG = empower.logger.get_logger()
 

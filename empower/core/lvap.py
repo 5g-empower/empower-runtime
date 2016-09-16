@@ -363,7 +363,7 @@ class LVAP(object):
         # downlink block
         default_block = pool.pop()
 
-        # if block is used in the uplink direction, then remove it first
+        # check if block is also in the uplink, if so remove it
         if default_block in self._uplink:
             del self._uplink[default_block]
 
@@ -484,21 +484,19 @@ class LVAP(object):
     def port(self):
         """Return the port on which this LVAP is scheduled. """
 
-        if not self.downlink:
+        if not self.default_block:
             return None
 
-        default_port = next(iter(self.downlink.values()))
-        return default_port
+        return self.downlink[self.default_block]
 
     @port.setter
     def port(self, value):
         """Set the Port."""
 
-        if not self.scheduled_on:
+        if not self.default_block:
             return None
 
-        default_block = next(iter(self.downlink.keys()))
-        self.downlink[default_block] = value
+        self.downlink[self.default_block] = value
 
     @property
     def default_block(self):
@@ -514,19 +512,20 @@ class LVAP(object):
     def wtp(self):
         """Return the wtp on which this LVAP is scheduled on."""
 
-        if not self.downlink:
+        if not self.default_block:
             return None
 
-        default_block = next(iter(self.downlink.keys()))
-        return default_block.radio
+        return self.default_block.radio
 
     @wtp.setter
     def wtp(self, wtp):
         """Assigns LVAP to new wtp."""
 
-        default_block = next(iter(self.downlink.keys()))
-        matching = wtp.supports & ResourcePool([default_block])
-        self.downlink = matching.pop() if matching else None
+        if not self.default_block:
+            return None
+
+        matching = wtp.supports & ResourcePool([self.default_block])
+        self.scheduled_on = matching.pop() if matching else None
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
@@ -537,8 +536,9 @@ class LVAP(object):
                 'port': self.port,
                 'ports': self.ports,
                 'wtp': self.wtp,
-                'downlink': [k for k in self.downlink.keys()],
-                'uplink': [k for k in self.uplink.keys()],
+                'scheduled_on': self.scheduled_on,
+                'downlink': [k for k in self._downlink.keys()],
+                'uplink': [k for k in self._uplink.keys()],
                 'ssids': self.ssids,
                 'assoc_id': self.assoc_id,
                 'ssid': self.ssid,
