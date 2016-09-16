@@ -35,7 +35,7 @@ if __name__ == "__main__":
              'events.wtpup',
              'events.lvapleave',
              'events.lvapjoin',
-             'counters.counters',
+             'bin_counter.bin_counter',
              'txp_bin_counter.txp_bin_counter',
              'maps.ucqm',
              'maps.ncqm',
