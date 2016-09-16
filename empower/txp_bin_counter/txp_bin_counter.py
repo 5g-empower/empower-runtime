@@ -221,7 +221,6 @@ class TXPBinCounter(Module):
         msg = TXP_BIN_COUNTER_REQUEST.build(stats_req)
         wtp.connection.stream.write(msg)
 
-
     def fill_bytes_samples(self, data):
         """ Compute samples.
 
