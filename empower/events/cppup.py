@@ -28,6 +28,16 @@ class CPPUp(Module):
 
     MODULE_NAME = "cppup"
 
+    def run_once(self):
+        """This will be executed only once after initialization."""
+
+        for cpp in RUNTIME.tenants[self.tenant_id].cpps.values():
+
+            if not cpp.connection:
+                continue
+
+            cpp.connection.send_register_message_to_self()
+
     def handle_response(self, register):
         """ Handle an REGISTER message.
 

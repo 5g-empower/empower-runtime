@@ -727,6 +727,9 @@ class LVAPPConnection(object):
 
             wtp.ports[network_port.port_id] = network_port
 
+        # WTP can be considered as available once the empower0 port has been
+        # added to the OVS
+        if wtp.port():
             self.send_register_message_to_self()
 
     @classmethod
