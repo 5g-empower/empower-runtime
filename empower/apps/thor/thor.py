@@ -38,7 +38,7 @@ class Thor(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        self.__max_lvaps_per_wtp = 2
+        self.__max_lvaps_per_wtp = None
         self.__idle_cycles = {}
         EmpowerApp.__init__(self, **kwargs)
 
@@ -118,7 +118,7 @@ class Thor(EmpowerApp):
                     self.__idle_cycles[wtp] = self.__idle_cycles[wtp] + 1
 
 
-def launch(tenant_id, max_lvaps_per_wtp=2, every=DEFAULT_PERIOD):
+def launch(tenant_id, max_lvaps_per_wtp=1, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
     return Thor(tenant_id=tenant_id, max_lvaps_per_wtp=max_lvaps_per_wtp,

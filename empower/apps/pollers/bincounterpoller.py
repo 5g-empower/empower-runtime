@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Counters Poller Apps."""
+"""Bin counter Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class CountersPoller(EmpowerApp):
-    """Counters Poller Apps.
+class BinCounterPoller(EmpowerApp):
+    """Bin Counter Poller Apps.
 
     Command Line Parameters:
 
@@ -43,8 +43,8 @@ class CountersPoller(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap.counters(bins=[512, 1472, 8192], every=self.every,
-                      callback=self.counters_callback)
+        lvap.bin_counter(bins=[512, 1472, 8192], every=self.every,
+                         callback=self.counters_callback)
 
     def counters_callback(self, stats):
         """ New stats available. """
@@ -55,4 +55,4 @@ class CountersPoller(EmpowerApp):
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return CountersPoller(tenant_id=tenant_id, every=every)
+    return BinCounterPoller(tenant_id=tenant_id, every=every)

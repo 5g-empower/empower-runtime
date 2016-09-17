@@ -178,6 +178,7 @@ class TXPBinCounter(Module):
         out = super().to_dict()
 
         out['bins'] = self.bins
+        out['mcast'] = self.mcast
         out['tx_bytes'] = self.tx_bytes
         out['tx_packets'] = self.tx_packets
 

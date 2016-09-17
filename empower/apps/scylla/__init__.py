@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""EmPOWER application implementing an uplink/downlink decoupling mechanism with LVNF Chainings."""
+"""EmPOWER application implementing an LVNF Chaining."""

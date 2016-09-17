@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic mobility manager."""
+"""Hello Manager App."""
