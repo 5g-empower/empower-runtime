@@ -328,12 +328,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                     NetworkPort(lvnf.cpp.addr, ovs_port_id, hwaddr, iface)
 
                 virtual_port = VirtualPortLvnf(virtual_port_id=virtual_port_id,
-                                               phy_port=phy_port,
-                                               obj=lvnf)
-
-                # these are used by the overridden dict methods
-                virtual_port.next.lvnf = lvnf
-                virtual_port.next.port = virtual_port
+                                               phy_port=phy_port)
 
                 lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 

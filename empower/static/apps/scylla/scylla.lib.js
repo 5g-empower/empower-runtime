@@ -1,6 +1,5 @@
 
 selectedLvap = "18:5E:0F:E2:10:8F"
-//selectedLvap = "80:00:0B:6A:9B:81"
 lvap = null
 
 Lvnf_Dupe_Filter = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"
@@ -32,7 +31,7 @@ function initialize() {
     lvapDown(selectedLvap)
     lvnfDown(Lvnf_To_Dump)
     lvnfDown(Lvnf_Dupe_Filter)
-    
+
     var inputDiv = document.getElementById('incoming');
     inputGraph2D = new vis.Graph2d(inputDiv, inputDataset, options);
     renderStep(inputGraph2D);
