@@ -476,48 +476,6 @@ function removeTenantRequest(tenant_id) {
     });
 }
 
-function loadApps(username) {
-
-    $.ajax({
-        url: url = '/api/v1/components?user=' + username,
-        type: 'GET',
-        dataType: 'json',
-        cache: false,
-        success: function (data) {
-            var table = document.getElementById('apps');
-            var rows = table.rows.length
-            while (rows--) {
-                table.deleteRow(rows);
-            }
-            r = 0
-            a = 0
-            var table = document.getElementById("apps");
-            var row = table.insertRow(r);
-            for (var stream in data) {
-                if (a % 3 == 0) {
-                    r++
-                    var row = table.insertRow(r);
-                }
-                url = "/apps/" + stream.split(":")[0]  + "/" + stream.split(":")[1] + "/index.html"
-                appicon = "/apps/" + stream.split(":")[0]  + "/static/appicon.png"
-                var icon = row.insertCell(a);
-                icon.style.textAlign = "center"
-                icon.innerHTML = "<a target=\"_blank\" href=\"" + url + "\"><img class=\"appicon\" src=\"" + appicon + "\" /></a><br />"
-                label = stream.split(":")[0].replace("empower.apps.", "")
-                n = label.split('.')
-                if (n.length >= 2) {
-                    if (n[n.length-1] == n[n.length-2]) {
-                        n.splice(-1, 1);
-                    }
-                    label = n.join(".")
-                }
-                icon.innerHTML += label + "<br />" + stream.split(":")[1]
-                a++
-            }
-        },
-    });
-}
-
 function loadTenantsAdmin(username) {
     loadTenants(username, true)
 }
@@ -1566,14 +1524,22 @@ function refreshLVAPs() {
             }
             // remove old LVAPs
             for (idLvap in lvaps) {
-                dl = JSON.stringify(newLvaps[idLvap].downlink) == JSON.stringify(lvaps[idLvap].downlink)
-                ul = JSON.stringify(newLvaps[idLvap].uplink) == JSON.stringify(lvaps[idLvap].uplink)
-                changed = !(dl && ul)
-                if (!newLvaps[idLvap] || changed) {
+                if (!newLvaps[idLvap]) {
                     var idWtp = lvaps[idLvap].wtp.addr
                     delete wtps[idWtp]['lvaps'][idLvap]
                     delete lvaps[idLvap]
                     lvapDown(idLvap, idWtp)
+                }
+                if (newLvaps[idLvap]) {
+                    dl = JSON.stringify(newLvaps[idLvap].downlink) == JSON.stringify(lvaps[idLvap].downlink)
+                    ul = JSON.stringify(newLvaps[idLvap].uplink) == JSON.stringify(lvaps[idLvap].uplink)
+                    changed = !(dl && ul)
+                    if (changed) {
+                        var idWtp = lvaps[idLvap].wtp.addr
+                        delete wtps[idWtp]['lvaps'][idLvap]
+                        delete lvaps[idLvap]
+                        lvapDown(idLvap, idWtp)
+                    }
                 }
             }
             // add new LVAPs
@@ -1606,13 +1572,15 @@ function refreshWTPs() {
                     continue
                 }
                 if (wtps[idWtp].connection && !data[node].connection) {
+                    wtps[idWtp].connection = data[node].connection
+                    wtps[idWtp].feed = data[node].feed
                     wtpDown(idWtp)
                 }
                 if (!wtps[idWtp].connection && data[node].connection) {
+                    wtps[idWtp].connection = data[node].connection
+                    wtps[idWtp].feed = data[node].feed
                     wtpUp(idWtp)
                 }
-                wtps[idWtp].connection = data[node].connection
-                wtps[idWtp].feed = data[node].feed
             }
         });
 }

@@ -51,9 +51,11 @@ function lvapDown(idLvap, idWtp) {
 }
 
 function wtpUp(idWtp) {
+
     if (!wtps[idWtp].feed) {
         return
     }
+
     if (!wtps[idWtp]['gauge']) {
 
         idGaugeElm = "chart_" + idWtp.replace(/\:/g, '_')
@@ -72,11 +74,14 @@ function wtpUp(idWtp) {
     }
 
     src = (!wtps[idWtp].connection) ? "/static/apps/thor/ap_off.png" : "/static/apps/thor/ap_on.png"
+
     $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
 
 }
 
 function wtpDown(idWtp) {
+
     src = (!wtps[idWtp].connection) ? "/static/apps/thor/ap_off.png" : "/static/apps/thor/ap_on.png"
+
     $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
 }
