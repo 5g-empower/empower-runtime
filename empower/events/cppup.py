@@ -74,6 +74,7 @@ def app_cppup(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
+    kwargs['every'] = -1
     return cppup(**kwargs)
 
 

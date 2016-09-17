@@ -55,7 +55,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
     HANDLERS = [r"/"]
 
     def initialize(self, server):
-        self.pnfdev = None
+        self.cpp = None
         self.addr = None
         self.server = server
 
@@ -115,8 +115,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         msg = {'version': PT_VERSION,
                'type': PT_BYE,
-               'seq': self.pnfdev.seq,
-               'addr': self.pnfdev.addr}
+               'seq': self.cpp.seq,
+               'addr': self.cpp.addr}
 
         self.handle_message(msg)
 
@@ -125,26 +125,26 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         msg = {'version': PT_VERSION,
                'type': PT_REGISTER,
-               'seq': self.pnfdev.seq,
-               'addr': self.pnfdev.addr}
+               'seq': self.cpp.seq,
+               'addr': self.cpp.addr}
 
         self.handle_message(msg)
 
     def on_close(self):
         """ Handle PNFDev disconnection """
 
-        if not self.pnfdev:
+        if not self.cpp:
             return
 
         # reset state
-        self.pnfdev.connection = None
-        self.pnfdev.ports = {}
+        self.cpp.connection = None
+        self.cpp.ports = {}
 
         # remove hosted lvnfs
         to_be_removed = []
         for tenant in RUNTIME.tenants.values():
             for lvnf in tenant.lvnfs.values():
-                if lvnf.cpp == self.pnfdev:
+                if lvnf.cpp == self.cpp:
                     to_be_removed.append(lvnf)
 
         for lvnf in to_be_removed:
@@ -160,25 +160,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         message['version'] = PT_VERSION
         message['type'] = message_type
-        message['seq'] = self.pnfdev.seq
+        message['seq'] = self.cpp.seq
 
         LOG.info("Sending %s seq %u", message['type'], message['seq'])
         self.write_message(json.dumps(message, cls=EmpowerEncoder))
-
-    def _handle_bye(self, _):
-        """Handle an incoming PNFDEV_BYE message.
-
-        Args:
-            hello, a PNFDEV_BYE message
-
-        Returns:
-            None
-        """
-
-        # reset PNFDev state
-        self.pnfdev.last_seen = 0
-        self.pnfdev.last_seen_ts = 0
-        self.pnfdev.telemetry = {}
 
     def _handle_hello(self, hello):
         """Handle an incoming PNFDEV_HELLO message.
@@ -190,28 +175,33 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
 
-        addr = EtherAddress(hello['addr'])
-        pnfdev = self.server.pnfdevs[addr]
+        cpp_addr = EtherAddress(hello['addr'])
+
+        try:
+            cpp = RUNTIME.cpps[cpp_addr]
+        except KeyError:
+            LOG.info("Hello from unknown CPP (%s)", cpp_addr)
+            raise KeyError("Hello from unknown CPP (%s)", cpp_addr)
 
         # New connection
-        if not pnfdev.connection:
+        if not cpp.connection:
 
             # save remote address
             self.addr = self.request.remote_ip
 
             # set pointer to pnfdev object
-            self.pnfdev = pnfdev
+            self.cpp = cpp
 
             # set connection (this will trigger a register message)
-            pnfdev.connection = self
+            cpp.connection = self
 
             # generate register message
             self.send_register_message_to_self()
 
         # Update PNFDev params
-        pnfdev.every = hello['every']
-        pnfdev.last_seen = hello['seq']
-        pnfdev.last_seen_ts = time.time()
+        cpp.period = hello['every']
+        cpp.last_seen = hello['seq']
+        cpp.last_seen_ts = time.time()
 
     def _handle_caps(self, caps):
         """Handle an incoming cap response message.

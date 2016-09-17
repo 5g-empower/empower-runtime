@@ -194,22 +194,17 @@ class LVAPPConnection(object):
 
         LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
 
-        # If this is a new connection, then send caps request
         if not wtp.connection:
-            # set wtp before connection because it is used when the
-            # connection attribute of the PNFDev object is set
             self.wtp = wtp
             wtp.connection = self
 
         # Update WTP params
         wtp.period = hello.period
         wtp.last_seen = hello.seq
-
         wtp.last_seen_ts = time.time()
 
         # Upon connection to the controller, the WTP must be provided
         # with the list of shared VAP
-
         for tenant in RUNTIME.tenants.values():
 
             # tenant does not use shared VAPs
