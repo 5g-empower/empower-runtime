@@ -34,7 +34,7 @@ GRAPH_TOP_BOTTOM_MARGIN = 40
 GRAPH_LEFT_RIGHT_MARGIN = 40
 GRAPH_MAX_WIDTH = 550 - GRAPH_LEFT_RIGHT_MARGIN
 GRAPH_MAX_HEIGHT = 750 - GRAPH_TOP_BOTTOM_MARGIN
-MIN_DISTANCE = 45
+MIN_DISTANCE = 70
 N_XY = 300
 
 UE_MAC_ADDR1 = 'A0:39:F7:4C:AB:87'
@@ -141,9 +141,9 @@ class SignalGraph(EmpowerApp):
 
                 active_flag = 1
 
-                if (lvaps[addr['addr']].wtp != poller.block.addr):
+                if (lvaps[addr['addr']].wtp.addr != poller.block.addr):
                     active_flag = 0
-                elif ((lvaps[addr['addr']].wtp == poller.block.addr and \
+                elif ((lvaps[addr['addr']].wtp.addr == poller.block.addr and \
                             (lvaps[addr['addr']].association_state == False))):
                     active_flag = 0
 

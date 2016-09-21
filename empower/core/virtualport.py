@@ -215,8 +215,8 @@ class VirtualPortPropLvnf(VirtualPortProp):
         intent = {'version': '1.0',
                   'ttp_dpid': value.dpid,
                   'ttp_port': value.ovs_port_id,
-                  'stp_dpid': self.obj.dpid,
-                  'stp_port': self.obj.port_id,
+                  #'stp_dpid': self.obj.dpid,
+                  #'stp_port': self.obj.port_id,
                   'match': ofmatch_s2d(key)}
 
         # add new virtual link

@@ -17,7 +17,7 @@ var selected_ue = $("#ueSelect :selected").val();
             "cell_to_measure": [],\
             "blacklist_cells": [],\
             "bandwidth": 50,\
-            "carrier_freq": 6400,\
+            "carrier_freq": 6300,\
             "report_type": "periodical_ref_signal",\
             "threshold1" : {\
                               "type": "RSRP",\
@@ -96,6 +96,9 @@ var signalChart = c3.generate({
         columns: [
         ],
         type: 'spline'
+    },
+    legend: {
+        show: false
     }
 });
 
