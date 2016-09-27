@@ -496,6 +496,18 @@ class LVAPPConnection(object):
                     LOG.info("Deleting VAP: %s", vap.net_bssid)
                     del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
+    def remove_lvap(self,lvap):
+        # Raise LVAP leave event
+        LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
+        for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
+            handler(lvap)
+        # removing LVAP from tenant, need first to look for right tenant
+        if lvap.addr in lvap.tenant.lvaps:
+            LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
+            del lvap.tenant.lvaps[lvap.addr]
+        self.send_del_lvap(lvap)
+        del RUNTIME.lvaps[lvap.addr]
+
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
 
