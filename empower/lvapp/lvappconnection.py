@@ -497,6 +497,8 @@ class LVAPPConnection(object):
                     del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
     def remove_lvap(self,lvap):
+        """Remove LVAP from tenant and the network"""
+
         # Raise LVAP leave event
         LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
         for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
