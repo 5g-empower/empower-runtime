@@ -23,7 +23,6 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.main import RUNTIME
 from empower.maps.ucqm import ucqm
-from empower.maps.ncqm import ncqm
 from empower.events.wtpup import wtpup
 
 from empower.main import RUNTIME
@@ -54,6 +53,7 @@ class SignalGraph(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
+
         EmpowerApp.__init__(self, **kwargs)
         self.graphData = {}
 
@@ -242,8 +242,10 @@ class SignalGraph(EmpowerApp):
                                             'y': self.coord[node_id][1]
                                             })
 
+                        neigh_cells.append(cell)
+
                 # Index of cell in nodes array
-                cell_index = 0
+                cell_index = None
 
                 # Store primary cell measurements per UE
                 for n in graph_nodes:
@@ -266,7 +268,7 @@ class SignalGraph(EmpowerApp):
 
                 for key, m in measurements.items():
 
-                    cell_index = 0
+                    cell_index = None
 
                     for n in graph_nodes:
                         if (n['node_id'] == key) and (n['entity'] == 'enb'):

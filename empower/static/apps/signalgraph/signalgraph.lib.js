@@ -232,8 +232,9 @@ function updateSignalGraph() {
             .attr('class', 'link')
             .style('stroke', function(d) { return d.color; })
             .style('stroke-width', function(d) { return d.width; })
-            .classed('neigh_cell', function(d) { return (d.width == 4); })
-            .on("mouseover", function(d) {
+            .classed('neigh_cell', function(d) { return (d.width == 4); });
+
+    nw_paths.on("mouseover", function(d) {
                 tp_div.transition()
                     .duration(500)
                     .style("opacity", 0);
@@ -252,6 +253,10 @@ function updateSignalGraph() {
                 }
             });
 
+    nw_paths.style('stroke', function(d) { return d.color; })
+            .style('stroke-width', function(d) { return d.width; })
+            .classed('neigh_cell', function(d) { return (d.width == 4); });
+
     nw_paths.exit().remove();
 
     nw_enbs = nw_enbs.data(g_nodes.filter(function(d) {
@@ -267,7 +272,10 @@ function updateSignalGraph() {
             .attr('xlink:href', "/static/apps/signalgraph/bs.png")
             .attr('width', 50)
             .attr('height', 50)
-            .on("mouseover", function(d) {
+            .on("dblclick", dblclick)
+            .call(drag);
+
+    nw_enbs.on("mouseover", function(d) {
                 tp_div.transition()
                     .duration(500)
                     .style("opacity", 0);
@@ -277,9 +285,11 @@ function updateSignalGraph() {
                 tp_div .html(d.tooltip + ": " + d.node_id)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("dblclick", dblclick)
-            .call(drag);
+            });
+
+    nw_enbs.attr('xlink:href', "/static/apps/signalgraph/bs.png")
+            .attr('width', 50)
+            .attr('height', 50);
 
     nw_enbs.exit().remove();
 
@@ -296,7 +306,10 @@ function updateSignalGraph() {
             .attr('xlink:href', "/static/apps/signalgraph/wifi.png")
             .attr('width', 40)
             .attr('height', 40)
-            .on("mouseover", function(d) {
+            .on("dblclick", dblclick)
+            .call(drag);
+
+    nw_wtps.on("mouseover", function(d) {
                 tp_div.transition()
                     .duration(500)
                     .style("opacity", 0);
@@ -306,9 +319,11 @@ function updateSignalGraph() {
                 tp_div .html(d.tooltip + ": " + d.node_id)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("dblclick", dblclick)
-            .call(drag);
+            });
+
+    nw_wtps.attr('xlink:href', "/static/apps/signalgraph/wifi.png")
+            .attr('width', 40)
+            .attr('height', 40);
 
     nw_wtps.exit().remove();
 
@@ -327,18 +342,7 @@ function updateSignalGraph() {
         .attr('r', 13)
         .style('fill', function(d) { return colors(d.id); })
         .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
-        .style('stroke-width', '2.5px')
-        .on("mouseover", function(d) {
-            tp_div.transition()
-                .duration(500)
-                .style("opacity", 0);
-            tp_div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            tp_div .html(d.tooltip + ": " + d.node_id)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-        })
+        .style('stroke-width', '2.5px');
 
     gue.append('svg:text')
         .attr('x', 0)
@@ -348,8 +352,25 @@ function updateSignalGraph() {
             return "UE";
         });
 
+    gue.on("mouseover", function(d) {
+            tp_div.transition()
+                .duration(500)
+                .style("opacity", 0);
+            tp_div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tp_div .html(d.tooltip + ": " + d.node_id)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        });
+
     gue.on("dblclick", dblclick)
         .call(drag);
+
+    gue.selectAll('circle')
+        .style('fill', function(d) { return colors(d.id); })
+        .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
+        .style('stroke-width', '2.5px');
 
     nw_ues.exit().remove();
 
@@ -439,7 +460,7 @@ function loadUEsSelectBox() {
                 $("#ueSelect option").filter(function(index) {
                     return $(this).val() == selected_ue;
                 }).remove();
-                ue_values.splice(ue_values.indexOf(selected_ue),1);
+                ue_values.splice(ue_values.indexOf(selected_ue), 1);
             }
         }
 
@@ -450,7 +471,7 @@ function loadUEsSelectBox() {
                 for (ue_index in ue_data) {
                     if (value == ue_data[ue_index].node_id) {
                         exist_flag = true;
-                        ue_data.splice(ue_index,1);
+                        ue_data.splice(ue_index, 1);
                         break;
                     }
                 }
@@ -470,6 +491,7 @@ function loadUEsSelectBox() {
 
 var data_set = {};
 var prevStatType = "";
+var prevSelected_ue = "";
 
 function updateSignalChart() {
 
@@ -479,28 +501,32 @@ function updateSignalChart() {
         var selected_ue = $("#ueSelect :selected").val();
 
         if ((links === null) || (links === undefined) ||
-                (selected_ue === null) || (selected_ue === "") ||
-                    (statsType === "") || (statsType === null) ||
-                        (prevStatType !== statsType && prevStatType !== "")) {
+            (selected_ue === null) || (selected_ue === "") ||
+            (statsType === "") || (statsType === null) ||
+            (prevStatType !== statsType && prevStatType !== "") ||
+            (prevSelected_ue !== selected_ue && prevSelected_ue !== "")) {
 
             signalChart.unload();
             prevStatType = "";
+            prevSelected_ue = "";
             data_set = {};
 
         } else {
 
-            var ls = links.slice(0);
+            var ls_copy = links.slice(0);
+            var ls = [];
 
+            prevSelected_ue = selected_ue;
             prevStatType = statsType;
 
             if (statsType !== 'rssi') {
 
-                for (var id in links) {
-                    var li = links[id];
-                    if (li["entity"] !== "lte" &&
-                        ((li["source"].node_id === selected_ue)
-                                    && (li["target"].node_id === selected_ue))) {
-                        ls.splice(id, 1);
+                for (var id in ls_copy) {
+                    var li = ls_copy[id];
+                    if (li["entity"] === "lte" &&
+                        ((li["source"].node_id == selected_ue)
+                                || (li["target"].node_id == selected_ue))) {
+                        ls.push(li);
                     }
                 }
 
@@ -508,9 +534,17 @@ function updateSignalChart() {
 
                     var l = ls[i];
 
+                    if (l["rsrp"] === null) {
+                        continue;
+                    }
+
+                    if (l["rsrq"] === null) {
+                        continue;
+                    }
+
                     var index = null;
 
-                    if (l["source"].node_id === selected_ue) {
+                    if (l["source"].node_id == selected_ue) {
                         index = l["target"].tooltip + ":" + l["target"].node_id.toString();
                     } else {
                         index = l["source"].tooltip + ":" + l["source"].node_id.toString();
@@ -553,12 +587,13 @@ function updateSignalChart() {
                 }
             } else if ((links != null) && (statsType === 'rssi')) {
 
-                for (var id in links) {
-                    var li = links[id];
-                    if (li["entity"] !== "wifi" &&
-                        ((li["source"].node_id === selected_ue)
-                                    && (li["target"].node_id === selected_ue))) {
-                        ls.splice(id, 1);
+                for (var id in ls_copy) {
+                    var li = ls_copy[id];
+
+                    if (li["entity"] === "wifi" &&
+                        ((li["source"].node_id == selected_ue)
+                                || (li["target"].node_id == selected_ue))) {
+                        ls.push(li);
                     }
                 }
 
@@ -566,9 +601,13 @@ function updateSignalChart() {
 
                     var l = ls[i];
 
+                    if (l["rssi"] === null) {
+                        continue;
+                    }
+
                     var index = null;
 
-                    if (l["source"].node_id === selected_ue) {
+                    if (l["source"].node_id == selected_ue) {
                         index = l["target"].tooltip + ":" + l["target"].node_id.toString();
                     } else {
                         index = l["source"].tooltip + ":" + l["source"].node_id.toString();
