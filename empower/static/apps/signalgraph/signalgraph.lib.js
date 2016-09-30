@@ -129,36 +129,34 @@ function fetchSignalData(tenant_id) {
 
             var graph_data = data['graphData']
 
+            var existing_nodes = nodes.slice(0);
+
+            links.splice(0, links.length);
+            nodes.splice(0, nodes.length);
+
             /* Iterate through already existing nodes. */
-            for (var k in nodes) {
+            for (var k in existing_nodes) {
                 /* Existing node. */
-                var en = nodes[k];
-                var not_exist = 1;
+                var en = existing_nodes[k];
 
                 for (var i in graph_data.nodes) {
                     /* Node from API JSON result. */
                     var n = graph_data.nodes[i];
 
-                    if (en.node_id === n.node_id &&
-                            en.entity === n.entity &&
-                                    en.id !== n.id) {
-                        /* Case of increase or decrease in num. of nodes. */
-                        not_exist = 0;
-                        nodes.splice(k, 1);
-                        break;
-                    } else if (en.node_id === n.node_id &&
-                                    en.entity === n.entity &&
-                                        en.id === n.id) {
-                        /* Case of node being identical. */
-                        not_exist = 0;
+                    if (en.node_id === n.node_id && en.entity === n.entity) {
+                        var node = {
+                            id: n.id,
+                            node_id: n.node_id,
+                            entity: n.entity,
+                            tooltip: n.tooltip,
+                            x: en.x,
+                            y: en.y,
+                            fixed: en.fixed
+                           };
+                        nodes.push(node);
                         graph_data.nodes.splice(i, 1);
                         break;
                     }
-                }
-
-                if (not_exist === 1) {
-                    /* Node no longer exists so remove it. */
-                    nodes.splice(k, 1);
                 }
             }
 
@@ -172,85 +170,12 @@ function fetchSignalData(tenant_id) {
                             tooltip: n.tooltip,
                             x: n.x,
                             y: (area_height - n.y),
+                            fixed: false
                            };
                 nodes.push(node);
             }
 
-            /* Iterate through already existing links. */
-            for (var k in links) {
-                /* Existing link. */
-                var el = links[k];
-                var not_existL = 1;
-
-                for (var i in graph_data.links) {
-                    /* Link from API JSON result. */
-                    var l = graph_data.links[i];
-
-                    var source, target;
-
-                    for (var m in nodes) {
-                        if (nodes[m].id == l.src) {
-                            source = nodes[m];
-                        }
-                        if (nodes[m].id == l.dst) {
-                            target = nodes[m];
-                        }
-                    }
-
-                    if (el.source.node_id === source.node_id &&
-                            el.source.entity === source.entity &&
-                                el.source.id !== source.id) {
-                        /* Case of increase or decrease in num. of nodes. */
-                        not_existL = 0;
-                        links.splice(k, 1);
-                        break;
-                    } else if (el.source.node_id === source.node_id &&
-                                el.source.entity === source.entity &&
-                                    el.source.id === source.id) {
-                        /* Case of link being identical. */
-                        not_existL = 0;
-                        /* Update the existing link attributes. */
-                        el.rsrp = l.rsrp;
-                        el.rsrq = l.rsrq;
-                        el.rssi = l.rssi;
-                        el.color = l.color;
-                        el.width = l.width;
-
-                        graph_data.links.splice(i, 1);
-                        break;
-                    }
-
-                    if (el.target.node_id === target.node_id &&
-                            el.target.entity === target.entity &&
-                                el.target.id !== target.id) {
-                        /* Case of increase or decrease in num. of nodes. */
-                        not_existL = 0;
-                        links.splice(k, 1);
-                        break;
-                    } else if (el.target.node_id === target.node_id &&
-                                el.target.entity === target.entity &&
-                                    el.target.id === target.id) {
-                        /* Case of link being identical. */
-                        not_existL = 0;
-                        /* Update the existing link attributes. */
-                        el.rsrp = l.rsrp;
-                        el.rsrq = l.rsrq;
-                        el.rssi = l.rssi;
-                        el.color = l.color;
-                        el.width = l.width;
-
-                        graph_data.links.splice(i, 1);
-                        break;
-                    }
-                }
-
-                if (not_existL === 1) {
-                    /* Link no longer exists so remove it. */
-                    links.splice(k, 1);
-                }
-            }
-
-            /* Whatever links remains in graph_data should be added to links. */
+            /* Add links from graph_data. */
             for (var i in graph_data.links) {
                 var l = graph_data.links[i];
 
@@ -280,7 +205,6 @@ function fetchSignalData(tenant_id) {
 
             updateSignalGraph();
             loadUEsSelectBox();
-            // updateSignalChart();
             fetchSignalData(tenant_id);
         });
 
@@ -291,15 +215,18 @@ function fetchSignalData(tenant_id) {
 /* Update graph. */
 function updateSignalGraph() {
 
+    var g_nodes = nodes.slice(0);
+    var g_links = links.slice(0);
+
     /* Setting SVG background color to white.*/
     d3.select('svg')
         .style('background-color', '#FFFFFF');
 
     force
-    .nodes(nodes)
-    .links(links);
+    .nodes(g_nodes)
+    .links(g_links);
 
-    nw_paths = nw_paths.data(links)
+    nw_paths = nw_paths.data(g_links)
 
     nw_paths.enter().append('line')
             .attr('class', 'link')
@@ -327,7 +254,7 @@ function updateSignalGraph() {
 
     nw_paths.exit().remove();
 
-    nw_enbs = nw_enbs.data(nodes.filter(function(d) {
+    nw_enbs = nw_enbs.data(g_nodes.filter(function(d) {
                                             return d.entity === "enb";
                                         }),
                                         function(d) {
@@ -356,7 +283,7 @@ function updateSignalGraph() {
 
     nw_enbs.exit().remove();
 
-    nw_wtps = nw_wtps.data(nodes.filter(function(d) {
+    nw_wtps = nw_wtps.data(g_nodes.filter(function(d) {
                                             return d.entity === "wtp";
                                         }),
                                         function(d) {
@@ -385,7 +312,7 @@ function updateSignalGraph() {
 
     nw_wtps.exit().remove();
 
-    nw_ues = nw_ues.data(nodes.filter(function(d) {
+    nw_ues = nw_ues.data(g_nodes.filter(function(d) {
                                         return d.entity === "ue";
                         }),
                         function(d) {
