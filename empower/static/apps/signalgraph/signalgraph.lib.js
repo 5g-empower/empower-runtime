@@ -129,6 +129,8 @@ function fetchSignalData(tenant_id) {
 
             var graph_data = data['graphData']
 
+            links.splice(0, links.length);
+
             /* Iterate through already existing nodes. */
             for (var k in nodes) {
                 /* Existing node. */
@@ -291,15 +293,18 @@ function fetchSignalData(tenant_id) {
 /* Update graph. */
 function updateSignalGraph() {
 
+    var g_nodes = nodes.slice(0);
+    var g_links = links.slice(0);
+
     /* Setting SVG background color to white.*/
     d3.select('svg')
         .style('background-color', '#FFFFFF');
 
     force
-    .nodes(nodes)
-    .links(links);
+    .nodes(g_nodes)
+    .links(g_links);
 
-    nw_paths = nw_paths.data(links)
+    nw_paths = nw_paths.data(g_links)
 
     nw_paths.enter().append('line')
             .attr('class', 'link')
@@ -327,7 +332,7 @@ function updateSignalGraph() {
 
     nw_paths.exit().remove();
 
-    nw_enbs = nw_enbs.data(nodes.filter(function(d) {
+    nw_enbs = nw_enbs.data(g_nodes.filter(function(d) {
                                             return d.entity === "enb";
                                         }),
                                         function(d) {
@@ -356,7 +361,7 @@ function updateSignalGraph() {
 
     nw_enbs.exit().remove();
 
-    nw_wtps = nw_wtps.data(nodes.filter(function(d) {
+    nw_wtps = nw_wtps.data(g_nodes.filter(function(d) {
                                             return d.entity === "wtp";
                                         }),
                                         function(d) {
@@ -385,7 +390,7 @@ function updateSignalGraph() {
 
     nw_wtps.exit().remove();
 
-    nw_ues = nw_ues.data(nodes.filter(function(d) {
+    nw_ues = nw_ues.data(g_nodes.filter(function(d) {
                                         return d.entity === "ue";
                         }),
                         function(d) {
