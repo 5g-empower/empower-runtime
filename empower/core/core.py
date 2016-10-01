@@ -191,6 +191,8 @@ class EmpowerRuntime(object):
         for deny in Session().query(TblDeny).all():
             if deny.addr in self.denied:
                 raise ValueError(deny.addr_str)
+
+            acl = ACL(deny.addr, deny.label)
             self.denied[deny.addr] = acl
 
     def add_allowed(self, sta_addr, label):
