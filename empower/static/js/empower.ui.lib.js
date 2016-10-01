@@ -1062,6 +1062,7 @@ function loadWTPs(tenant_id) {
     } else {
         url = "/api/v1/wtps"
     }
+    console.log(url)
     $.ajax({
         url: url,
         type: 'GET',
@@ -1566,21 +1567,17 @@ function refreshWTPs() {
                 if (!wtps[idWtp]) {
                     wtps[idWtp] = data[node]
                     wtps[idWtp]['lvaps'] = {}
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpUp(idWtp)
                     continue
                 }
                 if (wtps[idWtp].connection && !data[node].connection) {
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpDown(idWtp)
                 }
                 if (!wtps[idWtp].connection && data[node].connection) {
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpUp(idWtp)
                 }
+                wtps[idWtp].connection = data[node].connection
+                wtps[idWtp].feed = data[node].feed
             }
         });
 }

@@ -191,10 +191,16 @@ class LVAPPConnection(object):
             LOG.info("Hello from unknown WTP (%s)", wtp_addr)
             raise KeyError("Hello from unknown WTP (%s)", wtp_addr)
 
-        LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
+        LOG.info("Hello from %s WTP %s seq %u", self.addr[0], wtp.addr,
+                 hello.seq)
 
+        # New connection
         if not wtp.connection:
+
+            # set pointer to pnfdev object
             self.wtp = wtp
+
+            # set connection
             wtp.connection = self
 
         # Update WTP params

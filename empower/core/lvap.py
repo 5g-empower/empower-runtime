@@ -199,7 +199,7 @@ class LVAP(object):
 
         self.__ports[0] = VirtualPortLvap(phy_port=self.wtp.port(),
                                           virtual_port_id=0,
-                                          obj=self)
+                                          lvap=self)
 
         # set/update intent
         intent = {'version': '1.0',

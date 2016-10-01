@@ -7,8 +7,6 @@ Lvnf_To_Dump = "20c7ecf7-be9e-4643-8f98-8ac582b4bc07"
 
 lvnf = null
 
-vlan_id1 = 20
-
 eth_type = 0x0800
 nw_proto = 1
 
@@ -597,8 +595,8 @@ function chain2() {
 
     addr = lvaps[selectedLvap].addr
 
-    data = {"version":"1.0",
-            "match":"dl_src="+addr+",dl_vlan="+vlan_id1,
+    data = {"version": "1.0",
+            "match": "dl_src="+ addr,
             "next": {"lvnf_id": Lvnf_To_Dump, "port_id": 0}}
 
     $.ajax({
@@ -636,8 +634,7 @@ function unchain2() {
 
     addr = lvaps[selectedLvap].addr
 
-    data = {"version":"1.0",
-            "match":"dl_src="+addr+",dl_vlan="+vlan_id1}
+    data = {"version":"1.0", "match": "dl_src=" + addr}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next/",
