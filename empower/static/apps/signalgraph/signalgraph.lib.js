@@ -17,7 +17,7 @@ var selected_ue = $("#ueSelect :selected").val();
             "cell_to_measure": [],\
             "blacklist_cells": [],\
             "bandwidth": 50,\
-            "carrier_freq": 6300,\
+            "carrier_freq": 6400,\
             "report_type": "periodical_ref_signal",\
             "threshold1" : {\
                               "type": "RSRP",\
@@ -78,14 +78,27 @@ var svg = d3.select('#graphRow')
     .attr('width', area_width)
     .attr('height', area_height);
 
+var p, gl, gwt, gue;
+
 /* Handles to link and node element groups. */
-var paths = svg.append('svg:g'),
-    enbs = svg.append('svg:g'),
-    wtps = svg.append('svg:g'),
-    ues = svg.append('svg:g');
+var nw_paths = svg.append('svg:g').selectAll('.link'),
+    nw_enbs = svg.append('svg:g').selectAll('.enb'),
+    nw_wtps = svg.append('svg:g').selectAll('.wtp'),
+    nw_ues = svg.append('svg:g').selectAll('.ue');
+
+/* Introduce force layout in the graph. */
+var force = d3.layout.force()
+    .size([area_width, area_height])
+    .charge(-400)
+    .linkDistance(60)
+    .on("tick", tick);
+
+/* Introduce drag event. */
+var drag = force.drag()
+    .on("dragstart", dragstart);
 
 /* Define 'div' for tooltips */
-var div = d3.select('body')
+var tp_div = d3.select('body')
     .append('div')
     .attr('class', 'tooltip')
     .style('opacity', 0);
@@ -102,7 +115,6 @@ var signalChart = c3.generate({
     }
 });
 
-
 fetchSignalData(tenant_id);
 
 function fetchSignalData(tenant_id) {
@@ -115,63 +127,84 @@ function fetchSignalData(tenant_id) {
                 return;
             }
 
-            /* Clean the nodes and link arrays. */
-            nodes.splice(0, nodes.length);
-            links.splice(0, links.length);
-
-            updateSignalGraph();
-
             var graph_data = data['graphData']
 
-            // Object.keys(graph_data).forEach(function(vbs) {
-            if ("nodes" in graph_data) {
+            var existing_nodes = nodes.slice(0);
+
+            links.splice(0, links.length);
+            nodes.splice(0, nodes.length);
+
+            /* Iterate through already existing nodes. */
+            for (var k in existing_nodes) {
+                /* Existing node. */
+                var en = existing_nodes[k];
+
                 for (var i in graph_data.nodes) {
+                    /* Node from API JSON result. */
                     var n = graph_data.nodes[i];
-                    var node = {
-                                id: n.id,
-                                node_id: n.node_id,
-                                entity: n.entity,
-                                tooltip: n.tooltip,
-                                x: n.x,
-                                y: (area_height - n.y),
-                                fixed: true
-                               };
-                    nodes.push(node);
-                }
 
-                for (var i in graph_data.links) {
-                    var l = graph_data.links[i];
-
-                    var source, target;
-
-                    for (var m in nodes) {
-                        if (nodes[m].id == l.src) {
-                            source = nodes[m];
-                        }
-                        if (nodes[m].id == l.dst) {
-                            target = nodes[m];
-                        }
+                    if (en.node_id === n.node_id && en.entity === n.entity) {
+                        var node = {
+                            id: n.id,
+                            node_id: n.node_id,
+                            entity: n.entity,
+                            tooltip: n.tooltip,
+                            x: en.x,
+                            y: en.y,
+                            fixed: en.fixed
+                           };
+                        nodes.push(node);
+                        graph_data.nodes.splice(i, 1);
+                        break;
                     }
-
-                    var link = {
-                        source: source,
-                        target: target,
-                        rsrp: l.rsrp,
-                        rsrq: l.rsrq,
-                        rssi: l.rssi,
-                        color: l.color,
-                        width: l.width,
-                        entity: l.entity
-                    }
-                    links.push(link);
                 }
             }
 
-            // });
+            /* Whatever nodes remains in graph_data should be added to nodes. */
+            for (var i in graph_data.nodes) {
+                var n = graph_data.nodes[i];
+                var node = {
+                            id: n.id,
+                            node_id: n.node_id,
+                            entity: n.entity,
+                            tooltip: n.tooltip,
+                            x: n.x,
+                            y: (area_height - n.y),
+                            fixed: false
+                           };
+                nodes.push(node);
+            }
+
+            /* Add links from graph_data. */
+            for (var i in graph_data.links) {
+                var l = graph_data.links[i];
+
+                var source, target;
+
+                for (var m in nodes) {
+                    if (nodes[m].id == l.src) {
+                        source = nodes[m];
+                    }
+                    if (nodes[m].id == l.dst) {
+                        target = nodes[m];
+                    }
+                }
+
+                var link = {
+                    source: source,
+                    target: target,
+                    rsrp: l.rsrp,
+                    rsrq: l.rsrq,
+                    rssi: l.rssi,
+                    color: l.color,
+                    width: l.width,
+                    entity: l.entity
+                }
+                links.push(link);
+            }
 
             updateSignalGraph();
             loadUEsSelectBox();
-            // updateSignalChart();
             fetchSignalData(tenant_id);
         });
 
@@ -182,174 +215,135 @@ function fetchSignalData(tenant_id) {
 /* Update graph. */
 function updateSignalGraph() {
 
+    var g_nodes = nodes.slice(0);
+    var g_links = links.slice(0);
+
     /* Setting SVG background color to white.*/
     d3.select('svg')
         .style('background-color', '#FFFFFF');
 
-    /* Grouping of links. */
-    var p = paths.selectAll('path').data(links, function(d) { return d.source.id + "-" + d.target.id; });
+    force
+    .nodes(g_nodes)
+    .links(g_links);
 
-    /* Adding new links. */
-    p.enter().append('svg:path')
-        .attr('class', 'link')
-        .attr('d', function(d) {
-            return 'M' + d.source.x + ',' + d.source.y +
-                   'L' + d.target.x + ',' + d.target.y;
-        })
-        .style('stroke', function(d) { return d.color; })
-        .style('stroke-width', function(d) { return d.width; })
-        .classed('neigh_cell', function(d) { return (d.width == 4); })
-        // .classed('inactive_wtp', function(d) {
-        //     return (d.entity === "wifi" && d.width == 4);
-        // })
-        .on("mouseover", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            if (d.entity === "lte") {
-                div .html("<p>" + "RSRP: " + d.rsrp + "</br>" +
-                          "RSRQ: " + d.rsrq + "</p>")
+    nw_paths = nw_paths.data(g_links)
+
+    nw_paths.enter().append('line')
+            .attr('class', 'link')
+            .style('stroke', function(d) { return d.color; })
+            .style('stroke-width', function(d) { return d.width; })
+            .classed('neigh_cell', function(d) { return (d.width == 4); });
+
+    nw_paths.on("mouseover", function(d) {
+                tp_div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                tp_div.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                if (d.entity === "lte") {
+                    tp_div .html("<p>" + "RSRP: " + d.rsrp + "</br>" +
+                              "RSRQ: " + d.rsrq + "</p>")
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                } else {
+                    tp_div .html("RSSI: " + d.rssi)
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                }
+            });
+
+    nw_paths.style('stroke', function(d) { return d.color; })
+            .style('stroke-width', function(d) { return d.width; })
+            .classed('neigh_cell', function(d) { return (d.width == 4); });
+
+    nw_paths.exit().remove();
+
+    nw_enbs = nw_enbs.data(g_nodes.filter(function(d) {
+                                            return d.entity === "enb";
+                                        }),
+                                        function(d) {
+                                            return d.id;
+                                        });
+
+    nw_enbs.enter()
+            .append('svg:image')
+            .attr('class', 'enb')
+            .attr('xlink:href', "/static/apps/signalgraph/bs.png")
+            .attr('width', 50)
+            .attr('height', 50)
+            .on("dblclick", dblclick)
+            .call(drag);
+
+    nw_enbs.on("mouseover", function(d) {
+                tp_div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                tp_div.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tp_div .html(d.tooltip + ": " + d.node_id)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
-            } else {
-                div .html("RSSI: " + d.rssi)
+            });
+
+    nw_enbs.attr('xlink:href', "/static/apps/signalgraph/bs.png")
+            .attr('width', 50)
+            .attr('height', 50);
+
+    nw_enbs.exit().remove();
+
+    nw_wtps = nw_wtps.data(g_nodes.filter(function(d) {
+                                            return d.entity === "wtp";
+                                        }),
+                                        function(d) {
+                                            return d.id;
+                                        });
+
+    nw_wtps.enter()
+            .append('svg:image')
+            .attr('class', 'wtp')
+            .attr('xlink:href', "/static/apps/signalgraph/wifi.png")
+            .attr('width', 40)
+            .attr('height', 40)
+            .on("dblclick", dblclick)
+            .call(drag);
+
+    nw_wtps.on("mouseover", function(d) {
+                tp_div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                tp_div.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tp_div .html(d.tooltip + ": " + d.node_id)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
-            }
-        });
+            });
 
-    /* Removing old links. */
-    p.exit().remove();
+    nw_wtps.attr('xlink:href', "/static/apps/signalgraph/wifi.png")
+            .attr('width', 40)
+            .attr('height', 40);
 
-    /* LTE base stations group. */
-    var es = enbs
-        .selectAll('g')
-        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
+    nw_wtps.exit().remove();
 
-    /* Adding new base stations. */
-    var gl = es.enter()
-                .append('svg:g')
-                .filter(function(d) { return d.entity === "enb"; });
+    nw_ues = nw_ues.data(g_nodes.filter(function(d) {
+                                        return d.entity === "ue";
+                        }),
+                        function(d) {
+                                    return d.id;
+                        });
 
-    gl.attr('transform', function(d) {
-        return 'translate(' + (d.x - 25) + ',' + (d.y - 25) + ')';
-    });
-
-    gl.append('svg:image')
-        .attr('class', 'enb')
-        .attr('xlink:href', "/static/apps/signalgraph/bs.png")
-        .attr('width', 50)
-        .attr('height', 50)
-        .on("mouseover", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            div .html(d.tooltip + ": " + d.node_id)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-
-            // enlarge target node
-            // d3.select(this).attr('transform', 'scale(1.2)');
-        })
-        .on('mouseout', function(d) {
-            // unenlarge target node
-            d3.select(this).attr('transform', '');
-        });
-
-    /* Remove old base stations. */
-    es.exit().remove();
-
-    /* WTPs group. */
-    var ws = wtps
-        .selectAll('g')
-        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
-
-    /* Adding new WTPs. */
-    var gwt = ws.enter()
-                .append('svg:g')
-                .filter(function(d) { return d.entity === "wtp"; });
-
-    gwt.attr('transform', function(d) {
-        return 'translate(' + (d.x - 20) + ',' + (d.y - 20) + ')';
-    });
-
-    gwt.append('svg:image')
-        .attr('class', 'wtp')
-        .attr('xlink:href', "/static/apps/signalgraph/wifi.png")
-        .attr('width', 40)
-        .attr('height', 40)
-        .on("mouseover", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            div .html(d.tooltip + ": " + d.node_id)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-
-            // enlarge target node
-            // d3.select(this).attr('transform', 'scale(1.2)');
-        })
-        .on('mouseout', function(d) {
-            // unenlarge target node
-            d3.select(this).attr('transform', '');
-        });
-
-    /* Remove old WTPs. */
-    ws.exit().remove();
-
-    /* UEs group. */
-    var us = ues
-        .selectAll('g')
-        .data(nodes, function(d) { return ((d.node_id).toString() + d.entity); });
-
-    /* Update existing nodes (selected visual states)*/
-    us.selectAll('circle')
-        .style('fill', function(d) { return colors(d.id); });
-
-    /* Adding new UEs. */
-    var gue = us.enter()
-                .append('svg:g')
-                .filter(function(d) { return d.entity === "ue"; });
-
-    gue.attr('transform', function(d) {
-        return 'translate(' + d.x + ',' + d.y + ')';
-    });
+    gue = nw_ues.enter()
+        .append('svg:g')
+        .attr('class', 'ue');
 
     gue.append('svg:circle')
-        .attr('class', 'ue')
         .attr('r', 13)
         .style('fill', function(d) { return colors(d.id); })
         .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
-        .style('stroke-width', '2.5px')
-        .on("mouseover", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            div .html(d.tooltip + ": " + d.node_id)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+        .style('stroke-width', '2.5px');
 
-            // enlarge target node
-            // d3.select(this).attr('transform', 'scale(1.2)');
-        })
-        .on('mouseout', function(d) {
-            // unenlarge target node
-            d3.select(this).attr('transform', '');
-        });
-
-    /* Show UE IDs. */
     gue.append('svg:text')
         .attr('x', 0)
         .attr('y', 4)
@@ -358,10 +352,66 @@ function updateSignalGraph() {
             return "UE";
         });
 
-    /* Remove old UEs. */
-    us.exit().remove();
+    gue.on("mouseover", function(d) {
+            tp_div.transition()
+                .duration(500)
+                .style("opacity", 0);
+            tp_div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tp_div .html(d.tooltip + ": " + d.node_id)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        });
+
+    gue.on("dblclick", dblclick)
+        .call(drag);
+
+    gue.selectAll('circle')
+        .style('fill', function(d) { return colors(d.id); })
+        .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
+        .style('stroke-width', '2.5px');
+
+    nw_ues.exit().remove();
+
+    force.start();
 }
 
+function tick() {
+
+    nw_paths.attr("x1", function(d) {
+                    return d.source.x;
+            })
+            .attr("y1", function(d) {
+                    return d.source.y;
+            })
+            .attr("x2", function(d) {
+                    return d.target.x;
+            })
+            .attr("y2", function(d) {
+                    return d.target.y;
+            });
+
+    nw_enbs.attr('transform', function(d) {
+        return 'translate(' + (d.x - 25) + ',' + (d.y - 25) + ')';
+    });
+
+    nw_wtps.attr('transform', function(d) {
+        return 'translate(' + (d.x - 20) + ',' + (d.y - 20) + ')';
+    });
+
+    nw_ues.attr('transform', function(d) {
+        return 'translate(' + d.x + ',' + d.y + ')';
+    });
+}
+
+function dblclick(d) {
+    d3.select(this).classed("fixed", d.fixed = false);
+}
+
+function dragstart(d, i) {
+    d3.select(this).classed("fixed", d.fixed = true);
+}
 
 var UE_MAC_ADDR1 = "A0:39:F7:4C:AB:87"
 
@@ -410,7 +460,7 @@ function loadUEsSelectBox() {
                 $("#ueSelect option").filter(function(index) {
                     return $(this).val() == selected_ue;
                 }).remove();
-                ue_values.splice(ue_values.indexOf(selected_ue),1);
+                ue_values.splice(ue_values.indexOf(selected_ue), 1);
             }
         }
 
@@ -421,7 +471,7 @@ function loadUEsSelectBox() {
                 for (ue_index in ue_data) {
                     if (value == ue_data[ue_index].node_id) {
                         exist_flag = true;
-                        ue_data.splice(ue_index,1);
+                        ue_data.splice(ue_index, 1);
                         break;
                     }
                 }
@@ -441,6 +491,7 @@ function loadUEsSelectBox() {
 
 var data_set = {};
 var prevStatType = "";
+var prevSelected_ue = "";
 
 function updateSignalChart() {
 
@@ -450,28 +501,32 @@ function updateSignalChart() {
         var selected_ue = $("#ueSelect :selected").val();
 
         if ((links === null) || (links === undefined) ||
-                (selected_ue === null) || (selected_ue === "") ||
-                    (statsType === "") || (statsType === null) ||
-                        (prevStatType !== statsType && prevStatType !== "")) {
+            (selected_ue === null) || (selected_ue === "") ||
+            (statsType === "") || (statsType === null) ||
+            (prevStatType !== statsType && prevStatType !== "") ||
+            (prevSelected_ue !== selected_ue && prevSelected_ue !== "")) {
 
             signalChart.unload();
             prevStatType = "";
+            prevSelected_ue = "";
             data_set = {};
 
         } else {
 
-            var ls = links.slice(0);
+            var ls_copy = links.slice(0);
+            var ls = [];
 
+            prevSelected_ue = selected_ue;
             prevStatType = statsType;
 
             if (statsType !== 'rssi') {
 
-                for (var id in links) {
-                    var li = links[id];
-                    if (li["entity"] !== "lte" &&
-                        ((li["source"].node_id === selected_ue)
-                                    && (li["target"].node_id === selected_ue))) {
-                        ls.splice(id, 1);
+                for (var id in ls_copy) {
+                    var li = ls_copy[id];
+                    if (li["entity"] === "lte" &&
+                        ((li["source"].node_id == selected_ue)
+                                || (li["target"].node_id == selected_ue))) {
+                        ls.push(li);
                     }
                 }
 
@@ -479,9 +534,17 @@ function updateSignalChart() {
 
                     var l = ls[i];
 
+                    if (l["rsrp"] === null) {
+                        continue;
+                    }
+
+                    if (l["rsrq"] === null) {
+                        continue;
+                    }
+
                     var index = null;
 
-                    if (l["source"].node_id === selected_ue) {
+                    if (l["source"].node_id == selected_ue) {
                         index = l["target"].tooltip + ":" + l["target"].node_id.toString();
                     } else {
                         index = l["source"].tooltip + ":" + l["source"].node_id.toString();
@@ -524,12 +587,13 @@ function updateSignalChart() {
                 }
             } else if ((links != null) && (statsType === 'rssi')) {
 
-                for (var id in links) {
-                    var li = links[id];
-                    if (li["entity"] !== "wifi" &&
-                        ((li["source"].node_id === selected_ue)
-                                    && (li["target"].node_id === selected_ue))) {
-                        ls.splice(id, 1);
+                for (var id in ls_copy) {
+                    var li = ls_copy[id];
+
+                    if (li["entity"] === "wifi" &&
+                        ((li["source"].node_id == selected_ue)
+                                || (li["target"].node_id == selected_ue))) {
+                        ls.push(li);
                     }
                 }
 
@@ -537,9 +601,13 @@ function updateSignalChart() {
 
                     var l = ls[i];
 
+                    if (l["rssi"] === null) {
+                        continue;
+                    }
+
                     var index = null;
 
-                    if (l["source"].node_id === selected_ue) {
+                    if (l["source"].node_id == selected_ue) {
                         index = l["target"].tooltip + ":" + l["target"].node_id.toString();
                     } else {
                         index = l["source"].tooltip + ":" + l["source"].node_id.toString();

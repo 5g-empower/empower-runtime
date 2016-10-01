@@ -31,6 +31,7 @@ from empower.vbs_stats import RRC_STATS_TRIGGER_QUANT
 from empower.vbs_stats import RRC_STATS_BW
 from empower.vbs_stats import RRC_STATS_REPORT_INTR
 from empower.vbs_stats import RRC_STATS_NUM_REPORTS
+from empower.vbs_stats import RRC_STATS_EVENT_THRESHOLD_TYPE
 from empower.vbs_stats import PRT_VBSP_RRC_STATS
 from empower.vbsp.vbspconnection import create_header
 from empower.core.utils import ether_to_hex
@@ -135,6 +136,9 @@ class VBSRRCStats(Module):
             if "type" not in value["threshold1"]:
                 raise ValueError("Missing threshold1 type parameter")
 
+            if value["threshold1"]["type"] not in RRC_STATS_EVENT_THRESHOLD_TYPE:
+                raise ValueError("Invalid threshold1 type parameter")
+
             if "value" not in value["threshold1"]:
                 raise ValueError("Missing threshold1 value parameter")
 
@@ -145,6 +149,9 @@ class VBSRRCStats(Module):
 
             if "type" not in value["threshold2"]:
                 raise ValueError("Missing threshold2 type parameter")
+
+            if value["threshold2"]["type"] not in RRC_STATS_EVENT_THRESHOLD_TYPE:
+                raise ValueError("Invalid threshold2 type parameter")
 
             if "value" not in value["threshold2"]:
                 raise ValueError("Missing threshold2 value parameter")
