@@ -527,6 +527,18 @@ class LVAP(object):
         matching = wtp.supports & ResourcePool([self.default_block])
         self.scheduled_on = matching.pop() if matching else None
 
+    def clear_downlink(self):
+        """ Clear all downlink blocks."""
+
+        for block in list(self._downlink.keys()):
+            del self._downlink[block]
+
+    def clear_uplink(self):
+        """ Clear all downlink blocks."""
+
+        for block in list(self._uplink.keys()):
+            del self._uplink[block]
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
 

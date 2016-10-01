@@ -169,7 +169,9 @@ class RadioPortProp(dict):
 
         # send del lvap message (key.radio is an WTP object, while port.lvap
         # is an LVAP object)
-        key.radio.connection.send_del_lvap(port.lvap)
+        stream = key.radio.connection.stream
+        if stream and not stream.closed():
+            key.radio.connection.send_del_lvap(port.lvap)
 
         dict.__delitem__(self, key)
 
