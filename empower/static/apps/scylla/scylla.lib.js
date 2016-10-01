@@ -119,7 +119,7 @@ function loop() {
                 }
             });
 
-		if (chain1_next1 == true) {
+        if (chain1_next1 == true) {
         $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next",
             function(data) {
                 if (Object.keys(data).length > 0) {
@@ -678,9 +678,8 @@ function deployLvnfToDump() {
     var keys = Object.keys(cpps);
     var addr = cpps[keys[0]].addr
 
-    vnf = "in_0 -> td::ToDump(dumper_file) -> out_0"
     image = {"nb_ports": 1,
-             "vnf": vnf,
+             "vnf": "in_0 -> td::ToDump(dumper_file) -> out_0",
              "handlers": [["count", "td.count"]],
              "state_handlers": []}
 
@@ -727,7 +726,7 @@ function deployLvnfDupeFilter() {
     image = {"nb_ports": 1,
              "vnf": vnf,
              "handlers": [["dupes_table", "dupe.dupes_table"]],
-             "state_handlers": []}
+             "state_handlers": ["dupes_table"]}
 
     data = {"version": "1.0",
             "image": image,
