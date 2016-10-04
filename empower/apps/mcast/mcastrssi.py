@@ -38,6 +38,7 @@ from empower.core.app import DEFAULT_PERIOD
 from empower.core.resourcepool import TX_MCAST
 from empower.core.resourcepool import TX_MCAST_DMS
 from empower.core.resourcepool import TX_MCAST_LEGACY
+from empower.core.tenant import T_TYPE_SHARED
 from empower.datatypes.etheraddress import EtherAddress
 from empower.main import RUNTIME
 from empower.apps.mcast.mcastwtp import MCastWTPInfo
@@ -144,7 +145,7 @@ class MCast(EmpowerApp):
 
         # If this message has been received from any client, it means its position has changed and
         # hence the rate must be recomputed. 
-        self.legacyMcastCompute()
+        self.legacy_mcast_compute()
         self.mcast = 0
 
 
@@ -193,25 +194,19 @@ class MCast(EmpowerApp):
         """Return loop period."""
         return self.__aps
 
+
     @aps.setter
     def aps(self, aps_info):
         """Updates the rate according to the aps information received"""
         if not aps_info:
             return
 
-        station = aps_info['addr']
-        
+        station = aps_info['addr'] 
         if EtherAddress(station) not in RUNTIME.lvaps:
             return
 
-        stats = aps_info['wtps']
-        lvap = RUNTIME.lvaps[EtherAddress(station)]
-        hwaddr = next(iter(lvap.downlink.keys())).hwaddr
-        wtp_addr = next(iter(lvap.downlink.keys())).addr
-        best_wtp_addr = next(iter(lvap.downlink.keys())).addr
-        best_wtp_rate_addr = next(iter(lvap.downlink.keys())).addr
-        best_rssi = 0
-        best_rate = 6
+
+        stats = self.lvap_bssid_to_hwaddr(aps_info['wtps'])
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == EtherAddress(station):
@@ -219,37 +214,21 @@ class MCast(EmpowerApp):
                 entry.wtps = stats
                 self.__aps[station] = stats
 
-    
-        # It checks if any wtp offers a better rate than the one is currently attached
-        for bssid, value in stats:
-            if value['rate'] > best_rate and bssid != best_wtp_rate_addr:
-                best_rate = value['rate']
-                best_wtp_rate_addr = bssid 
-
-        if best_wtp_rate_addr == wtp_addr:
+        # If there is only one AP is not worthy to do the process
+        if len(stats) == 1:
             return
-        # TODO. If it the wtp is different, it's necessary to recalculate the rate that the old and the new aps would have
-        # It could happen that an AP with a high rate is found, but is quite far from the AP. Then the rate would decrease.
-        # Let's comare it with the value obtained from the rssi too. 
+
+        overall_tenant_addr_rate, handover_hwaddr = self.best_handover_search(station, stats)
+   
 
 
-         # It checks if any wtp offers a better RSSI than the one is currently attached
-        for bssid, value in stats:
-            if value['rssi'] > best_rssi and bssid != best_wtp_addr:
-                best_rssi = value['rssi']
-                best_wtp_addr = bssid 
-
-        # If a better signal strenght has been found, the wtp must delete the lvap (forcing the desconnection)
-        # and a new one is created in the new wtp (block)
-        # TODO. What about VAP??
-        # if best_wtp_addr == wtp_addr:
-        #     return
+        # The old wtp must delete the lvap (forcing the desconnection) and a new one is created in the new wtp (block)
+        
         # for wtp in self.wtps():
-        #     if wtp.addr == best_wtp_addr:
+        #     if wtp.addr == new_wtp_addr:
         #         for block in wtp.supports:
         #             wtp.connection.send_del_lvap(lvap)
         #             lvap.downlink = block
-        #             entry.rssi = best_rssi
         #         break
 
     @property
@@ -345,6 +324,9 @@ class MCast(EmpowerApp):
         lvap_info.attached_hwaddr = default_block.hwaddr
         self.mcast_clients.append(lvap_info)
 
+        # for index, entry in enumerate(self.mcast_wtps):
+        #     if entry.block.hwaddr == default_block.hwaddr:
+
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP disassociates from a tennant."""
@@ -358,7 +340,7 @@ class MCast(EmpowerApp):
 
         # In case this was the worst receptor, the date rate for legacy multicast must be recomputed
         if self.mcast_clients:
-            self.legacyMcastCompute()
+            self.legacy_mcast_compute()
 
 
     def lvap_stats_callback(self, counter):
@@ -440,13 +422,13 @@ class MCast(EmpowerApp):
                         tx_policy = block.tx_policies[EtherAddress(mcast_addr)]
                         tx_policy.mcast = TX_MCAST_DMS
             else:
-                self.legacyMcastCompute()
+                self.legacy_mcast_compute()
                 if (self.mcast % self.period_length) == self.legacy_length:
                     self.mcast = -1
             self.mcast += 1
 
 
-    def multicastRate(self, hwaddr):
+    def multicast_rate(self, hwaddr, old_client, new_client):
         max_thershold_rate = sys.maxsize
         max_thershold_second_rate = sys.maxsize
         min_rate = sys.maxsize
@@ -455,51 +437,71 @@ class MCast(EmpowerApp):
         thershold_second_rate_intersection_list = []
         highest_thershold_valid = True
         second_thershold_valid = True
+        old_client_rate = None
+        old_client_second_rate = None
+
+        print(hwaddr)
+        print(old_client)
+        print(new_client)
 
         for index, entry in enumerate(self.mcast_clients):
-            if entry.attached_hwaddr == hwaddr:
-                # It looks for the lowest rate among all the receptors just in case in there is no valid intersection
-                # for the best rates of the clients (for both the ewma and cur probabilities). 
-                if entry.highest_rate < min_rate:
-                    min_rate = entry.highest_rate
-                if entry.second_rate < min_second_rate:
-                    min_second_rate = entry.second_rate
+            if entry.attached_hwaddr == hwaddr or (new_client is not None and entry.addr == new_client):
+                if old_client is not None and entry.addr == old_client:
+                    old_client_rate = entry.highest_rate
+                    old_client_second_rate = entry.second_rate
+                else:
+                    # It looks for the lowest rate among all the receptors just in case in there is no valid intersection
+                    # for the best rates of the clients (for both the ewma and cur probabilities). 
+                    if entry.highest_rate < min_rate:
+                        min_rate = entry.highest_rate
+                    if entry.second_rate < min_second_rate:
+                        min_second_rate = entry.second_rate
 
-                # It checks if there is a possible intersection among the clients rates for the emwa prob.
-                if highest_thershold_valid is True:
-                    # If a given client does not have any rate higher than the required prob (e.g. thershold% for emwa)
-                    # it is assumed that there is no possible intersection
-                    if not entry.higher_thershold_ewma_rates:
-                        highest_thershold_valid = False
-                    elif not thershold_intersection_list:
-                        thershold_intersection_list = entry.higher_thershold_ewma_rates
-                    else:
-                        thershold_intersection_list = list(set(thershold_intersection_list) & set(entry.higher_thershold_ewma_rates))
-                        if not thershold_intersection_list:
+                    # It checks if there is a possible intersection among the clients rates for the emwa prob.
+                    if highest_thershold_valid is True:
+                        # If a given client does not have any rate higher than the required prob (e.g. thershold% for emwa)
+                        # it is assumed that there is no possible intersection
+                        if not entry.higher_thershold_ewma_rates:
                             highest_thershold_valid = False
-                # It checks if there is a possible intersection among the clients rates for the cur prob.
-                if second_thershold_valid is True:
-                    # If a given client does not have any rate higher than the required prob (e.g. thershold% for cur prob)
-                    # it is assumed that there is no possible intersection
-                    if not entry.higher_thershold_cur_prob_rates:
-                        second_thershold_valid = False
-                    elif not thershold_second_rate_intersection_list:
-                        thershold_second_rate_intersection_list = entry.higher_thershold_cur_prob_rates
-                    else:
-                        thershold_second_rate_intersection_list = list(set(thershold_second_rate_intersection_list) & set(entry.higher_thershold_cur_prob_rates))
-                        if not thershold_second_rate_intersection_list:
+                        elif not thershold_intersection_list:
+                            thershold_intersection_list = entry.higher_thershold_ewma_rates
+                        else:
+                            thershold_intersection_list = list(set(thershold_intersection_list) & set(entry.higher_thershold_ewma_rates))
+                            if not thershold_intersection_list:
+                                highest_thershold_valid = False
+                    # It checks if there is a possible intersection among the clients rates for the cur prob.
+                    if second_thershold_valid is True:
+                        # If a given client does not have any rate higher than the required prob (e.g. thershold% for cur prob)
+                        # it is assumed that there is no possible intersection
+                        if not entry.higher_thershold_cur_prob_rates:
                             second_thershold_valid = False
+                        elif not thershold_second_rate_intersection_list:
+                            thershold_second_rate_intersection_list = entry.higher_thershold_cur_prob_rates
+                        else:
+                            thershold_second_rate_intersection_list = list(set(thershold_second_rate_intersection_list) & set(entry.higher_thershold_cur_prob_rates))
+                            if not thershold_second_rate_intersection_list:
+                                second_thershold_valid = False
+
+
+        # If the old client was the only client in the wtp, lets have the same rate
+        if min_rate == sys.maxsize and old_client_rate is not None:
+            min_rate = old_client_rate
+            min_second_rate = old_client_second_rate
+        # If there is not any client, let's supose the basic rate
+        elif min_rate == sys.maxsize and old_client_rate is None:
+            min_rate = 6
+            min_second_rate = 6
 
         return min_rate, min_second_rate, thershold_intersection_list, thershold_second_rate_intersection_list
 
 
-    def legacyMcastCompute(self):
+    def legacy_mcast_compute(self):
         for index, entry in enumerate(self.mcast_wtps):
             # It obtains the most appropiate rate
             if entry.last_rssi_change is not None and time.time() - entry.last_rssi_change > self.rssi_stabilizing_period:
                 entry.prob_measurement["01:00:5e:00:00:fb"] = MCAST_EWMA_PROB
 
-            calculated_rate, second_rate, thershold_intersection_list, thershold_second_rate_intersection_list = self.multicastRate(entry.block.hwaddr)
+            calculated_rate, second_rate, thershold_intersection_list, thershold_second_rate_intersection_list = self.multicast_rate(entry.block.hwaddr, None, None)
             if calculated_rate is sys.maxsize:
                 continue
             
@@ -523,9 +525,31 @@ class MCast(EmpowerApp):
 
             # The rate is selected according to the probability used in that moment. 
             if entry.prob_measurement[mcast_addr] == MCAST_EWMA_PROB:
+                print("HOLAAAAAAAAAAAA", best_rate)
                 tx_policy.mcs = [int(best_rate)]
             elif entry.prob_measurement[mcast_addr] == MCAST_CUR_PROB:
                 tx_policy.mcs = [int(best_second_rate)]
+
+
+    def handover_rate_compute(self, hwaddr, old_client, new_client):
+
+        calculated_rate, second_rate, thershold_intersection_list, thershold_second_rate_intersection_list = self.multicast_rate(hwaddr, old_client, new_client)
+        if calculated_rate is sys.maxsize:
+            return
+        
+        # If some rates have been obtained as a result of the intersection, the highest one is selected as the rate. 
+        if thershold_intersection_list:
+            best_rate = max(thershold_intersection_list)
+        # Otherwise, the rate selected is the minimum among the MRs
+        else:
+            best_rate = calculated_rate
+        # The same happens for the cur prob. 
+        if thershold_second_rate_intersection_list:
+            best_second_rate = max(thershold_second_rate_intersection_list)
+        else:
+            best_second_rate = second_rate
+
+        return best_rate, second_rate
 
 
     def rx_pkts_matching(self, attached_wtp_rx_pkts, hwaddr, wtp_index):
@@ -551,6 +575,158 @@ class MCast(EmpowerApp):
             self.mcast_wtps[wtp_index].prob_measurement[mcast_addr] = MCAST_CUR_PROB
         else:
             self.mcast_wtps[wtp_index].prob_measurement[mcast_addr] = MCAST_EWMA_PROB
+
+
+    def overall_rate_calculation(self, aps_info, dst_addr):
+        overall_tenant_rate = 0
+
+        for key, value in aps_info.items():
+            for index, entry in enumerate(self.mcast_wtps):
+                if key == entry.block.hwaddr:
+                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                        overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
+                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                        overall_tenant_rate = overall_tenant_rate + entry.second_rate[dst_addr]
+                    break
+
+        return overall_tenant_rate
+
+    def handover_overall_rate_calculation(aps_info, dst_addr, evaluated_hwaddr, new_wtp_second_rate):
+        future_overall_tenant_rate = 0
+
+        for key, value in aps_info.items():
+            for index, entry in enumerate(self.mcast_wtps):
+                if key == evaluated_hwaddr:
+                    overall_tenant_rate = overall_tenant_rate + new_wtp_second_rate
+                elif key == entry.block.hwaddr:
+                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                        overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
+                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                        overall_tenant_rate = overall_tenant_rate + entry.second_rate[dst_addr]
+                    break
+
+        return future_overall_tenant_rate
+
+
+    def lvap_bssid_to_hwaddr(self, aps_info):
+        aps_hwaddr_info = dict()
+        shared_tenants = [x for x in RUNTIME.tenants.values()
+                              if x.bssid_type == T_TYPE_SHARED]
+
+        for key, value in aps_info.items():
+            for tenant in shared_tenants:
+                if EtherAddress(key) in tenant.vaps:
+                    hwaddr = tenant.vaps[EtherAddress(key)].block.hwaddr
+                    aps_hwaddr_info[str(hwaddr)] = value
+
+
+    def best_handover_search(self, station, stats):
+        evaluated_lvap = RUNTIME.lvaps[EtherAddress(station)]
+        wtp_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
+        best_wtp_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
+        best_wtp_rate_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
+        best_rssi = 0
+        best_rate = 6
+        new_wtps_possible_rates = dict()
+        new_wtps_old_rates = dict()
+        new_overall_tenant_addr_rate = dict()
+        old_wtp_old_rate = None
+
+        #####################################################################################################################
+        # TODO. Handover based on client rates or rssi. Remove?
+        # It checks if any wtp offers a better rate than the one is currently attached
+        # for bssid, value in stats:
+        #     if value['rate'] > best_rate and bssid != best_wtp_rate_addr:
+        #         best_rate = value['rate']
+        #         best_wtp_rate_addr = bssid 
+
+        # if best_wtp_rate_addr == wtp_addr:
+        #     return
+
+        #  # It checks if any wtp offers a better RSSI than the one is currently attached
+        # for bssid, value in stats:
+        #     if value['rssi'] > best_rssi and bssid != best_wtp_addr:
+        #         best_rssi = value['rssi']
+        #         best_wtp_addr = bssid
+
+        # if best_wtp_addr == wtp_addr:
+        #     return
+
+        # if best_wtp_addr == wtp_addr:
+        #     return
+
+        # "new" wtp rate
+        #new_wtp_best_rate, new_wtp_second_rate = handover_rate_compute(self, best_wtp_addr, None, station)
+        #####################################################################################################################
+
+        # The CURRENT PROB should be taken into account. It's a quick change
+        # "old" wtp rate. 
+        old_wtp_new_rate, old_wtp_new_second_rate = self.handover_rate_compute(wtp_addr, station.upper(), None)
+        if old_wtp_new_rate is None or old_wtp_new_second_rate is None:
+            return
+
+        print("RATE SIN MI")
+        print(old_wtp_new_rate)
+        print(old_wtp_new_second_rate)
+
+        # "new" wtp rate
+        # check the possible rate in all the wtps
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.addr in stats and entry.block.addr != wtp_addr:
+                new_wtp_best_rate, new_wtp_second_rate = self.handover_rate_compute(entry.block.addr, None, station)
+                new_wtps_possible_rates[entry.block.hwaddr] = new_wtp_second_rate
+
+                new_overall_tenant_addr_rate[entry.block.addr] = self.handover_overall_rate_calculation(stats, mcast_addr, entry.block.hwaddr, new_wtp_second_rate)
+
+                if entry.prob_measurement == MCAST_EWMA_PROB:
+                    new_wtps_old_rates[entry.block.addr] = entry.rate[mcast_addr]
+                elif entry.prob_measurement == MCAST_CUR_PROB:
+                    new_wtps_old_rates[entry.block.addr] = entry.rate[mcast_addr]
+            elif entry.block.addr == wtp_addr:
+                if entry.prob_measurement == MCAST_EWMA_PROB:
+                    old_wtp_old_rate = entry.rate[mcast_addr]
+                elif entry.prob_measurement == MCAST_CUR_PROB:
+                    old_wtp_old_rate = entry.rate[mcast_addr]
+
+        #new_wtp_addr = max(new_wtps_possible_rates, key=new_wtps_possible_rates.get)
+        #new_wtp_new_rate = new_wtps_possible_rates[new_wtp_addr] 
+
+        old_overall_tenant_addr_rate = self.overall_rate_calculation(stats, mcast_addr)
+
+        print("OVERALL RATE SIN MOVERME")
+        print(old_overall_tenant_addr_rate)
+
+        print("OVERALL DEL RESTO DE APS")
+        for key, value in new_overall_tenant_addr_rate.items():
+            print(key)
+            print(value)
+
+        print("RATES NUEVOS DEL RESTO DE APS")
+        for key, value in new_wtps_possible_rates.items():
+            print(key)
+            print(value)
+
+
+
+        # TODO. Tradeoff between the rates. 
+        best_overall_tenant_addr_rate = old_overall_tenant_addr_rate
+        best_overall_tenant_addr_hwaddr = wtp_addr
+
+
+        for key, value in new_overall_tenant_addr_rate.items():
+            # If the new global value is worse than the previous one, the handover to this ap is not worthy
+            if value > best_overall_tenant_addr_rate:
+                best_overall_tenant_addr_rate = value
+                best_overall_tenant_addr_hwaddr = key
+            elif value == best_overall_tenant_addr_rate:
+                new_ap_difference = new_wtps_possible_rates[key] - new_wtps_old_rates[key]
+                current_best_ap_difference = new_wtps_possible_rates[best_overall_tenant_addr_hwaddr] - new_wtps_old_rates[best_overall_tenant_addr_hwaddr]
+                if new_ap_difference > current_best_ap_difference:
+                    best_overall_tenant_addr_rate = value
+                    best_overall_tenant_addr_hwaddr = key
+
+        return best_overall_tenant_addr_rate, best_overall_tenant_addr_hwaddr
+
     
 
     def to_dict(self):
