@@ -156,7 +156,6 @@ class MCastClientInfo(object):
 		params['wtps'] = {}
 		for key, entry in self.wtps.items():
 			params['wtps'][str(key)] = entry
-
 		params['higher_thershold_ewma_rates'] = self.higher_thershold_ewma_rates
 		params['higher_thershold_cur_prob_rates'] = self.higher_thershold_cur_prob_rates
 		params['highest_rate'] = self.highest_rate
