@@ -51,6 +51,7 @@ class MCastWTPInfo(object):
         self.__second_rate = {} # {dest_addr:curprob_rate, dest_addr:curprob_rate...}
         self.__prob_measurement = {}
         self.__last_rssi_change = None
+        self.__attached_clients = 0
 
     @property
     def block(self):
@@ -122,6 +123,16 @@ class MCastWTPInfo(object):
 
         self.__last_rssi_change = last_rssi_change
 
+    @property
+    def attached_clients(self):
+        """Return the number of clients attached to this wtp."""
+        return self.__attached_clients
+
+    @attached_clients.setter
+    def attached_clients(self, attached_clients):
+
+        self.__attached_clients = attached_clients
+
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -135,5 +146,6 @@ class MCastWTPInfo(object):
         params['second_rate'] = self.second_rate
         params['prob_measurement'] = self.prob_measurement
         params['last_rssi_change'] = self.last_rssi_change
+        params['attached_clients'] = self.attached_clients
 
         return params

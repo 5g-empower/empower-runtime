@@ -209,6 +209,7 @@ class MCast(EmpowerApp):
 
         lvap = RUNTIME.lvaps[EtherAddress(station)]
         stats = self.lvap_bssid_to_hwaddr(aps_info['wtps'])
+        nb_clients = self.attached_clients()
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == EtherAddress(station):
@@ -220,7 +221,11 @@ class MCast(EmpowerApp):
         if len(stats) == 1:
             return
 
-        overall_tenant_addr_rate, handover_hwaddr = self.best_handover_search(station, stats)
+        if nb_clients > 1:
+            overall_tenant_addr_rate, handover_hwaddr = self.best_handover_search(station, stats)
+        else:
+            overall_tenant_addr_rate, handover_hwaddr = self.rssi_handover_search(station, stats)
+
         if handover_hwaddr == attached_hwaddr:
             print("NO HANDOVER NEEDED")
             return
@@ -341,8 +346,10 @@ class MCast(EmpowerApp):
         lvap_info.attached_hwaddr = default_block.hwaddr
         self.mcast_clients.append(lvap_info)
 
-        # for index, entry in enumerate(self.mcast_wtps):
-        #     if entry.block.hwaddr == default_block.hwaddr:
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr == default_block.hwaddr:
+                entry.attached_clients = entry.attached_clients + 1
+                break
 
 
     def lvap_leave_callback(self, lvap):
@@ -353,6 +360,11 @@ class MCast(EmpowerApp):
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == lvap.addr:
                 del self.mcast_clients[index]
+                break
+
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr == default_block.hwaddr:
+                entry.attached_clients = entry.attached_clients - 1
                 break
 
         # In case this was the worst receptor, the date rate for legacy multicast must be recomputed
@@ -592,11 +604,12 @@ class MCast(EmpowerApp):
         for key, value in aps_info.items():
             for index, entry in enumerate(self.mcast_wtps):
                 if key == entry.block.hwaddr:
-                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                        overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
-                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                        overall_tenant_rate = overall_tenant_rate + entry.second_rate[dst_addr]
-                    break
+                    if entry.attached_clients > 0:
+                        if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                            overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
+                        elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                            overall_tenant_rate = overall_tenant_rate + entry.second_rate[dst_addr]
+                        break
 
         return overall_tenant_rate
 
@@ -610,11 +623,12 @@ class MCast(EmpowerApp):
                 elif key == wtp_addr:
                     future_overal_tenant_rate = future_overall_tenant_rate + old_wtp_new_rate
                 elif key == entry.block.hwaddr and key in aps_info:
-                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                        future_overall_tenant_rate = future_overall_tenant_rate + entry.rate[dst_addr]
-                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                        future_overall_tenant_rate = future_overall_tenant_rate + entry.second_rate[dst_addr]
-                    break
+                    if entry.attached_clients > 0:
+                        if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                            future_overall_tenant_rate = future_overall_tenant_rate + entry.rate[dst_addr]
+                        elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                            future_overall_tenant_rate = future_overall_tenant_rate + entry.second_rate[dst_addr]
+                        break
 
         return future_overall_tenant_rate
 
@@ -646,32 +660,6 @@ class MCast(EmpowerApp):
         new_overall_tenant_addr_rate = dict()
         old_wtp_old_rate = None
 
-        #####################################################################################################################
-        # TODO. Handover based on client rates or rssi. Remove?
-        # It checks if any wtp offers a better rate than the one is currently attached
-        # for bssid, value in stats:
-        #     if value['rate'] > best_rate and bssid != best_wtp_rate_addr:
-        #         best_rate = value['rate']
-        #         best_wtp_rate_addr = bssid 
-
-        # if best_wtp_rate_addr == wtp_addr:
-        #     return
-
-        #  # It checks if any wtp offers a better RSSI than the one is currently attached
-        # for bssid, value in stats:
-        #     if value['rssi'] > best_rssi and bssid != best_wtp_addr:
-        #         best_rssi = value['rssi']
-        #         best_wtp_addr = bssid
-
-        # if best_wtp_addr == wtp_addr:
-        #     return
-
-        # if best_wtp_addr == wtp_addr:
-        #     return
-
-        # "new" wtp rate
-        #new_wtp_best_rate, new_wtp_second_rate = handover_rate_compute(self, best_wtp_addr, None, station)
-        #####################################################################################################################
 
         # The CURRENT PROB should be taken into account. It's a quick change
         # "old" wtp rate. 
@@ -741,6 +729,31 @@ class MCast(EmpowerApp):
 
         return best_overall_tenant_addr_rate, best_overall_tenant_addr_hwaddr
 
+
+    def rssi_handover_search(self, station, stats):
+        evaluated_lvap = RUNTIME.lvaps[EtherAddress(station)]
+        wtp_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
+        best_wtp_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
+        best_rssi = stats[wtp_addr]['rssi']
+        best_rate = stats[wtp_addr]['rate']
+
+         # It checks if any wtp offers a better RSSI than the one is currently attached
+        for key, value in stats.items():
+            if value['rssi'] > best_rssi and key != best_wtp_addr:
+                best_rssi = value['rssi']
+                best_wtp_addr = key
+                best_rate = value['rate']
+
+        return best_rate, best_wtp_addr
+
+
+    def attached_clients(self):
+        nb_attached_clients = 0
+
+        for index, entry in enumerate(self.mcast_wtps):
+            nb_attached_clients = nb_attached_clients + entry.attached_clients
+
+        return nb_attached_clients
     
 
     def to_dict(self):
