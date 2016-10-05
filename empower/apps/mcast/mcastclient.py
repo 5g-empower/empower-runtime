@@ -153,7 +153,10 @@ class MCastClientInfo(object):
 		params['attached_hwaddr'] = self.attached_hwaddr
 		params['rx_pkts'] = self.rx_pkts
 		params['rates'] = self.rates
-		params['wtps'] = self.wtps
+		params['wtps'] = {}
+		for key, entry in self.wtps.items():
+			params['wtps'][str(key)] = entry
+
 		params['higher_thershold_ewma_rates'] = self.higher_thershold_ewma_rates
 		params['higher_thershold_cur_prob_rates'] = self.higher_thershold_cur_prob_rates
 		params['highest_rate'] = self.highest_rate

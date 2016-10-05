@@ -202,23 +202,28 @@ class MCast(EmpowerApp):
             return
 
         station = aps_info['addr'] 
+        attached_hwaddr = None
+
         if EtherAddress(station) not in RUNTIME.lvaps:
             return
-
 
         stats = self.lvap_bssid_to_hwaddr(aps_info['wtps'])
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == EtherAddress(station):
-                best_rssi = entry.rssi
                 entry.wtps = stats
-                self.__aps[station] = stats
+                attached_hwaddr = entry.attached_hwaddr
+                #self.__aps[station] = stats
 
         # If there is only one AP is not worthy to do the process
         if len(stats) == 1:
             return
 
         overall_tenant_addr_rate, handover_hwaddr = self.best_handover_search(station, stats)
+
+        print("BETTER HANDOVER FOUND")
+        print("The overall rate of this tenant-address would be", overall_tenant_addr_rate)
+        print("The handover must be performed from the AP %s to the AP %s" %(attached_hwaddr, handover_hwaddr))
    
 
 
@@ -229,6 +234,12 @@ class MCast(EmpowerApp):
         #         for block in wtp.supports:
         #             wtp.connection.send_del_lvap(lvap)
         #             lvap.downlink = block
+        #         break
+
+        # for index, entry in enumerate(self.mcast_clients):
+        #     if entry.addr == EtherAddress(station):
+        #         entry.rssi = 
+        #         entry.attached_hwaddr = handover_hwaddr
         #         break
 
     @property
@@ -489,15 +500,6 @@ class MCast(EmpowerApp):
             min_rate = 6
             min_second_rate = 6
 
-        if old_client is not None:
-            print("OLD_CLIENT")
-            print("MIN RATE", min_rate)
-            print("MAX RATE", min_second_rate)
-        elif new_client is not None:
-            print("NEW CLIENT")
-            print("MIN RATE", min_rate)
-            print("MAX RATE", min_second_rate)
-
         return min_rate, min_second_rate, thershold_intersection_list, thershold_second_rate_intersection_list
 
 
@@ -617,13 +619,14 @@ class MCast(EmpowerApp):
 
     def lvap_bssid_to_hwaddr(self, aps_info):
         aps_hwaddr_info = dict()
+
         shared_tenants = [x for x in RUNTIME.tenants.values()
                               if x.bssid_type == T_TYPE_SHARED]
 
         for key, value in aps_info.items():
             for tenant in shared_tenants:
-                if EtherAddress(key.upper()) in tenant.vaps:
-                    hwaddr = tenant.vaps[EtherAddress(key.upper())].block.hwaddr
+                if EtherAddress(key) in tenant.vaps and tenant.vaps[EtherAddress(key)].block.hwaddr not in aps_hwaddr_info:
+                    hwaddr = tenant.vaps[EtherAddress(key)].block.hwaddr
                     aps_hwaddr_info[hwaddr] = value
 
         return aps_hwaddr_info
@@ -682,7 +685,7 @@ class MCast(EmpowerApp):
         # check the possible rate in all the wtps
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr in stats and entry.block.hwaddr != wtp_addr:
-                new_wtp_best_rate, new_wtp_second_rate = self.handover_rate_compute(entry.block.hwaddr, None, station)
+                new_wtp_best_rate, new_wtp_second_rate = self.handover_rate_compute(entry.block.hwaddr, None, station.upper())
                 new_wtps_possible_rates[entry.block.hwaddr] = new_wtp_second_rate
 
                 new_overall_tenant_addr_rate[entry.block.hwaddr] = self.handover_overall_rate_calculation(stats, mcast_addr, entry.block.hwaddr, new_wtp_second_rate, wtp_addr, old_wtp_new_rate)
