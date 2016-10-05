@@ -440,9 +440,6 @@ class MCast(EmpowerApp):
         old_client_rate = None
         old_client_second_rate = None
 
-        print(hwaddr)
-        print(old_client)
-        print(new_client)
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.attached_hwaddr == hwaddr or (new_client is not None and entry.addr == new_client):
@@ -492,6 +489,15 @@ class MCast(EmpowerApp):
             min_rate = 6
             min_second_rate = 6
 
+        if old_client is not None:
+            print("OLD_CLIENT")
+            print("MIN RATE", min_rate)
+            print("MAX RATE", min_second_rate)
+        elif new_client is not None:
+            print("NEW CLIENT")
+            print("MIN RATE", min_rate)
+            print("MAX RATE", min_second_rate)
+
         return min_rate, min_second_rate, thershold_intersection_list, thershold_second_rate_intersection_list
 
 
@@ -525,7 +531,6 @@ class MCast(EmpowerApp):
 
             # The rate is selected according to the probability used in that moment. 
             if entry.prob_measurement[mcast_addr] == MCAST_EWMA_PROB:
-                print("HOLAAAAAAAAAAAA", best_rate)
                 tx_policy.mcs = [int(best_rate)]
             elif entry.prob_measurement[mcast_addr] == MCAST_CUR_PROB:
                 tx_policy.mcs = [int(best_second_rate)]
@@ -591,18 +596,20 @@ class MCast(EmpowerApp):
 
         return overall_tenant_rate
 
-    def handover_overall_rate_calculation(aps_info, dst_addr, evaluated_hwaddr, new_wtp_second_rate):
+    def handover_overall_rate_calculation(self, aps_info, dst_addr, evaluated_hwaddr, new_wtp_second_rate, wtp_addr, old_wtp_new_rate):
         future_overall_tenant_rate = 0
 
         for key, value in aps_info.items():
             for index, entry in enumerate(self.mcast_wtps):
-                if key == evaluated_hwaddr:
-                    overall_tenant_rate = overall_tenant_rate + new_wtp_second_rate
-                elif key == entry.block.hwaddr:
+                if key == evaluated_hwaddr and key in aps_info:
+                    future_overall_tenant_rate = future_overall_tenant_rate + new_wtp_second_rate
+                elif key == wtp_addr:
+                    future_overal_tenant_rate = future_overall_tenant_rate + old_wtp_new_rate
+                elif key == entry.block.hwaddr and key in aps_info:
                     if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                        overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
+                        future_overall_tenant_rate = future_overall_tenant_rate + entry.rate[dst_addr]
                     elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                        overall_tenant_rate = overall_tenant_rate + entry.second_rate[dst_addr]
+                        future_overall_tenant_rate = future_overall_tenant_rate + entry.second_rate[dst_addr]
                     break
 
         return future_overall_tenant_rate
@@ -615,9 +622,11 @@ class MCast(EmpowerApp):
 
         for key, value in aps_info.items():
             for tenant in shared_tenants:
-                if EtherAddress(key) in tenant.vaps:
-                    hwaddr = tenant.vaps[EtherAddress(key)].block.hwaddr
-                    aps_hwaddr_info[str(hwaddr)] = value
+                if EtherAddress(key.upper()) in tenant.vaps:
+                    hwaddr = tenant.vaps[EtherAddress(key.upper())].block.hwaddr
+                    aps_hwaddr_info[hwaddr] = value
+
+        return aps_hwaddr_info
 
 
     def best_handover_search(self, station, stats):
@@ -665,48 +674,48 @@ class MCast(EmpowerApp):
         if old_wtp_new_rate is None or old_wtp_new_second_rate is None:
             return
 
-        print("RATE SIN MI")
-        print(old_wtp_new_rate)
-        print(old_wtp_new_second_rate)
+        print("Old WTP rate without the client")
+        print("Highest rate", old_wtp_new_rate)
+        print("Second rate", old_wtp_new_second_rate)
 
         # "new" wtp rate
         # check the possible rate in all the wtps
         for index, entry in enumerate(self.mcast_wtps):
-            if entry.block.addr in stats and entry.block.addr != wtp_addr:
-                new_wtp_best_rate, new_wtp_second_rate = self.handover_rate_compute(entry.block.addr, None, station)
+            if entry.block.hwaddr in stats and entry.block.hwaddr != wtp_addr:
+                new_wtp_best_rate, new_wtp_second_rate = self.handover_rate_compute(entry.block.hwaddr, None, station)
                 new_wtps_possible_rates[entry.block.hwaddr] = new_wtp_second_rate
 
-                new_overall_tenant_addr_rate[entry.block.addr] = self.handover_overall_rate_calculation(stats, mcast_addr, entry.block.hwaddr, new_wtp_second_rate)
+                new_overall_tenant_addr_rate[entry.block.hwaddr] = self.handover_overall_rate_calculation(stats, mcast_addr, entry.block.hwaddr, new_wtp_second_rate, wtp_addr, old_wtp_new_rate)
 
                 if entry.prob_measurement == MCAST_EWMA_PROB:
-                    new_wtps_old_rates[entry.block.addr] = entry.rate[mcast_addr]
+                    new_wtps_old_rates[entry.block.hwaddr] = entry.rate[mcast_addr]
                 elif entry.prob_measurement == MCAST_CUR_PROB:
-                    new_wtps_old_rates[entry.block.addr] = entry.rate[mcast_addr]
+                    new_wtps_old_rates[entry.block.hwaddr] = entry.rate[mcast_addr]
             elif entry.block.addr == wtp_addr:
                 if entry.prob_measurement == MCAST_EWMA_PROB:
                     old_wtp_old_rate = entry.rate[mcast_addr]
                 elif entry.prob_measurement == MCAST_CUR_PROB:
                     old_wtp_old_rate = entry.rate[mcast_addr]
 
+
+
         #new_wtp_addr = max(new_wtps_possible_rates, key=new_wtps_possible_rates.get)
         #new_wtp_new_rate = new_wtps_possible_rates[new_wtp_addr] 
 
         old_overall_tenant_addr_rate = self.overall_rate_calculation(stats, mcast_addr)
 
-        print("OVERALL RATE SIN MOVERME")
-        print(old_overall_tenant_addr_rate)
-
-        print("OVERALL DEL RESTO DE APS")
-        for key, value in new_overall_tenant_addr_rate.items():
-            print(key)
-            print(value)
-
-        print("RATES NUEVOS DEL RESTO DE APS")
+        print("NEW RATES OF THE REMIAINING APs IF THE CLIENT IS MOVED THERE")
         for key, value in new_wtps_possible_rates.items():
             print(key)
             print(value)
 
+        print("OVERALL RATE BEFORE THE HANDOVER")
+        print(old_overall_tenant_addr_rate)
 
+        print("OVERALL RATE OF THE REMAINING APs IF THE HANDOVER IS DONE")
+        for key, value in new_overall_tenant_addr_rate.items():
+            print(key)
+            print(value)
 
         # TODO. Tradeoff between the rates. 
         best_overall_tenant_addr_rate = old_overall_tenant_addr_rate
