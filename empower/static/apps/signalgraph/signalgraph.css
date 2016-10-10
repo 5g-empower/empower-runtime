@@ -99,7 +99,7 @@ svg.nw_graph {
 	cursor: crosshair;
 }*/
 
-path.link {
+.link {
 	fill: none;
 	stroke: #000;
 	cursor: pointer;
@@ -109,11 +109,11 @@ path.link {
 	cursor: pointer;
 }*/
 
-path.link.neigh_cell {
+.link.neigh_cell {
 	stroke-dasharray: 10,2;
 }
 
-path.link.inactive_wtp {
+.link.inactive_wtp {
 	stroke-dasharray: 10,2;
 }
 

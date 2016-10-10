@@ -33,7 +33,6 @@ from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_LVAP_JOIN
-from empower.lvapp import PT_LVAP_LEAVE
 from empower.lvapp import PT_AUTH_RESPONSE
 from empower.lvapp import AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
@@ -192,10 +191,16 @@ class LVAPPConnection(object):
             LOG.info("Hello from unknown WTP (%s)", wtp_addr)
             raise KeyError("Hello from unknown WTP (%s)", wtp_addr)
 
-        LOG.info("Hello from %s seq %u", self.addr[0], hello.seq)
+        LOG.info("Hello from %s WTP %s seq %u", self.addr[0], wtp.addr,
+                 hello.seq)
 
+        # New connection
         if not wtp.connection:
+
+            # set pointer to pnfdev object
             self.wtp = wtp
+
+            # set connection
             wtp.connection = self
 
         # Update WTP params
@@ -473,20 +478,19 @@ class LVAPPConnection(object):
 
         LOG.info("WTP disconnected: %s", self.wtp.addr)
 
-        # reset state
-        self.wtp.last_seen = 0
-        self.wtp.connection = None
-        self.wtp.ports = {}
-        self.wtp.supports = ResourcePool()
-
-        # remove host lvaps
+        # remove hosted lvaps
         for addr in list(RUNTIME.lvaps.keys()):
-            if RUNTIME.lvaps[addr].wtp == self.wtp:
-                lvap = RUNTIME.lvaps[addr]
-                LOG.info("Deleting LVAP: %s", lvap.addr)
-                for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
-                    handler(lvap)
+            lvap = RUNTIME.lvaps[addr]
+            # in case the downlink went down, the remove also the uplinks
+            if lvap.wtp == self.wtp:
+                LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
+                lvap.clear_downlink()
+                lvap.clear_uplink()
+                self.server.send_lvap_leave_message_to_self(lvap)
                 del RUNTIME.lvaps[lvap.addr]
+            else:
+                LOG.info("Deleting LVAP (UL): %s", lvap.addr)
+                lvap.clear_uplink()
 
         # remove hosted vaps
         for tenant_id in RUNTIME.tenants.keys():
@@ -496,19 +500,11 @@ class LVAPPConnection(object):
                     LOG.info("Deleting VAP: %s", vap.net_bssid)
                     del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
-    def remove_lvap(self,lvap):
-        """Remove LVAP from tenant and the network"""
-
-        # Raise LVAP leave event
-        LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
-        for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
-            handler(lvap)
-        # removing LVAP from tenant, need first to look for right tenant
-        if lvap.addr in lvap.tenant.lvaps:
-            LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
-            del lvap.tenant.lvaps[lvap.addr]
-        self.send_del_lvap(lvap)
-        del RUNTIME.lvaps[lvap.addr]
+        # reset state
+        self.wtp.last_seen = 0
+        self.wtp.connection = None
+        self.wtp.ports = {}
+        self.wtp.supports = ResourcePool()
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
@@ -618,9 +614,7 @@ class LVAPPConnection(object):
         if lvap.ssid:
 
             # Raise LVAP leave event
-            LOG.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
-            for handler in self.server.pt_types_handlers[PT_LVAP_LEAVE]:
-                handler(lvap)
+            self.server.send_lvap_leave_message_to_self(lvap)
 
             # removing LVAP from tenant, need first to look for right tenant
             if lvap.addr in lvap.tenant.lvaps:

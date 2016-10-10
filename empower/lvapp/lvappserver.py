@@ -29,6 +29,7 @@ from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP
 
+from empower.lvapp import PT_LVAP_LEAVE
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
 from empower.lvapp.lvaphandler import LVAPHandler
@@ -128,6 +129,13 @@ class LVAPPServer(PNFPServer, TCPServer):
 
         self.__assoc_id += 1
         return self.__assoc_id
+
+    def send_lvap_leave_message_to_self(self, lvap):
+        """Send an LVAP_LEAVE message to self."""
+
+        self.log.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
+        for handler in self.pt_types_handlers[PT_LVAP_LEAVE]:
+            handler(lvap)
 
 
 def launch(port=DEFAULT_PORT):

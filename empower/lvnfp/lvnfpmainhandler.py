@@ -192,11 +192,14 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             # set pointer to pnfdev object
             self.cpp = cpp
 
-            # set connection (this will trigger a register message)
+            # set connection
             cpp.connection = self
 
             # generate register message
             self.send_register_message_to_self()
+
+        LOG.info("Hello from %s CPP %s seq %u", self.addr, cpp.addr,
+                 hello['seq'])
 
         # Update PNFDev params
         cpp.period = hello['every']

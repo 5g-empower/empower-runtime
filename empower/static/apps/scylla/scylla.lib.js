@@ -1,13 +1,11 @@
 
-selectedLvap = "18:5E:0F:E2:10:8F"
+selectedLvap = "18:5E:0F:E3:B8:45"
 lvap = null
 
 Lvnf_Dupe_Filter = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"
 Lvnf_To_Dump = "20c7ecf7-be9e-4643-8f98-8ac582b4bc07"
 
 lvnf = null
-
-vlan_id1 = 20
 
 eth_type = 0x0800
 nw_proto = 1
@@ -119,7 +117,7 @@ function loop() {
                 }
             });
 
-		if (chain1_next1 == true) {
+        if (chain1_next1 == true) {
         $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next",
             function(data) {
                 if (Object.keys(data).length > 0) {
@@ -597,8 +595,8 @@ function chain2() {
 
     addr = lvaps[selectedLvap].addr
 
-    data = {"version":"1.0",
-            "match":"dl_src="+addr+",dl_vlan="+vlan_id1,
+    data = {"version": "1.0",
+            "match": "dl_src="+ addr,
             "next": {"lvnf_id": Lvnf_To_Dump, "port_id": 0}}
 
     $.ajax({
@@ -636,8 +634,7 @@ function unchain2() {
 
     addr = lvaps[selectedLvap].addr
 
-    data = {"version":"1.0",
-            "match":"dl_src="+addr+",dl_vlan="+vlan_id1}
+    data = {"version":"1.0", "match": "dl_src=" + addr}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next/",
@@ -678,9 +675,8 @@ function deployLvnfToDump() {
     var keys = Object.keys(cpps);
     var addr = cpps[keys[0]].addr
 
-    vnf = "in_0 -> td::ToDump(dumper_file) -> out_0"
     image = {"nb_ports": 1,
-             "vnf": vnf,
+             "vnf": "in_0 -> td::ToDump(dumper_file) -> out_0",
              "handlers": [["count", "td.count"]],
              "state_handlers": []}
 
@@ -727,7 +723,7 @@ function deployLvnfDupeFilter() {
     image = {"nb_ports": 1,
              "vnf": vnf,
              "handlers": [["dupes_table", "dupe.dupes_table"]],
-             "state_handlers": []}
+             "state_handlers": ["dupes_table"]}
 
     data = {"version": "1.0",
             "image": image,
