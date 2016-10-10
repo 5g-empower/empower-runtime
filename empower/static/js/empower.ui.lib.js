@@ -195,7 +195,11 @@ function loadComponents(tenant) {
                     components.innerHTML = stream
                 }
                 var ctrl = row.insertCell(c++);
-                ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />"
+                if(tenant){
+                    ctrl.innerHTML += '<img class="ctrl" onClick="unregisterComponent(\'' + stream +'\',\''+ tenant +'\')" src="/static/images/remove.png"  />'
+                } else {
+                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />" 
+                }
                 ctrl.align = "center"
             }
         },
@@ -302,9 +306,16 @@ function removeLVNF(lvnf_id, tenant) {
     });
 }
 
-function unregisterComponent(component) {
+function unregisterComponent(component,tenant) {
+
+     var url="";
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/components/" + component;
+    } else {
+        url = "/api/v1/components";
+    }
     $.ajax({
-        url: '/api/v1/components/' + component,
+        url: url,
         type: 'DELETE',
         cache: false,
         beforeSend: function (request) {
