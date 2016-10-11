@@ -35,6 +35,8 @@ import sys
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.core.resourcepool import TX_MCAST_DMS
+from empower.core.resourcepool import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress
 from empower.main import RUNTIME
 
@@ -50,8 +52,31 @@ class MCastWTPInfo(object):
         self.__rate = dict() # {dest_addr:ewma_rate, dst_addr:ewma_rate...}
         self.__cur_prob_rate = dict() # {dest_addr:curprob_rate, dest_addr:curprob_rate...}
         self.__prob_measurement = dict()
-        self.__last_rssi_change = None
+        self.__last_rssi_change = 0
+        self.__last_prob_update = 0
         self.__attached_clients = 0
+        self.__mode = None
+
+    @property
+    def last_prob_update(self):
+        """Return the block of the object."""
+        return self.__last_prob_update
+
+    @last_prob_update.setter
+    def last_prob_update(self, last_prob_update):
+
+        self.__last_prob_update = last_prob_update
+
+
+    @property
+    def mode(self):
+        """Return the block of the object."""
+        return self.__mode
+
+    @mode.setter
+    def mode(self, mode):
+
+        self.__mode = mode
 
     @property
     def block(self):
@@ -149,5 +174,7 @@ class MCastWTPInfo(object):
         params['prob_measurement'] = self.prob_measurement
         params['last_rssi_change'] = self.last_rssi_change
         params['attached_clients'] = self.attached_clients
+        params['last_prob_update'] = self.last_prob_update
+        params['mode'] = self.mode
 
         return params
