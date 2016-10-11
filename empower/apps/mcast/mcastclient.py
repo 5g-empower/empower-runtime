@@ -44,13 +44,13 @@ class MCastClientInfo(object):
 		self.__addr = None
 		self.__rssi = 0 # rssi of the current block attached to
 		self.__attached_hwaddr = None
-		self.__rx_pkts = {} # dst_addr: rx_pkts
-		self.__rates = {} 
-		self.__wtps = {} # ap/block: rssi
+		self.__rx_pkts = dict() # dst_addr: rx_pkts
+		self.__rates = dict() 
+		self.__wtps = dict() # ap/block: rssi
 		self.__higher_thershold_ewma_rates = []
 		self.__higher_thershold_cur_prob_rates = []
 		self.__highest_rate = 0
-		self.__second_rate = 0
+		self.__highest_cur_prob_rate = 0
 
 	@property
 	def addr(self):
@@ -86,7 +86,7 @@ class MCastClientInfo(object):
 
 	@rx_pkts.setter
 	def rx_pkts(self, rx_pkts_info):
-		self.__rx_pkts[list(rx_pkts_info.keys())[0]] = rx_pkts_info[list(rx_pkts_info.keys())[0]]
+		self.__rx_pkts = rx_pkts_info
 
 	@property
 	def rates(self):
@@ -134,31 +134,30 @@ class MCastClientInfo(object):
 		self.__highest_rate = highest_rate
 
 	@property
-	def second_rate(self):
+	def highest_cur_prob_rate(self):
 		"""Return the second best rate for this client regarding cur prob."""
-		return self.__second_rate
+		return self.__highest_cur_prob_rate
 
-	@second_rate.setter
-	def second_rate(self, second_rate):
-		self.__second_rate = second_rate
+	@highest_cur_prob_rate.setter
+	def highest_cur_prob_rate(self, highest_cur_prob_rate):
+		self.__highest_cur_prob_rate = highest_cur_prob_rate
 
 
 	def to_dict(self):
 		"""Return JSON-serializable representation of the object."""
 
 		params = {}
+		wtps = {str(k): v for k, v in self.wtps.items()}
 
 		params['addr'] = self.addr
 		params['rssi'] = self.rssi
 		params['attached_hwaddr'] = self.attached_hwaddr
 		params['rx_pkts'] = self.rx_pkts
 		params['rates'] = self.rates
-		params['wtps'] = {}
-		for key, entry in self.wtps.items():
-			params['wtps'][str(key)] = entry
+		params['wtps'] = wtps
 		params['higher_thershold_ewma_rates'] = self.higher_thershold_ewma_rates
 		params['higher_thershold_cur_prob_rates'] = self.higher_thershold_cur_prob_rates
 		params['highest_rate'] = self.highest_rate
-		params['second_rate'] = self.second_rate
+		params['highest_cur_prob_rate'] = self.highest_cur_prob_rate
 
 		return params

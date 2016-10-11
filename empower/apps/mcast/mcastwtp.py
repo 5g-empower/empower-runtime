@@ -45,11 +45,11 @@ LOG = empower.logger.get_logger()
 class MCastWTPInfo(object):
     def __init__(self):
         self.__block = None
-        self.__last_txp_bin_counter = {} #dest_addr: counter
-        self.__last_rx_pkts = {} #dest_addr: counter
-        self.__rate = {} # {dest_addr:ewma_rate, dst_addr:ewma_rate...}
-        self.__second_rate = {} # {dest_addr:curprob_rate, dest_addr:curprob_rate...}
-        self.__prob_measurement = {}
+        self.__last_txp_bin_counter = dict() #dest_addr: counter
+        self.__last_rx_pkts = dict() #dest_addr: counter
+        self.__rate = dict() # {dest_addr:ewma_rate, dst_addr:ewma_rate...}
+        self.__cur_prob_rate = dict() # {dest_addr:curprob_rate, dest_addr:curprob_rate...}
+        self.__prob_measurement = dict()
         self.__last_rssi_change = None
         self.__attached_clients = 0
 
@@ -71,7 +71,7 @@ class MCastWTPInfo(object):
     @last_txp_bin_counter.setter
     def last_txp_bin_counter(self, last_txp_bin_counter_info):
 
-        self.__last_txp_bin_counter[list(last_txp_bin_counter_info.keys())[0]] = last_txp_bin_counter_info[list(last_txp_bin_counter_info.keys())[0]]
+        self.__last_txp_bin_counter = last_txp_bin_counter_info
 
     @property
     def last_rx_pkts(self):
@@ -81,7 +81,7 @@ class MCastWTPInfo(object):
     @last_rx_pkts.setter
     def last_rx_pkts(self, last_rx_pkts_info):
 
-        self.__last_rx_pkts[list(last_rx_pkts_info.keys())[0]] = last_rx_pkts_info[list(last_rx_pkts_info.keys())[0]]
+        self.__last_rx_pkts = last_rx_pkts_info
 
     @property
     def rate(self):
@@ -91,17 +91,17 @@ class MCastWTPInfo(object):
     @rate.setter
     def rate(self, rate_info):
 
-        self.__rate[list(rate_info.keys())[0]] = rate_info[list(rate_info.keys())[0]]
+        self.__rate = rate_info
 
     @property
-    def second_rate(self):
-        """Return current multicast rate."""
-        return self.__second_rate
+    def cur_prob_rate(self):
+        """Return current multicast rate (according to the cur_prob rate)."""
+        return self.__cur_prob_rate
 
-    @second_rate.setter
-    def second_rate(self, rate_info):
+    @cur_prob_rate.setter
+    def cur_prob_rate(self, rate_info):
         if rate_info:
-            self.__second_rate[list(rate_info.keys())[0]] = rate_info[list(rate_info.keys())[0]]
+            self.__cur_prob_rate = rate_info
 
     @property
     def prob_measurement(self):
@@ -111,7 +111,7 @@ class MCastWTPInfo(object):
     @prob_measurement.setter
     def prob_measurement(self, prob_measurement_info):
         """Updates the probability used to calculate the new rate """
-        self.__prob_measurement[list(prob_measurement_info.keys())[0]] = prob_measurement_info[list(prob_measurement_info.keys())[0]]
+        self.__prob_measurement = prob_measurement_info
 
     @property
     def last_rssi_change(self):
@@ -138,12 +138,14 @@ class MCastWTPInfo(object):
         """Return JSON-serializable representation of the object."""
 
         params = {}
+        last_rx_pkts = {str(k): v for k, v in self.last_rx_pkts.items()}
+        last_txp_bin_counter = {str(k): v for k, v in self.last_txp_bin_counter.items()}
 
         params['block'] = self.block.hwaddr
-        params['last_txp_bin_counter'] = self.last_txp_bin_counter
-        params['last_rx_pkts'] = self.last_rx_pkts
+        params['last_txp_bin_counter'] = last_txp_bin_counter
+        params['last_rx_pkts'] = last_rx_pkts
         params['rate'] = self.rate
-        params['second_rate'] = self.second_rate
+        params['cur_prob_rate'] = self.cur_prob_rate
         params['prob_measurement'] = self.prob_measurement
         params['last_rssi_change'] = self.last_rssi_change
         params['attached_clients'] = self.attached_clients
