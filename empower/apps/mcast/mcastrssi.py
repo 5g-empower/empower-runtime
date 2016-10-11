@@ -51,8 +51,8 @@ MCAST_PERIOD_100_900 = 0x00
 MCAST_PERIOD_500_2500 = 0x01
 MCAST_PERIOD_500_4500 = 0x02
 
-MCAST_EWMA_PROB = 0x03
-MCAST_CUR_PROB = 0x04
+MCAST_EWMA_PROB = "ewma"
+MCAST_CUR_PROB = "cur_prob"
 
 
 class MCast(EmpowerApp):
@@ -211,15 +211,15 @@ class MCast(EmpowerApp):
         stats = self.lvap_bssid_to_hwaddr(aps_info['wtps'])
         nb_clients = self.attached_clients()
 
-        # If there is only one AP is not worthy to do the process
-        if len(stats) == 1:
-            return
-
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == EtherAddress(station):
                 entry.wtps = stats
                 attached_hwaddr = entry.attached_hwaddr
                 self.__aps[station] = stats
+
+                # If there is only one AP is not worthy to do the process
+        if len(stats) == 1:
+            return
 
         if nb_clients > 1:
             overall_tenant_addr_rate, handover_hwaddr = self.best_handover_search(station, stats)
@@ -525,7 +525,7 @@ class MCast(EmpowerApp):
     def legacy_mcast_compute(self):
         for index, entry in enumerate(self.mcast_wtps):
             # It obtains the most appropiate rate
-            if entry.last_rssi_change is not None and (time.time() - entry.last_rssi_change > self.rssi_stabilizing_period):
+            if entry.last_rssi_change > 0 and (time.time() - entry.last_rssi_change > self.rssi_stabilizing_period):
                 entry.prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
 
             calculated_rate, highest_cur_prob_rate, thershold_intersection_list, thershold_highest_cur_prob_rate_intersection_list = self.multicast_rate(entry.block.hwaddr, None, None)
