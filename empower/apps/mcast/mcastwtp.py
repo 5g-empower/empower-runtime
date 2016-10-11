@@ -56,10 +56,33 @@ class MCastWTPInfo(object):
         self.__last_prob_update = 0
         self.__attached_clients = 0
         self.__mode = None
+        self.__dms_max_period = 1
+        self.__legacy_max_period = 3
+
+    
+    @property
+    def dms_max_period(self):
+        """Return the dms_max_period of the object."""
+        return self.__dms_max_period
+
+    @dms_max_period.setter
+    def dms_max_period(self, dms_max_period):
+
+        self.__dms_max_period = dms_max_period
+
+    @property
+    def legacy_max_period(self):
+        """Return the legacy_max_period of the object."""
+        return self.__legacy_max_period
+
+    @legacy_max_period.setter
+    def legacy_max_period(self, legacy_max_period):
+
+        self.__legacy_max_period = legacy_max_period
 
     @property
     def last_prob_update(self):
-        """Return the block of the object."""
+        """Return the last_prob_update of the object."""
         return self.__last_prob_update
 
     @last_prob_update.setter
@@ -67,10 +90,9 @@ class MCastWTPInfo(object):
 
         self.__last_prob_update = last_prob_update
 
-
     @property
     def mode(self):
-        """Return the block of the object."""
+        """Return the current multicast mode of the object."""
         return self.__mode
 
     @mode.setter
