@@ -32,6 +32,7 @@ import tornado.httpserver
 import time
 import datetime
 import sys
+import json
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
@@ -194,9 +195,17 @@ class MCastWTPInfo(object):
         params['rate'] = self.rate
         params['cur_prob_rate'] = self.cur_prob_rate
         params['prob_measurement'] = self.prob_measurement
-        params['last_rssi_change'] = self.last_rssi_change
+        params['last_rssi_change'] = json.dumps(datetime.datetime.fromtimestamp(self.last_rssi_change), cls=JSONEncoder)
         params['attached_clients'] = self.attached_clients
-        params['last_prob_update'] = self.last_prob_update
+        params['last_prob_update'] = json.dumps(datetime.datetime.fromtimestamp(self.last_prob_update), cls=JSONEncoder)
         params['mode'] = self.mode
 
         return params
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, 'isoformat'): #handles both date and datetime objects
+            return obj.isoformat()
+        else:
+            return json.JSONEncoder.default(self, obj)
