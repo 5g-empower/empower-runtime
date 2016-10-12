@@ -73,7 +73,6 @@ class MCast(EmpowerApp):
 
         EmpowerApp.__init__(self, **kwargs)
 
-        self.__mcast = 0
         self.__rssi = {} # {client:rssi, client:rssi...}
         self.__rx_pkts = {} # {client:pkts, client:pkts...}
         self.__aps = {} # {client: {ap:rssi, ap:rssi...}, client: {ap:rssi, ap:rssi...}...}
@@ -90,14 +89,6 @@ class MCast(EmpowerApp):
         self.wtpup(callback=self.wtp_up_callback)
         self.wtpdown(callback=self.wtp_down_callback)
 
-    @property
-    def mcast(self):
-        """Return current multicast period."""
-        return self.__mcast
-
-    @mcast.setter
-    def mcast(self, mcast):
-        self.__mcast = mcast
 
     @property
     def rssi(self):
@@ -134,7 +125,6 @@ class MCast(EmpowerApp):
         # If this message has been received from any client, it means its position has changed and
         # hence the rate must be recomputed. 
         self.legacy_mcast_compute()
-        self.mcast = 0
 
 
     @property
@@ -243,6 +233,9 @@ class MCast(EmpowerApp):
                 entry.attached_clients = entry.attached_clients + 1
             elif entry.block.hwaddr == attached_hwaddr:
                 entry.attached_clients = entry.attached_clients - 1
+
+        self.legacy_mcast_compute()
+
 
     @property
     def mcast_clients(self):
@@ -436,7 +429,10 @@ class MCast(EmpowerApp):
                     entry.last_prob_update = time.time()
 
                 tx_policy = entry.block.tx_policies[EtherAddress(self.mcast_addr)] 
-                if entry.attached_clients <= 1:
+                if entry.attached_clients == 0:
+                    entry.mode = TX_MCAST_DMS_H
+                    tx_policy.mcast = TX_MCAST_DMS
+                elif entry.attached_clients == 1:
                     self.calculate_wtp_rate(entry)
                     entry.mode = TX_MCAST_DMS_H
                     tx_policy.mcast = TX_MCAST_DMS
@@ -452,7 +448,6 @@ class MCast(EmpowerApp):
                         tx_policy.mcast = TX_MCAST_DMS
                         entry.mode = TX_MCAST_DMS_H
                     elif entry.mode == TX_MCAST_DMS_H and (time.time() - entry.last_prob_update > entry.dms_max_period):      
-                        print("RESULTADO", (time.time() - entry.last_prob_update))
                         rate = self.calculate_wtp_rate(entry)
                         tx_policy.mcast = TX_MCAST_LEGACY
                         if entry.prob_measurement[self.mcast_addr] == MCAST_EWMA_PROB:
@@ -505,13 +500,11 @@ class MCast(EmpowerApp):
 
 
         for index, entry in enumerate(self.mcast_clients):
-            if entry.attached_hwaddr != hwaddr and (new_client is None or entry.addr != new_client):
+            if old_client is not None and entry.addr == old_client:
                 continue
 
-            if old_client is not None and entry.addr == old_client:
-                old_client_rate = entry.highest_rate
-                old_client_highest_cur_prob_rate = entry.highest_cur_prob_rate
-            else:
+            if (entry.attached_hwaddr == hwaddr) or (new_client is not None or entry.addr == new_client):
+                print("RATE FOR %s. Evaluated client %s. Rate ewma %d rate cur_prob %d"%(hwaddr, entry.addr, entry.highest_rate, entry.highest_cur_prob_rate))
                 # It looks for the lowest rate among all the receptors just in case in there is no valid intersection
                 # for the best rates of the clients (for both the ewma and cur probabilities). 
                 if entry.highest_rate < min_rate:
@@ -544,7 +537,7 @@ class MCast(EmpowerApp):
                         if not thershold_highest_cur_prob_rate_intersection_list:
                             second_thershold_valid = False
 
-
+        print("RATE FOR %s. Rate ewma %d rate cur_prob %d"%(hwaddr, min_rate, min_highest_cur_prob_rate))
         # If the old client was the only client in the wtp or there is not any client, lets have the basic rate
         if min_rate == sys.maxsize:
             for index, entry in enumerate(self.mcast_wtps):
@@ -558,6 +551,9 @@ class MCast(EmpowerApp):
 
     def legacy_mcast_compute(self):
         for index, entry in enumerate(self.mcast_wtps):
+            if entry.attached_clients == 0:
+                continue
+
             # It obtains the most appropiate rate
             if entry.last_rssi_change is not None and (time.time() - entry.last_rssi_change > self.rssi_stabilizing_period):
                 entry.prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
@@ -639,17 +635,18 @@ class MCast(EmpowerApp):
         overall_tenant_rate = 0
         overall_tenant_occupancy = 0
 
-        for key, value in aps_info.items():
-            for index, entry in enumerate(self.mcast_wtps):
-                if key == entry.block.hwaddr:
-                    if entry.attached_clients > 0:
-                        if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                            overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
-                            overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
-                        elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                            overall_tenant_rate = overall_tenant_rate + entry.cur_prob_rate[dst_addr]
-                            overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])
-                        break
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr not in aps_info:
+                continue
+            if entry.attached_clients > 0:
+                if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                    print("VIEJO.Added wtp ewma %s time %f" %(entry.block.hwaddr, self.packet_transmission_time(1500, entry.rate[dst_addr])))
+                    overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
+                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
+                elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                    print("VIEJO.Added wtp cur %s time %f" %(entry.block.hwaddr, self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])))
+                    overall_tenant_rate = overall_tenant_rate + entry.cur_prob_rate[dst_addr]
+                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])
 
         return overall_tenant_rate, overall_tenant_occupancy
 
@@ -657,19 +654,19 @@ class MCast(EmpowerApp):
     def handover_overall_rate_calculation(self, aps_info, dst_addr, evaluated_hwaddr, new_wtp_highest_cur_prob_rate, wtp_addr, old_wtp_new_rate, disable_old_wtp):
         future_overall_tenant_rate = 0
 
-        for key, value in aps_info.items():
-            for index, entry in enumerate(self.mcast_wtps):
-                if key == evaluated_hwaddr and key in aps_info:
-                    future_overall_tenant_rate = future_overall_tenant_rate + new_wtp_highest_cur_prob_rate
-                elif key == wtp_addr and disable_old_wtp is False:
-                    future_overal_tenant_rate = future_overall_tenant_rate + old_wtp_new_rate
-                elif key == entry.block.hwaddr and key in aps_info:
-                    if entry.attached_clients > 0:
-                        if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                            future_overall_tenant_rate = future_overall_tenant_rate + entry.rate[dst_addr]
-                        elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                            future_overall_tenant_rate = future_overall_tenant_rate + entry.cur_prob_rate[dst_addr]
-                        break
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr not in aps_info:
+                continue
+            if entry.block.hwaddr == evaluated_hwaddr:
+                future_overall_tenant_rate = future_overall_tenant_rate + new_wtp_highest_cur_prob_rate
+            elif entry.block.hwaddr == wtp_addr and disable_old_wtp is False:
+                future_overal_tenant_rate = future_overall_tenant_rate + old_wtp_new_rate
+            elif entry.block.hwaddr != wtp_addr and entry.block.hwaddr != evaluated_hwaddr:
+                if entry.attached_clients > 0:
+                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                        future_overall_tenant_rate = future_overall_tenant_rate + entry.rate[dst_addr]
+                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                        future_overall_tenant_rate = future_overall_tenant_rate + entry.cur_prob_rate[dst_addr]
 
         return future_overall_tenant_rate
 
@@ -677,19 +674,24 @@ class MCast(EmpowerApp):
     def handover_overall_channel_occupancy_calculation(self, aps_info, dst_addr, evaluated_hwaddr, new_wtp_highest_cur_prob_rate, wtp_addr, old_wtp_new_rate, disable_old_wtp):
         future_overall_tenant_occupancy = 0
 
-        for key, value in aps_info.items():
-            for index, entry in enumerate(self.mcast_wtps):
-                if key == evaluated_hwaddr and key in aps_info:
-                    future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, new_wtp_highest_cur_prob_rate)
-                elif key == wtp_addr and disable_old_wtp is False:
-                    future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, old_wtp_new_rate)
-                elif key == entry.block.hwaddr and key in aps_info:
-                    if entry.attached_clients > 0:
-                        if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                            future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
-                        elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                            future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500,entry.cur_prob_rate[dst_addr])
-                        break
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr not in aps_info:
+                continue
+            if entry.block.hwaddr == evaluated_hwaddr:
+                future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, new_wtp_highest_cur_prob_rate)
+                print("NUEVO. EVALUACION %s. Added evaluated wtp cur %s time %f" %(evaluated_hwaddr, evaluated_hwaddr, self.packet_transmission_time(1500, new_wtp_highest_cur_prob_rate)))
+            elif entry.block.hwaddr == wtp_addr and disable_old_wtp is False:
+                future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, old_wtp_new_rate)
+                print("NUEVO. EVALUACION %s. Added old wtp (wont be 0) ewma %s time %f" %(evaluated_hwaddr, wtp_addr, self.packet_transmission_time(1500, old_wtp_new_rate)))
+            elif entry.block.hwaddr != wtp_addr and entry.block.hwaddr != evaluated_hwaddr:
+                if entry.attached_clients > 0:
+                    if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
+                        future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
+                        print("NUEVO. EVALUACION %s. Added wtp ewma %s time %f" %(evaluated_hwaddr, entry.block.hwaddr, self.packet_transmission_time(1500, entry.rate[dst_addr])))
+                    elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
+                        future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500,entry.cur_prob_rate[dst_addr])
+                        print("NUEVO. EVALUACION %s. Added wtp ewma %s time %f" %(evaluated_hwaddr, entry.block.hwaddr, self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])))
+                        
 
         return future_overall_tenant_occupancy
 
@@ -739,6 +741,7 @@ class MCast(EmpowerApp):
                     disable_old_wtp = True
                     break
 
+        print("DISABLE OLD WTP", disable_old_wtp)
         # "new" wtp rate
         # check the possible rate in all the wtps
         for index, entry in enumerate(self.mcast_wtps):
@@ -800,10 +803,15 @@ class MCast(EmpowerApp):
         # Channel occupancy approach
         for key, value in new_overall_tenant_addr_occupancy.items():
             # If the new global value is worse than the previous one, the handover to this ap is not worthy
+            print("TENANT OCCUPANCY")
+            print(key)
+            print(value)
             if value < best_overall_tenant_addr_occupancy:
                 best_overall_tenant_addr_occupancy = value
                 best_overall_tenant_addr_hwaddr = key
                 best_overall_tenant_addr_rate = new_overall_tenant_addr_rate[key]
+
+        print("OLD WTP OCCUPANCY", best_overall_tenant_addr_occupancy)
 
         if best_overall_tenant_addr_hwaddr != wtp_addr:
             print("Old WTP rate without the client")
