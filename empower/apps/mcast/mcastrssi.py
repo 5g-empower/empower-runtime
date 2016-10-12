@@ -175,7 +175,7 @@ class MCast(EmpowerApp):
         wtp_ix = -1
 
         for index, entry in enumerate(self.mcast_wtps):
-            if entry.block.addr == hwaddr:
+            if entry.block.hwaddr == hwaddr:
                 attached_wtp_rx_pkts = entry.last_rx_pkts
                 wtp_ix = index
                 break
@@ -251,6 +251,12 @@ class MCast(EmpowerApp):
                 entry.rssi = stats[EtherAddress(handover_hwaddr)]['rssi']
                 entry.attached_hwaddr = handover_hwaddr
                 break
+
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr == handover_hwaddr:
+                entry.attached_clients = entry.attached_clients + 1
+            elif entry.block.hwaddr == attached_hwaddr:
+                entry.attached_clients = entry.attached_clients - 1
 
     @property
     def mcast_clients(self):
@@ -609,7 +615,7 @@ class MCast(EmpowerApp):
                         if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
                             overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
                         elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                            overall_tenant_rate = overall_tenant_rate + entry.highest_cur_prob_rate[dst_addr]
+                            overall_tenant_rate = overall_tenant_rate + entry.cur_prob_rate[dst_addr]
                         break
 
         return overall_tenant_rate
