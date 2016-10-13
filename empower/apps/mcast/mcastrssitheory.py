@@ -82,7 +82,7 @@ class MCast(EmpowerApp):
         self.__rssi_stabilizing_period = 5
         self.__handover_clients = {}
         self.__rssi_thershold = -65
-        self.mcast_addr = "01:00:5e:00:00:fb"
+        self.__mcast_addr = "01:00:5e:00:00:fb"
 
         # Register an lvap join event
         self.lvapjoin(callback=self.lvap_join_callback)
@@ -208,6 +208,7 @@ class MCast(EmpowerApp):
                     disable_old_wtp = True
                     break
 
+        # If there is only one client, it is moved to the AP that is closer to it. 
         if nb_clients > 1:
             overall_tenant_addr_rate, overall_tenant_addr_occupancy, handover_hwaddr, old_overall_tenant_addr_rate, old_overall_tenant_addr_occupancy = self.best_handover_search(station, stats, disable_old_wtp)
         else:
@@ -224,6 +225,7 @@ class MCast(EmpowerApp):
         self.log.info("The overall occupancy of this tenant-address AFTER the handover would be %d (ms)", overall_tenant_addr_occupancy)
         self.log.info("The handover must be performed from the AP %s to the AP %s", attached_hwaddr, handover_hwaddr)
 
+        # A copy of the client data is stored and it is restored after the handover
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == EtherAddress(station):
                 entry.rssi = stats[EtherAddress(handover_hwaddr)]['rssi']
@@ -242,12 +244,7 @@ class MCast(EmpowerApp):
                     lvap._assoc_id = 0
                     break
 
-        for index, entry in enumerate(self.mcast_clients):
-            if entry.addr == EtherAddress(station):
-                entry.rssi = stats[EtherAddress(handover_hwaddr)]['rssi']
-                entry.attached_hwaddr = handover_hwaddr
-                break
-
+        # Updates the client information in the corresponding APs
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == handover_hwaddr:
                 entry.attached_clients = entry.attached_clients + 1
@@ -256,6 +253,7 @@ class MCast(EmpowerApp):
                 entry.attached_clients = entry.attached_clients - 1
                 entry.prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
 
+        # The rates must be recomputed after the handover
         self.legacy_mcast_compute()
 
 
@@ -313,6 +311,15 @@ class MCast(EmpowerApp):
     def rssi_thershold(self, rssi_thershold):
         self.__rssi_thershold = rssi_thershold
 
+    @property
+    def mcast_addr(self):
+        """Return mcast_addr used."""
+        return self.__mcast_addr
+
+    @mcast_addr.setter
+    def mcast_addr(self, mcast_addr):
+        self.__mcast_addr = mcast_addr
+
     def txp_bin_counter_callback(self, counter):
         """Counters callback."""
 
@@ -368,6 +375,8 @@ class MCast(EmpowerApp):
         lvap_info = MCastClientInfo()
         lvap_info.addr = lvap.addr
         lvap_info.attached_hwaddr = default_block.hwaddr
+
+        # If this lvap is created due to a handover, its information must be restored
         if lvap.addr in self.handover_clients:
             lvap_info.rssi = self.handover_clients[lvap_info.addr].rssi
             lvap_info.rx_pkts = self.handover_clients[lvap_info.addr].rx_pkts
@@ -456,7 +465,7 @@ class MCast(EmpowerApp):
         elif highest_cur_prob == 0 and highest_prob != 0:
             sec_highest_rate = highest_rate
 
-        # Client info update
+        # The information of the client is updated with the new statistics
         lvap = RUNTIME.lvaps[counter.lvap]
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == counter.lvap:
@@ -480,24 +489,32 @@ class MCast(EmpowerApp):
                     entry.last_prob_update = time.time()
 
                 tx_policy = entry.block.tx_policies[EtherAddress(self.mcast_addr)] 
+
+                # If there is no clients, the default mode is DMS
                 if entry.attached_clients == 0:
                     entry.mode = TX_MCAST_DMS_H
                     tx_policy.mcast = TX_MCAST_DMS
+                # If there is only one client attached to this AP, the information is sent in DMS mode
+                # The rate is also calculated.
                 elif entry.attached_clients == 1:
                     self.calculate_wtp_rate(entry)
                     entry.mode = TX_MCAST_DMS_H
                     tx_policy.mcast = TX_MCAST_DMS
                 else: 
+                    # If there are many clients per AP, it combines DMS and legacy to obtain statistics. 
+                    # If the AP is in DMS mode and the has been an update of the RSSI, the mode is changed to legacy.
                     if entry.mode == TX_MCAST_DMS_H and entry.last_rssi_change > 0 and time.time() - entry.last_rssi_change < entry.legacy_max_period:
                         entry.mode = TX_MCAST_LEGACY_H
                         if entry.prob_measurement[self.mcast_addr] == MCAST_EWMA_PROB:
                             tx_policy.mcs = [int(entry.rate[self.mcast_addr])]
                         elif entry.prob_measurement[self.mcast_addr] == MCAST_CUR_PROB:
                             tx_policy.mcs = [int(entry.cur_prob_rate[self.mcast_addr])]
+                    # If the AP is in legacy mode and it is a long period since the last statistics update, the mode is changed to DMS.
                     elif entry.mode == TX_MCAST_LEGACY_H and (time.time() - entry.last_prob_update > entry.legacy_max_period):
                         entry.last_prob_update = time.time()
                         tx_policy.mcast = TX_MCAST_DMS
                         entry.mode = TX_MCAST_DMS_H
+                    # If there are enough statistics, the retransmission mode is changed to legacy and the rate is calculated taken them as a basis. 
                     elif entry.mode == TX_MCAST_DMS_H and (time.time() - entry.last_prob_update > entry.dms_max_period):      
                         rate = self.calculate_wtp_rate(entry)
                         tx_policy.mcast = TX_MCAST_LEGACY
@@ -889,6 +906,8 @@ class MCast(EmpowerApp):
         out['mcast_wtps'] = []
         for p in self.mcast_wtps:
             out['mcast_wtps'].append(p.to_dict())
+        out['mcast_addr'] = self.mcast_addr
+        out['rssi_thershold'] = self.rssi_thershold
 
         return out
                                     
