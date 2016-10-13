@@ -80,6 +80,8 @@ class MCast(EmpowerApp):
         self.__mcast_wtps = [] 
         self.__prob_thershold = 95
         self.__rssi_stabilizing_period = 5
+        self.__handover_clients = {}
+        self.__rssi_thershold = -65
         self.mcast_addr = "01:00:5e:00:00:fb"
 
         # Register an lvap join event
@@ -222,6 +224,13 @@ class MCast(EmpowerApp):
         self.log.info("The overall occupancy of this tenant-address AFTER the handover would be %d (ms)", overall_tenant_addr_occupancy)
         self.log.info("The handover must be performed from the AP %s to the AP %s", attached_hwaddr, handover_hwaddr)
 
+        for index, entry in enumerate(self.mcast_clients):
+            if entry.addr == EtherAddress(station):
+                entry.rssi = stats[EtherAddress(handover_hwaddr)]['rssi']
+                entry.attached_hwaddr = handover_hwaddr
+                self.handover_clients[entry.addr] = entry
+                break
+
         # The old wtp must delete the lvap (forcing the desconnection) and a new one is created in the new wtp (block)       
         for wtp in self.wtps():
             for block in wtp.supports:
@@ -286,6 +295,24 @@ class MCast(EmpowerApp):
     def rssi_stabilizing_period(self, rssi_stabilizing_period):
         self.__rssi_stabilizing_period = rssi_stabilizing_period
 
+    @property
+    def handover_clients(self):
+        """Return current status of the clients that are performing a handover."""
+        return self.__handover_clients
+
+    @handover_clients.setter
+    def handover_clients(self, handover_clients):
+        self.__handover_clients = handover_clients
+
+    @property
+    def rssi_thershold(self):
+        """Return the minimum required rssi level to perform a handover."""
+        return self.__rssi_thershold
+
+    @rssi_thershold.setter
+    def rssi_thershold(self, rssi_thershold):
+        self.__rssi_thershold = rssi_thershold
+
     def txp_bin_counter_callback(self, counter):
         """Counters callback."""
 
@@ -341,6 +368,17 @@ class MCast(EmpowerApp):
         lvap_info = MCastClientInfo()
         lvap_info.addr = lvap.addr
         lvap_info.attached_hwaddr = default_block.hwaddr
+        if lvap.addr in self.handover_clients:
+            lvap_info.rssi = self.handover_clients[lvap_info.addr].rssi
+            lvap_info.rx_pkts = self.handover_clients[lvap_info.addr].rx_pkts
+            lvap_info.rates = self.handover_clients[lvap_info.addr].rates
+            lvap_info.wtps = self.handover_clients[lvap_info.addr].wtps
+            lvap_info.higher_thershold_ewma_rates = self.handover_clients[lvap_info.addr].higher_thershold_ewma_rates
+            lvap_info.higher_thershold_cur_prob_rates = self.handover_clients[lvap_info.addr].higher_thershold_cur_prob_rates
+            lvap_info.highest_rate = self.handover_clients[lvap_info.addr].highest_rate
+            lvap_info.highest_cur_prob_rate = self.handover_clients[lvap_info.addr].highest_cur_prob_rate
+            del self.handover_clients[lvap_info.addr]
+
         self.mcast_clients.append(lvap_info)
 
         for index, entry in enumerate(self.mcast_wtps):
@@ -517,7 +555,6 @@ class MCast(EmpowerApp):
                 continue
 
             if (entry.attached_hwaddr == hwaddr) or (new_client is not None or entry.addr == new_client):
-                #print("RATE FOR %s. Evaluated client %s. Rate ewma %d rate cur_prob %d"%(hwaddr, entry.addr, entry.highest_rate, entry.highest_cur_prob_rate))
                 # It looks for the lowest rate among all the receptors just in case in there is no valid intersection
                 # for the best rates of the clients (for both the ewma and cur probabilities). 
                 if entry.highest_rate < min_rate:
@@ -557,8 +594,6 @@ class MCast(EmpowerApp):
                     min_rate = min(entry.block.supports)
                     min_highest_cur_prob_rate = min(entry.block.supports)
                     break
-
-        #print("RATE FOR %s. Rate ewma %d rate cur_prob %d"%(hwaddr, min_rate, min_highest_cur_prob_rate))
 
         return min_rate, min_highest_cur_prob_rate, thershold_intersection_list, thershold_highest_cur_prob_rate_intersection_list
 
@@ -635,6 +670,10 @@ class MCast(EmpowerApp):
                     highest_value = entry.rx_pkts[self.mcast_addr]
                     highest_sta = entry.addr
 
+        #print("HIGHEST", highest_value)
+        #print("LOWEST", lowest_value)
+        #print("ATTACHED", attached_wtp_rx_pkts[self.mcast_addr])
+
         minimum_required_pkts = 0.90 * attached_wtp_rx_pkts[self.mcast_addr]
         # If even the best receptor does not receive the required amount of packets,
         # it is necessary to decrease the rate
@@ -654,11 +693,9 @@ class MCast(EmpowerApp):
                 continue
             if entry.attached_clients > 0:
                 if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
-                    print("VIEJO.Added wtp ewma %s time %f" %(entry.block.hwaddr, self.packet_transmission_time(1500, entry.rate[dst_addr])))
                     overall_tenant_rate = overall_tenant_rate + entry.rate[dst_addr]
                     overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
                 elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                    print("VIEJO.Added wtp cur %s time %f" %(entry.block.hwaddr, self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])))
                     overall_tenant_rate = overall_tenant_rate + entry.cur_prob_rate[dst_addr]
                     overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])
 
@@ -693,19 +730,14 @@ class MCast(EmpowerApp):
                 continue
             if entry.block.hwaddr == evaluated_hwaddr:
                 future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, new_wtp_highest_cur_prob_rate)
-                print("NUEVO. EVALUACION %s. Added evaluated wtp cur %s time %f" %(evaluated_hwaddr, evaluated_hwaddr, self.packet_transmission_time(1500, new_wtp_highest_cur_prob_rate)))
             elif entry.block.hwaddr == wtp_addr and disable_old_wtp is False:
                 future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, old_wtp_new_rate)
-                print("NUEVO. EVALUACION %s. Added old wtp (wont be 0) ewma %s time %f" %(evaluated_hwaddr, wtp_addr, self.packet_transmission_time(1500, old_wtp_new_rate)))
             elif entry.block.hwaddr != wtp_addr and entry.block.hwaddr != evaluated_hwaddr:
                 if entry.attached_clients > 0:
                     if entry.prob_measurement[dst_addr] == MCAST_EWMA_PROB:
                         future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500, entry.rate[dst_addr])
-                        print("NUEVO. EVALUACION %s. Added wtp ewma %s time %f" %(evaluated_hwaddr, entry.block.hwaddr, self.packet_transmission_time(1500, entry.rate[dst_addr])))
                     elif entry.prob_measurement[dst_addr] == MCAST_CUR_PROB:
-                        future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500,entry.cur_prob_rate[dst_addr])
-                        print("NUEVO. EVALUACION %s. Added wtp ewma %s time %f" %(evaluated_hwaddr, entry.block.hwaddr, self.packet_transmission_time(1500, entry.cur_prob_rate[dst_addr])))
-                        
+                        future_overall_tenant_occupancy = future_overall_tenant_occupancy + self.packet_transmission_time(1500,entry.cur_prob_rate[dst_addr])                        
 
         return future_overall_tenant_occupancy
 
@@ -774,34 +806,36 @@ class MCast(EmpowerApp):
 
         # Channel occupancy approach
         for key, value in new_overall_tenant_addr_occupancy.items():
-            # If the new global value is worse than the previous one, the handover to this ap is not worthy
-            # print("TENANT OCCUPANCY")
-            # print(key)
-            # print(value)
-            if value < best_overall_tenant_addr_occupancy:
+            # If the new global value is worse than the previous one or is below a given RSSI thershold, the handover to this AP is not worthy
+            if value < best_overall_tenant_addr_occupancy \
+            or (value == best_overall_tenant_addr_occupancy and stats[key]['rssi'] > self.stats[best_overall_tenant_addr_hwaddr]['rssi']) \
+            and stats[key]['rssi'] > self.rssi_thershold:
                 best_overall_tenant_addr_occupancy = value
                 best_overall_tenant_addr_hwaddr = key
                 best_overall_tenant_addr_rate = new_overall_tenant_addr_rate[key]
 
-        # print("OLD WTP OCCUPANCY", best_overall_tenant_addr_occupancy)
-
-        # if best_overall_tenant_addr_hwaddr != wtp_addr:
-        #     print("Old WTP rate without the client")
-        #     print("Highest rate", old_wtp_new_rate)
-        #     print("Second rate", old_wtp_new_highest_cur_prob_rate)
-
-        #     print("New rates of the remaining APs if the client is moved there")
-        #     for key, value in new_wtps_possible_rates.items():
-        #         print(key)
-        #         print(value)
-
-        #     print("Overall channel occupancy before the handover")
-        #     print(old_overall_tenant_addr_occupancy)
-
-        #     print("Overall occupancy of the remaining APs if the client is moved there")
-        #     for key, value in new_overall_tenant_addr_occupancy.items():
-        #         print(key)
-        #         print(value)
+        # If the current combination is the most optimum option in terms of channel occupancy, but the link quality for this client is below the 
+        # defined RSSI thershold, looking for a best AP (if possible) is necessary
+        if best_overall_tenant_addr_hwaddr == wtp_addr and stats[wtp_addr]['rssi'] <= self.rssi_thershold:
+            new_overall_tenant_addr_occupancy_rssi_above_thershold = dict()
+            new_overall_tenant_addr_occupancy_rssi_below_thershold = dict()
+            # Try to find the next best occupancy rate in which the new AP offers an RSSI value higher than the thershold
+            for key, value in new_overall_tenant_addr_occupancy.items():
+                if stats[key]['rssi'] > self.rssi_thershold:
+                    new_overall_tenant_addr_occupancy_rssi_above_thershold[key] = value
+                elif stats[key]['rssi'] < self.rssi_thershold and stats[key]['rssi'] > stats[wtp_addr]['rssi']:
+                    new_overall_tenant_addr_occupancy_rssi_below_thershold[key] = value
+            # It picks the WTP that offers the minimum occupancy rate among those that has an RSSI level above the defined thershold
+            if new_overall_tenant_addr_occupancy_rssi_above_thershold:
+                best_overall_tenant_addr_hwaddr = min(new_overall_tenant_addr_occupancy_rssi_above_thershold, key=new_overall_tenant_addr_occupancy_rssi_above_thershold.get)
+                best_overall_tenant_addr_occupancy = new_overall_tenant_addr_occupancy_rssi_above_thershold[best_overall_tenant_addr_hwaddr]
+                best_overall_tenant_addr_rate = new_overall_tenant_addr_rate[best_overall_tenant_addr_hwaddr]
+            # In the worst case, if any AP offers an RSSI above the thershold, it picks the one that having an RSSI level higher than the current one, 
+            # offers the minimum occupancy rate. 
+            elif new_overall_tenant_addr_occupancy_rssi_below_thershold:
+                best_overall_tenant_addr_hwaddr = min(new_overall_tenant_addr_occupancy_rssi_below_thershold, key=new_overall_tenant_addr_occupancy_rssi_below_thershold.get)
+                best_overall_tenant_addr_occupancy = new_overall_tenant_addr_occupancy_rssi_below_thershold[best_overall_tenant_addr_hwaddr]
+                best_overall_tenant_addr_rate = new_overall_tenant_addr_rate[best_overall_tenant_addr_hwaddr]
 
         return best_overall_tenant_addr_rate, best_overall_tenant_addr_occupancy, best_overall_tenant_addr_hwaddr, old_overall_tenant_addr_rate, old_overall_tenant_addr_occupancy
 
@@ -821,18 +855,16 @@ class MCast(EmpowerApp):
 
         # It checks if any wtp offers a better RSSI than the one is currently attached
         for key, value in stats.items():
-            if value['rssi'] > best_rssi and key != best_wtp_addr:
+            if value['rssi'] > best_rssi and key != best_wtp_addr and value['rssi'] > self.rssi_thershold:
                 best_rssi = value['rssi']
                 best_wtp_addr = key
-
-        new_overall_tenant_addr_occupancy = self.handover_overall_channel_occupancy_calculation(stats, self.mcast_addr, best_wtp_addr, best_rate, wtp_addr, old_wtp_new_rate, disable_old_wtp)
 
         if best_wtp_addr == wtp_addr:
             best_rate = self.mcast_clients[client_ix].highest_rate
             best_overall_tenant_addr_occupancy = old_overall_tenant_addr_occupancy
         else:
             best_rate = self.mcast_clients[client_ix].highest_cur_prob_rate
-            best_overall_tenant_addr_occupancy = new_overall_tenant_addr_occupancy
+            best_overall_tenant_addr_occupancy = self.handover_overall_channel_occupancy_calculation(stats, self.mcast_addr, best_wtp_addr, best_rate, wtp_addr, old_wtp_new_rate, disable_old_wtp)
 
         return best_rate, best_overall_tenant_addr_occupancy, best_wtp_addr, old_overall_tenant_addr_rate, old_overall_tenant_addr_occupancy
 
