@@ -48,8 +48,10 @@ LOG = empower.logger.get_logger()
 class MCastWTPInfo(object):
     def __init__(self):
         self.__block = None
-        self.__last_txp_bin_counter = dict() #dest_addr: counter
-        self.__last_rx_pkts = dict() #dest_addr: counter
+        self.__last_txp_bin_tx_pkts_counter = dict() #dest_addr: counter
+        self.__last_tx_pkts = dict() #dest_addr: counter
+        self.__last_txp_bin_tx_bytes_counter = dict() #dest_addr: counter
+        self.__last_tx_bytes = dict() #dest_addr: counter
         self.__rate = dict() # {dest_addr:ewma_rate, dst_addr:ewma_rate...}
         self.__cur_prob_rate = dict() # {dest_addr:curprob_rate, dest_addr:curprob_rate...}
         self.__prob_measurement = dict()
@@ -112,24 +114,44 @@ class MCastWTPInfo(object):
         self.__block = block
 
     @property
-    def last_txp_bin_counter(self):
+    def last_txp_bin_tx_pkts_counter(self):
         """Return the total counter of the packets sent to a given address."""
-        return self.__last_txp_bin_counter
+        return self.__last_txp_bin_tx_pkts_counter
 
-    @last_txp_bin_counter.setter
-    def last_txp_bin_counter(self, last_txp_bin_counter_info):
+    @last_txp_bin_tx_pkts_counter.setter
+    def last_txp_bin_tx_pkts_counter(self, last_txp_bin_tx_pkts_counter_info):
 
-        self.__last_txp_bin_counter = last_txp_bin_counter_info
+        self.__last_txp_bin_tx_pkts_counter = last_txp_bin_tx_pkts_counter_info
 
     @property
-    def last_rx_pkts(self):
+    def last_txp_bin_tx_bytes_counter(self):
+        """Return the total counter of the bytes sent to a given address."""
+        return self.__last_txp_bin_tx_bytes_counter
+
+    @last_txp_bin_tx_bytes_counter.setter
+    def last_txp_bin_tx_bytes_counter(self, last_txp_bin_tx_bytes_counter_info):
+
+        self.__last_txp_bin_tx_bytes_counter = last_txp_bin_tx_bytes_counter_info
+
+    @property
+    def last_tx_pkts(self):
         """Return the last number of packets sent to a given address."""
-        return self.__last_rx_pkts
+        return self.__last_tx_pkts
 
-    @last_rx_pkts.setter
-    def last_rx_pkts(self, last_rx_pkts_info):
+    @last_tx_pkts.setter
+    def last_tx_pkts(self, last_tx_pkts_info):
 
-        self.__last_rx_pkts = last_rx_pkts_info
+        self.__last_tx_pkts = last_tx_pkts_info
+
+    @property
+    def last_tx_bytes(self):
+        """Return the last number of bytes sent to a given address."""
+        return self.__last_tx_bytes
+
+    @last_tx_bytes.setter
+    def last_tx_bytes(self, last_tx_bytes_info):
+
+        self.__last_tx_bytes = last_tx_bytes_info
 
     @property
     def rate(self):
@@ -186,15 +208,22 @@ class MCastWTPInfo(object):
         """Return JSON-serializable representation of the object."""
 
         params = {}
-        last_rx_pkts = {str(k): v for k, v in self.last_rx_pkts.items()}
-        last_txp_bin_counter = {str(k): v for k, v in self.last_txp_bin_counter.items()}
+        last_tx_pkts = {str(k): v for k, v in self.last_tx_pkts.items()}
+        last_txp_bin_tx_pkts_counter = {str(k): v for k, v in self.last_txp_bin_tx_pkts_counter.items()}
+        last_tx_bytes = {str(k): v for k, v in self.last_tx_bytes.items()}
+        last_txp_bin_tx_bytes_counter = {str(k): v for k, v in self.last_txp_bin_tx_bytes_counter.items()}
+        rate = {str(k): v for k, v in self.rate.items()}
+        cur_prob_rate = {str(k): v for k, v in self.cur_prob_rate.items()}
+        prob_measurement = {str(k): v for k, v in self.prob_measurement.items()}
 
         params['block'] = self.block.hwaddr
-        params['last_txp_bin_counter'] = last_txp_bin_counter
-        params['last_rx_pkts'] = last_rx_pkts
-        params['rate'] = self.rate
-        params['cur_prob_rate'] = self.cur_prob_rate
-        params['prob_measurement'] = self.prob_measurement
+        params['last_txp_bin_tx_pkts_counter'] = last_txp_bin_tx_pkts_counter
+        params['last_tx_pkts'] = last_tx_pkts
+        params['last_txp_bin_tx_bytes_counter'] = last_txp_bin_tx_bytes_counter
+        params['last_tx_bytes'] = last_tx_bytes
+        params['rate'] = rate
+        params['cur_prob_rate'] = cur_prob_rate
+        params['prob_measurement'] = prob_measurement
         params['last_rssi_change'] = json.dumps(datetime.datetime.fromtimestamp(self.last_rssi_change), cls=JSONEncoder)
         params['attached_clients'] = self.attached_clients
         params['last_prob_update'] = json.dumps(datetime.datetime.fromtimestamp(self.last_prob_update), cls=JSONEncoder)
