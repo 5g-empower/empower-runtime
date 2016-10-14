@@ -34,8 +34,6 @@ import datetime
 import sys
 import json
 
-from empower.core.app import EmpowerApp
-from empower.core.app import DEFAULT_PERIOD
 from empower.core.resourcepool import TX_MCAST_DMS
 from empower.core.resourcepool import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress

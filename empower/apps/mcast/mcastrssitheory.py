@@ -34,7 +34,6 @@ import datetime
 import sys
 
 from empower.core.app import EmpowerApp
-from empower.core.app import DEFAULT_PERIOD
 from empower.core.resourcepool import TX_MCAST
 from empower.core.resourcepool import TX_MCAST_DMS
 from empower.core.resourcepool import TX_MCAST_LEGACY
@@ -357,7 +356,8 @@ class MCastMobilityManager(EmpowerApp):
 
             self.txp_bin_counter(block=block,
                 mcast=self.mcast_addr,
-                callback=self.txp_bin_counter_callback)
+                callback=self.txp_bin_counter_callback,
+                every=1000)
 
 
     def wtp_down_callback(self, wtp):
@@ -858,7 +858,7 @@ class MCastMobilityManager(EmpowerApp):
         for key, value in new_overall_tenant_addr_occupancy.items():
             # If the new global value is worse than the previous one or is below a given RSSI thershold, the handover to this AP is not worthy
             if value < best_overall_tenant_addr_occupancy \
-            or (value == best_overall_tenant_addr_occupancy and stats[key]['rssi'] > self.stats[best_overall_tenant_addr_hwaddr]['rssi']) \
+            or (value == best_overall_tenant_addr_occupancy and stats[key]['rssi'] > stats[best_overall_tenant_addr_hwaddr]['rssi']) \
             and stats[key]['rssi'] > self.rssi_thershold:
                 best_overall_tenant_addr_occupancy = value
                 best_overall_tenant_addr_hwaddr = key
@@ -946,7 +946,7 @@ class MCastMobilityManager(EmpowerApp):
                                     
 
 
-def launch(tenant_id, every=DEFAULT_PERIOD, rssi={}, rx_pkts={}, aps={}, mcast_clients=[], mcast_wtps=[]):
+def launch(tenant_id, every=500, rssi={}, rx_pkts={}, aps={}, mcast_clients=[], mcast_wtps=[]):
     """ Initialize the module. """
 
     return MCastMobilityManager(tenant_id=tenant_id, every=every, rssi=rssi, rx_pkts=rx_pkts, aps=aps, mcast_clients=mcast_clients, mcast_wtps=mcast_wtps)

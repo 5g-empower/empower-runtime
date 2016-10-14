@@ -24,7 +24,7 @@ from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
 
-DEFAULT_PERIOD = 500
+DEFAULT_PERIOD = 5000
 
 
 class EmpowerApp(object):
