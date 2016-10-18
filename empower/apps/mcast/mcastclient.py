@@ -51,6 +51,7 @@ class MCastClientInfo(object):
 		self.__higher_thershold_cur_prob_rates = []
 		self.__highest_rate = 0
 		self.__highest_cur_prob_rate = 0
+		self.__last_unsuccessful_handover = dict()
 
 	@property
 	def addr(self):
@@ -142,6 +143,15 @@ class MCastClientInfo(object):
 	def highest_cur_prob_rate(self, highest_cur_prob_rate):
 		self.__highest_cur_prob_rate = highest_cur_prob_rate
 
+	@property
+	def last_unsuccessful_handover(self):
+		"""Return the last_unsuccessful_handover done."""
+		return self.__last_unsuccessful_handover
+
+	@last_unsuccessful_handover.setter
+	def last_unsuccessful_handover(self, last_unsuccessful_handover):
+		self.__last_unsuccessful_handover = last_unsuccessful_handover
+
 
 	def to_dict(self):
 		"""Return JSON-serializable representation of the object."""
@@ -149,6 +159,7 @@ class MCastClientInfo(object):
 		params = {}
 		wtps = {str(k): v for k, v in self.wtps.items()}
 		rx_pkts = {str(k): v for k, v in self.rx_pkts.items()}
+		last_unsuccessful_handover = {str(k): v for k, v in self.last_unsuccessful_handover.items()}
 
 		params['addr'] = self.addr
 		params['rssi'] = self.rssi
@@ -160,5 +171,6 @@ class MCastClientInfo(object):
 		params['higher_thershold_cur_prob_rates'] = self.higher_thershold_cur_prob_rates
 		params['highest_rate'] = self.highest_rate
 		params['highest_cur_prob_rate'] = self.highest_cur_prob_rate
+		params['last_unsuccessful_handover'] = last_unsuccessful_handover
 
 		return params
