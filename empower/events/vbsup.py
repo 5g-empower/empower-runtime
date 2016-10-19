@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.vbsp import PRT_VBSP_REGISTER
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
 
 from empower.main import RUNTIME
 
 
-class VBSUp(Module):
+class VBSUp(ModuleTrigger):
     """VBSUp worker."""
 
     MODULE_NAME = "vbsup"

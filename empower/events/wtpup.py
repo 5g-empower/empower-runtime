@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
 from empower.lvapp import PT_REGISTER
 
 from empower.main import RUNTIME
 
 
-class WTPUp(Module):
+class WTPUp(ModuleTrigger):
     """WTPUp worker."""
 
     MODULE_NAME = "wtpup"
@@ -72,7 +72,6 @@ def app_wtpup(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
-    kwargs['every'] = -1
     return wtpup(**kwargs)
 
 

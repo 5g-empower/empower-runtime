@@ -149,7 +149,8 @@ class LVAPPConnection(object):
 
         try:
             self._trigger_message(hdr.type)
-        except:
+        except Exception as ex:
+            LOG.exception(ex)
             self.stream.close()
             return
 

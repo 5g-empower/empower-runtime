@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvnfp.lvnfpserver import ModuleLVNFPEventWorker
 from empower.lvnfp import PT_REGISTER
 
 from empower.main import RUNTIME
 
 
-class CPPUp(Module):
+class CPPUp(ModuleTrigger):
     """CPPUp worker."""
 
     MODULE_NAME = "cppup"
@@ -74,7 +74,6 @@ def app_cppup(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
-    kwargs['every'] = -1
     return cppup(**kwargs)
 
 

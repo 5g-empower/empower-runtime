@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
 from empower.lvapp import PT_LVAP_JOIN
 
 from empower.main import RUNTIME
 
 
-class LVAPJoin(Module):
+class LVAPJoin(ModuleTrigger):
     """LVAPJoin."""
 
     MODULE_NAME = "lvapjoin"

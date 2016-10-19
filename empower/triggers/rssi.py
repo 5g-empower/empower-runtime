@@ -35,7 +35,7 @@ from empower.core.app import EmpowerApp
 from empower.lvapp import PT_CAPS
 from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
 
@@ -79,7 +79,7 @@ DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt32("module_id"))
 
 
-class RSSI(Module):
+class RSSI(ModuleTrigger):
     """ RSSI trigger object. """
 
     MODULE_NAME = "rssi"
@@ -87,7 +87,7 @@ class RSSI(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModuleTrigger.__init__(self)
 
         # parameters
         self._lvap = None
@@ -185,7 +185,7 @@ class RSSI(Module):
 
         if self.tenant_id not in RUNTIME.tenants:
             self.log.info("Tenant %s not found", self.tenant_id)
-            for wtp in list(self.wtps):
+            for wtp in self.wtps:
                 self.remove_rssi_from_wtp(wtp)
             self.unload()
             return
@@ -296,7 +296,7 @@ class RssiWorker(ModuleLVAPPWorker):
         """Handle WTP BYE message."""
 
         for module in self.modules.values():
-            module.wtps.remove(wtp.addr)
+            module.wtps.remove(wtp)
 
 
 def rssi(**kwargs):
@@ -309,7 +309,6 @@ def bound_rssi(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['every'] = -1
     return rssi(**kwargs)
 
 setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)
