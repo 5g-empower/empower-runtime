@@ -725,7 +725,7 @@ class MCastMobilityManager(EmpowerApp):
                 self.mcast_clients[client_index].last_unsuccessful_handover[key]['rate'] != value['rate']:
                     self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] = self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] + 1
 
-                    if self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] <= 5:
+                    if self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] <= self.rssi_stabilizing_period:
                         continue
                     else:
                         del self.mcast_clients[client_index].last_unsuccessful_handover[key]
