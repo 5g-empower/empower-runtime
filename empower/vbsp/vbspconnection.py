@@ -26,6 +26,8 @@ import json
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
+# from empower.vbsp import PRT_UE_JOIN
+# from empower.vbsp import PRT_UE_LEAVE
 from empower.vbsp import PRT_VBSP_HELLO
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
@@ -250,8 +252,8 @@ class VBSPConnection(object):
             None
         """
 
-        active_ues = []
-        inactive_ues = []
+        active_ues = {}
+        inactive_ues = {}
 
         event_type = main_msg.WhichOneof("event_types")
         msg = protobuf_to_dict(main_msg)
@@ -261,22 +263,34 @@ class VBSPConnection(object):
             return
 
         # List of active UEs
-        if "active_rnti" in ues_id_msg_repl:
-            active_ues.extend(ues_id_msg_repl["active_rnti"])
+        if "active_ue_id" in ues_id_msg_repl:
+            for ue in ues_id_msg_repl["active_ue_id"]:
+                if "imsi" in ue:
+                    active_ues[ue["rnti"]] = {"imsi": ue["imsi"]}
+                else:
+                    active_ues[ue["rnti"]] = {"imsi": None}
         # List of inactive UEs
-        if "inactive_rnti" in ues_id_msg_repl:
-            inactive_ues.extend(ues_id_msg_repl["inactive_rnti"])
+        if "inactive_ue_id" in ues_id_msg_repl:
+            for ue in ues_id_msg_repl["inactive_ue_id"]:
+                if "imsi" in ue:
+                    inactive_ues[ue["rnti"]] = {"imsi": ue["imsi"]}
+                else:
+                    inactive_ues[ue["rnti"]] = {"imsi": None}
 
         for rnti in active_ues:
             if rnti not in self.vbs.ues:
-                self.vbs.ues[rnti] = UE(rnti, self.vbs)
+                self.vbs.ues[rnti] = UE(rnti, active_ues[rnti]["imsi"], self.vbs)
+                # for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
+                #     handler(self.vbs.ues[rnti])
 
         existing_rntis = []
         existing_rntis.extend(self.vbs.ues.keys())
 
         for rnti in existing_rntis:
             if rnti not in active_ues:
-                # Handling of UE down must be handled
+                # Handling of UE down must be done
+                # for handler in self.server.pt_types_handlers[PRT_UE_LEAVE]:
+                #     handler(self.vbs.ues[rnti])
                 del self.vbs.ues[rnti]
 
     def _handle_rrc_meas_conf_repl(self, main_msg):
