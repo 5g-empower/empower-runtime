@@ -190,7 +190,7 @@ class LVAPPConnection(object):
             wtp = RUNTIME.wtps[wtp_addr]
         except KeyError:
             LOG.info("Hello from unknown WTP (%s)", wtp_addr)
-            raise KeyError("Hello from unknown WTP (%s)", wtp_addr)
+            return
 
         LOG.info("Hello from %s WTP %s seq %u", self.addr[0], wtp.addr,
                  hello.seq)
