@@ -265,21 +265,32 @@ class VBSPConnection(object):
         # List of active UEs
         if "active_ue_id" in ues_id_msg_repl:
             for ue in ues_id_msg_repl["active_ue_id"]:
+                active_ues[ue["rnti"]] = {}
                 if "imsi" in ue:
-                    active_ues[ue["rnti"]] = {"imsi": ue["imsi"]}
+                    active_ues[ue["rnti"]]["imsi"] = ue["imsi"]
                 else:
-                    active_ues[ue["rnti"]] = {"imsi": None}
+                    active_ues[ue["rnti"]]["imsi"] = None
+                if "plmn_id" in ue:
+                    active_ues[ue["rnti"]]["plmn_id"] = ue["plmn_id"]
+                else:
+                    active_ues[ue["rnti"]]["plmn_id"] = None
         # List of inactive UEs
         if "inactive_ue_id" in ues_id_msg_repl:
             for ue in ues_id_msg_repl["inactive_ue_id"]:
+                inactive_ues[ue["rnti"]] = {}
                 if "imsi" in ue:
-                    inactive_ues[ue["rnti"]] = {"imsi": ue["imsi"]}
+                    inactive_ues[ue["rnti"]]["imsi"] = ue["imsi"]
                 else:
-                    inactive_ues[ue["rnti"]] = {"imsi": None}
+                    inactive_ues[ue["rnti"]]["imsi"] = None
+                if "plmn_id" in ue:
+                    inactive_ues[ue["rnti"]]["plmn_id"] = ue["plmn_id"]
+                else:
+                    inactive_ues[ue["rnti"]]["plmn_id"] = None
 
         for rnti in active_ues:
             if rnti not in self.vbs.ues:
                 self.vbs.ues[rnti] = UE(rnti, active_ues[rnti]["imsi"], self.vbs)
+                self.vbs.ues[rnti].plmn_id = active_ues[rnti]["plmn_id"]
                 # for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
                 #     handler(self.vbs.ues[rnti])
 
