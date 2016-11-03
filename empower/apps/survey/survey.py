@@ -69,9 +69,7 @@ class Survey(EmpowerApp):
         """ Return a JSON-serializable dictionary representing the Summary """
 
         out = super().to_dict()
-
         out['links'] = self.links
-
         return out
 
     def summary_callback(self, summary):
