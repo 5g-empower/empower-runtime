@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvnfp.lvnfpserver import ModuleLVNFPEventWorker
 from empower.lvnfp import PT_LVNF_LEAVE
 
 from empower.main import RUNTIME
 
 
-class LVNFLeave(Module):
+class LVNFLeave(ModuleTrigger):
     """LVNFLeave worker."""
 
     MODULE_NAME = "lvnfleave"

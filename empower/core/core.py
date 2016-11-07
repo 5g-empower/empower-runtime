@@ -191,6 +191,8 @@ class EmpowerRuntime(object):
         for deny in Session().query(TblDeny).all():
             if deny.addr in self.denied:
                 raise ValueError(deny.addr_str)
+
+            acl = ACL(deny.addr, deny.label)
             self.denied[deny.addr] = acl
 
     def add_allowed(self, sta_addr, label):
@@ -575,3 +577,26 @@ class EmpowerRuntime(object):
                 return tenant
 
         return None
+
+    def remove_lvap(self, lvap_addr):
+        """Remove LVAP from the network"""
+
+        if lvap_addr not in self.lvaps:
+            return
+
+        lvap = self.lvaps[lvap_addr]
+
+        # removing LVAP from tenant, need first to look for right tenant
+        if lvap.addr in lvap.tenant.lvaps:
+            LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
+            del lvap.tenant.lvaps[lvap.addr]
+
+        # Raise LVAP leave event
+        from empower.lvapp.lvappserver import LVAPPServer
+        lvapp_server = self.components[LVAPPServer.__module__]
+        lvapp_server.send_lvap_leave_message_to_self(lvap)
+
+        lvap.clear_downlink()
+        lvap.clear_uplink()
+
+        del self.lvaps[lvap.addr]

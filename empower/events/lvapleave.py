@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
 from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
 
 
-class LVAPLeave(Module):
+class LVAPLeave(ModuleTrigger):
     """LVAPLeave."""
 
     MODULE_NAME = "lvapleave"

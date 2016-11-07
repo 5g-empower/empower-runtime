@@ -21,7 +21,6 @@ import time
 import tornado.ioloop
 import socket
 import sys
-import json
 
 from protobuf_to_dict import protobuf_to_dict
 
@@ -44,6 +43,7 @@ from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
+
 
 def create_header(t_id, b_id, header):
     """Create message header."""
@@ -157,7 +157,6 @@ class VBSPConnection(object):
         self.__buffer = b''
 
         if line is not None:
-            LOG.info("Received message of length %d" % len(line))
 
             self.__buffer = self.__buffer + line
 
@@ -194,7 +193,7 @@ class VBSPConnection(object):
             LOG.error("Unknown message type %s", msg_type)
             return
 
-        if msg_type != PRT_VBSP_HELLO and self.vbs == None:
+        if msg_type != PRT_VBSP_HELLO and not self.vbs:
             return
 
         handler_name = "_handle_%s" % self.server.pt_types[msg_type]
@@ -225,21 +224,26 @@ class VBSPConnection(object):
             LOG.error("Hello from unknown VBS (%s)", (vbs_id))
             return
 
-        LOG.info("Hello from %s, VBS %s", self.addr[0], vbs_id.to_str())
+        LOG.info("Hello from %s VBS %s seq %u", self.addr[0], vbs.addr,
+                 main_msg.head.seq)
 
-        # If this is a new connection, then send UEs ID request.
+        # New connection
         if not vbs.connection:
+
+            # set pointer to pnfdev object
             self.vbs = vbs
+
+            # set connection
             vbs.connection = self
+
+            # request registered UEs
             self.send_UEs_id_req()
 
-            event_type = main_msg.WhichOneof("event_types")
-            msg = protobuf_to_dict(main_msg)
-
-            vbs.period = msg[event_type]["mHello"]["repl"]["period"]
+            # generate register message
             self.send_register_message_to_self()
 
         # Update VBSP params
+        vbs.period = main_msg.se.mHello.repl.period
         vbs.last_seen = main_msg.head.seq
         vbs.last_seen_ts = time.time()
 
@@ -274,6 +278,7 @@ class VBSPConnection(object):
                     active_ues[ue["rnti"]]["plmn_id"] = ue["plmn_id"]
                 else:
                     active_ues[ue["rnti"]]["plmn_id"] = None
+
         # List of inactive UEs
         if "inactive_ue_id" in ues_id_msg_repl:
             for ue in ues_id_msg_repl["inactive_ue_id"]:
@@ -308,7 +313,7 @@ class VBSPConnection(object):
         """Handle an incoming UE's RRC Measurements configuration reply.
 
         Args:
-            message, a emage_msg containing RRC Measurements configuration in UE
+            message, a message containing RRC Measurements configuration in UE
         Returns:
             None
         """
@@ -367,8 +372,8 @@ class VBSPConnection(object):
         """ Sends a request for RRC measurements configuration of UE """
 
         rrc_m_conf_req = main_pb2.emage_msg()
-
         enb_id = ether_to_hex(self.vbs.addr)
+
         # Transaction identifier is zero by default.
         create_header(0, enb_id, rrc_m_conf_req.head)
 

@@ -158,11 +158,11 @@ class EmpowerApp(object):
             if limit:
                 # Filter Resource Blocks by RSSI
                 return [block for block in matches
-                        if block.ucqm[lvap.addr]['mov_rssi'] >= self.limit]
+                        if block.ucqm[lvap.addr]['mov_rssi'] >= limit]
 
-            return matches
+            return list(matches)
 
-        return pool
+        return list(pool)
 
     def wtps(self):
         """Return WTPs in this tenant."""

@@ -195,7 +195,11 @@ function loadComponents(tenant) {
                     components.innerHTML = stream
                 }
                 var ctrl = row.insertCell(c++);
-                ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />"
+                if(tenant){
+                    ctrl.innerHTML += '<img class="ctrl" onClick="unregisterComponent(\'' + stream +'\',\''+ tenant +'\')" src="/static/images/remove.png"  />'
+                } else {
+                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />" 
+                }
                 ctrl.align = "center"
             }
         },
@@ -302,9 +306,16 @@ function removeLVNF(lvnf_id, tenant) {
     });
 }
 
-function unregisterComponent(component) {
+function unregisterComponent(component,tenant) {
+
+     var url="";
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/components/" + component;
+    } else {
+        url = "/api/v1/components";
+    }
     $.ajax({
-        url: '/api/v1/components/' + component,
+        url: url,
         type: 'DELETE',
         cache: false,
         beforeSend: function (request) {
@@ -1062,6 +1073,7 @@ function loadWTPs(tenant_id) {
     } else {
         url = "/api/v1/wtps"
     }
+    console.log(url)
     $.ajax({
         url: url,
         type: 'GET',
@@ -1566,21 +1578,17 @@ function refreshWTPs() {
                 if (!wtps[idWtp]) {
                     wtps[idWtp] = data[node]
                     wtps[idWtp]['lvaps'] = {}
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpUp(idWtp)
                     continue
                 }
                 if (wtps[idWtp].connection && !data[node].connection) {
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpDown(idWtp)
                 }
                 if (!wtps[idWtp].connection && data[node].connection) {
-                    wtps[idWtp].connection = data[node].connection
-                    wtps[idWtp].feed = data[node].feed
                     wtpUp(idWtp)
                 }
+                wtps[idWtp].connection = data[node].connection
+                wtps[idWtp].feed = data[node].feed
             }
         });
 }

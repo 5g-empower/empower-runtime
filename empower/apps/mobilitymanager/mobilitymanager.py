@@ -58,7 +58,9 @@ class MobilityManager(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """Called when an joins the network."""
 
-        self.rssi(lvap=lvap.addr, value=self.limit, relation='LT',
+        self.rssi(lvap=lvap.addr,
+                  value=self.limit,
+                  relation='LT',
                   callback=self.low_rssi)
 
     def handover(self, lvap):
