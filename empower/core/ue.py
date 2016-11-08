@@ -23,10 +23,10 @@ from empower.core.utils import hex_to_ether
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, rnti, imsi, vbs):
+    def __init__(self, rnti, vbs):
 
         self.rnti = rnti
-        self.imsi = imsi
+        self.imsi = None
         self.plmn_id = None
         self.mac_addr = None
         self.ue_id = hex_to_ether(self.rnti)

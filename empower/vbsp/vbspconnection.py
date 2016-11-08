@@ -294,10 +294,12 @@ class VBSPConnection(object):
 
         for rnti in active_ues:
             if rnti not in self.vbs.ues:
-                self.vbs.ues[rnti] = UE(rnti, active_ues[rnti]["imsi"], self.vbs)
-                self.vbs.ues[rnti].plmn_id = active_ues[rnti]["plmn_id"]
+                self.vbs.ues[rnti] = UE(rnti, self.vbs)
                 # for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
                 #     handler(self.vbs.ues[rnti])
+
+            self.vbs.ues[rnti].imsi = active_ues[rnti]["imsi"]
+            self.vbs.ues[rnti].plmn_id = active_ues[rnti]["plmn_id"]
 
         existing_rntis = []
         existing_rntis.extend(self.vbs.ues.keys())
