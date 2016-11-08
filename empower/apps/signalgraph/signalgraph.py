@@ -133,30 +133,32 @@ class SignalGraph(EmpowerApp):
     def ucqm_callback(self, poller):
         """Called when a UCQM response is received from a WTP."""
 
-        lvaps = RUNTIME.lvaps
+        lvaps = RUNTIME.tenants[self.tenant.tenant_id].lvaps
 
         for addr in poller.maps.values():
 
-            if addr['addr'].to_str() == UE_MAC_ADDR1 and lvaps[addr['addr']] \
-                                                and lvaps[addr['addr']].wtp:
+            if addr['addr'].to_str() == UE_MAC_ADDR1:
+                if addr['addr'] in lvaps and lvaps[addr['addr']].wtp:
+                    active_flag = 1
 
-                active_flag = 1
+                    if (lvaps[addr['addr']].wtp.addr != poller.block.addr):
+                        active_flag = 0
+                    elif ((lvaps[addr['addr']].wtp.addr == poller.block.addr  \
+                        and (lvaps[addr['addr']].association_state == False))):
+                        active_flag = 0
 
-                if (lvaps[addr['addr']].wtp.addr != poller.block.addr):
-                    active_flag = 0
-                elif ((lvaps[addr['addr']].wtp.addr == poller.block.addr and \
-                            (lvaps[addr['addr']].association_state == False))):
-                    active_flag = 0
+                    if poller.block.addr.to_str() not in self.wtps:
+                        self.wtps.append(poller.block.addr.to_str())
 
-                if poller.block.addr.to_str() not in self.wtps:
-                    self.wtps.append(poller.block.addr.to_str())
-
-                self.wifi_data[poller.block.addr.to_str()] = \
-                            {
-                                'rssi': addr['mov_rssi'],
-                                'wtp': poller.block.addr.to_str(),
-                                'active': active_flag
-                            }
+                    self.wifi_data[poller.block.addr.to_str()] = \
+                                {
+                                    'rssi': addr['mov_rssi'],
+                                    'wtp': poller.block.addr.to_str(),
+                                    'active': active_flag
+                                }
+                elif addr['addr'] not in lvaps:
+                    self.wifi_data = {}
+                    break
 
 
     def get_neigh_cells(self, ue):
