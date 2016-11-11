@@ -59,6 +59,9 @@ class MCastWTPInfo(object):
         self.__mode = None
         self.__dms_max_period = 1
         self.__legacy_max_period = 3
+        self.__attached_clients_rssi = dict()
+        self.__avg_perceived_rssi = 0
+        self.__dev_perceived_rssi = 0
 
     
     @property
@@ -201,6 +204,36 @@ class MCastWTPInfo(object):
 
         self.__attached_clients = attached_clients
 
+    @property
+    def attached_clients_rssi(self):
+        """Return the RSSI of the clients attached to this wtp."""
+        return self.__attached_clients_rssi
+
+    @attached_clients_rssi.setter
+    def attached_clients_rssi(self, attached_clients_rssi):
+
+        self.__attached_clients_rssi = attached_clients_rssi
+
+    @property
+    def avg_perceived_rssi(self):
+        """Return the average RSSI of the clients attached to this wtp."""
+        return self.__avg_perceived_rssi
+
+    @avg_perceived_rssi.setter
+    def avg_perceived_rssi(self, avg_perceived_rssi):
+
+        self.__avg_perceived_rssi = avg_perceived_rssi
+
+    @property
+    def dev_perceived_rssi(self):
+        """Return the deviation of the RSSI of the clients attached to this wtp."""
+        return self.__dev_perceived_rssi
+
+    @dev_perceived_rssi.setter
+    def dev_perceived_rssi(self, dev_perceived_rssi):
+
+        self.__dev_perceived_rssi = dev_perceived_rssi
+
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -213,6 +246,7 @@ class MCastWTPInfo(object):
         rate = {str(k): v for k, v in self.rate.items()}
         cur_prob_rate = {str(k): v for k, v in self.cur_prob_rate.items()}
         prob_measurement = {str(k): v for k, v in self.prob_measurement.items()}
+        attached_clients_rssi = {str(k): v for k, v in self.attached_clients_rssi.items()}
 
         params['block'] = self.block.hwaddr
         params['last_txp_bin_tx_pkts_counter'] = last_txp_bin_tx_pkts_counter
@@ -224,8 +258,11 @@ class MCastWTPInfo(object):
         params['prob_measurement'] = prob_measurement
         params['last_rssi_change'] = json.dumps(datetime.datetime.fromtimestamp(self.last_rssi_change), cls=JSONEncoder)
         params['attached_clients'] = self.attached_clients
+        params['attached_clients_rssi'] = attached_clients_rssi
         params['last_prob_update'] = json.dumps(datetime.datetime.fromtimestamp(self.last_prob_update), cls=JSONEncoder)
         params['mode'] = self.mode
+        params['avg_perceived_rssi'] = self.avg_perceived_rssi
+        params['dev_perceived_rssi'] = self.dev_perceived_rssi
 
         return params
 

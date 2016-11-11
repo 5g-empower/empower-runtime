@@ -32,6 +32,7 @@ import tornado.httpserver
 import time
 import datetime
 import sys
+import statistics
 
 from empower.core.app import EmpowerApp
 from empower.core.resourcepool import TX_MCAST
@@ -82,7 +83,8 @@ class MCastMobilityManager(EmpowerApp):
         self.__handover_occupancies = {}
         self.__rssi_thershold = -65
         self.__mcast_addr = EtherAddress("01:00:5e:00:00:fb")
-        self.__minimum_rssi_thershold = 10
+        self.__minimum_rssi_difference = 10
+        self.__occupancy_rate = 0
 
         # Register an lvap join event
         self.lvapjoin(callback=self.lvap_join_callback)
@@ -100,12 +102,8 @@ class MCastMobilityManager(EmpowerApp):
     @rx_pkts.setter
     def rx_pkts(self, rx_pkts_info):
         """Updates the rate according to the rx_pkts received"""
-
-        if not rx_pkts_info:
-            return
-
         station = EtherAddress(rx_pkts_info['addr'])
-        if not station in RUNTIME.lvaps:
+        if not rx_pkts_info or not station in RUNTIME.lvaps:
             return
 
         attached_wtp_tx_pkts = 0
@@ -124,8 +122,7 @@ class MCastMobilityManager(EmpowerApp):
             if entry.addr == station:
                 for key, value in stats.items():
                     entry.rx_pkts[EtherAddress(key)] = value
-                # It maches the received packets agains the amount of them sent by the WTP 
-                # to a given multicast address
+                # It maches the received packets agains the amount of them sent by the WTP to a given multicast address
                 self.rx_pkts_matching(attached_wtp_tx_pkts, hwaddr, wtp_ix)
                 self.__rx_pkts[station] = stats
                 break
@@ -138,19 +135,20 @@ class MCastMobilityManager(EmpowerApp):
     @aps.setter
     def aps(self, aps_info):
         """Updates the rate according to the aps information received"""
-        if not aps_info:
-            return
-
         station = EtherAddress(aps_info['addr'])
-        attached_hwaddr = None
-        enable_handover_search = False
 
-        if station not in RUNTIME.lvaps:
+        if not aps_info or station not in RUNTIME.lvaps:
             return
 
         lvap = RUNTIME.lvaps[station]
         stats = self.lvap_bssid_to_hwaddr(aps_info['wtps'])
         disable_old_wtp = False
+        attached_hwaddr = None
+        enable_handover_search = False
+        rates = None
+
+        if self.occupancy_rate == 0:
+            self.occupancy_rate = self.overall_occupancy_rate_calculation(lvap.ssid)
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == station:
@@ -158,23 +156,50 @@ class MCastMobilityManager(EmpowerApp):
                     if key not in entry.wtps or (key in entry.wtps and entry.wtps[key] != value):
                         enable_handover_search = True
                     entry.wtps[key] = value
+                if entry.last_handover_time is not None and time.time() - entry.last_handover_time < 3:
+                    enable_handover_search = False
+                # Remove the APs that are not already in the coverage area of this client
+                useless_wtps = []
+                for key, value in entry.wtps.items():
+                    if key not in stats:
+                        useless_wtps.append(key)
+                for i, wtp in enumerate(useless_wtps):
+                    del entry.wtps[wtp]
+
                 attached_hwaddr = entry.attached_hwaddr
                 entry.rssi = entry.wtps[attached_hwaddr]['rssi']
                 self.__aps[station] = stats
+                rates = max(int(float(key)) for key in entry.rates.keys())
+                break
+
+        # Check if the transmission will be turned off in the current WTP (0 clients)
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr == attached_hwaddr:
+                entry.attached_clients_rssi[station] = stats[attached_hwaddr]['rssi']
+                rssi_values = list(entry.attached_clients_rssi.values())
+                if len(list(filter((0).__ne__, rssi_values))) > 0:
+                    entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
+                if entry.attached_clients > 1 and len(list(filter((0).__ne__, rssi_values))) > 1:
+                    entry.dev_perceived_rssi = statistics.stdev(list(filter((0).__ne__, rssi_values)))
+                else:
+                    entry.dev_perceived_rssi = 0
+
+                entry.last_rssi_change = time.time()
+                entry.prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
+                if entry.attached_clients == 1:
+                    disable_old_wtp = True
+                elif entry.attached_clients == 1 and entry.cur_prob_rate[self.mcast_addr] == rates and stats[attached_hwaddr]['rssi'] >= self.rssi_thershold:
+                    enable_handover_search = False
+                break  
+
+        for key, value in self.handover_occupancies.items():
+            if value['handover_client'] == station:
+                enable_handover_search = False
                 break
 
         # If there is only one AP is not worthy to do the process
         if len(stats) <= 1 or enable_handover_search is False:
             return
-
-        # Check if the transmission will be turned off in the current WTP (0 clients)
-        for index, entry in enumerate(self.mcast_wtps):
-            if entry.block.hwaddr == attached_hwaddr:
-                entry.last_rssi_change = time.time()
-                entry.prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
-                if entry.attached_clients == 1:
-                    disable_old_wtp = True
-                    break
 
         self.handover_search(station, stats, disable_old_wtp)
 
@@ -251,6 +276,15 @@ class MCastMobilityManager(EmpowerApp):
     def mcast_addr(self, mcast_addr):
         self.__mcast_addr = mcast_addr
 
+    @property
+    def occupancy_rate(self):
+        """Return the global occupancy rate for the current tenant."""
+        return self.__occupancy_rate
+
+    @occupancy_rate.setter
+    def occupancy_rate(self, occupancy_rate):
+        self.__occupancy_rate = occupancy_rate
+
     def txp_bin_counter_callback(self, counter):
         """Counters callback."""
 
@@ -323,21 +357,49 @@ class MCastMobilityManager(EmpowerApp):
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == default_block.hwaddr:
                 entry.attached_clients = entry.attached_clients + 1
+                entry.attached_clients_rssi [lvap.addr] = 0
+                rssi_values = list(entry.attached_clients_rssi.values())
+                if len(list(filter((0).__ne__, rssi_values))) > 0:
+                    entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
+                if entry.attached_clients > 1 and len(list(filter((0).__ne__, rssi_values))) > 1:
+                    entry.dev_perceived_rssi = statistics.stdev(list(filter((0).__ne__, rssi_values)))
+                else:
+                    entry.dev_perceived_rssi = 0
+                if self.mcast_addr in entry.last_tx_pkts and self.mcast_addr in entry.rate:
+                    self.occupancy_rate = self.overall_occupancy_rate_calculation(lvap.ssid)
                 break
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP disassociates from a tennant."""
 
         default_block = next(iter(lvap.downlink))
+        handover = False
+        self.log.info("CHECKING BLOCK IN LVAP_LEAVE.")
+        self.log.info(default_block)
+
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == lvap.addr:
                 del self.mcast_clients[index]
                 break
 
+        for key, value in self.handover_occupancies.items():
+            if value['handover_client'] == lvap.addr:
+                handover = True
+                break
+
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == default_block.hwaddr:
-                entry.attached_clients = entry.attached_clients - 1
+                if lvap.addr in entry.attached_clients_rssi and handover is False:  
+                    entry.attached_clients = entry.attached_clients - 1
+                    del entry.attached_clients_rssi[lvap.addr]
+                    rssi_values = list(entry.attached_clients_rssi.values())
+                    if len(list(filter((0).__ne__, rssi_values))) > 0:
+                        entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
+                    if entry.attached_clients > 1 and len(list(filter((0).__ne__, rssi_values))) > 1:
+                        entry.dev_perceived_rssi = statistics.stdev(list(filter((0).__ne__, rssi_values)))
+                    else:
+                        entry.dev_perceived_rssi = 0
                 break
 
         # In case this was the worst receptor, the date rate for legacy multicast must be recomputed
@@ -349,10 +411,7 @@ class MCastMobilityManager(EmpowerApp):
         """ New stats available. """
 
         rates = (counter.to_dict())["rates"] 
-        if not rates:
-            return
-
-        if counter.lvap not in RUNTIME.lvaps:
+        if not rates or counter.lvap not in RUNTIME.lvaps:
             return
 
         highest_prob = 0
@@ -417,6 +476,7 @@ class MCastMobilityManager(EmpowerApp):
             # If a handover has been recently performed. Let's evaluate the new occupancy rate. 
             if self.handover_occupancies:
                 handover_checked = []
+                previous_rssi = 0
 
                 for key, value in self.handover_occupancies.items():
                     # Wait some time to get statistics before checking if the handover was valid
@@ -426,12 +486,21 @@ class MCastMobilityManager(EmpowerApp):
                     handover_occupancy_rate = self.overall_occupancy_rate_calculation(value['tenant_name'])
                     handover_checked.append(key)
 
+                    for index, entry in enumerate(self.mcast_clients):
+                        if value['handover_client'] == entry.addr:
+                            previous_rssi = entry.wtps[key]['rssi']
+                            break
+
                     # If the previous occupancy rate was better, the handover must be reverted
-                    if value['previous_occupancy'] < handover_occupancy_rate:
+                    if value['previous_occupancy'] < handover_occupancy_rate and previous_rssi > self.rssi_thershold:
                         self.log.info("The handover from the AP %s to the AP %s for the client %s IS NOT efficient. The previous channel occupancy rate was %d(ms) and it is %d(ms) after the handover. It is going to be reverted", \
                                 key, value['handover_ap'], value['handover_client'], value['previous_occupancy'], handover_occupancy_rate)
                         self.revert_handover(value['handover_client'], key, value['handover_ap'])
-                    else:
+                    elif value['previous_occupancy'] < handover_occupancy_rate and previous_rssi < self.rssi_thershold:
+                        self.log.info("The handover from the AP %s to the AP %s for the client %s is efficient to IMPROVE SIGNAL STRENGHT. The previous channel occupancy rate was %d(ms) and it is %d(ms) after the handover \
+                        But the previous RSSI %d db was below the defined thereshold %d db", \
+                         key, value['handover_ap'], value['handover_client'], value['previous_occupancy'], handover_occupancy_rate, previous_rssi, self.rssi_thershold)    
+                    elif value['previous_occupancy'] > handover_occupancy_rate:
                         self.log.info("The handover from the AP %s to the AP %s for the client %s is efficient. The previous channel occupancy rate was %d(ms) and it is %d(ms) after the handover", \
                          key, value['handover_ap'], value['handover_client'], value['previous_occupancy'], handover_occupancy_rate)                 
 
@@ -550,7 +619,7 @@ class MCastMobilityManager(EmpowerApp):
                             second_thershold_valid = False
 
         # If the old client was the only client in the wtp or there is not any client, lets have the basic rate
-        if min_rate == sys.maxsize:
+        if min_rate == sys.maxsize or min_rate == 0:
             for index, entry in enumerate(self.mcast_wtps):
                 if entry.block.hwaddr == hwaddr:
                     min_rate = min(entry.block.supports)
@@ -645,22 +714,35 @@ class MCastMobilityManager(EmpowerApp):
                 continue
             if entry.attached_clients > 0:
                 if entry.prob_measurement[self.mcast_addr] == MCAST_EWMA_PROB:
-                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(entry.last_tx_pkts[self.mcast_addr], entry.last_tx_bytes[self.mcast_addr], entry.rate[self.mcast_addr])
+                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(entry.last_tx_pkts[self.mcast_addr], entry.last_tx_bytes[self.mcast_addr], entry.rate[self.mcast_addr], entry.mode)
                 elif entry.prob_measurement[self.mcast_addr] == MCAST_CUR_PROB:
-                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(entry.last_tx_pkts[self.mcast_addr], entry.last_tx_bytes[self.mcast_addr], entry.cur_prob_rate[self.mcast_addr])
+                    overall_tenant_occupancy = overall_tenant_occupancy + self.packet_transmission_time(entry.last_tx_pkts[self.mcast_addr], entry.last_tx_bytes[self.mcast_addr], entry.cur_prob_rate[self.mcast_addr], entry.mode)
 
         return overall_tenant_occupancy
 
 
-    def packet_transmission_time(self, last_tx_pkts, last_tx_bytes, rate):
+    def packet_transmission_time(self, last_tx_pkts, last_tx_bytes, rate, mode):
         avg_pkt_size = 0
+        difs = 28
+        sifs = 10
+        phy_header_pclp_preamble_time = 16
+        signal_extension_time = 6
+        phy_header_pclp_header_bits = 24
+        mac_ack_header_bits = 134
+        transmission_time = 0
+
 
         if last_tx_pkts > 0:
             avg_pkt_size = float(last_tx_bytes / last_tx_pkts)
         else:
             avg_pkt_size = self.current_transmission_avg_pkt_size()
 
-        return float((avg_pkt_size * 8) / rate)
+        if mode == TX_MCAST_DMS_H:
+            transmission_time = float(difs + (avg_pkt_size * 8 + 2*phy_header_pclp_header_bits + mac_ack_header_bits) / rate + 2*phy_header_pclp_preamble_time + sifs)
+        elif mode == TX_MCAST_LEGACY_H:
+            transmission_time = float(difs + (avg_pkt_size * 8 + 2*phy_header_pclp_header_bits) / rate + 2*phy_header_pclp_preamble_time)
+
+        return transmission_time
         
 
     def current_transmission_avg_pkt_size(self):
@@ -700,8 +782,10 @@ class MCastMobilityManager(EmpowerApp):
         old_wtp_old_rate = stats[wtp_addr]['rate']
         best_wtp_addr = next(iter(evaluated_lvap.downlink.keys())).hwaddr
         best_rssi = stats[wtp_addr]['rssi']
-        best_rate = stats[wtp_addr]['rate']
+        possible_handover_wtps = {}
+        possible_handover_empty_wtps = {}
         client_index = -1
+        checking_rssi_rate_relation = True
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == station:
@@ -712,16 +796,16 @@ class MCastMobilityManager(EmpowerApp):
         for key, value in stats.items():
             if key == wtp_addr:
                 continue
-
+            ################################# Previous handover checkers ################################# 
             if key in self.mcast_clients[client_index].last_unsuccessful_handover:
                 self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_time'] = time.time()
 
 
                 # If there is not significant changes in the RSSI perceived and the rate is the same than the last time, skip this AP.
-                if (abs(abs(int(value['rssi'])) - abs(int(self.mcast_clients[client_index].last_unsuccessful_handover[key]['rssi']))) < self.__minimum_rssi_thershold) and \
+                if (abs(abs(int(value['rssi'])) - abs(int(self.mcast_clients[client_index].last_unsuccessful_handover[key]['rssi']))) < self.__minimum_rssi_difference) and \
                 self.mcast_clients[client_index].last_unsuccessful_handover[key]['rate'] == value['rate']:   
                     continue
-                elif (abs(abs(int(value['rssi'])) - abs(int(self.mcast_clients[client_index].last_unsuccessful_handover[key]['rssi']))) > self.__minimum_rssi_thershold) or \
+                elif (abs(abs(int(value['rssi'])) - abs(int(self.mcast_clients[client_index].last_unsuccessful_handover[key]['rssi']))) > self.__minimum_rssi_difference) or \
                 self.mcast_clients[client_index].last_unsuccessful_handover[key]['rate'] != value['rate']:
                     self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] = self.mcast_clients[client_index].last_unsuccessful_handover[key]['handover_retries'] + 1
 
@@ -730,13 +814,65 @@ class MCastMobilityManager(EmpowerApp):
                     else:
                         del self.mcast_clients[client_index].last_unsuccessful_handover[key]
 
-            if value['rssi'] > best_rssi and abs(abs(int(value['rssi'])) - abs(int(stats[wtp_addr]['rssi']))) > self.__minimum_rssi_thershold \
-            and key != best_wtp_addr and value['rssi'] > self.rssi_thershold:
-                #(time.time() - self.mcast_clients[client_ix].last_unsuccessful_handover[key]) > 5):
-                best_rssi = value['rssi']
-                best_wtp_addr = key
-                best_rate = value['rate']
+            ################################# RSSI selection for handover ################################# 
+            if value['rssi'] > self.rssi_thershold and int(value['rssi']) > int(stats[wtp_addr]['rssi']) and key != best_wtp_addr:
+                possible_handover_wtps[key] = {'perceived_rssi': value['rssi'], 'current_rate': value['rate'], 'avg_rssi':0, 'dev_rssi':0}
 
+                if value['rssi'] > best_rssi:
+                    #(time.time() - self.mcast_clients[client_ix].last_unsuccessful_handover[key]) > 5):
+                    best_rssi = value['rssi']
+                    best_wtp_addr = key
+
+        ################################# RSSI/Noise ratio evaluation for handover ################################# 
+        # If the best AP does not have any clients, perhpas it's the best option?
+        for index, entry in enumerate(self.mcast_wtps):
+            if entry.block.hwaddr == best_wtp_addr:
+                if entry.attached_clients == 0:
+                    checking_rssi_rate_relation = False
+                break
+
+
+        if checking_rssi_rate_relation is True and possible_handover_wtps:
+            for index, entry in enumerate(self.mcast_wtps):
+                if possible_handover_wtps and entry.block.hwaddr in possible_handover_wtps:
+                    if entry.attached_clients > 0:
+                        possible_handover_wtps[entry.block.hwaddr]['avg_rssi'] = entry.avg_perceived_rssi
+                        possible_handover_wtps[entry.block.hwaddr]['dev_rssi'] = entry.dev_perceived_rssi
+                    else:
+                        possible_handover_empty_wtps[entry.block.hwaddr] = value['perceived_rssi']
+                        del possible_handover_wtps[entry.block.hwaddr]
+
+            best_wtp_addr, best_values = possible_handover_wtps.popitem()
+            for key, value in possible_handover_wtps.items():
+                # They could experience the same noise level. Calculate it and compare with the rssi perceived by the client
+                if value['current_rate'] < best_values['current_rate'] and value['avg_rssi'] < best_values['avg_rssi']:
+                    evaluated_ratio = float(value['current_rate'] / value['avg_rssi'])
+                    current_ratio = float(best_values['current_rate'] / best_values['avg_rssi'])
+                    # The AP has at least 2 clients
+                    evaluated_similarity = False
+                    if value['dev_rssi'] > 0:
+                        evaluated_conf_interval = stats.norm.interval(0.95, loc=value['avg_rssi'], scale=value['dev_rssi'])
+                        evaluated_similarity = value['perceived_rssi'] > evaluated_conf_interval[0] and value['perceived_rssi'] < evaluated_conf_interval[1]
+                    # The AP has 1 client
+                    else:
+                        current_distance = abs(abs(value['avg_rssi']) - abs(value['perceived_rssi']))
+                        evaluated_distance = abs(abs(best_values['avg_rssi']) - abs(best_values['perceived_rssi']))
+                        evaluated_similarity = evaluated_distance < current_distance
+                    # The evaluated AP has a lower noise level
+                    if evaluated_ratio > current_ratio and evaluated_similarity is True:
+                        best_wtp_addr = key
+                        best_values = value
+                # If the rate and the perceived RSSI is higher, the candidate for the best AP is changed
+                elif value['current_rate'] > best_values['current_rate'] and value['avg_rssi'] > best_values['avg_rssi']:
+                    best_wtp_addr = key
+                    best_values = value
+
+            # The best empty and non-empty APs are compared
+            if possible_handover_empty_wtps:
+                best_empty_wtp = max(possible_handover_empty_wtps, key=possible_handover_empty_wtps.get)
+                best_empty_rssi = possible_handover_empty_wtps[best_empty_wtp]
+                if best_values['perceived_rssi'] < best_empty_rssi:
+                    best_wtp_addr = best_empty_wtp
 
         if best_wtp_addr == wtp_addr:
             self.log.info("NO HANDOVER NEEDED")
@@ -750,10 +886,10 @@ class MCastMobilityManager(EmpowerApp):
                                                 'handover_ap': best_wtp_addr,
                                                 'previous_occupancy': self.overall_occupancy_rate_calculation(evaluated_lvap.ssid),
                                                 'handover_time': time.time(), 
-                                                'tenant_name': evaluated_lvap.ssid
+                                                'tenant_name': evaluated_lvap.ssid,
                                                 }
 
-        self.log.info("The handover is performed from the AP %s to the AP %s", wtp_addr, best_wtp_addr)
+        self.log.info("The handover is performed from the AP %s to the AP %s for the station %s", wtp_addr, best_wtp_addr, station)
 
         # A copy of the client data is stored and it is restored after the handover
         for index, entry in enumerate(self.mcast_clients):
@@ -761,6 +897,7 @@ class MCastMobilityManager(EmpowerApp):
                 entry.rssi = stats[best_wtp_addr]['rssi']
                 entry.attached_hwaddr = best_wtp_addr
                 self.handover_clients[entry.addr] = entry
+                entry.last_handover_time = time.time()
                 break
 
         # The old wtp must delete the lvap (forcing the desconnection) and a new one is created in the new wtp (block) 
@@ -779,12 +916,24 @@ class MCastMobilityManager(EmpowerApp):
         # Updates the client information in the corresponding APs
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == best_wtp_addr:
-                entry.attached_clients = entry.attached_clients + 1
                 entry.mode = TX_MCAST_DMS_H
                 entry.prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
+                self.calculate_wtp_rate(entry)
             elif entry.block.hwaddr == wtp_addr:
-                entry.attached_clients = entry.attached_clients - 1
-                entry.prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
+                if station in entry.attached_clients_rssi:
+                    entry.attached_clients = entry.attached_clients - 1
+                    del entry.attached_clients_rssi[station]               
+                    rssi_values = list(entry.attached_clients_rssi.values())
+                    if len(list(filter((0).__ne__, rssi_values))) > 0:
+                        entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
+                    else:
+                        entry.avg_perceived_rssi = 0
+                    if entry.attached_clients > 1 and len(list(filter((0).__ne__, rssi_values))) > 1:
+                        entry.dev_perceived_rssi = statistics.stdev(list(filter((0).__ne__, rssi_values)))
+                    else:
+                        entry.dev_perceived_rssi = 0
+                entry.prob_measurement[self.mcast_addr] = MCAST_CUR_PROB   
+                self.calculate_wtp_rate(entry)                 
 
 
     def revert_handover(self, station, correct_wtp, wrong_wtp):
@@ -794,14 +943,24 @@ class MCastMobilityManager(EmpowerApp):
                 # Updates the client information in the corresponding APs
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == correct_wtp:
-                entry.attached_clients = entry.attached_clients + 1
                 entry.mode = TX_MCAST_DMS_H
                 entry.prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
+                self.calculate_wtp_rate(entry)
             elif entry.block.hwaddr == wrong_wtp:
-                entry.attached_clients = entry.attached_clients - 1
+                if station in entry.attached_clients_rssi:
+                    entry.attached_clients = entry.attached_clients - 1
+                    del entry.attached_clients_rssi[station]               
+                    rssi_values = list(entry.attached_clients_rssi.values())
+                    if len(list(filter((0).__ne__, rssi_values))) > 0:
+                        entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
+                    else:
+                        entry.avg_perceived_rssi = 0
+                    if entry.attached_clients > 1 and len(list(filter((0).__ne__, rssi_values))) > 1:
+                        entry.dev_perceived_rssi = statistics.stdev(list(filter((0).__ne__, rssi_values)))
                 entry.prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
                 tx_pkts = entry.last_tx_pkts[self.mcast_addr]
                 nb_clients = entry.attached_clients
+                self.calculate_wtp_rate(entry)
 
         # A copy of the client data is stored and it is restored after the handover
         for index, entry in enumerate(self.mcast_clients):
@@ -834,7 +993,6 @@ class MCastMobilityManager(EmpowerApp):
                     evaluated_lvap.lvap_bssid = correct_lvap_bssid
 
 
-
     def attached_clients(self):
         nb_attached_clients = 0
 
@@ -858,12 +1016,13 @@ class MCastMobilityManager(EmpowerApp):
         out['mcast_addr'] = self.mcast_addr
         out['rssi_thershold'] = self.rssi_thershold
         out['handover_occupancies'] = handover_occupancies
+        out['occupancy_rate (microsec)'] = self.occupancy_rate
 
         return out
                                     
 
 
-def launch(tenant_id, every=500, rx_pkts={}, aps={}, mcast_clients=[], mcast_wtps=[]):
+def launch(tenant_id, every=1000, rx_pkts={}, aps={}, mcast_clients=[], mcast_wtps=[]):
     """ Initialize the module. """
 
     return MCastMobilityManager(tenant_id=tenant_id, every=every, rx_pkts=rx_pkts, aps=aps, mcast_clients=mcast_clients, mcast_wtps=mcast_wtps)

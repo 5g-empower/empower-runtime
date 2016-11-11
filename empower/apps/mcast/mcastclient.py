@@ -52,6 +52,7 @@ class MCastClientInfo(object):
 		self.__highest_rate = 0
 		self.__highest_cur_prob_rate = 0
 		self.__last_unsuccessful_handover = dict()
+		self.__last_handover_time = None
 
 	@property
 	def addr(self):
@@ -105,6 +106,7 @@ class MCastClientInfo(object):
 
 	@wtps.setter
 	def wtps(self, wtps_info):
+		self.__wtps.clear()
 		self.__wtps = wtps_info
 
 	@property
@@ -152,6 +154,15 @@ class MCastClientInfo(object):
 	def last_unsuccessful_handover(self, last_unsuccessful_handover):
 		self.__last_unsuccessful_handover = last_unsuccessful_handover
 
+	@property
+	def last_handover_time(self):
+		"""Return the time of the handover done."""
+		return self.__last_handover_time
+
+	@last_handover_time.setter
+	def last_handover_time(self, last_handover_time):
+		self.__last_handover_time = last_handover_time
+
 
 	def to_dict(self):
 		"""Return JSON-serializable representation of the object."""
@@ -172,5 +183,6 @@ class MCastClientInfo(object):
 		params['highest_rate'] = self.highest_rate
 		params['highest_cur_prob_rate'] = self.highest_cur_prob_rate
 		params['last_unsuccessful_handover'] = last_unsuccessful_handover
+		params['last_handover_time'] = self.last_handover_time
 
 		return params
