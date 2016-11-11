@@ -156,7 +156,7 @@ class MCastMobilityManager(EmpowerApp):
                     if key not in entry.wtps or (key in entry.wtps and entry.wtps[key] != value):
                         enable_handover_search = True
                     entry.wtps[key] = value
-                if entry.last_handover_time is not None and time.time() - entry.last_handover_time < 3:
+                if entry.last_handover_time is not None and time.time() - entry.last_handover_time <= 3:
                     enable_handover_search = False
                 # Remove the APs that are not already in the coverage area of this client
                 useless_wtps = []
@@ -344,6 +344,7 @@ class MCastMobilityManager(EmpowerApp):
 
         default_block = next(iter(lvap.downlink))
         lvap_info = MCastClientInfo()
+        current_rssi = 0
 
         # If this lvap is created due to a handover, its information must be restored
         if lvap.addr in self.handover_clients:
@@ -352,12 +353,14 @@ class MCastMobilityManager(EmpowerApp):
 
         lvap_info.addr = lvap.addr
         lvap_info.attached_hwaddr = default_block.hwaddr
+        if default_block.hwaddr in lvap_info.wtps:
+            current_rssi = lvap_info.wtps[default_block.hwaddr]['rssi']
         self.mcast_clients.append(lvap_info)
 
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == default_block.hwaddr:
                 entry.attached_clients = entry.attached_clients + 1
-                entry.attached_clients_rssi [lvap.addr] = 0
+                entry.attached_clients_rssi [lvap.addr] = rssi
                 rssi_values = list(entry.attached_clients_rssi.values())
                 if len(list(filter((0).__ne__, rssi_values))) > 0:
                     entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
@@ -377,10 +380,11 @@ class MCastMobilityManager(EmpowerApp):
         self.log.info("CHECKING BLOCK IN LVAP_LEAVE.")
         self.log.info(default_block)
 
-
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == lvap.addr:
                 del self.mcast_clients[index]
+                if time.time() - entry.last_handover_time <= 3:
+                    handover = True
                 break
 
         for key, value in self.handover_occupancies.items():
