@@ -17,7 +17,6 @@
 
 """User Equipment class."""
 
-
 from empower.core.utils import hex_to_ether
 
 
@@ -27,6 +26,8 @@ class UE(object):
     def __init__(self, rnti, vbs):
 
         self.rnti = rnti
+        self.imsi = None
+        self.plmn_id = None
         self.mac_addr = None
         self.ue_id = hex_to_ether(self.rnti)
         self.vbs = vbs
@@ -43,6 +44,8 @@ class UE(object):
         """ Return a JSON-serializable dictionary representing the UE """
 
         return {'rnti': self.rnti,
+                'imsi': self.imsi,
+                'plmn_id': self.plmn_id,
                 'vbs': self.vbs.addr,
                 'ue_id': self.ue_id,
                 'rrc_state': self.rrc_state,

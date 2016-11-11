@@ -24,7 +24,7 @@ from empower.vbsp.messages import main_pb2
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.vbs_stats import RRC_STATS_RAT_TYPE
 from empower.vbs_stats import RRC_STATS_REPORT_CONF_TYPE
 from empower.vbs_stats import RRC_STATS_TRIGGER_QUANT
@@ -38,7 +38,7 @@ from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
 
 
-class VBSRRCStats(Module):
+class VBSRRCStats(ModuleTrigger):
     """ VBSRRCStats object. """
 
     MODULE_NAME = "vbs_rrc_stats"
@@ -46,10 +46,9 @@ class VBSRRCStats(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModuleTrigger.__init__(self)
 
         # parameters
-        self.every = -1
         self._vbs = None
         self._ue = None
         self._meas_req = None
