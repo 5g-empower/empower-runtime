@@ -16,6 +16,8 @@ var options = {
 function loop() {
     console.log("Updating gauges")
     for (idWtp in wtps) {
+        src = (!wtps[idWtp].connection) ? "/static/apps/thor/ap_off.png" : "/static/apps/thor/ap_on.png"
+        $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
         if (wtps[idWtp].feed) {
             for (datastream in wtps[idWtp].feed.datastreams) {
                 if (wtps[idWtp].feed.datastreams[datastream].id == "power") {
@@ -73,15 +75,7 @@ function wtpUp(idWtp) {
 
     }
 
-    src = (!wtps[idWtp].connection) ? "/static/apps/thor/ap_off.png" : "/static/apps/thor/ap_on.png"
-
-    $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
-
 }
 
 function wtpDown(idWtp) {
-
-    src = (!wtps[idWtp].connection) ? "/static/apps/thor/ap_off.png" : "/static/apps/thor/ap_on.png"
-
-    $("#ap_status_" + idWtp.replace(/\:/g, '_')).attr("src", src)
 }
