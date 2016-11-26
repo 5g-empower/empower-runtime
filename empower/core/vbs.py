@@ -30,29 +30,10 @@ class VBS(BasePNFDev):
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
+        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         every: update period (in ms)
-        cc_configs: Configuration of each Component Carriers
-        ues: List of User Equipments attached to this VBS
     """
 
     ALIAS = "vbses"
     SOLO = "vbs"
-
-    def __init__(self, addr, label):
-        super().__init__(addr, label)
-        self.ues = {}
-
-    @property
-    def enb_id(self):
-        """Return tenant id."""
-
-        return ether_to_hex(self.addr)
-
-    def to_dict(self):
-        """Return a JSON-serializable dictionary representing the VBS."""
-
-        out = super().to_dict()
-        out['ues'] = self.ues
-
-        return out

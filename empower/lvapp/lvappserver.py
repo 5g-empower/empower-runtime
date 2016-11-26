@@ -137,6 +137,13 @@ class LVAPPServer(PNFPServer, TCPServer):
         for handler in self.pt_types_handlers[PT_LVAP_LEAVE]:
             handler(lvap)
 
+    def send_lvap_join_message_to_self(self, lvap):
+        """Send an LVAP_JOIN message to self."""
+
+        self.log.info("LVAP JOIN %s (%s)", lvap.addr, lvap.ssid)
+        for handler in self.pt_types_handlers[PT_LVAP_JOIN]:
+            handler(lvap)
+
 
 def launch(port=DEFAULT_PORT):
     """Start LVAPP Server Module."""

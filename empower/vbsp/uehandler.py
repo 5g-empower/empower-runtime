@@ -28,8 +28,8 @@ LOG = empower.logger.get_logger()
 class UEHandler(EmpowerAPIHandlerAdminUsers):
     """UE handler. Used to view UEs in a VBS (controller-wide)."""
 
-    HANDLERS = [r"/api/v1/vbses/([a-zA-Z0-9:]*)/ues/?",
-                r"/api/v1/vbses/([a-zA-Z0-9:]*)/ues/([a-zA-Z0-9]*)/?"]
+    HANDLERS = [r"/api/v1/ues/?",
+                r"/api/v1/ues/([a-zA-Z0-9:]*)/?"]
 
     def get(self, *args, **kwargs):
         """ Get all UEs or just the specified one.
@@ -39,25 +39,24 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
             rnti: the radio network temporary identifier
 
         Example URLs:
-            GET /api/v1/vbses/11:22:33:44:55:66/ues
-            GET /api/v1/vbses/11:22:33:44:55:66/ues/f93b
+            GET /api/v1/ues
+            GET /api/v1/ues/11:22:33:44:55:66
         """
 
         try:
 
-            if len(args) > 2 or len(args) < 1:
+            if len(args) > 1:
                 raise ValueError("Invalid URL")
 
-            vbs_id = EtherAddress(args[0])
-
-            if len(args) == 1:
-                self.write_as_json(RUNTIME.vbses[vbs_id].ues.values())
+            if len(args) == 0:
+                self.write_as_json(RUNTIME.ues.values())
             else:
-                ue_id = int(args[1])
-                self.write_as_json(RUNTIME.vbses[vbs_id].ues[ue_id])
+                ue_addr = EtherAddress(args[0])
+                print(RUNTIME.ues.keys())
+                self.write_as_json(RUNTIME.ues[ue_addr])
 
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        #except KeyError as ex:
+        #    self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
 

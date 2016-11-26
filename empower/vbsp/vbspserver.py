@@ -19,6 +19,8 @@
 
 from tornado.tcpserver import TCPServer
 
+from empower.vbsp import PRT_UE_JOIN
+from empower.vbsp import PRT_UE_LEAVE
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.core.pnfpserver import PNFPServer
@@ -31,6 +33,7 @@ from empower.vbsp import PRT_TYPES
 from empower.vbsp import PRT_TYPES_HANDLERS
 from empower.vbsp.vbspconnection import VBSPConnection
 from empower.vbsp.uehandler import UEHandler
+from empower.vbsp.tenantuehandler import TenantUEHandler
 
 from empower.main import RUNTIME
 
@@ -114,6 +117,20 @@ class VBSPServer(PNFPServer, TCPServer):
         self.log.info('Incoming connection from %r', address)
         self.connection = VBSPConnection(stream, address, server=self)
 
+    def send_ue_leave_message_to_self(self, ue):
+        """Send an UE_LEAVE message to self."""
+
+        self.log.info("UE LEAVE %s (%u)", ue.addr, ue.plmn_id)
+        for handler in self.pt_types_handlers[PRT_UE_LEAVE]:
+            handler(ue)
+
+    def send_ue_join_message_to_self(self, ue):
+        """Send an UE_JOIN message to self."""
+
+        self.log.info("UE JOIN %s (%s)", ue.addr, ue.plmn_id)
+        for handler in self.pt_types_handlers[PRT_UE_JOIN]:
+            handler(ue)
+
 
 def launch(port=DEFAULT_PORT):
     """Start VBSP Server Module."""
@@ -124,6 +141,7 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(TenantVBSHandler, server)
     rest_server.add_handler_class(VBSHandler, server)
     rest_server.add_handler_class(UEHandler, server)
+    rest_server.add_handler_class(TenantUEHandler, server)
 
     server.log.info("VBSP Server available at %u", server.port)
     return server

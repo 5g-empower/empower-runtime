@@ -95,6 +95,7 @@ class EmpowerRuntime(object):
         self.accounts = {}
         self.tenants = {}
         self.lvaps = {}
+        self.ues = {}
         self.wtps = {}
         self.cpps = {}
         self.vbses = {}
@@ -175,7 +176,8 @@ class EmpowerRuntime(object):
                        tenant.tenant_name,
                        tenant.owner,
                        tenant.desc,
-                       tenant.bssid_type)
+                       tenant.bssid_type,
+                       tenant.plmn_id)
 
     def __load_acl(self):
         """ Load ACL list. """
@@ -419,7 +421,7 @@ class EmpowerRuntime(object):
         return True
 
     def add_tenant(self, owner, desc, tenant_name, bssid_type,
-                   tenant_id=None):
+                   tenant_id=None, plmn_id=None):
         """Create new Tenant."""
 
         if tenant_id in self.tenants:
@@ -434,12 +436,14 @@ class EmpowerRuntime(object):
                                     tenant_name=tenant_name,
                                     owner=owner,
                                     desc=desc,
-                                    bssid_type=bssid_type)
+                                    bssid_type=bssid_type,
+                                    plmn_id=plmn_id)
             else:
                 request = TblTenant(owner=owner,
                                     tenant_name=tenant_name,
                                     desc=desc,
-                                    bssid_type=bssid_type)
+                                    bssid_type=bssid_type,
+                                    plmn_id=plmn_id)
 
             session.add(request)
             session.commit()
@@ -453,7 +457,8 @@ class EmpowerRuntime(object):
                    request.tenant_name,
                    self.accounts[owner].username,
                    desc,
-                   request.bssid_type)
+                   request.bssid_type,
+                   request.plmn_id)
 
         return request.tenant_id
 
@@ -477,7 +482,7 @@ class EmpowerRuntime(object):
             return Session().query(TblPendingTenant).all()
 
     def request_tenant(self, owner, desc, tenant_name, bssid_type,
-                       tenant_id=None):
+                       tenant_id=None, plmn_id=None):
         """Request new Tenant."""
 
         if tenant_id in self.tenants:
@@ -495,12 +500,14 @@ class EmpowerRuntime(object):
                                            owner=owner,
                                            tenant_name=tenant_name,
                                            desc=desc,
-                                           bssid_type=bssid_type)
+                                           bssid_type=bssid_type,
+                                           plmn_id=plmn_id)
             else:
                 request = TblPendingTenant(owner=owner,
                                            tenant_name=tenant_name,
                                            desc=desc,
-                                           bssid_type=bssid_type)
+                                           bssid_type=bssid_type,
+                                           plmn_id=plmn_id)
 
             session.add(request)
             session.commit()
@@ -578,6 +585,15 @@ class EmpowerRuntime(object):
 
         return None
 
+    def load_tenant_by_plmn_id(self, plmn_id):
+        """Load tenant from network name."""
+
+        for tenant in self.tenants.values():
+            if tenant.plmn_id == plmn_id:
+                return tenant
+
+        return None
+
     def remove_lvap(self, lvap_addr):
         """Remove LVAP from the network"""
 
@@ -596,7 +612,29 @@ class EmpowerRuntime(object):
         lvapp_server = self.components[LVAPPServer.__module__]
         lvapp_server.send_lvap_leave_message_to_self(lvap)
 
+        # Reset LVAP
+        LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
         lvap.clear_downlink()
         lvap.clear_uplink()
 
         del self.lvaps[lvap.addr]
+
+    def remove_ue(self, ue_addr):
+        """Remove UE from the network"""
+
+        if ue_addr not in self.ues:
+            return
+
+        ue = self.ues[ue_addr]
+
+        # removing UE from tenant, need first to look for right tenant
+        if ue.addr in ue.tenant.ues:
+            LOG.info("Removing %s from tenant %u", ue.addr, ue.plmn_id)
+            del ue.tenant.ues[ue.addr]
+
+        # Raise UE leave event
+        from empower.vbsp.vbspserver import VBSPServer
+        vbsp_server = self.components[VBSPServer.__module__]
+        vbsp_server.send_ue_leave_message_to_self(ue)
+
+        del self.ues[ue.addr]

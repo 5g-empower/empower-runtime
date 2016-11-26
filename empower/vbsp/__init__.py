@@ -21,6 +21,8 @@ EMAGE_VERSION = 1
 
 MAX_NUM_CCS = 1
 
+PRT_UE_JOIN = "join"
+PRT_UE_LEAVE = "leave"
 PRT_VBSP_BYE = "bye"
 PRT_VBSP_REGISTER = "register"
 PRT_VBSP_TRIGGER_EVENT = "te"
@@ -37,6 +39,8 @@ PRT_VBSP_ENB_CONFIG_RESPONSE = "enb_conf_repl"
 
 PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_VBSP_REGISTER: None,
+             PRT_UE_JOIN: None,
+             PRT_UE_LEAVE: None,
              PRT_VBSP_HELLO: "hello",
              PRT_VBSP_UES_ID: "UEs_id_repl",
              PRT_VBSP_RRC_MEAS_CONF: "rrc_meas_conf_repl",
@@ -49,6 +53,8 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
 
 PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
                       PRT_VBSP_REGISTER: [],
+                      PRT_UE_JOIN: [],
+                      PRT_UE_LEAVE: [],
                       PRT_VBSP_HELLO: [],
                       PRT_VBSP_UES_ID: [],
                       PRT_VBSP_UE_CONFIG_RESPONSE: [],

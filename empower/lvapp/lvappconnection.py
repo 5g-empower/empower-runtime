@@ -482,14 +482,12 @@ class LVAPPConnection(object):
         # remove hosted lvaps
         for addr in list(RUNTIME.lvaps.keys()):
             lvap = RUNTIME.lvaps[addr]
+            dl_wtps = [block.radio for block in lvap.downlink.keys()]
+            ul_wtps = [block.radio for block in lvap.uplink.keys()]
             # in case the downlink went down, the remove also the uplinks
-            if lvap.wtp == self.wtp:
-                LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
-                lvap.clear_downlink()
-                lvap.clear_uplink()
-                self.server.send_lvap_leave_message_to_self(lvap)
-                del RUNTIME.lvaps[lvap.addr]
-            else:
+            if self.wtps in dl_wtps:
+                RUNTIME.remove_lvap(lvap.addr)
+            elif self.wtps in ul_wtps:
                 LOG.info("Deleting LVAP (UL): %s", lvap.addr)
                 lvap.clear_uplink()
 
@@ -634,9 +632,7 @@ class LVAPPConnection(object):
             lvap.tenant.lvaps[lvap.addr] = lvap
 
             # Raise LVAP join event
-            LOG.info("LVAP JOIN %s (%s)", lvap.addr, lvap.ssid)
-            for handler in self.server.pt_types_handlers[PT_LVAP_JOIN]:
-                handler(lvap)
+            self.server.send_lvap_join_message_to_self(lvap)
 
         # update remaining ssids
         lvap._ssids = ssids[1:]

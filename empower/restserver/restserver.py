@@ -771,6 +771,11 @@ class PendingTenantHandler(EmpowerAPIHandler):
             else:
                 bssid_type = request['bssid_type']
 
+            if "plmn_id" not in request:
+                plmn_id = None
+            else:
+                plmn_id = int(request['plmn_id'])
+
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
 
@@ -785,7 +790,8 @@ class PendingTenantHandler(EmpowerAPIHandler):
                                    request['desc'],
                                    tenant_name,
                                    bssid_type,
-                                   tenant_id)
+                                   tenant_id,
+                                   plmn_id)
 
             self.set_header("Location", "/api/v1/pendig/%s" % tenant_id)
 
@@ -917,6 +923,11 @@ class TenantHandler(EmpowerAPIHandler):
             else:
                 bssid_type = request['bssid_type']
 
+            if "plmn_id" not in request:
+                plmn_id = None
+            else:
+                plmn_id = int(request['plmn_id'])
+
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
 
@@ -931,7 +942,8 @@ class TenantHandler(EmpowerAPIHandler):
                                request['desc'],
                                tenant_name,
                                bssid_type,
-                               tenant_id)
+                               tenant_id,
+                               plmn_id)
 
             self.set_header("Location", "/api/v1/tenants/%s" % tenant_id)
 

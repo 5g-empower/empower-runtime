@@ -25,8 +25,6 @@ import sys
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
-# from empower.vbsp import PRT_UE_JOIN
-# from empower.vbsp import PRT_UE_LEAVE
 from empower.vbsp import PRT_VBSP_HELLO
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
@@ -136,9 +134,6 @@ class VBSPConnection(object):
 
         size = message.ByteSize()
 
-        LOG.info("Sent message of length %d", size)
-        LOG.info(message.__str__())
-
         size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
         buff = size_bytes + send_buff
@@ -170,8 +165,6 @@ class VBSPConnection(object):
 
             # Update the sequency number from received message
             self.seq = deserialized_msg.head.seq
-
-            LOG.info(deserialized_msg.__str__())
 
             self._trigger_message(deserialized_msg)
             self._wait()
@@ -293,23 +286,54 @@ class VBSPConnection(object):
                     inactive_ues[ue["rnti"]]["plmn_id"] = None
 
         for rnti in active_ues:
-            if rnti not in self.vbs.ues:
-                self.vbs.ues[rnti] = UE(rnti, self.vbs)
-                # for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
-                #     handler(self.vbs.ues[rnti])
 
-            self.vbs.ues[rnti].imsi = active_ues[rnti]["imsi"]
-            self.vbs.ues[rnti].plmn_id = active_ues[rnti]["plmn_id"]
+            ue_id = hex_to_ether(rnti)
 
-        existing_rntis = []
-        existing_rntis.extend(self.vbs.ues.keys())
+            if ue_id not in RUNTIME.ues:
 
-        for rnti in existing_rntis:
-            if rnti not in active_ues:
-                # Handling of UE down must be done
-                # for handler in self.server.pt_types_handlers[PRT_UE_LEAVE]:
-                #     handler(self.vbs.ues[rnti])
-                del self.vbs.ues[rnti]
+                ue_id = hex_to_ether(rnti)
+                imsi = active_ues[ue["rnti"]]["imsi"]
+                new_ue = UE(ue_id, imsi, self.vbs)
+
+                RUNTIME.ues[ue_id] = new_ue
+
+            ue = RUNTIME.ues[ue_id]
+            plmn_id = int(active_ues[rnti]["plmn_id"])
+
+            if not ue.plmn_id and plmn_id:
+
+                # setting tenant
+                ue.tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
+
+                if ue.tenant:
+
+                    # adding UE to tenant
+                    LOG.info("Adding %s to tenant %s", ue.addr,
+                             ue.tenant.plmn_id)
+                    ue.tenant.ues[ue.addr] = ue
+
+                    # Raise UE join
+                    self.server.send_ue_join_message_to_self(ue)
+
+            if ue.plmn_id and not plmn_id:
+
+                # removing UE from tenant
+                LOG.info("Removing %s from tenant %s", ue.addr,
+                         ue.tenant.plmn_id)
+                del ue.tenant.ues[ue.addr]
+
+                # Raise UE leave
+                self.server.send_ue_leave_message_to_self(ue)
+
+                # setting tenant
+                ue.tenant = None
+
+        existing_ues = []
+        existing_ues.extend(RUNTIME.ues.keys())
+
+        for ue_id in existing_ues:
+            if ether_to_hex(ue_id) not in active_ues:
+                RUNTIME.remove_ue(ue_id)
 
     def _handle_rrc_meas_conf_repl(self, main_msg):
         """Handle an incoming UE's RRC Measurements configuration reply.
@@ -404,6 +428,12 @@ class VBSPConnection(object):
             return
 
         LOG.info("VBS disconnected: %s", self.vbs.addr)
+
+        # remove hosted ues
+        for addr in list(RUNTIME.ues.keys()):
+            ue = RUNTIME.ues[addr]
+            if ue.vbs == self.vbs:
+                RUNTIME.remove_ue(ue.addr)
 
         # reset state
         self.vbs.last_seen = 0

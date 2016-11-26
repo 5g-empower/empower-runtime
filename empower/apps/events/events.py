@@ -47,6 +47,8 @@ class EventsApp(EmpowerApp):
         self.lvnfleave(callback=self.lvnf_leave_callback)
         self.vbsup(callback=self.vbs_up_callback)
         self.vbsdown(callback=self.vbs_down_callback)
+        self.uejoin(callback=self.ue_join_callback)
+        self.ueleave(callback=self.ue_leave_callback)
 
     def vbs_down_callback(self, vbs):
         """Called when an VBS disconnects from a tennant."""
@@ -77,6 +79,16 @@ class EventsApp(EmpowerApp):
         """Called when an LVAP associates to a tennant."""
 
         self.log.info("LVAP %s joined %s" % (lvap.addr, lvap.ssid))
+
+    def ue_join_callback(self, ue):
+        """Called when an UE associates to a tennant."""
+
+        self.log.info("UE %s joined %u" % (ue.addr, ue.plmn_id))
+
+    def ue_leave_callback(self, ue):
+        """Called when an UE leaves a tennant."""
+
+        self.log.info("UE %s left %u" % (ue.addr, ue.plmn_id))
 
     def wtp_up_callback(self, wtp):
         """Called when a new wtp connects to the controller."""
