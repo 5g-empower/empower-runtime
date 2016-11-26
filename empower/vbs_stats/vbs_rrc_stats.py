@@ -21,7 +21,7 @@ from protobuf_to_dict import protobuf_to_dict
 from empower.vbsp.messages import statistics_pb2
 from empower.vbsp.messages import configs_pb2
 from empower.vbsp.messages import main_pb2
-from empower.core.app import EmpowerApp
+from empower.core.ue import UE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModuleTrigger
@@ -194,19 +194,10 @@ class VBSRRCStats(ModuleTrigger):
     def meas_reply(self, response):
         """Set RRC measurements reply."""
 
+        tenant = RUNTIME.tenants[self.tenant_id]
+        ue = tenant.ues[self.ue]
+
         self._meas_reply = protobuf_to_dict(response)
-
-        vbses = RUNTIME.tenants[self.tenant_id].vbses
-
-        if self.vbs not in vbses:
-            return
-
-        vbs = vbses[self.vbs]
-
-        if self.ue not in vbs.ues:
-            return
-
-        ue = vbs.ues[self.ue]
 
         event_type = response.WhichOneof("event_types")
         meas = self._meas_reply[event_type]["mRRC_meas"]["repl"]
@@ -270,20 +261,16 @@ class VBSRRCStats(ModuleTrigger):
             self.unload()
             return
 
-        vbses = RUNTIME.tenants[self.tenant_id].vbses
+        tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.vbs not in vbses:
+        if self.ue not in tenant.ues:
+            self.log.info("UE %s not found", self.ue)
             return
 
-        vbs = vbses[self.vbs]
+        ue = tenant.ues[self.ue]
 
-        if self.ue not in vbs.ues:
-            raise ValueError("Invalid ue rnti")
-
-        ue = vbs.ues[self.ue]
-
-        if not vbs.connection or vbs.connection.stream.closed():
-            self.log.info("VBS %s not connected", vbs.addr)
+        if not ue.vbs.connection or ue.vbs.connection.stream.closed():
+            self.log.info("VBS %s not connected", ue.vbs.addr)
             return
 
         st_req = self.meas_req
@@ -301,7 +288,7 @@ class VBSRRCStats(ModuleTrigger):
         rrc_m_msg = trigger_msg.mRRC_meas
         rrc_m_req_msg = rrc_m_msg.req
 
-        rrc_m_req_msg.rnti = ue.rnti
+        rrc_m_req_msg.rnti = ether_to_hex(ue.addr)
 
         rrc_m_req_msg.rat = RRC_STATS_RAT_TYPE[st_req["rat_type"]]
 
@@ -395,12 +382,10 @@ class VBSRRCStats(ModuleTrigger):
                 else:
                     a5.a5_threshold2.RSRQ = st_req["threshold2"]["value"]
 
-        connection = vbs.connection
-
-        self.log.info("Sending RRC stats request to %s (id=%u)", vbs.addr,
+        self.log.info("Sending RRC stats request to %s (id=%u)", ue.vbs.addr,
                       self.module_id)
 
-        vbs.connection.stream_send(rrc_m_req)
+        ue.vbs.connection.stream_send(rrc_m_req)
 
     def cleanup(self):
         """Remove this module."""
@@ -470,20 +455,22 @@ class VBSRRCStatsWorker(ModuleVBSPWorker):
     pass
 
 
-def vbs_RRC_stats(**kwargs):
+def vbs_rrc_stats(**kwargs):
     """Create a new module."""
 
     return \
         RUNTIME.components[VBSRRCStatsWorker.__module__].add_module(**kwargs)
 
 
-def bound_vbs_RRC_stats(self, **kwargs):
+def bound_vbs_rrc_stats(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return vbs_RRC_stats(**kwargs)
+    kwargs['ue'] = self.addr
+    kwargs['vbs'] = self.vbs.addr
+    return vbs_rrc_stats(**kwargs)
 
-setattr(EmpowerApp, VBSRRCStats.MODULE_NAME, bound_vbs_RRC_stats)
+setattr(UE, VBSRRCStats.MODULE_NAME, bound_vbs_rrc_stats)
 
 
 def launch():
