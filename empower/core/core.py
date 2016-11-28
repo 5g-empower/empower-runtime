@@ -175,7 +175,6 @@ class EmpowerRuntime(object):
                 Tenant(tenant.tenant_id,
                        tenant.tenant_name,
                        tenant.owner,
-                       tenant.plmn_id,
                        tenant.desc,
                        tenant.bssid_type,
                        tenant.plmn_id)
@@ -437,13 +436,11 @@ class EmpowerRuntime(object):
                 request = TblTenant(tenant_id=tenant_id,
                                     tenant_name=tenant_name,
                                     owner=owner,
-                                    plmn_id=plmn_id,
                                     desc=desc,
                                     bssid_type=bssid_type,
                                     plmn_id=plmn_id)
             else:
                 request = TblTenant(owner=owner,
-                                    plmn_id=plmn_id,
                                     tenant_name=tenant_name,
                                     desc=desc,
                                     bssid_type=bssid_type,
@@ -504,14 +501,12 @@ class EmpowerRuntime(object):
             if tenant_id:
                 request = TblPendingTenant(tenant_id=tenant_id,
                                            owner=owner,
-                                           plmn_id=plmn_id,
                                            tenant_name=tenant_name,
                                            desc=desc,
                                            bssid_type=bssid_type,
                                            plmn_id=plmn_id)
             else:
                 request = TblPendingTenant(owner=owner,
-                                           plmn_id=plmn_id,
                                            tenant_name=tenant_name,
                                            desc=desc,
                                            bssid_type=bssid_type,
