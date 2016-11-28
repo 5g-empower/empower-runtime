@@ -350,10 +350,10 @@ class VBSPConnection(object):
 
         rnti = rrc_m_conf_repl["rnti"]
 
-        if rnti not in self.vbs.ues:
+        if rnti not in RUNTIME.ues:
             return
 
-        ue = self.vbs.ues[rnti]
+        ue = self.RUNTIME[rnti]
 
         if rrc_m_conf_repl["status"] != configs_pb2.CREQS_SUCCESS:
             return

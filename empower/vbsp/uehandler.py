@@ -55,8 +55,8 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
                 print(RUNTIME.ues.keys())
                 self.write_as_json(RUNTIME.ues[ue_addr])
 
-        #except KeyError as ex:
-        #    self.send_error(404, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
 
