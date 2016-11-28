@@ -25,6 +25,8 @@ import sys
 from protobuf_to_dict import protobuf_to_dict
 
 from empower.vbsp import EMAGE_VERSION
+from empower.vbsp import PRT_UE_JOIN
+from empower.vbsp import PRT_UE_LEAVE
 from empower.vbsp import PRT_VBSP_HELLO
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp import PRT_VBSP_REGISTER
@@ -287,6 +289,11 @@ class VBSPConnection(object):
 
         for rnti in active_ues:
 
+            # if rnti not in self.vbs.ues:
+            #     self.vbs.ues[rnti] = UE(rnti, self.vbs)
+            #     for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
+            #         handler(self.vbs.ues[rnti])
+
             ue_id = hex_to_ether(rnti)
 
             if ue_id not in RUNTIME.ues:
@@ -334,6 +341,13 @@ class VBSPConnection(object):
         for ue_id in existing_ues:
             if ether_to_hex(ue_id) not in active_ues:
                 RUNTIME.remove_ue(ue_id)
+
+        # for rnti in existing_rntis:
+        #     if rnti not in active_ues:
+        #         # Handling of UE down must be done
+        #         for handler in self.server.pt_types_handlers[PRT_UE_LEAVE]:
+        #             handler(self.vbs.ues[rnti])
+        #         del self.vbs.ues[rnti]
 
     def _handle_rrc_meas_conf_repl(self, main_msg):
         """Handle an incoming UE's RRC Measurements configuration reply.

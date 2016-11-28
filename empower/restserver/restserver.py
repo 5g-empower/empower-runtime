@@ -766,6 +766,9 @@ class PendingTenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
+            if "plmn_id" not in request:
+                raise ValueError("missing plmn_id element")
+
             if "bssid_type" not in request:
                 bssid_type = T_TYPE_UNIQUE
             else:
@@ -787,6 +790,7 @@ class PendingTenantHandler(EmpowerAPIHandler):
             tenant_name = SSID(request['tenant_name'])
 
             RUNTIME.request_tenant(self.account.username,
+                                   request['plmn_id'],
                                    request['desc'],
                                    tenant_name,
                                    bssid_type,
@@ -918,6 +922,10 @@ class TenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
+
+            if "plmn_id" not in request:
+                raise ValueError("missing plmn_id element")
+
             if "bssid_type" not in request:
                 bssid_type = T_TYPE_UNIQUE
             else:
@@ -939,6 +947,7 @@ class TenantHandler(EmpowerAPIHandler):
             tenant_name = SSID(request['tenant_name'])
 
             RUNTIME.add_tenant(request['owner'],
+                               request['plmn_id'],
                                request['desc'],
                                tenant_name,
                                bssid_type,

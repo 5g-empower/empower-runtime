@@ -50,7 +50,7 @@ class SignalGraph(EmpowerApp):
     Example:
 
         ./empower-runtime.py apps.signalgraph.signalgraph \
-            --tenant_id=d18a6e8f-699b-4280-ab6f-435bd00e1c90
+            --tenant_id=ba4bbda5-5b45-4b70-bc6f-938524e63b8b
     """
 
     def __init__(self, **kwargs):

@@ -198,7 +198,7 @@ function loadComponents(tenant) {
                 if(tenant){
                     ctrl.innerHTML += '<img class="ctrl" onClick="unregisterComponent(\'' + stream +'\',\''+ tenant +'\')" src="/static/images/remove.png"  />'
                 } else {
-                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />" 
+                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />"
                 }
                 ctrl.align = "center"
             }
@@ -266,7 +266,11 @@ function registerComponent(tenant) {
                 var mac = row.insertCell(0);
                 mac.colSpan = 3
                 mac.align = "right"
-                mac.innerHTML = "<a onClick=\"return addComponent()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                if (tenant) {
+                    mac.innerHTML = "<a onClick=\"return addComponent('"+tenant+"')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                } else {
+                    mac.innerHTML = "<a onClick=\"return addComponent()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                }
             },
             400: function (data) {
                 alert(data.responseJSON.message);
@@ -374,7 +378,7 @@ function loadPendingTenants(username, admin) {
                 var rowCount = table.rows.length;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 5
+                mac.colSpan = 6
                 mac.style.textAlign = "center"
                 mac.innerHTML = "No requests"
             }
@@ -392,7 +396,9 @@ function loadPendingTenants(username, admin) {
                 tenant_name.innerHTML = data[stream].tenant_name
                 var status = row.insertCell(3);
                 status.innerHTML = data[stream].owner
-                var bssid_type = row.insertCell(4);
+                var plmn_id = row.insertCell(4);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var bssid_type = row.insertCell(5);
                 bssid_type.innerHTML = data[stream].bssid_type
             }
         },
@@ -408,19 +414,19 @@ function acceptTenant(tenant_id) {
         },
         cache: false,
         success: function (data) {
-            createTenant(data.tenant_id, data.tenant_name, data.owner, data.desc, data.bssid_type)
+            createTenant(data.tenant_id, data.tenant_name, data.owner, data.plmn_id, data.desc, data.bssid_type)
         },
         error: function (data) {
         },
     });
 }
 
-function createTenant(tenant_id, tenant_name, owner, desc, bssid_type) {
+function createTenant(tenant_id, tenant_name, owner, plmn_id, desc, bssid_type) {
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id,
         type: 'POST',
         dataType: 'json',
-        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'" }',
+        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'", "plmn_id":"'+plmn_id+'" }',
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
@@ -437,6 +443,7 @@ function requestTenant(pending) {
 
     desc = document.getElementById('desc').value;
     tenant_name = document.getElementById('tenant_name').value;
+    plmn_id = document.getElementById('plmn_id').value;
     var bssid_values = document.getElementsByName('bssid_type');
     for (var i = 0; i < bssid_values.length; i++)
     {
@@ -450,6 +457,7 @@ function requestTenant(pending) {
     var request = {
         "version": "1.0",
         "tenant_name": tenant_name,
+        "plmn_id": plmn_id,
         "desc": desc,
         "bssid_type": bssid_type
     }
@@ -536,7 +544,9 @@ function loadTenants(username, admin) {
                 }
                 var status = row.insertCell(4);
                 status.innerHTML = data[stream].owner
-                var bssid_type = row.insertCell(5);
+                var plmn_id = row.insertCell(5);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var bssid_type = row.insertCell(6);
                 bssid_type.innerHTML = data[stream].bssid_type
             }
         },
@@ -1073,7 +1083,6 @@ function loadWTPs(tenant_id) {
     } else {
         url = "/api/v1/wtps"
     }
-    console.log(url)
     $.ajax({
         url: url,
         type: 'GET',

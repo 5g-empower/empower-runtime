@@ -25,6 +25,8 @@ PRT_UE_JOIN = "join"
 PRT_UE_LEAVE = "leave"
 PRT_VBSP_BYE = "bye"
 PRT_VBSP_REGISTER = "register"
+PRT_UE_JOIN = "ue_join"
+PRT_UE_LEAVE = "ue_leave"
 PRT_VBSP_TRIGGER_EVENT = "te"
 PRT_VBSP_AGENT_SCHEDULED_EVENT = "sche"
 PRT_VBSP_SINGLE_EVENT = "se"
@@ -43,7 +45,8 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_UE_LEAVE: None,
              PRT_VBSP_HELLO: "hello",
              PRT_VBSP_UES_ID: "UEs_id_repl",
-             PRT_VBSP_RRC_MEAS_CONF: "rrc_meas_conf_repl",
+             # PRT_VBSP_RRC_MEAS_CONF: "rrc_meas_conf_repl",
+             PRT_VBSP_RRC_MEAS_CONF: None,
              PRT_VBSP_STATS: None,
              PRT_VBSP_UE_CONFIG_REQUEST: None,
              PRT_VBSP_UE_CONFIG_RESPONSE: "ue_conf_repl",

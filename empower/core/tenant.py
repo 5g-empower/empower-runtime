@@ -45,6 +45,7 @@ class Tenant(object):
                'tenant_name',
                'plmn_id',
                'owner',
+               'plmn_id',
                'desc',
                'bssid_type',
                'lvaps',
@@ -54,12 +55,14 @@ class Tenant(object):
                'cpps',
                'vbses']
 
-    def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type, 
+    def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type,
                  plmn_id=None):
+
         self.tenant_id = tenant_id
         self.plmn_id = plmn_id
         self.tenant_name = tenant_name
         self.owner = owner
+        self.plmn_id = plmn_id
         self.desc = desc
         self.bssid_type = bssid_type
         self.wtps = {}
