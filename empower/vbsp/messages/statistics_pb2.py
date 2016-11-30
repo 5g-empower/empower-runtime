@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='statistics.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x10statistics.proto\x1a\rconfigs.proto\"\x84\x01\n\x0crrc_meas_req\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12\x16\n\x03rat\x18\x02 \x02(\x0e\x32\t.rat_type\x12\x11\n\x06measId\x18\x03 \x02(\x05:\x01\x30\x12\x1b\n\x05m_obj\x18\x04 \x01(\x0b\x32\x0c.meas_object\x12\x1e\n\x06r_conf\x18\x05 \x01(\x0b\x32\x0e.report_config\")\n\rplmn_identity\x12\x0b\n\x03mnc\x18\x01 \x01(\r\x12\x0b\n\x03mcc\x18\x02 \x01(\r\"H\n\x14\x63\x65ll_global_id_EUTRA\x12\x1f\n\x07plmn_id\x18\x01 \x01(\x0b\x32\x0e.plmn_identity\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\"y\n\x16\x45UTRA_cgi_measurements\x12\"\n\x03\x63gi\x18\x01 \x01(\x0b\x32\x15.cell_global_id_EUTRA\x12\x1a\n\x12tracking_area_code\x18\x02 \x01(\r\x12\x1f\n\x07plmn_id\x18\x03 \x03(\x0b\x32\x0e.plmn_identity\"3\n\x15\x45UTRA_ref_signal_meas\x12\x0c\n\x04rsrp\x18\x01 \x01(\x05\x12\x0c\n\x04rsrq\x18\x02 \x01(\x05\"\x82\x01\n\x12\x45UTRA_measurements\x12\x14\n\x0cphys_cell_id\x18\x01 \x01(\r\x12)\n\x08\x63gi_meas\x18\x02 \x01(\x0b\x32\x17.EUTRA_cgi_measurements\x12+\n\x0bmeas_result\x18\x03 \x01(\x0b\x32\x16.EUTRA_ref_signal_meas\"C\n\x18neigh_cells_measurements\x12\'\n\nEUTRA_meas\x18\x01 \x03(\x0b\x32\x13.EUTRA_measurements\"\xa7\x01\n\rrrc_meas_repl\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12!\n\x06status\x18\x02 \x02(\x0e\x32\x11.stats_req_status\x12\x0e\n\x06measId\x18\x03 \x01(\x05\x12\x12\n\nPCell_rsrp\x18\x04 \x01(\x05\x12\x12\n\nPCell_rsrq\x18\x05 \x01(\x05\x12-\n\nneigh_meas\x18\x06 \x01(\x0b\x32\x19.neigh_cells_measurements\"V\n\x08rrc_meas\x12\x1c\n\x03req\x18\x01 \x01(\x0b\x32\r.rrc_meas_reqH\x00\x12\x1e\n\x04repl\x18\x02 \x01(\x0b\x32\x0e.rrc_meas_replH\x00\x42\x0c\n\nrrc_meas_m*\x19\n\x08rat_type\x12\r\n\tRAT_EUTRA\x10\x00*8\n\x10stats_req_status\x12\x11\n\rSREQS_SUCCESS\x10\x00\x12\x11\n\rSREQS_FAILURE\x10\x01')
+  serialized_pb=_b('\n\x10statistics.proto\x1a\rconfigs.proto\"\x84\x01\n\x0crrc_meas_req\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12\x16\n\x03rat\x18\x02 \x02(\x0e\x32\t.rat_type\x12\x11\n\x06measId\x18\x03 \x02(\x05:\x01\x30\x12\x1b\n\x05m_obj\x18\x04 \x01(\x0b\x32\x0c.meas_object\x12\x1e\n\x06r_conf\x18\x05 \x01(\x0b\x32\x0e.report_config\")\n\rplmn_identity\x12\x0b\n\x03mnc\x18\x01 \x01(\r\x12\x0b\n\x03mcc\x18\x02 \x01(\r\"H\n\x14\x63\x65ll_global_id_EUTRA\x12\x1f\n\x07plmn_id\x18\x01 \x01(\x0b\x32\x0e.plmn_identity\x12\x0f\n\x07\x63\x65ll_id\x18\x02 \x01(\r\"y\n\x16\x45UTRA_cgi_measurements\x12\"\n\x03\x63gi\x18\x01 \x01(\x0b\x32\x15.cell_global_id_EUTRA\x12\x1a\n\x12tracking_area_code\x18\x02 \x01(\r\x12\x1f\n\x07plmn_id\x18\x03 \x03(\x0b\x32\x0e.plmn_identity\"3\n\x15\x45UTRA_ref_signal_meas\x12\x0c\n\x04rsrp\x18\x01 \x01(\x05\x12\x0c\n\x04rsrq\x18\x02 \x01(\x05\"\x82\x01\n\x12\x45UTRA_measurements\x12\x14\n\x0cphys_cell_id\x18\x01 \x01(\r\x12)\n\x08\x63gi_meas\x18\x02 \x01(\x0b\x32\x17.EUTRA_cgi_measurements\x12+\n\x0bmeas_result\x18\x03 \x01(\x0b\x32\x16.EUTRA_ref_signal_meas\"C\n\x18neigh_cells_measurements\x12\'\n\nEUTRA_meas\x18\x01 \x03(\x0b\x32\x13.EUTRA_measurements\"\xa7\x01\n\rrrc_meas_repl\x12\x0c\n\x04rnti\x18\x01 \x02(\r\x12!\n\x06status\x18\x02 \x02(\x0e\x32\x11.stats_req_status\x12\x0e\n\x06measId\x18\x03 \x01(\x05\x12\x12\n\nPCell_rsrp\x18\x04 \x01(\x05\x12\x12\n\nPCell_rsrq\x18\x05 \x01(\x05\x12-\n\nneigh_meas\x18\x06 \x01(\x0b\x32\x19.neigh_cells_measurements\"V\n\x08rrc_meas\x12\x1c\n\x03req\x18\x01 \x01(\x0b\x32\r.rrc_meas_reqH\x00\x12\x1e\n\x04repl\x18\x02 \x01(\x0b\x32\x0e.rrc_meas_replH\x00\x42\x0c\n\nrrc_meas_m\">\n\x0e\x63\x65ll_stats_req\x12\x12\n\x07\x63\x65ll_id\x18\x01 \x02(\x05:\x01\x30\x12\x18\n\x10\x63\x65ll_stats_types\x18\x02 \x02(\x04\">\n\x17\x64l_cell_prb_utilization\x12\x10\n\x08num_prbs\x18\x01 \x01(\r\x12\x11\n\tperc_prbs\x18\x02 \x01(\r\">\n\x17ul_cell_prb_utilization\x12\x10\n\x08num_prbs\x18\x01 \x01(\r\x12\x11\n\tperc_prbs\x18\x02 \x01(\r\"v\n\x14\x63\x65ll_prb_utilization\x12.\n\x0c\x64l_prb_utilz\x18\x01 \x01(\x0b\x32\x18.dl_cell_prb_utilization\x12.\n\x0cul_prb_utilz\x18\x02 \x01(\x0b\x32\x18.ul_cell_prb_utilization\";\n\x0f\x63\x65ll_stats_repl\x12(\n\tprb_utilz\x18\x01 \x01(\x0b\x32\x15.cell_prb_utilization\"^\n\ncell_stats\x12\x1e\n\x03req\x18\x01 \x01(\x0b\x32\x0f.cell_stats_reqH\x00\x12 \n\x04repl\x18\x02 \x01(\x0b\x32\x10.cell_stats_replH\x00\x42\x0e\n\x0c\x63\x65ll_stats_m*\x19\n\x08rat_type\x12\r\n\tRAT_EUTRA\x10\x00*8\n\x10stats_req_status\x12\x11\n\rSREQS_SUCCESS\x10\x00\x12\x11\n\rSREQS_FAILURE\x10\x01*/\n\x10\x63\x65ll_stats_types\x12\x1b\n\x17\x43\x45LLSTT_PRB_UTILIZATION\x10\x01')
   ,
   dependencies=[configs__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -39,8 +39,8 @@ _RAT_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=923,
-  serialized_end=948,
+  serialized_start=1392,
+  serialized_end=1417,
 )
 _sym_db.RegisterEnumDescriptor(_RAT_TYPE)
 
@@ -62,15 +62,35 @@ _STATS_REQ_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=950,
-  serialized_end=1006,
+  serialized_start=1419,
+  serialized_end=1475,
 )
 _sym_db.RegisterEnumDescriptor(_STATS_REQ_STATUS)
 
 stats_req_status = enum_type_wrapper.EnumTypeWrapper(_STATS_REQ_STATUS)
+_CELL_STATS_TYPES = _descriptor.EnumDescriptor(
+  name='cell_stats_types',
+  full_name='cell_stats_types',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='CELLSTT_PRB_UTILIZATION', index=0, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1477,
+  serialized_end=1524,
+)
+_sym_db.RegisterEnumDescriptor(_CELL_STATS_TYPES)
+
+cell_stats_types = enum_type_wrapper.EnumTypeWrapper(_CELL_STATS_TYPES)
 RAT_EUTRA = 0
 SREQS_SUCCESS = 0
 SREQS_FAILURE = 1
+CELLSTT_PRB_UTILIZATION = 1
 
 
 
@@ -474,6 +494,230 @@ _RRC_MEAS = _descriptor.Descriptor(
   serialized_end=921,
 )
 
+
+_CELL_STATS_REQ = _descriptor.Descriptor(
+  name='cell_stats_req',
+  full_name='cell_stats_req',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cell_id', full_name='cell_stats_req.cell_id', index=0,
+      number=1, type=5, cpp_type=1, label=2,
+      has_default_value=True, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cell_stats_types', full_name='cell_stats_req.cell_stats_types', index=1,
+      number=2, type=4, cpp_type=4, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=923,
+  serialized_end=985,
+)
+
+
+_DL_CELL_PRB_UTILIZATION = _descriptor.Descriptor(
+  name='dl_cell_prb_utilization',
+  full_name='dl_cell_prb_utilization',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='num_prbs', full_name='dl_cell_prb_utilization.num_prbs', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='perc_prbs', full_name='dl_cell_prb_utilization.perc_prbs', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=987,
+  serialized_end=1049,
+)
+
+
+_UL_CELL_PRB_UTILIZATION = _descriptor.Descriptor(
+  name='ul_cell_prb_utilization',
+  full_name='ul_cell_prb_utilization',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='num_prbs', full_name='ul_cell_prb_utilization.num_prbs', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='perc_prbs', full_name='ul_cell_prb_utilization.perc_prbs', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1051,
+  serialized_end=1113,
+)
+
+
+_CELL_PRB_UTILIZATION = _descriptor.Descriptor(
+  name='cell_prb_utilization',
+  full_name='cell_prb_utilization',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dl_prb_utilz', full_name='cell_prb_utilization.dl_prb_utilz', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ul_prb_utilz', full_name='cell_prb_utilization.ul_prb_utilz', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1115,
+  serialized_end=1233,
+)
+
+
+_CELL_STATS_REPL = _descriptor.Descriptor(
+  name='cell_stats_repl',
+  full_name='cell_stats_repl',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='prb_utilz', full_name='cell_stats_repl.prb_utilz', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1235,
+  serialized_end=1294,
+)
+
+
+_CELL_STATS = _descriptor.Descriptor(
+  name='cell_stats',
+  full_name='cell_stats',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='req', full_name='cell_stats.req', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='repl', full_name='cell_stats.repl', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='cell_stats_m', full_name='cell_stats.cell_stats_m',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=1296,
+  serialized_end=1390,
+)
+
 _RRC_MEAS_REQ.fields_by_name['rat'].enum_type = _RAT_TYPE
 _RRC_MEAS_REQ.fields_by_name['m_obj'].message_type = configs__pb2._MEAS_OBJECT
 _RRC_MEAS_REQ.fields_by_name['r_conf'].message_type = configs__pb2._REPORT_CONFIG
@@ -493,6 +737,17 @@ _RRC_MEAS.fields_by_name['req'].containing_oneof = _RRC_MEAS.oneofs_by_name['rrc
 _RRC_MEAS.oneofs_by_name['rrc_meas_m'].fields.append(
   _RRC_MEAS.fields_by_name['repl'])
 _RRC_MEAS.fields_by_name['repl'].containing_oneof = _RRC_MEAS.oneofs_by_name['rrc_meas_m']
+_CELL_PRB_UTILIZATION.fields_by_name['dl_prb_utilz'].message_type = _DL_CELL_PRB_UTILIZATION
+_CELL_PRB_UTILIZATION.fields_by_name['ul_prb_utilz'].message_type = _UL_CELL_PRB_UTILIZATION
+_CELL_STATS_REPL.fields_by_name['prb_utilz'].message_type = _CELL_PRB_UTILIZATION
+_CELL_STATS.fields_by_name['req'].message_type = _CELL_STATS_REQ
+_CELL_STATS.fields_by_name['repl'].message_type = _CELL_STATS_REPL
+_CELL_STATS.oneofs_by_name['cell_stats_m'].fields.append(
+  _CELL_STATS.fields_by_name['req'])
+_CELL_STATS.fields_by_name['req'].containing_oneof = _CELL_STATS.oneofs_by_name['cell_stats_m']
+_CELL_STATS.oneofs_by_name['cell_stats_m'].fields.append(
+  _CELL_STATS.fields_by_name['repl'])
+_CELL_STATS.fields_by_name['repl'].containing_oneof = _CELL_STATS.oneofs_by_name['cell_stats_m']
 DESCRIPTOR.message_types_by_name['rrc_meas_req'] = _RRC_MEAS_REQ
 DESCRIPTOR.message_types_by_name['plmn_identity'] = _PLMN_IDENTITY
 DESCRIPTOR.message_types_by_name['cell_global_id_EUTRA'] = _CELL_GLOBAL_ID_EUTRA
@@ -502,8 +757,15 @@ DESCRIPTOR.message_types_by_name['EUTRA_measurements'] = _EUTRA_MEASUREMENTS
 DESCRIPTOR.message_types_by_name['neigh_cells_measurements'] = _NEIGH_CELLS_MEASUREMENTS
 DESCRIPTOR.message_types_by_name['rrc_meas_repl'] = _RRC_MEAS_REPL
 DESCRIPTOR.message_types_by_name['rrc_meas'] = _RRC_MEAS
+DESCRIPTOR.message_types_by_name['cell_stats_req'] = _CELL_STATS_REQ
+DESCRIPTOR.message_types_by_name['dl_cell_prb_utilization'] = _DL_CELL_PRB_UTILIZATION
+DESCRIPTOR.message_types_by_name['ul_cell_prb_utilization'] = _UL_CELL_PRB_UTILIZATION
+DESCRIPTOR.message_types_by_name['cell_prb_utilization'] = _CELL_PRB_UTILIZATION
+DESCRIPTOR.message_types_by_name['cell_stats_repl'] = _CELL_STATS_REPL
+DESCRIPTOR.message_types_by_name['cell_stats'] = _CELL_STATS
 DESCRIPTOR.enum_types_by_name['rat_type'] = _RAT_TYPE
 DESCRIPTOR.enum_types_by_name['stats_req_status'] = _STATS_REQ_STATUS
+DESCRIPTOR.enum_types_by_name['cell_stats_types'] = _CELL_STATS_TYPES
 
 rrc_meas_req = _reflection.GeneratedProtocolMessageType('rrc_meas_req', (_message.Message,), dict(
   DESCRIPTOR = _RRC_MEAS_REQ,
@@ -567,6 +829,48 @@ rrc_meas = _reflection.GeneratedProtocolMessageType('rrc_meas', (_message.Messag
   # @@protoc_insertion_point(class_scope:rrc_meas)
   ))
 _sym_db.RegisterMessage(rrc_meas)
+
+cell_stats_req = _reflection.GeneratedProtocolMessageType('cell_stats_req', (_message.Message,), dict(
+  DESCRIPTOR = _CELL_STATS_REQ,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:cell_stats_req)
+  ))
+_sym_db.RegisterMessage(cell_stats_req)
+
+dl_cell_prb_utilization = _reflection.GeneratedProtocolMessageType('dl_cell_prb_utilization', (_message.Message,), dict(
+  DESCRIPTOR = _DL_CELL_PRB_UTILIZATION,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:dl_cell_prb_utilization)
+  ))
+_sym_db.RegisterMessage(dl_cell_prb_utilization)
+
+ul_cell_prb_utilization = _reflection.GeneratedProtocolMessageType('ul_cell_prb_utilization', (_message.Message,), dict(
+  DESCRIPTOR = _UL_CELL_PRB_UTILIZATION,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:ul_cell_prb_utilization)
+  ))
+_sym_db.RegisterMessage(ul_cell_prb_utilization)
+
+cell_prb_utilization = _reflection.GeneratedProtocolMessageType('cell_prb_utilization', (_message.Message,), dict(
+  DESCRIPTOR = _CELL_PRB_UTILIZATION,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:cell_prb_utilization)
+  ))
+_sym_db.RegisterMessage(cell_prb_utilization)
+
+cell_stats_repl = _reflection.GeneratedProtocolMessageType('cell_stats_repl', (_message.Message,), dict(
+  DESCRIPTOR = _CELL_STATS_REPL,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:cell_stats_repl)
+  ))
+_sym_db.RegisterMessage(cell_stats_repl)
+
+cell_stats = _reflection.GeneratedProtocolMessageType('cell_stats', (_message.Message,), dict(
+  DESCRIPTOR = _CELL_STATS,
+  __module__ = 'statistics_pb2'
+  # @@protoc_insertion_point(class_scope:cell_stats)
+  ))
+_sym_db.RegisterMessage(cell_stats)
 
 
 # @@protoc_insertion_point(module_scope)
