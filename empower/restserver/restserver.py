@@ -774,9 +774,8 @@ class PendingTenantHandler(EmpowerAPIHandler):
             else:
                 bssid_type = request['bssid_type']
 
-            if "plmn_id" not in request:
-                plmn_id = None
-            else:
+            plmn_id = None
+            if "plmn_id" in request:
                 plmn_id = int(request['plmn_id'])
 
             if bssid_type not in T_TYPES:
@@ -790,7 +789,6 @@ class PendingTenantHandler(EmpowerAPIHandler):
             tenant_name = SSID(request['tenant_name'])
 
             RUNTIME.request_tenant(self.account.username,
-                                   request['plmn_id'],
                                    request['desc'],
                                    tenant_name,
                                    bssid_type,
@@ -931,9 +929,9 @@ class TenantHandler(EmpowerAPIHandler):
             else:
                 bssid_type = request['bssid_type']
 
-            if "plmn_id" not in request:
-                plmn_id = None
-            else:
+            plmn_id = None
+
+            if "plmn_id" in request:
                 plmn_id = int(request['plmn_id'])
 
             if bssid_type not in T_TYPES:
@@ -947,7 +945,6 @@ class TenantHandler(EmpowerAPIHandler):
             tenant_name = SSID(request['tenant_name'])
 
             RUNTIME.add_tenant(request['owner'],
-                               request['plmn_id'],
                                request['desc'],
                                tenant_name,
                                bssid_type,

@@ -45,7 +45,6 @@ class Tenant(object):
                'tenant_name',
                'plmn_id',
                'owner',
-               'plmn_id',
                'desc',
                'bssid_type',
                'lvaps',
@@ -62,7 +61,6 @@ class Tenant(object):
         self.plmn_id = plmn_id
         self.tenant_name = tenant_name
         self.owner = owner
-        self.plmn_id = plmn_id
         self.desc = desc
         self.bssid_type = bssid_type
         self.wtps = {}

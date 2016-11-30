@@ -157,7 +157,6 @@ class TblPendingTenant(Base):
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
-    plmn_id = Column(String)
     bssid_type = Column(String)
 
     def to_dict(self):
@@ -186,7 +185,6 @@ class TblTenant(Base):
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
-    plmn_id = Column(String)
     bssid_type = Column(String)
 
 

@@ -457,7 +457,6 @@ class EmpowerRuntime(object):
             Tenant(request.tenant_id,
                    request.tenant_name,
                    self.accounts[owner].username,
-                   request.plmn_id,
                    desc,
                    request.bssid_type,
                    request.plmn_id)
