@@ -55,8 +55,63 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
                 print(RUNTIME.ues.keys())
                 self.write_as_json(RUNTIME.ues[ue_addr])
 
-        #except KeyError as ex:
-        #    self.send_error(404, message=ex)
+        except KeyError as ex:
+           self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(200, None)
+
+class UEHandler(EmpowerAPIHandlerAdminUsers):
+    """UE handler. Used to view UEs attached to a VBS (controller-wide)."""
+
+    HANDLERS = [r"/api/v1/vbses/([a-zA-Z0-9:]*)/ues/?",
+                r"/api/v1/vbses/([a-zA-Z0-9:]*)/ues/([a-zA-Z0-9]*)/?"]
+
+    def get(self, *args, **kwargs):
+        """ Get all UEs or just the specified one. An UE can be uniquely
+            identified using the VBS ID and RNTI.
+        Args:
+            vbs_id: the vbs identifier
+            rnti: the radio network temporary identifier
+        Example URLs:
+            GET /api/v1/vbses/11:22:33:44:55:66/ues
+            GET /api/v1/vbses/11:22:33:44:55:66/ues/f93b
+        """
+
+        try:
+
+            if len(args) > 2 or len(args) < 1:
+                raise ValueError("Invalid URL")
+
+            vbs_id = EtherAddress(args[0])
+
+            if vbs_id not in RUNTIME.vbses:
+                raise ValueError("Invalid VBS ID")
+
+            ues = []
+
+            for k in RUNTIME.ues.keys():
+                ue = RUNTIME.ues[k]
+                if ue.vbs.addr == vbs_id:
+                    ues.append(ue)
+
+            if len(args) == 1:
+                self.write_as_json(ues)
+            else:
+                ue_present = 0
+                rnti = int(args[1])
+                for ue in ues:
+                    if ue.rnti == rnti:
+                        ue_present = 1
+                        self.write_as_json(ue)
+                        break
+
+                if ue_present == 0:
+                    raise ValueError("Invalid UE RNTI")
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
 
