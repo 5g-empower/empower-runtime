@@ -23,10 +23,11 @@ from empower.core.utils import hex_to_ether
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, ue_id, imsi, vbs):
+    def __init__(self, ue_id, rnti, vbs):
 
         self.addr = ue_id
-        self.imsi = imsi
+        self.rnti = rnti
+        self.imsi = None
         self.vbs = vbs
         self.tenant = None
         self.rrc_state = None
@@ -48,6 +49,7 @@ class UE(object):
         """ Return a JSON-serializable dictionary representing the UE """
 
         return {'addr': self.addr,
+                'rnti': self.rnti,
                 'plmn_id': self.plmn_id,
                 'imsi': self.imsi,
                 'vbs': self.vbs.addr,
