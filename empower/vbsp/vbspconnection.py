@@ -136,6 +136,8 @@ class VBSPConnection(object):
 
         size = message.ByteSize()
 
+        print(message.__str__())
+
         size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
         send_buff = serialize_message(message)
         buff = size_bytes + send_buff
@@ -167,6 +169,8 @@ class VBSPConnection(object):
 
             # Update the sequency number from received message
             self.seq = deserialized_msg.head.seq
+
+            print(deserialized_msg.__str__())
 
             self._trigger_message(deserialized_msg)
             self._wait()
@@ -264,57 +268,56 @@ class VBSPConnection(object):
         # List of active UEs
         if "active_ue_id" in ues_id_msg_repl:
             for ue in ues_id_msg_repl["active_ue_id"]:
-                active_ues[ue["rnti"]] = {}
+                active_ues[(self.vbs.addr, ue["rnti"])] = {}
                 if "imsi" in ue:
-                    active_ues[ue["rnti"]]["imsi"] = ue["imsi"]
+                    active_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = ue["imsi"]
                 else:
-                    active_ues[ue["rnti"]]["imsi"] = None
+                    active_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = None
                 if "plmn_id" in ue:
-                    active_ues[ue["rnti"]]["plmn_id"] = ue["plmn_id"]
+                    active_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = \
+                                                                ue["plmn_id"]
                 else:
-                    active_ues[ue["rnti"]]["plmn_id"] = None
+                    active_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = None
 
         # List of inactive UEs
         if "inactive_ue_id" in ues_id_msg_repl:
             for ue in ues_id_msg_repl["inactive_ue_id"]:
-                inactive_ues[ue["rnti"]] = {}
+                inactive_ues[(self.vbs.addr, ue["rnti"])] = {}
                 if "imsi" in ue:
-                    inactive_ues[ue["rnti"]]["imsi"] = ue["imsi"]
+                    inactive_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = \
+                                                                    ue["imsi"]
                 else:
-                    inactive_ues[ue["rnti"]]["imsi"] = None
+                    inactive_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = None
                 if "plmn_id" in ue:
-                    inactive_ues[ue["rnti"]]["plmn_id"] = ue["plmn_id"]
+                    inactive_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = \
+                                                                ue["plmn_id"]
                 else:
-                    inactive_ues[ue["rnti"]]["plmn_id"] = None
+                    inactive_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = None
 
-        for rnti in active_ues:
+        for vbs_id, rnti in active_ues.keys():
 
-            # if rnti not in self.vbs.ues:
-            #     self.vbs.ues[rnti] = UE(rnti, self.vbs)
-            #     for handler in self.server.pt_types_handlers[PRT_UE_JOIN]:
-            #         handler(self.vbs.ues[rnti])
-
-            ue_id = hex_to_ether(rnti)
+            ue_id = (self.vbs.addr, rnti)
 
             if ue_id not in RUNTIME.ues:
-
-                ue_id = hex_to_ether(rnti)
-                imsi = active_ues[ue["rnti"]]["imsi"]
-                new_ue = UE(ue_id, imsi, self.vbs)
-
+                new_ue = UE(ue_id, ue_id[1], self.vbs)
                 RUNTIME.ues[ue_id] = new_ue
 
             ue = RUNTIME.ues[ue_id]
-            plmn_id = int(active_ues[rnti]["plmn_id"])
+
+            imsi = active_ues[ue_id]["imsi"]
+            plmn_id = int(active_ues[ue_id]["plmn_id"])
+
+            # Setting IMSI of UE
+            ue.imsi = imsi
 
             if not ue.plmn_id and plmn_id:
 
-                # setting tenant
+                # Setting tenant
                 ue.tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
                 if ue.tenant:
 
-                    # adding UE to tenant
+                    # Adding UE to tenant
                     LOG.info("Adding %s to tenant %s", ue.addr,
                              ue.tenant.plmn_id)
                     ue.tenant.ues[ue.addr] = ue
@@ -324,7 +327,7 @@ class VBSPConnection(object):
 
             if ue.plmn_id and not plmn_id:
 
-                # removing UE from tenant
+                # Removing UE from tenant
                 LOG.info("Removing %s from tenant %s", ue.addr,
                          ue.tenant.plmn_id)
                 del ue.tenant.ues[ue.addr]
@@ -332,22 +335,15 @@ class VBSPConnection(object):
                 # Raise UE leave
                 self.server.send_ue_leave_message_to_self(ue)
 
-                # setting tenant
+                # Resetting tenant
                 ue.tenant = None
 
         existing_ues = []
         existing_ues.extend(RUNTIME.ues.keys())
 
-        for ue_id in existing_ues:
-            if ether_to_hex(ue_id) not in active_ues:
-                RUNTIME.remove_ue(ue_id)
-
-        # for rnti in existing_rntis:
-        #     if rnti not in active_ues:
-        #         # Handling of UE down must be done
-        #         for handler in self.server.pt_types_handlers[PRT_UE_LEAVE]:
-        #             handler(self.vbs.ues[rnti])
-        #         del self.vbs.ues[rnti]
+        for ue_addr in existing_ues:
+            if ue_addr not in active_ues:
+                RUNTIME.remove_ue(ue_addr)
 
     def _handle_rrc_meas_conf_repl(self, main_msg):
         """Handle an incoming UE's RRC Measurements configuration reply.
