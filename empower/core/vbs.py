@@ -37,3 +37,9 @@ class VBS(BasePNFDev):
 
     ALIAS = "vbses"
     SOLO = "vbs"
+
+    @property
+    def enb_id(self):
+        """Return tenant id."""
+
+        return ether_to_hex(self.addr)
