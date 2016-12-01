@@ -36,23 +36,24 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
     """TenantUE handler. Used to view and manipulate UEs in tenants."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9:]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/vbses/([a-zA-Z0-9:]*)/ues/",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/vbses/([a-zA-Z0-9:]*)/ues/([a-zA-Z0-9]*)/?"]
 
     def get(self, *args, **kwargs):
-        """ Get all UEs in a Pool or just the specified one.
-
+        """ Get all UEs of a tenant or just the specified one.
+            An UE can be uniquely identified using the VBS ID and RNTI.
         Args:
-            tenant_id: the network name
-            ue_id: the ue address
-
+            tenant_id: the network identifier
+            vbs_id: the vbs identifier
+            rnti: the radio network temporary identifier
         Example URLs:
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/ues
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/ues/11:22:33:44:55:66
+            GET /api/v1/tenants/478644a7-f5c8-4a6e-9102-5b56c86e89f1/ues
+            GET /api/v1/tenants/478644a7-f5c8-4a6e-9102-5b56c86e89f1/vbses/11:22:33:44:55:66/ues/f93b
         """
 
         try:
 
-            if len(args) > 2 or len(args) < 1:
+            if len(args) > 3 or len(args) < 1:
                 raise ValueError("Invalid URL")
 
             tenant_id = uuid.UUID(args[0])
@@ -62,8 +63,29 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
             if len(args) == 1:
                 self.write_as_json(ues.values())
             else:
-                ue_addr = EtherAddress(args[1])
-                self.write_as_json(ues[ue_addr])
+                vbs_id = EtherAddress(args[1])
+
+                if vbs_id not in RUNTIME.vbses:
+                    raise ValueError("Invalid VBS ID")
+
+                vbs_ues = []
+
+                for ue in ues.values():
+                    if ue.vbs.addr == vbs_id:
+                        vbs_ues.append(ue)
+
+                if len(args) == 2:
+                    self.write_as_json(vbs_ues)
+                else:
+                    if len(vbs_ues) == 0:
+                        raise ValueError("Invalid UE RNTI")
+
+                    rnti = int(args[2])
+
+                    for ue in vbs_ues:
+                        if ue.rnti == rnti:
+                            self.write_as_json(ue)
+                            break
 
         except KeyError as ex:
             self.send_error(404, message=ex)
