@@ -63,7 +63,7 @@ class UE(object):
     def __eq__(self, other):
 
         if isinstance(other, UE):
-            return self.rnti == other.rnti
+            return self.rnti == other.rnti and self.vbs.addr == other.vbs.addr
 
         return False
 
