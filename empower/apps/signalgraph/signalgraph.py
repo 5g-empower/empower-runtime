@@ -50,7 +50,7 @@ class SignalGraph(EmpowerApp):
     Example:
 
         ./empower-runtime.py apps.signalgraph.signalgraph \
-            --tenant_id=ba4bbda5-5b45-4b70-bc6f-938524e63b8b
+            --tenant_id=478644a7-f5c8-4a6e-9102-5b56c86e89f1
     """
 
     def __init__(self, **kwargs):
@@ -59,14 +59,22 @@ class SignalGraph(EmpowerApp):
         self.graphData = {}
 
         self.vbses = []
-
         self.wtps = []
+
+        for vbs in self.tenant.vbses.values():
+            if vbs.connection:
+                self.vbses.append(vbs)
+
+        for wtp in self.tenant.wtps.values():
+            if wtp.connection:
+                self.wtps.append(wtp)
+
         self.wifi_data = {}
 
         self.coord = self.get_coordinates()
 
-        self.vbsup(callback=self.vbs_up_callback)
-        self.vbsdown(callback=self.vbs_down_callback)
+        self.vbsup(tenant_id=self.tenant.tenant_id, callback=self.vbs_up_callback)
+        self.vbsdown(tenant_id=self.tenant.tenant_id, callback=self.vbs_down_callback)
 
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
@@ -183,6 +191,8 @@ class SignalGraph(EmpowerApp):
         # Contains all nodes in the graph
         graph_nodes = []
 
+        tenant = RUNTIME.tenants[self.tenant.tenant_id]
+
         for wtp in self.wtps:
             # Append the WTP's info
             graph_nodes.append({
@@ -211,14 +221,14 @@ class SignalGraph(EmpowerApp):
 
             graph_nodes.append(serving_vbs)
 
-            for ue in vbs.ues:
+            for ue in tenant.ues:
 
                 node_id += 1
 
                 # Append the UE's info
                 graph_nodes.append({
                                     'id': node_id,
-                                    'node_id': vbs.ues[ue].rnti,
+                                    'node_id': tenant.ues[ue].rnti,
                                     'entity': 'ue',
                                     'tooltip': 'RNTI',
                                     'x': self.coord[node_id][0],
@@ -229,7 +239,7 @@ class SignalGraph(EmpowerApp):
                 ue_index = node_id
 
                 # Neighbor cells list per UE
-                cells = self.get_neigh_cells(vbs.ues[ue])
+                cells = self.get_neigh_cells(tenant.ues[ue])
 
                 for cell in cells:
                     if cell not in neigh_cells:
@@ -259,15 +269,15 @@ class SignalGraph(EmpowerApp):
                 graph_links.append({
                                     'src': cell_index,
                                     'dst': ue_index,
-                                    'rsrp': vbs.ues[ue].pcell_rsrp,
-                                    'rsrq': vbs.ues[ue].pcell_rsrq,
+                                    'rsrp': tenant.ues[ue].pcell_rsrp,
+                                    'rsrq': tenant.ues[ue].pcell_rsrq,
                                     'rssi': None,
                                     'entity': 'lte',
                                     'color': 'orange',
                                     'width': 6
                                     })
 
-                measurements = vbs.ues[ue].rrc_meas
+                measurements = tenant.ues[ue].rrc_meas
 
                 for key, m in measurements.items():
 
