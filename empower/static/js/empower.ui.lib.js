@@ -1279,6 +1279,7 @@ function removeMAC(group, mac) {
 
 function registerMAC(group) {
     var mac = document.getElementById(group + "_mac").value;
+    var imsi = document.getElementById(group + "_imsi").value;
     var label = document.getElementById(group + "_label").value;
     url = "/api/v1/" + group
     data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'"}'
@@ -1322,8 +1323,8 @@ function addMAC(group) {
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    mac.colSpan = 2
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.colSpan = 3
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" class=\"text-input\" id=\"" + group + "_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
