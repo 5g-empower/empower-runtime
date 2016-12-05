@@ -63,17 +63,17 @@ class VBSRRCStats(ModuleTrigger):
 
         self.log.info("UE %s disconnected" % ue.rnti)
 
-        conf_req = {
-            "event_type": "trigger"
-        }
+        # conf_req = {
+        #     "event_type": "trigger"
+        # }
 
-        # Fetch the RRC measurement configuration module and remove it
-        conf_module = ue_RRC_meas_confs(tenant_id=self.tenant_id,
-                                        vbs=ue.vbs.addr,
-                                        ue=ue.rnti,
-                                        conf_req=conf_req)
+        # # Fetch the RRC measurement configuration module and remove it
+        # conf_module = ue_RRC_meas_confs(tenant_id=self.tenant_id,
+        #                                 vbs=ue.vbs.addr,
+        #                                 ue=ue.rnti,
+        #                                 conf_req=conf_req)
 
-        conf_module.unload()
+        # conf_module.unload()
 
         for module_id in VBSRRCStatsWorker.modules:
             # Module object
@@ -87,14 +87,14 @@ class VBSRRCStats(ModuleTrigger):
 
         self.log.info("UE %s connected" % ue.rnti)
 
-        conf_req = {
-            "event_type": "trigger"
-        }
+        # conf_req = {
+        #     "event_type": "trigger"
+        # }
 
-        ue_RRC_meas_confs(tenant_id=self.tenant_id,
-                          vbs=ue.vbs.addr,
-                          ue=ue.rnti,
-                          conf_req=conf_req)
+        # ue_RRC_meas_confs(tenant_id=self.tenant_id,
+        #                   vbs=ue.vbs.addr,
+        #                   ue=ue.rnti,
+        #                   conf_req=conf_req)
 
     @property
     def ue(self):
@@ -108,9 +108,7 @@ class VBSRRCStats(ModuleTrigger):
 
         self._ue = value
 
-        print("control reached before here", self.tenant_id)
         uejoin(tenant_id=self.tenant_id, callback=self.ue_join_callback)
-        print("control reached till here")
         ueleave(tenant_id=self.tenant_id, callback=self.ue_leave_callback)
 
     @property
@@ -248,7 +246,10 @@ class VBSRRCStats(ModuleTrigger):
         """Set RRC measurements reply."""
 
         tenant = RUNTIME.tenants[self.tenant_id]
-        ue = tenant.ues[self.ue]
+
+        ue_addr = (self.vbs, self.ue)
+
+        ue = tenant.ues[ue_addr]
 
         self._meas_reply = protobuf_to_dict(response)
 
@@ -330,11 +331,13 @@ class VBSRRCStats(ModuleTrigger):
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.ue not in tenant.ues:
-            self.log.info("UE %s not found", self.ue)
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in tenant.ues:
+            self.log.info("UE %s not found", ue_addr)
             return
 
-        ue = tenant.ues[self.ue]
+        ue = tenant.ues[ue_addr]
 
         if not ue.vbs.connection or ue.vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", ue.vbs.addr)
@@ -355,7 +358,7 @@ class VBSRRCStats(ModuleTrigger):
         rrc_m_msg = trigger_msg.mRRC_meas
         rrc_m_req_msg = rrc_m_msg.req
 
-        rrc_m_req_msg.rnti = ether_to_hex(ue.addr)
+        rrc_m_req_msg.rnti = ue.rnti
 
         rrc_m_req_msg.rat = RRC_STATS_RAT_TYPE[st_req["rat_type"]]
 
@@ -466,10 +469,12 @@ class VBSRRCStats(ModuleTrigger):
 
         vbs = vbses[self.vbs]
 
-        if self.ue not in vbs.ues:
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in RUNTIME.tenants[self.tenant_id].ues:
             return
 
-        ue = vbs.ues[self.ue]
+        ue = RUNTIME.tenants[self.tenant_id].ues[ue_addr]
 
         if not vbs.connection or vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", vbs.addr)
