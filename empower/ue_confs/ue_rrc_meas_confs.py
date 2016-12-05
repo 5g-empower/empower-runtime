@@ -23,7 +23,7 @@ from empower.vbsp.messages import main_pb2
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.ue_confs import REQ_EVENT_TYPE
 from empower.vbsp import PRT_VBSP_RRC_MEAS_CONF
 from empower.vbsp.vbspconnection import create_header
@@ -31,7 +31,7 @@ from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
 
 
-class UERRCMeasConfs(Module):
+class UERRCMeasConfs(ModuleTrigger):
     """ UERRCMeasConfs object. """
 
     MODULE_NAME = "ue_rrc_meas_confs"
@@ -42,7 +42,6 @@ class UERRCMeasConfs(Module):
         Module.__init__(self)
 
         # parameters
-        self.every = -1
         self._vbs = None
         self._ue = None
         self._conf_req = None
@@ -120,10 +119,14 @@ class UERRCMeasConfs(Module):
 
         vbs = vbses[self.vbs]
 
-        if self.ue not in vbs.ues:
+        tenant = RUNTIME.tenants[self.tenant_id]
+
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in tenant.ues:
             return
 
-        ue = vbs.ues[self.ue]
+        ue = tenant.ues[ue_addr]
 
         event_type = response.WhichOneof("event_types")
         conf = self._conf_reply[event_type]["mUE_rrc_meas_conf"]["repl"]
@@ -177,10 +180,14 @@ class UERRCMeasConfs(Module):
 
         vbs = vbses[self.vbs]
 
-        if self.ue not in vbs.ues:
+        tenant = RUNTIME.tenants[self.tenant_id]
+
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in tenant.ues:
             raise ValueError("Invalid ue rnti")
 
-        ue = vbs.ues[self.ue]
+        ue = tenant.ues[ue_addr]
 
         if not vbs.connection or vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", vbs.addr)
@@ -230,10 +237,14 @@ class UERRCMeasConfs(Module):
 
         vbs = vbses[self.vbs]
 
-        if self.ue not in vbs.ues:
+        tenant = RUNTIME.tenants[self.tenant_id]
+
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in tenant.ues:
             return
 
-        ue = vbs.ues[self.ue]
+        ue = tenant.ues[ue_addr]
 
         if not vbs.connection or vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", vbs.addr)
