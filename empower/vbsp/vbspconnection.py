@@ -325,15 +325,27 @@ class VBSPConnection(object):
                     # Raise UE join
                     self.server.send_ue_join_message_to_self(ue)
 
+                    # Create a trigger for reporting RRC measurements config.
+                    from empower.ue_confs.ue_rrc_meas_confs import ue_rrc_meas_confs
+
+                    conf_req = {
+                        "event_type": "trigger"
+                    }
+
+                    ue_rrc_meas_confs(tenant_id=ue.tenant.tenant_id,
+                                      vbs=ue.vbs.addr,
+                                      ue=ue.rnti,
+                                      conf_req=conf_req)
+
             if ue.plmn_id and not plmn_id:
+
+                # Raise UE leave
+                self.server.send_ue_leave_message_to_self(ue)
 
                 # Removing UE from tenant
                 LOG.info("Removing %s from tenant %s", ue.addr,
                          ue.tenant.plmn_id)
                 del ue.tenant.ues[ue.addr]
-
-                # Raise UE leave
-                self.server.send_ue_leave_message_to_self(ue)
 
                 # Resetting tenant
                 ue.tenant = None
