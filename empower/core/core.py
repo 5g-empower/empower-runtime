@@ -629,14 +629,14 @@ class EmpowerRuntime(object):
 
         ue = self.ues[ue_addr]
 
-        # removing UE from tenant, need first to look for right tenant
-        if ue.addr in ue.tenant.ues:
-            LOG.info("Removing %s from tenant %u", ue.addr, ue.plmn_id)
-            del ue.tenant.ues[ue.addr]
-
         # Raise UE leave event
         from empower.vbsp.vbspserver import VBSPServer
         vbsp_server = self.components[VBSPServer.__module__]
         vbsp_server.send_ue_leave_message_to_self(ue)
+
+        # removing UE from tenant, need first to look for right tenant
+        if ue.addr in ue.tenant.ues:
+            LOG.info("Removing %s from tenant %u", ue.addr, ue.plmn_id)
+            del ue.tenant.ues[ue.addr]
 
         del self.ues[ue.addr]
