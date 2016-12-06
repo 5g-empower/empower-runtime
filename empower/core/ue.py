@@ -37,8 +37,6 @@ class UE(object):
         self.pcell_rsrp = None
         self.pcell_rsrq = None
 
-        # self.vbs.connection.send_rrc_meas_conf_req(self)
-
     @property
     def plmn_id(self):
         """Get the plmn_id."""
