@@ -43,7 +43,6 @@ class UELeave(ModuleTrigger):
 
         self.handle_callback(ue)
 
-
 class UELeaveWorker(ModuleVBSPEventWorker):
     """UELeave."""
 

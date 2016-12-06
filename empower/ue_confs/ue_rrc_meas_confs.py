@@ -22,13 +22,14 @@ from empower.vbsp.messages import configs_pb2
 from empower.vbsp.messages import main_pb2
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
-from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModuleTrigger
+from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.ue_confs import REQ_EVENT_TYPE
 from empower.vbsp import PRT_VBSP_RRC_MEAS_CONF
 from empower.vbsp.vbspconnection import create_header
 from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
+from empower.events.ueleave import ueleave
 
 
 class UERRCMeasConfs(ModuleTrigger):
@@ -39,13 +40,30 @@ class UERRCMeasConfs(ModuleTrigger):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModuleTrigger.__init__(self)
 
         # parameters
         self._vbs = None
         self._ue = None
         self._conf_req = None
         self._conf_reply = None
+
+    def ue_leave_callback(self, ue):
+        """Called when an UE disconnects from a VBS."""
+
+        self.log.info("UE %s disconnected" % ue.rnti)
+
+        worker = RUNTIME.components[UERRCMeasConfsWorker.__module__]
+
+        module_ids = []
+        module_ids.extend(worker.modules.keys())
+
+        for module_id in module_ids:
+            # Module object
+            m = worker.modules[module_id]
+            # Remove all the module pertaining to disconnected UE
+            if m.ue == ue.rnti and EtherAddress(m.vbs) == ue.vbs.addr:
+                m.unload()
 
     @property
     def ue(self):
@@ -225,6 +243,8 @@ class UERRCMeasConfs(ModuleTrigger):
 
         vbs.connection.stream_send(rrc_m_conf_req)
 
+        ueleave(tenant_id=self.tenant_id, callback=self.ue_leave_callback)
+
     def cleanup(self):
         """Remove this module."""
 
@@ -299,20 +319,20 @@ class UERRCMeasConfsWorker(ModuleVBSPWorker):
     pass
 
 
-def ue_RRC_meas_confs(**kwargs):
+def ue_rrc_meas_confs(**kwargs):
     """Create a new module."""
 
     return \
         RUNTIME.components[UERRCMeasConfsWorker.__module__].add_module(**kwargs)
 
 
-def bound_ue_RRC_meas_confs(self, **kwargs):
+def bound_ue_rrc_meas_confs(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return ue_RRC_meas_confs(**kwargs)
+    return ue_rrc_meas_confs(**kwargs)
 
-setattr(EmpowerApp, UERRCMeasConfs.MODULE_NAME, bound_ue_RRC_meas_confs)
+setattr(EmpowerApp, UERRCMeasConfs.MODULE_NAME, bound_ue_rrc_meas_confs)
 
 
 def launch():
