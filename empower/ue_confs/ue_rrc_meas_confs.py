@@ -129,6 +129,7 @@ class UERRCMeasConfs(ModuleTrigger):
         """Set RRC measurements configuration reply."""
 
         self._conf_reply = protobuf_to_dict(response)
+        reply = protobuf_to_dict(response)
 
         vbses = RUNTIME.tenants[self.tenant_id].vbses
 
@@ -147,7 +148,7 @@ class UERRCMeasConfs(ModuleTrigger):
         ue = tenant.ues[ue_addr]
 
         event_type = response.WhichOneof("event_types")
-        conf = self._conf_reply[event_type]["mUE_rrc_meas_conf"]["repl"]
+        conf = reply[event_type]["mUE_rrc_meas_conf"]["repl"]
 
         if conf["status"] != configs_pb2.CREQS_SUCCESS:
             return
