@@ -187,17 +187,17 @@ class EmpowerRuntime(object):
             if allow.addr in self.allowed:
                 raise ValueError(allow.addr_str)
 
-            acl = ACL(allow.addr, allow.label)
+            acl = ACL(allow.addr, allow.label, allow.imsi)
             self.allowed[allow.addr] = acl
 
         for deny in Session().query(TblDeny).all():
             if deny.addr in self.denied:
                 raise ValueError(deny.addr_str)
 
-            acl = ACL(deny.addr, deny.label)
+            acl = ACL(deny.addr, deny.label, deny.imsi)
             self.denied[deny.addr] = acl
 
-    def add_allowed(self, sta_addr, label):
+    def add_allowed(self, sta_addr, label, imsi):
         """ Add entry to ACL. """
 
         allow = Session().query(TblAllow) \
@@ -206,11 +206,19 @@ class EmpowerRuntime(object):
         if allow:
             raise ValueError(sta_addr)
 
+        if imsi:
+            imsi_exist = Session().query(TblAllow) \
+                             .filter(TblAllow.imsi == imsi) \
+                             .first()
+
+            if imsi_exist:
+                raise ValueError(imsi)
+
         session = Session()
-        session.add(TblAllow(addr=sta_addr, label=label))
+        session.add(TblAllow(addr=sta_addr, label=label, imsi=imsi))
         session.commit()
 
-        acl = ACL(sta_addr, label)
+        acl = ACL(sta_addr, label, imsi)
         self.allowed[sta_addr] = acl
 
         return acl
@@ -230,7 +238,7 @@ class EmpowerRuntime(object):
 
         del self.allowed[sta_addr]
 
-    def add_denied(self, sta_addr, label):
+    def add_denied(self, sta_addr, label, imsi):
         """ Add entry to ACL. """
 
         deny = Session().query(TblDeny) \
@@ -239,11 +247,19 @@ class EmpowerRuntime(object):
         if deny:
             raise ValueError(sta_addr)
 
+        if imsi:
+            imsi_exist = Session().query(TblDeny) \
+                             .filter(TblDeny.imsi == imsi) \
+                             .first()
+
+            if imsi_exist:
+                raise ValueError(imsi)
+
         session = Session()
-        session.add(TblDeny(addr=sta_addr, label=label))
+        session.add(TblDeny(addr=sta_addr, label=label, imsi=imsi))
         session.commit()
 
-        acl = ACL(sta_addr, label)
+        acl = ACL(sta_addr, label, imsi)
         self.denied[sta_addr] = acl
 
         return acl
