@@ -33,9 +33,8 @@ from empower.vbs_stats import RRC_STATS_REPORT_INTR
 from empower.vbs_stats import RRC_STATS_NUM_REPORTS
 from empower.vbs_stats import RRC_STATS_EVENT_THRESHOLD_TYPE
 from empower.vbs_stats import PRT_VBSP_RRC_STATS
-from empower.events.uejoin import uejoin
 from empower.events.ueleave import ueleave
-from empower.ue_confs.ue_rrc_meas_confs import ue_RRC_meas_confs
+from empower.ue_confs.ue_rrc_meas_confs import ue_rrc_meas_confs
 from empower.vbsp.vbspconnection import create_header
 from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
@@ -63,38 +62,17 @@ class VBSRRCStats(ModuleTrigger):
 
         self.log.info("UE %s disconnected" % ue.rnti)
 
-        # conf_req = {
-        #     "event_type": "trigger"
-        # }
+        worker = RUNTIME.components[VBSRRCStatsWorker.__module__]
 
-        # # Fetch the RRC measurement configuration module and remove it
-        # conf_module = ue_RRC_meas_confs(tenant_id=self.tenant_id,
-        #                                 vbs=ue.vbs.addr,
-        #                                 ue=ue.rnti,
-        #                                 conf_req=conf_req)
+        module_ids = []
+        module_ids.extend(worker.modules.keys())
 
-        # conf_module.unload()
-
-        for module_id in VBSRRCStatsWorker.modules:
+        for module_id in module_ids:
             # Module object
-            m = VBSRRCStatsWorker.modules[module_id]
+            m = worker.modules[module_id]
             # Remove all the module pertaining to disconnected UE
-            if m.ue == ue.rnti:
+            if m.ue == ue.rnti and EtherAddress(m.vbs) == ue.vbs.addr:
                 m.unload()
-
-    def ue_join_callback(self, ue):
-        """Called when an UE connects to a VBS."""
-
-        self.log.info("UE %s connected" % ue.rnti)
-
-        # conf_req = {
-        #     "event_type": "trigger"
-        # }
-
-        # ue_RRC_meas_confs(tenant_id=self.tenant_id,
-        #                   vbs=ue.vbs.addr,
-        #                   ue=ue.rnti,
-        #                   conf_req=conf_req)
 
     @property
     def ue(self):
@@ -107,9 +85,6 @@ class VBSRRCStats(ModuleTrigger):
         """Set UE."""
 
         self._ue = value
-
-        uejoin(tenant_id=self.tenant_id, callback=self.ue_join_callback)
-        ueleave(tenant_id=self.tenant_id, callback=self.ue_leave_callback)
 
     @property
     def vbs(self):
@@ -456,6 +431,8 @@ class VBSRRCStats(ModuleTrigger):
                       self.module_id)
 
         ue.vbs.connection.stream_send(rrc_m_req)
+
+        ueleave(tenant_id=self.tenant_id, callback=self.ue_leave_callback)
 
     def cleanup(self):
         """Remove this module."""
