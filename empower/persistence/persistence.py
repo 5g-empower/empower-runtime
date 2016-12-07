@@ -254,6 +254,8 @@ class TblAllow(Base):
                   primary_key=True)
 
     label = Column(String)
+    imsi = Column("imsi",
+                  Integer)
 
 
 class TblDeny(Base):
@@ -266,6 +268,8 @@ class TblDeny(Base):
                   primary_key=True)
 
     label = Column(String)
+    imsi = Column("imsi",
+                  Integer)
 
 
 Base.metadata.create_all(ENGINE)
