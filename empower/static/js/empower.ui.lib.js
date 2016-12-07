@@ -1282,7 +1282,7 @@ function registerMAC(group) {
     var imsi = document.getElementById(group + "_imsi").value;
     var label = document.getElementById(group + "_label").value;
     url = "/api/v1/" + group
-    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'"}'
+    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'","imsi":"'+ imsi + '"}'
     $.ajax({
         url: url,
         type: 'POST',
@@ -1299,7 +1299,7 @@ function registerMAC(group) {
                 var row = table.deleteRow(rowCount);
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 2
+                mac.colSpan = 3
                 mac.align = "right"
                 mac.innerHTML = "<a onClick=\"return addMAC('" + group +
                     "')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
@@ -1324,7 +1324,7 @@ function addMAC(group) {
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 3
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" class=\"text-input\" id=\"" + group + "_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" class=\"text-input\" id=\"" + group + "_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop/Mobile' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
@@ -1344,7 +1344,7 @@ function loadMACs(group) {
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 2
+                mac.colSpan = 3
                 mac.style.textAlign = "center"
                 mac.innerHTML = "Empty"
             }
@@ -1359,7 +1359,7 @@ function loadMACs(group) {
                 remove.width = "24px"
                 remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeMAC('" + group + "','" + value.addr + "')\" />"
                 var mac = row.insertCell(c++);
-                mac.innerHTML = value.addr + " " + value.label
+                mac.innerHTML = "MAC Addr: " + value.addr + " - " + value.label + " - IMSI: " + value.imsi
             }
         },
     });
@@ -1817,7 +1817,7 @@ function addVBS() {
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBS Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_label\" type=\"text\" value=\"Generic VBS Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBS()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSInputBox()\" /></div></li></ul>"
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='VBS Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_mac\" type=\"text\" value=\"VBS Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBS Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_label\" type=\"text\" value=\"Generic VBS Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBS()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSInputBox()\" /></div></li></ul>"
     mac.colSpan = 3
     mac.innerHTML = tmp
 }
