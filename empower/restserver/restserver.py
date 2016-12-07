@@ -276,8 +276,13 @@ class ACLHandler(EmpowerAPIHandler):
             if "label" in request:
                 label = request['label']
 
+            imsi = None
+
+            if "imsi" in request:
+                imsi = int(request['imsi'])
+
             func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
-            func(EtherAddress(request['sta']), label)
+            func(EtherAddress(request['sta']), label, imsi)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 
