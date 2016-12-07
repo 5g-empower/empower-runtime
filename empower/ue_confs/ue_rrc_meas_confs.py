@@ -149,6 +149,8 @@ class UERRCMeasConfs(ModuleTrigger):
 
         event_type = response.WhichOneof("event_types")
         conf = reply[event_type]["mUE_rrc_meas_conf"]["repl"]
+        self._conf_reply = \
+                self._conf_reply[event_type]["mUE_rrc_meas_conf"]["repl"]
 
         if conf["status"] != configs_pb2.CREQS_SUCCESS:
             return
