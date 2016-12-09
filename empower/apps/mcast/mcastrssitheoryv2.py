@@ -165,7 +165,6 @@ class MCastMobilityManager(EmpowerApp):
                     stats[entry.block.hwaddr]['rate'] = 0
 
         for index, entry in enumerate(self.mcast_clients):
-            print("HolaaaaaaaaaaaaaAAAAAAAAAAAAAAA")
             if entry.addr == station:
                 for key, value in stats.items():
                     if key not in entry.wtps or (key in entry.wtps and entry.wtps[key] != value):
@@ -190,6 +189,7 @@ class MCastMobilityManager(EmpowerApp):
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == attached_hwaddr:
                 entry.attached_clients_rssi[station] = stats[attached_hwaddr]['rssi']
+                entry.attached_clients = len(entry.attached_clients_rssi)
                 rssi_values = list(entry.attached_clients_rssi.values())
                 if len(list(filter((0).__ne__, rssi_values))) > 0:
                     entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
@@ -373,8 +373,8 @@ class MCastMobilityManager(EmpowerApp):
 
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == default_block.hwaddr:
-                entry.attached_clients = entry.attached_clients + 1
-                entry.attached_clients_rssi [lvap.addr] = rssi
+                entry.attached_clients_rssi [lvap.addr] = current_rssi
+                entry.attached_clients = len(entry.attached_clients_rssi)
                 rssi_values = list(entry.attached_clients_rssi.values())
                 if len(list(filter((0).__ne__, rssi_values))) > 0:
                     entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
@@ -391,8 +391,6 @@ class MCastMobilityManager(EmpowerApp):
 
         default_block = next(iter(lvap.downlink))
         handover = False
-        self.log.info("CHECKING BLOCK IN LVAP_LEAVE.")
-        self.log.info(default_block)
 
         for index, entry in enumerate(self.mcast_clients):
             if entry.addr == lvap.addr:
@@ -409,8 +407,8 @@ class MCastMobilityManager(EmpowerApp):
         for index, entry in enumerate(self.mcast_wtps):
             if entry.block.hwaddr == default_block.hwaddr:
                 if lvap.addr in entry.attached_clients_rssi and handover is False:  
-                    entry.attached_clients = entry.attached_clients - 1
                     del entry.attached_clients_rssi[lvap.addr]
+                    entry.attached_clients = len(entry.attached_clients_rssi)
                     rssi_values = list(entry.attached_clients_rssi.values())
                     if len(list(filter((0).__ne__, rssi_values))) > 0:
                         entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
@@ -537,12 +535,12 @@ class MCastMobilityManager(EmpowerApp):
                     tx_policy.mcast = TX_MCAST_DMS
                 # If there is only one client attached to this AP, the information is sent in DMS mode
                 # The rate is also calculated.
-                elif entry.attached_clients == 1:
-                    ewma_rate, cur_prob_rate = self.calculate_wtp_rate(entry)
-                    entry.rate[self.mcast_addr] = ewma_rate
-                    entry.cur_prob_rate[self.mcast_addr] = cur_prob_rate
-                    entry.mode = TX_MCAST_DMS_H
-                    tx_policy.mcast = TX_MCAST_DMS
+                # elif entry.attached_clients == 1:
+                #     ewma_rate, cur_prob_rate = self.calculate_wtp_rate(entry)
+                #     entry.rate[self.mcast_addr] = ewma_rate
+                #     entry.cur_prob_rate[self.mcast_addr] = cur_prob_rate
+                #     entry.mode = TX_MCAST_DMS_H
+                #     tx_policy.mcast = TX_MCAST_DMS
                 else: 
                     # If there are many clients per AP, it combines DMS and legacy to obtain statistics. 
                     # If the AP is in DMS mode and the has been an update of the RSSI, the mode is changed to legacy.
@@ -709,10 +707,10 @@ class MCastMobilityManager(EmpowerApp):
         minimum_required_pkts = 0.90 * attached_wtp_tx_pkts[self.mcast_addr]
         print("Minimum required pkts (90% quality)", minimum_required_pkts)
 
-        if minimum_required_pkts > highest_value:
-            self.mcast_wtps[wtp_index].prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
-        else:
-            self.mcast_wtps[wtp_index].prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
+        # if minimum_required_pkts > highest_value:
+        #     self.mcast_wtps[wtp_index].prob_measurement[self.mcast_addr] = MCAST_CUR_PROB
+        # else:
+        #     self.mcast_wtps[wtp_index].prob_measurement[self.mcast_addr] = MCAST_EWMA_PROB
 
 
     # Calculates the global occupancy rate for the current situation (without performing any handover)
@@ -944,8 +942,8 @@ class MCastMobilityManager(EmpowerApp):
             elif entry.block.hwaddr == wtp_addr:
                 tx_policy = entry.block.tx_policies[self.mcast_addr] 
                 if station in entry.attached_clients_rssi:
-                    entry.attached_clients = entry.attached_clients - 1
-                    del entry.attached_clients_rssi[station]               
+                    del entry.attached_clients_rssi[station] 
+                    entry.attached_clients = len(entry.attached_clients_rssi)              
                     rssi_values = list(entry.attached_clients_rssi.values())
                     if len(list(filter((0).__ne__, rssi_values))) > 0:
                         entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
@@ -984,8 +982,8 @@ class MCastMobilityManager(EmpowerApp):
             elif entry.block.hwaddr == wrong_wtp:
                 tx_policy = entry.block.tx_policies[self.mcast_addr] 
                 if station in entry.attached_clients_rssi:
-                    entry.attached_clients = entry.attached_clients - 1
-                    del entry.attached_clients_rssi[station]               
+                    del entry.attached_clients_rssi[station]
+                    entry.attached_clients = len(entry.attached_clients_rssi)               
                     rssi_values = list(entry.attached_clients_rssi.values())
                     if len(list(filter((0).__ne__, rssi_values))) > 0:
                         entry.avg_perceived_rssi =  statistics.mean(list(filter((0).__ne__, rssi_values)))
