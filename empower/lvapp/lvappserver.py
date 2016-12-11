@@ -30,6 +30,7 @@ from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP
 
 from empower.lvapp import PT_LVAP_LEAVE
+from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
 from empower.lvapp.lvaphandler import LVAPHandler
