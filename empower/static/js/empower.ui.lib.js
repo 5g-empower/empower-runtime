@@ -1419,6 +1419,48 @@ function loadLVAPs(tenant) {
     });
 }
 
+function loadUEs(tenant_id) {
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/ues"
+    } else {
+        url = "/api/v1/ues"
+    }
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('ues');
+            for (i = table.rows.length - 1; i > 0; i--) {
+                table.deleteRow(i);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('ues');
+                var rowCount = table.rows.length;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 4
+                mac.style.textAlign = "center"
+                mac.innerHTML = "No UEs available"
+            }
+            for (var stream in data) {
+                var table = document.getElementById('ues');
+                var row = table.insertRow(table.rows.length);
+                var c = 0
+                var vbs = row.insertCell(c++);
+                vbs.innerHTML = data[stream].vbs
+                var imsi = row.insertCell(c++);
+                imsi.innerHTML = data[stream].imsi
+                var plmn_id = row.insertCell(c++);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var rnti = row.insertCell(c++);
+                rnti.innerHTML = data[stream].rnti
+            }
+        },
+    });
+}
+
 function loadLVNFs(tenant) {
     url = "/api/v1/tenants/" + tenant + "/lvnfs"
     $.ajax({
