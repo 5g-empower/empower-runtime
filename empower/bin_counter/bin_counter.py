@@ -132,9 +132,9 @@ class BinCounter(Module):
         out['bins'] = self.bins
         out['lvap'] = self.lvap
         out['tx_bytes'] = self.tx_bytes
-        out['rx_bytes'] = self.tx_bytes
+        out['rx_bytes'] = self.rx_bytes
         out['tx_packets'] = self.tx_packets
-        out['rx_packets'] = self.tx_packets
+        out['rx_packets'] = self.rx_packets
 
         return out
 
