@@ -1242,6 +1242,136 @@ function removeWTPInputBox() {
     mac.innerHTML = "<a onClick=\"return addWTP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
+function addIMSI2MAC() {
+    var table = document.getElementById('imsi2mac');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" size=\"20\" onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" class=\"text-input\" id=\"ue_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"ue_mac_addr\" type=\"text\" value=\"MAC Address\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerIMSI2MAC()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeIMSI2MACInputBox()\" /></div></li></ul>"
+    mac.colSpan = 3
+    mac.innerHTML = tmp
+}
+
+function removeIMSI2MACInputBox() {
+    var table = document.getElementById('imsi2mac');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return addIMSI2MAC()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
+}
+
+function registerIMSI2MAC() {
+    var mac = document.getElementById("ue_mac_addr").value;
+    var imsi = document.getElementById("ue_imsi").value;
+
+    url = "/api/v1/imsi2mac/"
+
+    data = '{  "version" : "1.0", "addr" : "' + mac + '", "imsi" : "' + imsi + '" }'
+    $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            201: function (data) {
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.deleteRow(rowCount);
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.align = "right"
+                mac.innerHTML = "<a onClick=\"return addIMSI2MAC()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+            },
+            400: function () {
+                alert('Invalid/Duplicate MAC address or Invalid/Duplicate IMSI');
+            },
+            404: function () {
+                alert('Duplicate IMSI');
+            },
+            500: function () {
+                alert('Empty IMSI or Non-unique MAC address');
+            }
+        }
+    });
+}
+
+function loadIMSI2MAC() {
+    url = "/api/v1/imsi2mac"
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('imsi2mac');
+            var rowCount = table.rows.length - 1;
+            while (rowCount--) {
+                if (rowCount < 0) {
+                    break
+                }
+                table.deleteRow(rowCount);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.style.textAlign = "center"
+                mac.innerHTML = "Empty"
+            }
+            for (var stream in data) {
+                value = data[stream].imsi
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var c = 0
+                var remove = row.insertCell(c++);
+                remove.align = "center"
+                remove.width = "24px"
+                remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeIMSI2MAC('" + value + "')\" />"
+                var imsi_mac = row.insertCell(c++);
+                imsi_mac.innerHTML = data[stream].imsi + "  <=>  " + data[stream].addr
+            }
+        },
+    });
+}
+
+function removeIMSI2MAC(imsi) {
+    url = "/api/v1/imsi2mac/" + imsi
+
+    $.ajax({
+        url: url,
+        type: 'DELETE',
+        dataType: 'json',
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        success: function (data) {
+            loadIMSI2MAC()
+        },
+        statusCode: {
+            400: function () {
+                alert('Invalid IMSI');
+            },
+            500: function () {
+                alert('Empty IMSI');
+            }
+        }
+    });
+}
+
 function removeMACInputBox(group) {
     var table = document.getElementById(group);
     var rowCount = table.rows.length - 1;
@@ -1279,10 +1409,9 @@ function removeMAC(group, mac) {
 
 function registerMAC(group) {
     var mac = document.getElementById(group + "_mac").value;
-    var imsi = document.getElementById(group + "_imsi").value;
     var label = document.getElementById(group + "_label").value;
     url = "/api/v1/" + group
-    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'","imsi":"'+ imsi + '"}'
+    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+ '"}'
     $.ajax({
         url: url,
         type: 'POST',
@@ -1299,7 +1428,7 @@ function registerMAC(group) {
                 var row = table.deleteRow(rowCount);
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 3
+                mac.colSpan = 2
                 mac.align = "right"
                 mac.innerHTML = "<a onClick=\"return addMAC('" + group +
                     "')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
@@ -1323,8 +1452,8 @@ function addMAC(group) {
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    mac.colSpan = 3
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" class=\"text-input\" id=\"" + group + "_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop/Mobile' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.colSpan = 2
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop/Mobile' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
@@ -1344,7 +1473,7 @@ function loadMACs(group) {
                 var rowCount = table.rows.length - 1;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 3
+                mac.colSpan = 2
                 mac.style.textAlign = "center"
                 mac.innerHTML = "Empty"
             }
@@ -1359,7 +1488,7 @@ function loadMACs(group) {
                 remove.width = "24px"
                 remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeMAC('" + group + "','" + value.addr + "')\" />"
                 var mac = row.insertCell(c++);
-                mac.innerHTML = "MAC Addr: " + value.addr + " - " + value.label + " - IMSI: " + value.imsi
+                mac.innerHTML = value.addr + " " + value.label
             }
         },
     });

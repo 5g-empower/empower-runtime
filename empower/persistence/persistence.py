@@ -254,8 +254,6 @@ class TblAllow(Base):
                   primary_key=True)
 
     label = Column(String)
-    imsi = Column("imsi",
-                  Integer)
 
 
 class TblDeny(Base):
@@ -268,8 +266,18 @@ class TblDeny(Base):
                   primary_key=True)
 
     label = Column(String)
-    imsi = Column("imsi",
-                  Integer)
 
+class TblIMSI2MAC(Base):
+    """ IMSI to MAC address mapping table. """
+
+    __tablename__ = 'imsi2mac'
+
+    imsi = Column("imsi",
+                  Integer,
+                  primary_key=True)
+
+    addr = Column("addr",
+                  EtherAddress(),
+                  unique=True)
 
 Base.metadata.create_all(ENGINE)

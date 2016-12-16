@@ -40,6 +40,7 @@ from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
 from empower.persistence.persistence import TblDeny
+from empower.persistence.persistence import TblIMSI2MAC
 
 import empower.logger
 LOG = empower.logger.get_logger()
@@ -102,6 +103,7 @@ class EmpowerRuntime(object):
         self.feeds = {}
         self.allowed = {}
         self.denied = {}
+        self.imsi2mac = {}
 
         LOG.info("Starting EmPOWER Runtime")
 
@@ -113,6 +115,7 @@ class EmpowerRuntime(object):
         self.__load_accounts()
         self.__load_tenants()
         self.__load_acl()
+        self.__load_imsi2mac()
 
         if options.ctrl_adv:
             self.__ifname = options.ctrl_adv_iface
@@ -179,6 +182,49 @@ class EmpowerRuntime(object):
                        tenant.bssid_type,
                        tenant.plmn_id)
 
+    def __load_imsi2mac(self):
+        """Load IMSI to MAC mapped values."""
+
+        for entry in Session().query(TblIMSI2MAC).all():
+            self.imsi2mac[entry.imsi] = entry.addr
+
+    def add_imsi2mac(self, imsi, addr):
+        """Add IMSI to MAC mapped value to table."""
+
+        imsi2mac = Session().query(TblIMSI2MAC) \
+                         .filter(TblIMSI2MAC.imsi == imsi) \
+                         .first()
+        if imsi2mac:
+            raise ValueError(imsi)
+
+        try:
+
+            session = Session()
+
+            session.add(TblIMSI2MAC(imsi=imsi, addr=addr))
+            session.commit()
+
+        except IntegrityError:
+            session.rollback()
+            raise ValueError("MAC address must be unique %s", addr)
+
+        self.imsi2mac[imsi] = addr
+
+    def remove_imsi2mac(self, imsi):
+        """Remove IMSI to MAC mapped value from table."""
+
+        imsi2mac = Session().query(TblIMSI2MAC) \
+                         .filter(TblIMSI2MAC.imsi == imsi) \
+                         .first()
+        if not imsi2mac:
+            raise KeyError(imsi)
+
+        session = Session()
+        session.delete(imsi2mac)
+        session.commit()
+
+        del self.imsi2mac[imsi]
+
     def __load_acl(self):
         """ Load ACL list. """
 
@@ -187,17 +233,17 @@ class EmpowerRuntime(object):
             if allow.addr in self.allowed:
                 raise ValueError(allow.addr_str)
 
-            acl = ACL(allow.addr, allow.label, allow.imsi)
+            acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
 
         for deny in Session().query(TblDeny).all():
             if deny.addr in self.denied:
                 raise ValueError(deny.addr_str)
 
-            acl = ACL(deny.addr, deny.label, deny.imsi)
+            acl = ACL(deny.addr, deny.label)
             self.denied[deny.addr] = acl
 
-    def add_allowed(self, sta_addr, label, imsi):
+    def add_allowed(self, sta_addr, label):
         """ Add entry to ACL. """
 
         allow = Session().query(TblAllow) \
@@ -206,19 +252,11 @@ class EmpowerRuntime(object):
         if allow:
             raise ValueError(sta_addr)
 
-        if imsi:
-            imsi_exist = Session().query(TblAllow) \
-                             .filter(TblAllow.imsi == imsi) \
-                             .first()
-
-            if imsi_exist:
-                raise ValueError(imsi)
-
         session = Session()
-        session.add(TblAllow(addr=sta_addr, label=label, imsi=imsi))
+        session.add(TblAllow(addr=sta_addr, label=label))
         session.commit()
 
-        acl = ACL(sta_addr, label, imsi)
+        acl = ACL(sta_addr, label)
         self.allowed[sta_addr] = acl
 
         return acl
@@ -238,7 +276,7 @@ class EmpowerRuntime(object):
 
         del self.allowed[sta_addr]
 
-    def add_denied(self, sta_addr, label, imsi):
+    def add_denied(self, sta_addr, label):
         """ Add entry to ACL. """
 
         deny = Session().query(TblDeny) \
@@ -247,19 +285,11 @@ class EmpowerRuntime(object):
         if deny:
             raise ValueError(sta_addr)
 
-        if imsi:
-            imsi_exist = Session().query(TblDeny) \
-                             .filter(TblDeny.imsi == imsi) \
-                             .first()
-
-            if imsi_exist:
-                raise ValueError(imsi)
-
         session = Session()
-        session.add(TblDeny(addr=sta_addr, label=label, imsi=imsi))
+        session.add(TblDeny(addr=sta_addr, label=label))
         session.commit()
 
-        acl = ACL(sta_addr, label, imsi)
+        acl = ACL(sta_addr, label)
         self.denied[sta_addr] = acl
 
         return acl

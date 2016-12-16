@@ -21,18 +21,16 @@
 class ACL(object):
     """An user ACL."""
 
-    def __init__(self, addr, label="", imsi=None):
+    def __init__(self, addr, label=""):
 
         self.__addr = addr
         self.__label = label
-        self.__imsi = imsi
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
         return {'addr': self.addr,
-                'label': self.label,
-                'imsi': self.imsi}
+                'label': self.label}
 
     @property
     def addr(self):
@@ -45,12 +43,6 @@ class ACL(object):
         """Get label."""
 
         return self.__label
-
-    @property
-    def imsi(self):
-        """Get imsi."""
-
-        return self.__imsi
 
     def __str__(self):
         return str(self.addr)

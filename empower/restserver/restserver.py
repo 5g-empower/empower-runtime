@@ -276,13 +276,8 @@ class ACLHandler(EmpowerAPIHandler):
             if "label" in request:
                 label = request['label']
 
-            imsi = None
-
-            if "imsi" in request:
-                imsi = int(request['imsi'])
-
             func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
-            func(EtherAddress(request['sta']), label, imsi)
+            func(EtherAddress(request['sta']), label)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 
@@ -330,6 +325,128 @@ class DenyHandler(ACLHandler):
     STRUCT = "denied"
     HANDLERS = [r"/api/v1/deny/?",
                 r"/api/v1/deny/([a-zA-Z0-9:]*)/?"]
+
+
+class IMSI2MACHandler(EmpowerAPIHandler):
+
+    """IMSI to MAC address handler. Used to view and manipulate the IMSI to MAC mappings."""
+
+    HANDLERS = [r"/api/v1/imsi2mac/?",
+                r"/api/v1/imsi2mac/([0-9]*)/?"]
+
+    def get(self, *args, **kwargs):
+        """ List the entire IMSI to MAC mapped entries or just the specified entry.
+
+        Args:
+            imsi: the imsi of the UE
+
+        Example URLs:
+
+            GET /api/v1/imsi2mac
+            GET /api/v1/imsi2mac/222930100001115
+        """
+
+        try:
+
+            if len(args) > 1:
+                raise ValueError("Invalid URL")
+
+            imsi2mac = []
+
+            for k in RUNTIME.imsi2mac.keys():
+                imsi2mac.append({
+                        "imsi": k,
+                        "addr": RUNTIME.imsi2mac[k]
+                    })
+
+            if len(args) == 0:
+                self.write_as_json(imsi2mac)
+            else:
+                imsi = int(args[0])
+                if imsi in RUNTIME.imsi2mac:
+                    self.write_as_json({
+                            "imsi": imsi,
+                            "addr": RUNTIME.imsi2mac[imsi]
+                        })
+                else:
+                    raise KeyError(imsi)
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+    def post(self, *args, **kwargs):
+        """ Add new entry to IMSI to MAC entries.
+
+        Args:
+            None
+
+        Request:
+            version: protocol version (1.0)
+            imsi: the imsi of the UE
+            addr: the mac address
+
+        Example URLs:
+
+            POST /api/v1/imsi2mac
+        """
+        try:
+
+            if len(args) != 0:
+                raise ValueError("Invalid URL")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "imsi" not in request:
+                raise ValueError("missing imsi element")
+
+            if "addr" not in request:
+                raise ValueError("missing mac address element")
+
+            if len(request['imsi']) != 15:
+                raise ValueError("invalid imsi element")
+
+            func = getattr(RUNTIME, 'add_imsi2mac')
+            func(int(request['imsi']), EtherAddress(request['addr']))
+
+            self.set_header("Location", "/api/v1/imsi2mac/%s" % request['imsi'])
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """ Delete entry from ACL.
+
+        Args:
+            imsi: the imsi of the UE
+
+        Example URLs:
+
+            DELETE /api/v1/imsi2mac/222930100001115
+        """
+
+        try:
+            if len(args) != 1:
+                raise ValueError("Invalid URL")
+
+            if len(args[0]) != 15:
+                raise ValueError("invalid imsi element")
+
+            func = getattr(RUNTIME, 'remove_imsi2mac')
+            func(int(args[0]))
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        self.set_status(204, None)
 
 
 class AccountsHandler(EmpowerAPIHandler):
@@ -1192,7 +1309,8 @@ class RESTServer(tornado.web.Application):
                 PendingTenantHandler,
                 TenantHandler,
                 AllowHandler,
-                DenyHandler]
+                DenyHandler,
+                IMSI2MACHandler]
 
     parms = {
         "template_path": settings.TEMPLATE_PATH,
