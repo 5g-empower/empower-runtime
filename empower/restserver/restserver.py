@@ -888,20 +888,18 @@ class PendingTenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
-            if "plmn_id" not in request:
-                raise ValueError("missing plmn_id element")
-
             if "bssid_type" not in request:
                 bssid_type = T_TYPE_UNIQUE
             else:
                 bssid_type = request['bssid_type']
 
-            plmn_id = None
-            if "plmn_id" in request:
-                plmn_id = int(request['plmn_id'])
-
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
+
+            if "plmn_id" not in request:
+                plmn_id = None
+            else:
+                plmn_id = int(request['plmn_id'])
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
@@ -1042,22 +1040,18 @@ class TenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
-
-            if "plmn_id" not in request:
-                raise ValueError("missing plmn_id element")
-
             if "bssid_type" not in request:
                 bssid_type = T_TYPE_UNIQUE
             else:
                 bssid_type = request['bssid_type']
 
-            plmn_id = None
-
-            if "plmn_id" in request:
-                plmn_id = int(request['plmn_id'])
-
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
+
+            if "plmn_id" not in request:
+                plmn_id = None
+            else:
+                plmn_id = int(request['plmn_id'])
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
