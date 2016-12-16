@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='main.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\nmain.proto\x1a\x0bhello.proto\x1a\x10statistics.proto\x1a\rconfigs.proto\"?\n\x06header\x12\x0c\n\x04vers\x18\x01 \x02(\r\x12\x0c\n\x04\x62_id\x18\x02 \x02(\r\x12\x0b\n\x03seq\x18\x03 \x02(\r\x12\x0c\n\x04t_id\x18\x04 \x02(\r\"~\n\x0csingle_event\x12\x18\n\x06mHello\x18\x01 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x02 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x03 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\x97\x01\n\x0eschedule_event\x12\x10\n\x08interval\x18\x01 \x01(\r\x12\x1d\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\r.event_action\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x04 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\xbe\x01\n\rtrigger_event\x12\x1d\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\r.event_action\x12\x18\n\x06mHello\x18\x02 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12\x1e\n\tmRRC_meas\x18\x04 \x01(\x0b\x32\t.rrc_measH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x05 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x42\x08\n\x06\x65vents\"\x8d\x01\n\temage_msg\x12\x15\n\x04head\x18\x01 \x02(\x0b\x32\x07.header\x12\x1b\n\x02se\x18\x02 \x01(\x0b\x32\r.single_eventH\x00\x12\x1f\n\x04sche\x18\x03 \x01(\x0b\x32\x0f.schedule_eventH\x00\x12\x1c\n\x02te\x18\x04 \x01(\x0b\x32\x0e.trigger_eventH\x00\x42\r\n\x0b\x65vent_types*&\n\x0c\x65vent_action\x12\n\n\x06\x45\x41_ADD\x10\x00\x12\n\n\x06\x45\x41_DEL\x10\x01')
+  serialized_pb=_b('\n\nmain.proto\x1a\x0bhello.proto\x1a\x10statistics.proto\x1a\rconfigs.proto\"?\n\x06header\x12\x0c\n\x04vers\x18\x01 \x02(\r\x12\x0c\n\x04\x62_id\x18\x02 \x02(\r\x12\x0b\n\x03seq\x18\x03 \x02(\r\x12\x0c\n\x04t_id\x18\x04 \x02(\r\"\xa2\x01\n\x0csingle_event\x12\x18\n\x06mHello\x18\x01 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x02 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x03 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x12\"\n\x0bmCell_stats\x18\x04 \x01(\x0b\x32\x0b.cell_statsH\x00\x42\x08\n\x06\x65vents\"\xbb\x01\n\x0eschedule_event\x12\x10\n\x08interval\x18\x01 \x01(\r\x12\x1d\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\r.event_action\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x04 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x12\"\n\x0bmCell_stats\x18\x05 \x01(\x0b\x32\x0b.cell_statsH\x00\x42\x08\n\x06\x65vents\"\xe2\x01\n\rtrigger_event\x12\x1d\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\r.event_action\x12\x18\n\x06mHello\x18\x02 \x01(\x0b\x32\x06.helloH\x00\x12\x1a\n\x07mUEs_id\x18\x03 \x01(\x0b\x32\x07.ues_idH\x00\x12\x1e\n\tmRRC_meas\x18\x04 \x01(\x0b\x32\t.rrc_measH\x00\x12.\n\x11mUE_rrc_meas_conf\x18\x05 \x01(\x0b\x32\x11.ue_rrc_meas_confH\x00\x12\"\n\x0bmCell_stats\x18\x06 \x01(\x0b\x32\x0b.cell_statsH\x00\x42\x08\n\x06\x65vents\"\x8d\x01\n\temage_msg\x12\x15\n\x04head\x18\x01 \x02(\x0b\x32\x07.header\x12\x1b\n\x02se\x18\x02 \x01(\x0b\x32\r.single_eventH\x00\x12\x1f\n\x04sche\x18\x03 \x01(\x0b\x32\x0f.schedule_eventH\x00\x12\x1c\n\x02te\x18\x04 \x01(\x0b\x32\x0e.trigger_eventH\x00\x42\r\n\x0b\x65vent_types*&\n\x0c\x65vent_action\x12\n\n\x06\x45\x41_ADD\x10\x00\x12\n\n\x06\x45\x41_DEL\x10\x01')
   ,
   dependencies=[hello__pb2.DESCRIPTOR,statistics__pb2.DESCRIPTOR,configs__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -45,8 +45,8 @@ _EVENT_ACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=744,
-  serialized_end=782,
+  serialized_start=853,
+  serialized_end=891,
 )
 _sym_db.RegisterEnumDescriptor(_EVENT_ACTION)
 
@@ -136,6 +136,13 @@ _SINGLE_EVENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='mCell_stats', full_name='single_event.mCell_stats', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -151,8 +158,8 @@ _SINGLE_EVENT = _descriptor.Descriptor(
       name='events', full_name='single_event.events',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=125,
-  serialized_end=251,
+  serialized_start=126,
+  serialized_end=288,
 )
 
 
@@ -191,6 +198,13 @@ _SCHEDULE_EVENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='mCell_stats', full_name='schedule_event.mCell_stats', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -206,8 +220,8 @@ _SCHEDULE_EVENT = _descriptor.Descriptor(
       name='events', full_name='schedule_event.events',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=254,
-  serialized_end=405,
+  serialized_start=291,
+  serialized_end=478,
 )
 
 
@@ -253,6 +267,13 @@ _TRIGGER_EVENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='mCell_stats', full_name='trigger_event.mCell_stats', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -268,8 +289,8 @@ _TRIGGER_EVENT = _descriptor.Descriptor(
       name='events', full_name='trigger_event.events',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=408,
-  serialized_end=598,
+  serialized_start=481,
+  serialized_end=707,
 )
 
 
@@ -323,13 +344,14 @@ _EMAGE_MSG = _descriptor.Descriptor(
       name='event_types', full_name='emage_msg.event_types',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=601,
-  serialized_end=742,
+  serialized_start=710,
+  serialized_end=851,
 )
 
 _SINGLE_EVENT.fields_by_name['mHello'].message_type = hello__pb2._HELLO
 _SINGLE_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
 _SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_SINGLE_EVENT.fields_by_name['mCell_stats'].message_type = statistics__pb2._CELL_STATS
 _SINGLE_EVENT.oneofs_by_name['events'].fields.append(
   _SINGLE_EVENT.fields_by_name['mHello'])
 _SINGLE_EVENT.fields_by_name['mHello'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
@@ -339,20 +361,28 @@ _SINGLE_EVENT.fields_by_name['mUEs_id'].containing_oneof = _SINGLE_EVENT.oneofs_
 _SINGLE_EVENT.oneofs_by_name['events'].fields.append(
   _SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'])
 _SINGLE_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
+_SINGLE_EVENT.oneofs_by_name['events'].fields.append(
+  _SINGLE_EVENT.fields_by_name['mCell_stats'])
+_SINGLE_EVENT.fields_by_name['mCell_stats'].containing_oneof = _SINGLE_EVENT.oneofs_by_name['events']
 _SCHEDULE_EVENT.fields_by_name['action'].enum_type = _EVENT_ACTION
 _SCHEDULE_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
 _SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_SCHEDULE_EVENT.fields_by_name['mCell_stats'].message_type = statistics__pb2._CELL_STATS
 _SCHEDULE_EVENT.oneofs_by_name['events'].fields.append(
   _SCHEDULE_EVENT.fields_by_name['mUEs_id'])
 _SCHEDULE_EVENT.fields_by_name['mUEs_id'].containing_oneof = _SCHEDULE_EVENT.oneofs_by_name['events']
 _SCHEDULE_EVENT.oneofs_by_name['events'].fields.append(
   _SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'])
 _SCHEDULE_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _SCHEDULE_EVENT.oneofs_by_name['events']
+_SCHEDULE_EVENT.oneofs_by_name['events'].fields.append(
+  _SCHEDULE_EVENT.fields_by_name['mCell_stats'])
+_SCHEDULE_EVENT.fields_by_name['mCell_stats'].containing_oneof = _SCHEDULE_EVENT.oneofs_by_name['events']
 _TRIGGER_EVENT.fields_by_name['action'].enum_type = _EVENT_ACTION
 _TRIGGER_EVENT.fields_by_name['mHello'].message_type = hello__pb2._HELLO
 _TRIGGER_EVENT.fields_by_name['mUEs_id'].message_type = configs__pb2._UES_ID
 _TRIGGER_EVENT.fields_by_name['mRRC_meas'].message_type = statistics__pb2._RRC_MEAS
 _TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'].message_type = configs__pb2._UE_RRC_MEAS_CONF
+_TRIGGER_EVENT.fields_by_name['mCell_stats'].message_type = statistics__pb2._CELL_STATS
 _TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
   _TRIGGER_EVENT.fields_by_name['mHello'])
 _TRIGGER_EVENT.fields_by_name['mHello'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
@@ -365,6 +395,9 @@ _TRIGGER_EVENT.fields_by_name['mRRC_meas'].containing_oneof = _TRIGGER_EVENT.one
 _TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
   _TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'])
 _TRIGGER_EVENT.fields_by_name['mUE_rrc_meas_conf'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
+_TRIGGER_EVENT.oneofs_by_name['events'].fields.append(
+  _TRIGGER_EVENT.fields_by_name['mCell_stats'])
+_TRIGGER_EVENT.fields_by_name['mCell_stats'].containing_oneof = _TRIGGER_EVENT.oneofs_by_name['events']
 _EMAGE_MSG.fields_by_name['head'].message_type = _HEADER
 _EMAGE_MSG.fields_by_name['se'].message_type = _SINGLE_EVENT
 _EMAGE_MSG.fields_by_name['sche'].message_type = _SCHEDULE_EVENT

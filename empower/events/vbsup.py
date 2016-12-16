@@ -47,6 +47,13 @@ class VBSUp(ModuleTrigger):
 
         self.handle_callback(vbs)
 
+    def __eq__(self, other):
+
+        return super().__eq__(other) and \
+            self.callback == other.callback
+
+        return False
+
 
 class VBSUpWorker(ModuleVBSPEventWorker):
     """ Counter worker. """

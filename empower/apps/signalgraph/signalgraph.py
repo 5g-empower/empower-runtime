@@ -24,6 +24,11 @@ from empower.core.app import DEFAULT_PERIOD
 from empower.main import RUNTIME
 from empower.maps.ucqm import ucqm
 from empower.events.wtpup import wtpup
+from empower.events.wtpdown import wtpdown
+from empower.events.vbsup import vbsup
+from empower.events.vbsdown import vbsdown
+from empower.events.uejoin import uejoin
+from empower.events.ueleave import ueleave
 
 from empower.main import RUNTIME
 
@@ -50,25 +55,48 @@ class SignalGraph(EmpowerApp):
     Example:
 
         ./empower-runtime.py apps.signalgraph.signalgraph \
-            --tenant_id=d18a6e8f-699b-4280-ab6f-435bd00e1c90
+            --tenant_id=8f83e794-1d07-4430-b5bd-db45d670c8f0
     """
 
     def __init__(self, **kwargs):
 
         EmpowerApp.__init__(self, **kwargs)
+
         self.graphData = {}
-
-        self.vbses = []
-
-        self.wtps = []
         self.wifi_data = {}
 
+        # List of VBSes active
+        self.vbses = []
+        # List of WTPs active
+        self.wtps = []
+
+        # Populate exsiting VBSes
+        for vbs in self.tenant.vbses.values():
+            if vbs.connection:
+                self.vbses.append(vbs)
+
+        # Populate exsiting WTPs and trigger UCQM for existing WTPs
+        for wtp in self.tenant.wtps.values():
+            if wtp.connection:
+                self.wtps.append(wtp.addr.to_str())
+
+                for block in wtp.supports:
+                    ucqm(block=block,
+                         tenant_id=self.tenant.tenant_id,
+                         every=5000,
+                         callback=self.ucqm_callback)
+
+        # Generating inital coordinates for the graph nodes
         self.coord = self.get_coordinates()
 
-        self.vbsup(callback=self.vbs_up_callback)
-        self.vbsdown(callback=self.vbs_down_callback)
+        vbsup(tenant_id=self.tenant.tenant_id, callback=self.vbs_up_callback)
+        vbsdown(tenant_id=self.tenant.tenant_id, callback=self.vbs_down_callback)
+
+        uejoin(tenant_id=self.tenant.tenant_id, callback=self.ue_join_callback)
+        ueleave(tenant_id=self.tenant.tenant_id, callback=self.ue_leave_callback)
 
         wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+        wtpdown(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
 
     def get_coordinates(self):
 
@@ -120,6 +148,14 @@ class SignalGraph(EmpowerApp):
         if vbs in self.vbses:
             self.vbses.remove(vbs)
 
+    def ue_join_callback(self, ue):
+        """Called when an UE connects to a VBS."""
+
+
+    def ue_leave_callback(self, ue):
+        """Called when an UE disconnects from a VBS."""
+
+
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
 
@@ -129,6 +165,15 @@ class SignalGraph(EmpowerApp):
                  tenant_id=self.tenant.tenant_id,
                  every=5000,
                  callback=self.ucqm_callback)
+
+    def wtp_down_callback(self, wtp):
+        """Called when a WTP disconnects from the controller."""
+
+        # Cleanup ucqm module instance associated with this WTP.
+
+        # Removes WTP from list of active WTPs
+        if wtp.addr.to_str() in self.wtps:
+            self.wtps.remove(wtp.addr.to_str())
 
     def ucqm_callback(self, poller):
         """Called when a UCQM response is received from a WTP."""
@@ -183,6 +228,8 @@ class SignalGraph(EmpowerApp):
         # Contains all nodes in the graph
         graph_nodes = []
 
+        tenant = RUNTIME.tenants[self.tenant.tenant_id]
+
         for wtp in self.wtps:
             # Append the WTP's info
             graph_nodes.append({
@@ -211,14 +258,14 @@ class SignalGraph(EmpowerApp):
 
             graph_nodes.append(serving_vbs)
 
-            for ue in vbs.ues:
+            for ue in tenant.ues:
 
                 node_id += 1
 
                 # Append the UE's info
                 graph_nodes.append({
                                     'id': node_id,
-                                    'node_id': vbs.ues[ue].rnti,
+                                    'node_id': tenant.ues[ue].rnti,
                                     'entity': 'ue',
                                     'tooltip': 'RNTI',
                                     'x': self.coord[node_id][0],
@@ -229,7 +276,7 @@ class SignalGraph(EmpowerApp):
                 ue_index = node_id
 
                 # Neighbor cells list per UE
-                cells = self.get_neigh_cells(vbs.ues[ue])
+                cells = self.get_neigh_cells(tenant.ues[ue])
 
                 for cell in cells:
                     if cell not in neigh_cells:
@@ -259,15 +306,15 @@ class SignalGraph(EmpowerApp):
                 graph_links.append({
                                     'src': cell_index,
                                     'dst': ue_index,
-                                    'rsrp': vbs.ues[ue].pcell_rsrp,
-                                    'rsrq': vbs.ues[ue].pcell_rsrq,
+                                    'rsrp': tenant.ues[ue].pcell_rsrp,
+                                    'rsrq': tenant.ues[ue].pcell_rsrq,
                                     'rssi': None,
                                     'entity': 'lte',
                                     'color': 'orange',
                                     'width': 6
                                     })
 
-                measurements = vbs.ues[ue].rrc_meas
+                measurements = tenant.ues[ue].rrc_meas
 
                 for key, m in measurements.items():
 

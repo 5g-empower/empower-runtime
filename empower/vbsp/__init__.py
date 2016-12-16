@@ -32,10 +32,6 @@ PRT_VBSP_HELLO = "mHello"
 PRT_VBSP_UES_ID = "mUEs_id"
 PRT_VBSP_RRC_MEAS_CONF = "mUE_rrc_meas_conf"
 PRT_VBSP_STATS = "mStats"
-PRT_VBSP_UE_CONFIG_REQUEST = "ue_conf_req"
-PRT_VBSP_UE_CONFIG_RESPONSE = "ue_conf_repl"
-PRT_VBSP_ENB_CONFIG_REQUEST = "enb_conf_req"
-PRT_VBSP_ENB_CONFIG_RESPONSE = "enb_conf_repl"
 
 PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_VBSP_REGISTER: None,
@@ -43,12 +39,8 @@ PRT_TYPES = {PRT_VBSP_BYE: None,
              PRT_UE_LEAVE: None,
              PRT_VBSP_HELLO: "hello",
              PRT_VBSP_UES_ID: "UEs_id_repl",
-             PRT_VBSP_RRC_MEAS_CONF: "rrc_meas_conf_repl",
-             PRT_VBSP_STATS: None,
-             PRT_VBSP_UE_CONFIG_REQUEST: None,
-             PRT_VBSP_UE_CONFIG_RESPONSE: "ue_conf_repl",
-             PRT_VBSP_ENB_CONFIG_REQUEST: None,
-             PRT_VBSP_ENB_CONFIG_RESPONSE: "enb_conf_repl"}
+             PRT_VBSP_RRC_MEAS_CONF: None,
+             PRT_VBSP_STATS: None}
 
 
 PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
@@ -56,6 +48,4 @@ PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
                       PRT_UE_JOIN: [],
                       PRT_UE_LEAVE: [],
                       PRT_VBSP_HELLO: [],
-                      PRT_VBSP_UES_ID: [],
-                      PRT_VBSP_UE_CONFIG_RESPONSE: [],
-                      PRT_VBSP_ENB_CONFIG_RESPONSE: []}
+                      PRT_VBSP_UES_ID: []}

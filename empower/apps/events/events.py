@@ -60,6 +60,16 @@ class EventsApp(EmpowerApp):
 
         self.log.info("VBS %s connected" % vbs.addr)
 
+    def ue_leave_callback(self, ue):
+        """Called when an UE disconnects from a VBS."""
+
+        self.log.info("UE %s disconnected" % ue.rnti)
+
+    def ue_join_callback(self, ue):
+        """Called when an UE connects to a VBS."""
+
+        self.log.info("UE %s connected" % ue.rnti)
+
     def lvnf_join_callback(self, lvnf):
         """Called when an LVNF associates to a tennant."""
 

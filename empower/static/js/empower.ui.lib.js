@@ -198,7 +198,7 @@ function loadComponents(tenant) {
                 if(tenant){
                     ctrl.innerHTML += '<img class="ctrl" onClick="unregisterComponent(\'' + stream +'\',\''+ tenant +'\')" src="/static/images/remove.png"  />'
                 } else {
-                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />" 
+                   ctrl.innerHTML += "<img class=\"ctrl\" onClick=\"unregisterComponent('" + stream + "')\" src=\"/static/images/remove.png\"  />"
                 }
                 ctrl.align = "center"
             }
@@ -266,7 +266,11 @@ function registerComponent(tenant) {
                 var mac = row.insertCell(0);
                 mac.colSpan = 3
                 mac.align = "right"
-                mac.innerHTML = "<a onClick=\"return addComponent()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                if (tenant) {
+                    mac.innerHTML = "<a onClick=\"return addComponent('"+tenant+"')\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                } else {
+                    mac.innerHTML = "<a onClick=\"return addComponent()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+                }
             },
             400: function (data) {
                 alert(data.responseJSON.message);
@@ -374,7 +378,7 @@ function loadPendingTenants(username, admin) {
                 var rowCount = table.rows.length;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 5
+                mac.colSpan = 6
                 mac.style.textAlign = "center"
                 mac.innerHTML = "No requests"
             }
@@ -392,7 +396,9 @@ function loadPendingTenants(username, admin) {
                 tenant_name.innerHTML = data[stream].tenant_name
                 var status = row.insertCell(3);
                 status.innerHTML = data[stream].owner
-                var bssid_type = row.insertCell(4);
+                var plmn_id = row.insertCell(4);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var bssid_type = row.insertCell(5);
                 bssid_type.innerHTML = data[stream].bssid_type
             }
         },
@@ -408,19 +414,19 @@ function acceptTenant(tenant_id) {
         },
         cache: false,
         success: function (data) {
-            createTenant(data.tenant_id, data.tenant_name, data.owner, data.desc, data.bssid_type)
+            createTenant(data.tenant_id, data.tenant_name, data.owner, data.plmn_id, data.desc, data.bssid_type)
         },
         error: function (data) {
         },
     });
 }
 
-function createTenant(tenant_id, tenant_name, owner, desc, bssid_type) {
+function createTenant(tenant_id, tenant_name, owner, plmn_id, desc, bssid_type) {
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id,
         type: 'POST',
         dataType: 'json',
-        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'" }',
+        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'", "plmn_id":"'+plmn_id+'" }',
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
@@ -437,6 +443,7 @@ function requestTenant(pending) {
 
     desc = document.getElementById('desc').value;
     tenant_name = document.getElementById('tenant_name').value;
+    plmn_id = document.getElementById('plmn_id').value;
     var bssid_values = document.getElementsByName('bssid_type');
     for (var i = 0; i < bssid_values.length; i++)
     {
@@ -450,6 +457,7 @@ function requestTenant(pending) {
     var request = {
         "version": "1.0",
         "tenant_name": tenant_name,
+        "plmn_id": plmn_id,
         "desc": desc,
         "bssid_type": bssid_type
     }
@@ -536,7 +544,9 @@ function loadTenants(username, admin) {
                 }
                 var status = row.insertCell(4);
                 status.innerHTML = data[stream].owner
-                var bssid_type = row.insertCell(5);
+                var plmn_id = row.insertCell(5);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var bssid_type = row.insertCell(6);
                 bssid_type.innerHTML = data[stream].bssid_type
             }
         },
@@ -1073,7 +1083,6 @@ function loadWTPs(tenant_id) {
     } else {
         url = "/api/v1/wtps"
     }
-    console.log(url)
     $.ajax({
         url: url,
         type: 'GET',
@@ -1233,6 +1242,136 @@ function removeWTPInputBox() {
     mac.innerHTML = "<a onClick=\"return addWTP()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
 }
 
+function addIMSI2MAC() {
+    var table = document.getElementById('imsi2mac');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='IMSI' \" size=\"20\" onkeypress=\"return event.charCode >= 48 && event.charCode <= 57\" maxlength=\"15\" class=\"text-input\" id=\"ue_imsi\" type=\"text\" value=\"IMSI\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"ue_mac_addr\" type=\"text\" value=\"MAC Address\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerIMSI2MAC()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeIMSI2MACInputBox()\" /></div></li></ul>"
+    mac.colSpan = 3
+    mac.innerHTML = tmp
+}
+
+function removeIMSI2MACInputBox() {
+    var table = document.getElementById('imsi2mac');
+    var rowCount = table.rows.length - 1;
+    var row = table.deleteRow(rowCount);
+    var row = table.insertRow(rowCount);
+    var mac = row.insertCell(0);
+    mac.colSpan = 3
+    mac.align = "right"
+    mac.innerHTML = "<a onClick=\"return addIMSI2MAC()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a>"
+}
+
+function registerIMSI2MAC() {
+    var mac = document.getElementById("ue_mac_addr").value;
+    var imsi = document.getElementById("ue_imsi").value;
+
+    url = "/api/v1/imsi2mac/"
+
+    data = '{  "version" : "1.0", "addr" : "' + mac + '", "imsi" : "' + imsi + '" }'
+    $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        statusCode: {
+            201: function (data) {
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.deleteRow(rowCount);
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.align = "right"
+                mac.innerHTML = "<a onClick=\"return addIMSI2MAC()\"><img class=\"ctrl\" src=\"/static/images/add.png\" /></a></td>"
+            },
+            400: function () {
+                alert('Invalid/Duplicate MAC address or Invalid/Duplicate IMSI');
+            },
+            404: function () {
+                alert('Duplicate IMSI');
+            },
+            500: function () {
+                alert('Empty IMSI or Non-unique MAC address');
+            }
+        }
+    });
+}
+
+function loadIMSI2MAC() {
+    url = "/api/v1/imsi2mac"
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('imsi2mac');
+            var rowCount = table.rows.length - 1;
+            while (rowCount--) {
+                if (rowCount < 0) {
+                    break
+                }
+                table.deleteRow(rowCount);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 3
+                mac.style.textAlign = "center"
+                mac.innerHTML = "Empty"
+            }
+            for (var stream in data) {
+                value = data[stream].imsi
+                var table = document.getElementById('imsi2mac');
+                var rowCount = table.rows.length - 1;
+                var row = table.insertRow(rowCount);
+                var c = 0
+                var remove = row.insertCell(c++);
+                remove.align = "center"
+                remove.width = "24px"
+                remove.innerHTML = "<img class=\"ctrl\" src=\"/static/images/remove.png\" onClick=\"removeIMSI2MAC('" + value + "')\" />"
+                var imsi_mac = row.insertCell(c++);
+                imsi_mac.innerHTML = data[stream].imsi + "  <=>  " + data[stream].addr
+            }
+        },
+    });
+}
+
+function removeIMSI2MAC(imsi) {
+    url = "/api/v1/imsi2mac/" + imsi
+
+    $.ajax({
+        url: url,
+        type: 'DELETE',
+        dataType: 'json',
+        cache: false,
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        success: function (data) {
+            loadIMSI2MAC()
+        },
+        statusCode: {
+            400: function () {
+                alert('Invalid IMSI');
+            },
+            500: function () {
+                alert('Empty IMSI');
+            }
+        }
+    });
+}
+
 function removeMACInputBox(group) {
     var table = document.getElementById(group);
     var rowCount = table.rows.length - 1;
@@ -1272,7 +1411,7 @@ function registerMAC(group) {
     var mac = document.getElementById(group + "_mac").value;
     var label = document.getElementById(group + "_label").value;
     url = "/api/v1/" + group
-    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+'"}'
+    data = '{"version":"1.0","sta":"'+mac+'","label":"'+label+ '"}'
     $.ajax({
         url: url,
         type: 'POST',
@@ -1314,7 +1453,7 @@ function addMAC(group) {
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
     mac.colSpan = 2
-    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
+    mac.innerHTML = "<ul><li><input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input autocapitalize=\"off\" onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Laptop/Mobile' \" autocorrect=\"off\" class=\"text-input\" id=\"" + group + "_label\" type=\"text\" value=\"Laptop/Mobile\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerMAC('" + group + "')\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeMACInputBox('" + group + "')\" /></div></li></ul>"
 }
 
 function loadMACs(group) {
@@ -1404,6 +1543,48 @@ function loadLVAPs(tenant) {
                 } else {
                     wtpCtrl.innerHTML = "<a href=\"#\" onClick=\"listWTPs('" + data[stream].addr + "','" + data[stream].downlink[0].addr + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
                 }
+            }
+        },
+    });
+}
+
+function loadUEs(tenant_id) {
+    if (tenant_id) {
+        url = "/api/v1/tenants/" + tenant_id + "/ues"
+    } else {
+        url = "/api/v1/ues"
+    }
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var table = document.getElementById('ues');
+            for (i = table.rows.length - 1; i > 0; i--) {
+                table.deleteRow(i);
+            }
+            if (data.length == 0) {
+                var table = document.getElementById('ues');
+                var rowCount = table.rows.length;
+                var row = table.insertRow(rowCount);
+                var mac = row.insertCell(0);
+                mac.colSpan = 4
+                mac.style.textAlign = "center"
+                mac.innerHTML = "No UEs available"
+            }
+            for (var stream in data) {
+                var table = document.getElementById('ues');
+                var row = table.insertRow(table.rows.length);
+                var c = 0
+                var vbs = row.insertCell(c++);
+                vbs.innerHTML = data[stream].vbs
+                var imsi = row.insertCell(c++);
+                imsi.innerHTML = data[stream].imsi
+                var plmn_id = row.insertCell(c++);
+                plmn_id.innerHTML = data[stream].plmn_id
+                var rnti = row.insertCell(c++);
+                rnti.innerHTML = data[stream].rnti
             }
         },
     });
@@ -1807,7 +1988,7 @@ function addVBS() {
     var row = table.deleteRow(rowCount);
     var row = table.insertRow(rowCount);
     var mac = row.insertCell(0);
-    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='MAC Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_mac\" type=\"text\" value=\"MAC Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBS Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_label\" type=\"text\" value=\"Generic VBS Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBS()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSInputBox()\" /></div></li></ul>"
+    tmp = "<ul><li><input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='VBS Address' \" size=\"20\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_mac\" type=\"text\" value=\"VBS Address\" />&nbsp;<input onclick=\"this.value=''\" onblur=\" if (this.value == '') this.value='Generic VBS Node' \" size=\"24\" autocapitalize=\"off\" autocorrect=\"off\" class=\"text-input\" id=\"vbs_label\" type=\"text\" value=\"Generic VBS Node\" /><div class=\"box\"><img width=\"24\" src=\"/static/images/accept.png\" onClick=\"registerVBS()\"/><img class=\"ctrl\" src=\"/static/images/reject.png\" onClick=\"removeVBSInputBox()\" /></div></li></ul>"
     mac.colSpan = 3
     mac.innerHTML = tmp
 }

@@ -33,6 +33,8 @@ from empower.vbs_stats import RRC_STATS_REPORT_INTR
 from empower.vbs_stats import RRC_STATS_NUM_REPORTS
 from empower.vbs_stats import RRC_STATS_EVENT_THRESHOLD_TYPE
 from empower.vbs_stats import PRT_VBSP_RRC_STATS
+from empower.events.ueleave import ueleave
+from empower.ue_confs.ue_rrc_meas_confs import ue_rrc_meas_confs
 from empower.vbsp.vbspconnection import create_header
 from empower.core.utils import ether_to_hex
 from empower.main import RUNTIME
@@ -53,6 +55,24 @@ class VBSRRCStats(ModuleTrigger):
         self._ue = None
         self._meas_req = None
         self._meas_reply = None
+        self._meas = {}
+
+    def ue_leave_callback(self, ue):
+        """Called when an UE disconnects from a VBS."""
+
+        self.log.info("UE %s disconnected" % ue.rnti)
+
+        worker = RUNTIME.components[VBSRRCStatsWorker.__module__]
+
+        module_ids = []
+        module_ids.extend(worker.modules.keys())
+
+        for module_id in module_ids:
+            # Module object
+            m = worker.modules[module_id]
+            # Remove all the module pertaining to disconnected UE
+            if m.ue == ue.rnti and EtherAddress(m.vbs) == ue.vbs.addr:
+                m.unload()
 
     @property
     def ue(self):
@@ -185,6 +205,12 @@ class VBSRRCStats(ModuleTrigger):
         self._meas_req = value
 
     @property
+    def meas(self):
+        """Return all the RRC measurements for this module."""
+
+        return self._meas
+
+    @property
     def meas_reply(self):
         """Return RRC measurements reply."""
 
@@ -195,7 +221,10 @@ class VBSRRCStats(ModuleTrigger):
         """Set RRC measurements reply."""
 
         tenant = RUNTIME.tenants[self.tenant_id]
-        ue = tenant.ues[self.ue]
+
+        ue_addr = (self.vbs, self.ue)
+
+        ue = tenant.ues[ue_addr]
 
         self._meas_reply = protobuf_to_dict(response)
 
@@ -217,30 +246,41 @@ class VBSRRCStats(ModuleTrigger):
                     for m in meas["neigh_meas"][k]:
 
                         if m["phys_cell_id"] not in ue.rrc_meas:
+                            self._meas[m["phys_cell_id"]] = {}
                             ue.rrc_meas[m["phys_cell_id"]] = {}
 
                         ue.rrc_meas[m["phys_cell_id"]]["RAT_type"] = "EUTRA"
 
                         if "meas_result" in m:
                             if "rsrp" in m["meas_result"]:
+                                self._meas[m["phys_cell_id"]]["rsrp"] = \
+                                                        m["meas_result"]["rsrp"]
                                 ue.rrc_meas[m["phys_cell_id"]]["rsrp"] = \
                                                         m["meas_result"]["rsrp"]
                             else:
+                                self._meas[m["phys_cell_id"]]["rsrp"] = -139
                                 ue.rrc_meas[m["phys_cell_id"]]["rsrp"] = -139
 
                             if "rsrq" in m["meas_result"]:
+                                self._meas[m["phys_cell_id"]]["rsrq"] = \
+                                                        m["meas_result"]["rsrq"]
                                 ue.rrc_meas[m["phys_cell_id"]]["rsrq"] = \
                                                         m["meas_result"]["rsrq"]
                             else:
+                                self._meas[m["phys_cell_id"]]["rsrq"] = -19
                                 ue.rrc_meas[m["phys_cell_id"]]["rsrq"] = -19
                         else:
+                            self._meas[m["phys_cell_id"]]["rsrp"] = -139
+                            self._meas[m["phys_cell_id"]]["rsrq"] = -19
                             ue.rrc_meas[m["phys_cell_id"]]["rsrp"] = -139
                             ue.rrc_meas[m["phys_cell_id"]]["rsrq"] = -19
+
+        self._meas_reply = meas
 
     def __eq__(self, other):
 
         return super().__eq__(other) and self.vbs == other.vbs and \
-            self.meas_req == other.meas_req
+            self.ue == other.ue and self.meas_req == other.meas_req
 
     def to_dict(self):
         """ Return a JSON-serializable."""
@@ -248,7 +288,10 @@ class VBSRRCStats(ModuleTrigger):
         out = super().to_dict()
 
         out['vbs'] = self.vbs
+        out['tenant'] = self.tenant_id
+        out['ue'] = self.ue
         out['meas_req'] = self.meas_req
+        out['measurements'] = self.meas
         out['meas_reply'] = self.meas_reply
 
         return out
@@ -263,11 +306,13 @@ class VBSRRCStats(ModuleTrigger):
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.ue not in tenant.ues:
-            self.log.info("UE %s not found", self.ue)
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in tenant.ues:
+            self.log.info("UE %s not found", ue_addr)
             return
 
-        ue = tenant.ues[self.ue]
+        ue = tenant.ues[ue_addr]
 
         if not ue.vbs.connection or ue.vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", ue.vbs.addr)
@@ -288,7 +333,7 @@ class VBSRRCStats(ModuleTrigger):
         rrc_m_msg = trigger_msg.mRRC_meas
         rrc_m_req_msg = rrc_m_msg.req
 
-        rrc_m_req_msg.rnti = ether_to_hex(ue.addr)
+        rrc_m_req_msg.rnti = ue.rnti
 
         rrc_m_req_msg.rat = RRC_STATS_RAT_TYPE[st_req["rat_type"]]
 
@@ -387,6 +432,8 @@ class VBSRRCStats(ModuleTrigger):
 
         ue.vbs.connection.stream_send(rrc_m_req)
 
+        ueleave(tenant_id=self.tenant_id, callback=self.ue_leave_callback)
+
     def cleanup(self):
         """Remove this module."""
 
@@ -399,14 +446,22 @@ class VBSRRCStats(ModuleTrigger):
 
         vbs = vbses[self.vbs]
 
-        if self.ue not in vbs.ues:
+        ue_addr = (self.vbs, self.ue)
+
+        if ue_addr not in RUNTIME.tenants[self.tenant_id].ues:
             return
 
-        ue = vbs.ues[self.ue]
+        ue = RUNTIME.tenants[self.tenant_id].ues[ue_addr]
 
         if not vbs.connection or vbs.connection.stream.closed():
             self.log.info("VBS %s not connected", vbs.addr)
             return
+
+        meas = self.meas
+
+        for m in meas.keys():
+            if m in ue.rrc_meas:
+                del ue.rrc_meas[m]
 
         rrc_m_req = main_pb2.emage_msg()
 
@@ -469,6 +524,7 @@ def bound_vbs_rrc_stats(self, **kwargs):
     kwargs['ue'] = self.addr
     kwargs['vbs'] = self.vbs.addr
     return vbs_rrc_stats(**kwargs)
+    print("printing tenatn id", self.tenant.tenant_id)
 
 setattr(UE, VBSRRCStats.MODULE_NAME, bound_vbs_rrc_stats)
 
