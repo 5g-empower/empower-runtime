@@ -148,6 +148,7 @@ class LVAPPConnection(object):
             return
 
         try:
+            LOG.info("Message type %u length %u", hdr.type, hdr.length)
             self._trigger_message(hdr.type)
         except Exception as ex:
             LOG.exception(ex)
@@ -485,9 +486,9 @@ class LVAPPConnection(object):
             dl_wtps = [block.radio for block in lvap.downlink.keys()]
             ul_wtps = [block.radio for block in lvap.uplink.keys()]
             # in case the downlink went down, the remove also the uplinks
-            if self.wtps in dl_wtps:
+            if self.wtp in dl_wtps:
                 RUNTIME.remove_lvap(lvap.addr)
-            elif self.wtps in ul_wtps:
+            elif self.wtp in ul_wtps:
                 LOG.info("Deleting LVAP (UL): %s", lvap.addr)
                 lvap.clear_uplink()
 
@@ -500,10 +501,7 @@ class LVAPPConnection(object):
                     del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
         # reset state
-        self.wtp.last_seen = 0
-        self.wtp.connection = None
-        self.wtp.ports = {}
-        self.wtp.supports = ResourcePool()
+        self.wtp = None
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
