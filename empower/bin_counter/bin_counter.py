@@ -17,6 +17,8 @@
 
 """Common bin_counter module."""
 
+import time
+
 from construct import UBInt8
 from construct import Bytes
 from construct import Sequence
@@ -79,6 +81,12 @@ class BinCounter(Module):
         self.rx_packets = []
         self.tx_bytes = []
         self.rx_bytes = []
+        self.tx_packets_per_second = []
+        self.rx_packets_per_second = []
+        self.tx_bytes_per_second = []
+        self.rx_bytes_per_second = []
+
+        self.last = None
 
     def __eq__(self, other):
 
@@ -135,6 +143,10 @@ class BinCounter(Module):
         out['rx_bytes'] = self.rx_bytes
         out['tx_packets'] = self.tx_packets
         out['rx_packets'] = self.rx_packets
+        out['tx_bytes_per_second'] = self.tx_bytes_per_second
+        out['rx_bytes_per_second'] = self.rx_bytes_per_second
+        out['tx_packets_per_second'] = self.tx_packets_per_second
+        out['rx_packets_per_second'] = self.rx_packets_per_second
 
         return out
 
@@ -226,6 +238,17 @@ class BinCounter(Module):
 
         return out
 
+    def update_stats(self, delta, last, current):
+        """Update stats."""
+
+        stats = []
+
+        for i in range(0, len(last)):
+            diff = current[i] - last[i]
+            stats.append(diff / delta)
+
+        return stats
+
     def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.
         Args:
@@ -238,11 +261,30 @@ class BinCounter(Module):
         tx_samples = response.stats[0:response.nb_tx]
         rx_samples = response.stats[response.nb_tx:-1]
 
+        old_tx_bytes = self.tx_bytes
+        old_rx_bytes = self.rx_bytes
+
+        old_tx_packets = self.tx_packets
+        old_rx_packets = self.rx_packets
+
         self.tx_bytes = self.fill_bytes_samples(tx_samples)
         self.rx_bytes = self.fill_bytes_samples(rx_samples)
 
         self.tx_packets = self.fill_packets_samples(tx_samples)
         self.rx_packets = self.fill_packets_samples(rx_samples)
+
+        if self.last:
+            delta = time.time() - self.last
+            self.tx_bytes_per_second = \
+                self.update_stats(delta, old_tx_bytes, self.tx_bytes)
+            self.rx_bytes_per_second = \
+                self.update_stats(delta, old_rx_bytes, self.rx_bytes)
+            self.tx_packets_per_second = \
+                self.update_stats(delta, old_tx_packets, self.tx_packets)
+            self.rx_packets_per_second = \
+                self.update_stats(delta, old_rx_packets, self.rx_packets)
+
+        self.last = time.time()
 
         # call callback
         self.handle_callback(self)
