@@ -265,7 +265,7 @@ class EnerginoServer(tornado.web.Application):
         """Set the feed id."""
         self.__feed_id = value
 
-    def bind_feed(self, feed_id, pnfdev_addr=None):
+    def bind_feed(self, feed_id, addr=None):
         """Bind Feed to PNFDev."""
 
         if feed_id not in RUNTIME.feeds:
@@ -289,18 +289,18 @@ class EnerginoServer(tornado.web.Application):
         feed.pnfdev = None
 
         # set the new pnfdev
-        if pnfdev_addr:
+        if addr:
 
             pnfdev = Session().query(TblPNFDev) \
-                .filter(TblPNFDev.addr == EtherAddress(pnfdev_addr)) \
+                .filter(TblPNFDev.addr == EtherAddress(addr)) \
                 .first()
 
             if not pnfdev:
-                raise KeyError(pnfdev_addr)
+                raise KeyError(addr)
 
             pnfdevs = getattr(RUNTIME, pnfdev.tbl_type)
 
-            pnfdev = pnfdevs[pnfdev_addr]
+            pnfdev = pnfdevs[addr]
             feed.pnfdev = pnfdev
             pnfdev.feed = feed
 
@@ -313,10 +313,10 @@ class EnerginoServer(tornado.web.Application):
             RUNTIME.feeds[feed.feed_id].created = feed.created
             RUNTIME.feeds[feed.feed_id].updated = feed.updated
 
-            if feed.pnfdev_addr:
+            if feed.addr:
 
                 pnfdev = Session().query(TblPNFDev) \
-                    .filter(TblPNFDev.addr == EtherAddress(feed.pnfdev_addr)) \
+                    .filter(TblPNFDev.addr == EtherAddress(feed.addr)) \
                     .first()
 
                 if pnfdev:
@@ -324,8 +324,8 @@ class EnerginoServer(tornado.web.Application):
                     pnfdevs = getattr(RUNTIME, pnfdev.tbl_type)
 
                     RUNTIME.feeds[feed.feed_id].pnfdev = \
-                        pnfdevs[feed.pnfdev_addr]
-                    pnfdev = pnfdevs[feed.pnfdev_addr]
+                        pnfdevs[feed.addr]
+                    pnfdev = pnfdevs[feed.addr]
                     pnfdev.feed = RUNTIME.feeds[feed.feed_id]
 
                 else:

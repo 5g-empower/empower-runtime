@@ -126,7 +126,7 @@ class TblFeed(Base):
     title = Column(String)
     created = Column(String)
     updated = Column(String)
-    pnfdev_addr = Column(EtherAddress, nullable=True)
+    addr = Column("addr", EtherAddress(), nullable=True)
 
 
 class TblAccount(Base):
@@ -266,6 +266,7 @@ class TblDeny(Base):
                   primary_key=True)
 
     label = Column(String)
+
 
 class TblIMSI2MAC(Base):
     """ IMSI to MAC address mapping table. """
