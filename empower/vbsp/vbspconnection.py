@@ -464,6 +464,7 @@ class VBSPConnection(object):
         self.vbs.connection = None
         self.vbs.ues = {}
         self.vbs.period = 0
+        self.vbs = None
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to self."""
