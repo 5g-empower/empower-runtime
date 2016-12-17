@@ -482,6 +482,10 @@ class LVAPPConnection(object):
                     del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
 
         # reset state
+        self.wtp.last_seen = 0
+        self.wtp.connection = None
+        self.wtp.ports = {}
+        self.wtp.supports = ResourcePool()
         self.wtp = None
 
     def send_bye_message_to_self(self):
