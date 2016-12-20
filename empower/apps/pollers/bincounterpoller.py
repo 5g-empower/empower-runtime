@@ -43,7 +43,7 @@ class BinCounterPoller(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap.bin_counter(bins=[512, 1472, 8192], every=self.every,
+        lvap.bin_counter(bins=[512, 1514, 8192], every=self.every,
                          callback=self.counters_callback)
 
     def counters_callback(self, stats):
