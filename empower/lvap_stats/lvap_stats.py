@@ -52,14 +52,14 @@ RATES_ENTRY = Sequence("rates",
 
 RATES_REQUEST = Struct("rates_request", UBInt8("version"),
                        UBInt8("type"),
-                       UBInt16("length"),
+                       UBInt32("length"),
                        UBInt32("seq"),
                        UBInt32("module_id"),
                        Bytes("sta", 6))
 
 RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
                         UBInt8("type"),
-                        UBInt16("length"),
+                        UBInt32("length"),
                         UBInt32("seq"),
                         UBInt32("module_id"),
                         Bytes("wtp", 6),
@@ -131,7 +131,7 @@ class LVAPStats(Module):
 
         rates_req = Container(version=PT_VERSION,
                               type=PT_RATES_REQUEST,
-                              length=18,
+                              length=20,
                               seq=lvap.wtp.seq,
                               module_id=self.module_id,
                               sta=lvap.addr.to_raw())

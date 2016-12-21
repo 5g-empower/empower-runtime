@@ -451,7 +451,7 @@ class LVAPPConnection(object):
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
         self.__buffer = b''
-        self.stream.read_bytes(4, self._on_read)
+        self.stream.read_bytes(6, self._on_read)
 
     def _on_disconnect(self):
         """ Handle WTP disconnection """
@@ -770,7 +770,7 @@ class LVAPPConnection(object):
 
         add_vap = Container(version=PT_VERSION,
                             type=PT_ADD_VAP,
-                            length=22,
+                            length=24,
                             seq=self.wtp.seq,
                             hwaddr=vap.block.hwaddr.to_raw(),
                             channel=vap.block.channel,
@@ -796,7 +796,7 @@ class LVAPPConnection(object):
 
         response = Container(version=PT_VERSION,
                              type=PT_ASSOC_RESPONSE,
-                             length=14,
+                             length=16,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw())
 
@@ -815,7 +815,7 @@ class LVAPPConnection(object):
 
         response = Container(version=PT_VERSION,
                              type=PT_AUTH_RESPONSE,
-                             length=20,
+                             length=22,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw(),
                              bssid=lvap.lvap_bssid.to_raw())
@@ -835,7 +835,7 @@ class LVAPPConnection(object):
 
         response = Container(version=PT_VERSION,
                              type=PT_PROBE_RESPONSE,
-                             length=14,
+                             length=16,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw())
 
@@ -854,7 +854,7 @@ class LVAPPConnection(object):
 
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
-                             length=14,
+                             length=16,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw())
 
@@ -876,7 +876,7 @@ class LVAPPConnection(object):
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
-                             length=29 + len(rates),
+                             length=31 + len(rates),
                              seq=self.wtp.seq,
                              flags=flags,
                              sta=tx_policy.addr.to_raw(),
@@ -915,7 +915,7 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=44,
+                             length=46,
                              seq=self.wtp.seq,
                              flags=flags,
                              assoc_id=lvap.assoc_id,

@@ -44,7 +44,7 @@ STATS = Sequence("stats", UBInt16("bytes"), UBInt32("count"))
 
 STATS_REQUEST = Struct("stats_request", UBInt8("version"),
                        UBInt8("type"),
-                       UBInt16("length"),
+                       UBInt32("length"),
                        UBInt32("seq"),
                        UBInt32("module_id"),
                        Bytes("sta", 6))
@@ -52,7 +52,7 @@ STATS_REQUEST = Struct("stats_request", UBInt8("version"),
 STATS_RESPONSE = \
     Struct("stats_response", UBInt8("version"),
            UBInt8("type"),
-           UBInt16("length"),
+           UBInt32("length"),
            UBInt32("seq"),
            UBInt32("module_id"),
            Bytes("wtp", 6),
@@ -190,7 +190,7 @@ class BinCounter(Module):
 
         stats_req = Container(version=PT_VERSION,
                               type=PT_STATS_REQUEST,
-                              length=18,
+                              length=22,
                               seq=lvap.wtp.seq,
                               module_id=self.module_id,
                               sta=lvap.addr.to_raw())

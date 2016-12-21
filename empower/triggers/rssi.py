@@ -53,7 +53,7 @@ PT_DEL_RSSI = 0x21
 
 ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
-                          UBInt16("length"),
+                          UBInt32("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"),
                           Bytes("sta", 6),
@@ -63,7 +63,7 @@ ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
 
 RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
                       UBInt8("type"),
-                      UBInt16("length"),
+                      UBInt32("length"),
                       UBInt32("seq"),
                       UBInt32("module_id"),
                       Bytes("wtp", 6),
@@ -74,7 +74,7 @@ RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
 
 DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
-                          UBInt16("length"),
+                          UBInt32("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"))
 
@@ -204,7 +204,7 @@ class RSSI(ModuleTrigger):
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_RSSI,
-                        length=30,
+                        length=32,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
@@ -232,7 +232,7 @@ class RSSI(ModuleTrigger):
 
         req = Container(version=PT_VERSION,
                         type=PT_DEL_RSSI,
-                        length=12,
+                        length=14,
                         seq=wtp.seq,
                         module_id=self.module_id)
 
