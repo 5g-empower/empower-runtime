@@ -17,8 +17,8 @@
 
 """LVAP Connection."""
 
-import tornado.ioloop
 import time
+import tornado.ioloop
 
 from construct import Container
 
