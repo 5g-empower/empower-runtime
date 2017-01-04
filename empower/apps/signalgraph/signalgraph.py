@@ -39,8 +39,6 @@ GRAPH_MAX_HEIGHT = 750 - GRAPH_TOP_BOTTOM_MARGIN
 MIN_DISTANCE = 70
 N_XY = 300
 
-UE_MAC_ADDR1 = 'A0:39:F7:4C:AA:0A'
-
 
 class SignalGraph(EmpowerApp):
     """Signal strength visulization app.
@@ -189,9 +187,8 @@ class SignalGraph(EmpowerApp):
                                         'active': active_flag
                                     }
 
-            # elif addr['addr'] not in lvaps:
-            #     self.wifi_data = {}
-            #     break
+            elif poller.block.addr.to_str() + addr['addr'].to_str() in self.wifi_data:
+                del self.wifi_data[poller.block.addr.to_str() + addr['addr'].to_str()]
 
     def get_neigh_cells(self, ue):
         """Fetches list of neighbor cells as seen by UE."""

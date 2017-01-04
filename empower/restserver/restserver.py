@@ -893,7 +893,8 @@ class PendingTenantHandler(EmpowerAPIHandler):
                 bssid_type = request['bssid_type']
 
             plmn_id = None
-            if "plmn_id" in request and request['plmn_id'] != None:
+            if "plmn_id" in request and request['plmn_id'] != None and \
+                (len(request['plmn_id']) == 5 or len(request['plmn_id']) == 6):
                 plmn_id = int(request['plmn_id'])
 
             if len(args) == 1:
