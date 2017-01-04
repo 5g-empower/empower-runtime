@@ -888,17 +888,12 @@ class PendingTenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
-            if "bssid_type" not in request:
-                bssid_type = T_TYPE_UNIQUE
-            else:
+            bssid_type = T_TYPE_UNIQUE
+            if "bssid_type" in request:
                 bssid_type = request['bssid_type']
 
-            if bssid_type not in T_TYPES:
-                raise ValueError("invalid bssid_type %s" % bssid_type)
-
-            if "plmn_id" not in request:
-                plmn_id = None
-            else:
+            plmn_id = None
+            if "plmn_id" in request and request['plmn_id'] != None:
                 plmn_id = int(request['plmn_id'])
 
             if len(args) == 1:
