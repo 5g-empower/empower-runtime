@@ -17,56 +17,62 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
-from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
-from empower.lvapp import PT_LVAP_JOIN
+from empower.vbsp.vbspserver import ModuleVBSPEventWorker
+from empower.vbsp import PRT_UE_LEAVE
 
 from empower.main import RUNTIME
 
 
-class LVAPJoin(ModuleTrigger):
-    """LVAPJoin."""
+class UELeave(ModuleTrigger):
+    """UELeave."""
 
-    MODULE_NAME = "lvapjoin"
+    MODULE_NAME = "ueleave"
 
-    def handle_response(self, lvap):
-        """ Handle an LVAL_JOIN message.
+    def handle_response(self, ue):
+        """ Handle an UE_LEAVE message.
         Args:
-            lvap, an LVAP object
+            ue, an UE object
         Returns:
             None
         """
 
-        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
+        ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if lvap.addr not in lvaps:
+        if ue.addr not in ues:
             return
 
-        self.handle_callback(lvap)
+        self.handle_callback(ue)
 
+    def __eq__(self, other):
 
-class LVAPJoinWorker(ModuleLVAPPEventWorker):
-    """LVAPJoin."""
+        return super().__eq__(other) and \
+            self.callback == other.callback
+
+        return False
+
+class UELeaveWorker(ModuleVBSPEventWorker):
+    """UELeave."""
 
     pass
 
 
-def lvapjoin(**kwargs):
+def ueleave(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[LVAPJoinWorker.__module__].add_module(**kwargs)
+    return RUNTIME.components[UELeaveWorker.__module__].add_module(**kwargs)
 
 
-def app_lvapjoin(self, **kwargs):
+def app_ueleave(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
-    return lvapjoin(**kwargs)
+    return ueleave(**kwargs)
 
 
-setattr(EmpowerApp, LVAPJoin.MODULE_NAME, app_lvapjoin)
+setattr(EmpowerApp, UELeave.MODULE_NAME, app_ueleave)
 
 
 def launch():
     """Initialize the module."""
 
-    return LVAPJoinWorker(LVAPJoin, PT_LVAP_JOIN)
+    return UELeaveWorker(UELeave, PRT_UE_LEAVE)

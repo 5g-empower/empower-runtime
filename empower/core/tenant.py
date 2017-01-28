@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 #
 # Copyright (c) 2016 Roberto Riggio
@@ -42,17 +43,22 @@ class Tenant(object):
 
     TO_DICT = ['tenant_id',
                'tenant_name',
+               'plmn_id',
                'owner',
                'desc',
                'bssid_type',
                'lvaps',
+               'ues',
                'lvnfs',
                'wtps',
                'cpps',
                'vbses']
 
-    def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type):
+    def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type,
+                 plmn_id=None):
+
         self.tenant_id = tenant_id
+        self.plmn_id = plmn_id
         self.tenant_name = tenant_name
         self.owner = owner
         self.desc = desc
@@ -61,6 +67,7 @@ class Tenant(object):
         self.cpps = {}
         self.vbses = {}
         self.lvaps = {}
+        self.ues = {}
         self.lvnfs = {}
         self.vaps = {}
         self.components = {}

@@ -17,6 +17,7 @@
       runLoader(loadLVNFs, '{{tenant.tenant_id}}')
       lvapsInterval = runLoader(loadLVAPs, '{{tenant.tenant_id}}')
       runLoader(loadVBSes, '{{tenant.tenant_id}}')
+      runLoader(loadUEs, '{{tenant.tenant_id}}')
   }
 
   </script>
@@ -32,6 +33,7 @@
     <div class="button segmentedControl tab"><span>LVNFs</span></div>
     <div class="button segmentedControl tab"><span>CPPs</span></div>
     <div class="button segmentedControl tab"><span>VBSes</span></div>
+    <div class="button segmentedControl tab"><span>UEs</span></div>
     <div class="button segmentedControl rightEnd tab"><span>WTPs</span></div>
   </div>
 </div>
@@ -49,10 +51,12 @@
         <tr>
           <th width="350px">UUID</th>
           <th width="350px">Description</th>
+          <th width="100px">PLMN ID</th>
         </tr>
         <tr>
           <td>{{ tenant.tenant_id }}</td>
           <td>{{ tenant.desc }}</td>
+          <td>{{ tenant.plmn_id }}</td>
         </tr>
       </table>
 
@@ -126,6 +130,21 @@
       <table id="vbses" width="650px" class="dump">
         <tr>
           <td colspan="3" align="right"><a onClick="return selectVBS()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+        </tr>
+      </table>
+
+    </div>
+
+    <div class="tabPanel">
+
+      <h1>User Equipments</h1>
+
+      <table id="ues" class="dump">
+        <tr>
+          <th width="150px">VBS</th>
+          <th width="150px">IMSI</th>
+          <th width="150px">PLMN ID</th>
+          <th width="150px">RNTI</th>
         </tr>
       </table>
 

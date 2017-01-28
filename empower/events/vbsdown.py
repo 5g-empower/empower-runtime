@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.vbsp import PRT_VBSP_BYE
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
 
 from empower.main import RUNTIME
 
 
-class VBSDown(Module):
+class VBSDown(ModuleTrigger):
     """VBSDown worker."""
 
     MODULE_NAME = "vbsdown"
@@ -46,6 +46,13 @@ class VBSDown(Module):
         vbs = vbses[vbs.addr]
 
         self.handle_callback(vbs)
+
+    def __eq__(self, other):
+
+        return super().__eq__(other) and \
+            self.callback == other.callback
+
+        return False
 
 
 class VBSDownWorker(ModuleVBSPEventWorker):

@@ -16,7 +16,9 @@
       runLoader(loadUsers)
       runLoader(loadCPPs)
       runLoader(loadVBSes)
+      runLoader(loadUEs)
       runLoader(loadWTPs)
+      runLoader(loadIMSI2MAC)
       runLoader(loadMACs, 'allow')
       runLoader(loadMACs, 'deny')
       lvapsInterval = runLoader(loadLVAPs)
@@ -43,6 +45,8 @@
           <div class="button segmentedControl tab"><span>LVAPs</span></div>
           <div class="button segmentedControl tab"><span>CPPs</span></div>
           <div class="button segmentedControl tab"><span>VBSes</span></div>
+          <div class="button segmentedControl tab"><span>UEs</span></div>
+          <div class="button segmentedControl tab"><span>IMSI <=> MAC</span></div>
           <div class="button segmentedControl tab"><span>WTPs</span></div>
           <div class="button segmentedControl tab"><span>ACL</span></div>
           <div class="button segmentedControl rightEnd tab"><span>Users</span></div>
@@ -73,12 +77,13 @@
               <th width="24px">&nbsp;</th>
               <th width="350px">UUID</th>
               <th width="200px">Network Name</th>
-              <th width="200px">Devs</th>
+              <th width="150px">Devs</th>
               <th width="100x">Owner</th>
-              <th width="150x">BSSID Type</th>
+              <th width="100x">PLMN ID</th>
+              <th width="100x">BSSID Type</th>
             </tr>
             <tr>
-              <td colspan="6" align="center">Log as normal user to request new Tenant</td>
+              <td colspan="7" align="center">Log as normal user to request new Tenant</td>
             </tr>
           </table>
 
@@ -93,6 +98,7 @@
               <th width="350px">UUID</th>
               <th width="200px">Network Name</th>
               <th width="100px">Owner</th>
+              <th width="100x">PLMN ID</th>
               <th width="150x">BSSID Type</th>
             </tr>
           </table>
@@ -182,6 +188,33 @@
 
         <div class="tabPanel">
 
+          <h1>User Equipments</h1>
+
+          <table id="ues" class="dump">
+            <tr>
+              <th width="150px">VBS</th>
+              <th width="150px">IMSI</th>
+              <th width="150px">PLMN ID</th>
+              <th width="150px">RNTI</th>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
+          <h1>IMSI to MAC address mapping</h1>
+
+          <table id="imsi2mac" width="650" class="dump">
+            <tr>
+              <td colspan="3" align="right"><a onClick="return addIMSI2MAC()"><img class="ctrl" src="/static/images/add.png" /></a></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="tabPanel">
+
           <h1>Wireless Termination Points</h1>
 
           <table id="wtps" width="650" class="dump">
@@ -196,17 +229,17 @@
 
           <h1>Allow</h1>
 
-          <table id="allow" width="500" class="dump">
+          <table id="allow" width="650" class="dump">
             <tr>
-              <td colspan="2" align="right"><a onClick="return addMAC('allow', 'allow')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+              <td colspan="3" align="right"><a onClick="return addMAC('allow')"><img class="ctrl" src="/static/images/add.png" /></a></td>
             </tr>
           </table>
 
           <h1>Deny</h1>
 
-          <table id="deny" width="500" class="dump">
+          <table id="deny" width="650" class="dump">
             <tr>
-              <td colspan="2" align="right"><a onClick="return addMAC('deny', 'deny')"><img class="ctrl" src="/static/images/add.png" /></a></td>
+              <td colspan="3" align="right"><a onClick="return addMAC('deny')"><img class="ctrl" src="/static/images/add.png" /></a></td>
             </tr>
           </table>
 
@@ -247,12 +280,13 @@
               <th width="24px" align="center">&nbsp;</th>
               <th width="350px">UUID</th>
               <th width="200px">Network Name</th>
-              <th width="200px">Devs</th>
+              <th width="150px">Devs</th>
               <th width="100x">Owner</th>
-              <th width="150x">BSSID Type</th>
+              <th width="100x">PLMN ID</th>
+              <th width="100x">BSSID Type</th>
             </tr>
             <tr>
-              <td colspan="6" align="right"><a href="/request_tenant"><img class="ctrl" src="/static/images/add.png" /></a></td>
+              <td colspan="7" align="right"><a href="/request_tenant"><img class="ctrl" src="/static/images/add.png" /></a></td>
             </tr>
           </table>
 
@@ -267,6 +301,7 @@
               <th width="350px">UUID</th>
               <th width="200px">Network Name</th>
               <th width="100px">Owner</th>
+              <th width="100x">PLMN ID</th>
               <th width="150px">BSSID Type</th>
             </tr>
           </table>

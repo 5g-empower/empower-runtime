@@ -27,11 +27,11 @@ class EtherAddress(object):
         strings, etc.
         """
         # Always stores as a 6 character string
-        if isinstance(addr, bytes) or isinstance(addr, str):
-            if len(addr) == 6:
-                # raw
-                pass
-            elif len(addr) == 17 or len(addr) == 12 or addr.count(':') == 5:
+        if isinstance(addr, bytes) and len(addr) == 6:
+            # raw
+            self._value = addr
+        elif isinstance(addr, str):
+            if len(addr) == 17 or addr.count(':') == 5:
                 # hex
                 if len(addr) == 17:
                     if addr[2::3] != ':::::' and addr[2::3] != '-----':
@@ -40,8 +40,6 @@ class EtherAddress(object):
                     # Pick out the hex digits only
                     addr = ''.join(
                         (addr[x * 3:x * 3 + 2] for x in range(0, 6)))
-                elif len(addr) == 12:
-                    pass
                 else:
                     # Assume it's hex digits but they may not all be in
                     # two-digit groupings (e.g., xx:x:x:xx:x:x). This actually
@@ -58,10 +56,6 @@ class EtherAddress(object):
             self._value = addr
         elif isinstance(addr, EtherAddress):
             self._value = addr.to_raw()
-        elif (type(addr) == list or
-              (hasattr(addr, '__len__') and len(addr) == 6 and
-               hasattr(addr, '__iter__'))):
-            self._value = ''.join((chr(int(x, 16)) for x in addr))
         elif addr is None:
             self._value = '\x00' * 6
         else:

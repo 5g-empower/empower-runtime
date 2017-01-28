@@ -17,56 +17,63 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
-from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
-from empower.lvapp import PT_LVAP_JOIN
+from empower.vbsp.vbspserver import ModuleVBSPEventWorker
+from empower.vbsp import PRT_UE_JOIN
 
 from empower.main import RUNTIME
 
 
-class LVAPJoin(ModuleTrigger):
-    """LVAPJoin."""
+class UEJoin(ModuleTrigger):
+    """UEJoin."""
 
-    MODULE_NAME = "lvapjoin"
+    MODULE_NAME = "uejoin"
 
-    def handle_response(self, lvap):
-        """ Handle an LVAL_JOIN message.
+    def handle_response(self, ue):
+        """ Handle an UE_JOIN message.
         Args:
-            lvap, an LVAP object
+            ue, an UE object
         Returns:
             None
         """
 
-        lvaps = RUNTIME.tenants[self.tenant_id].lvaps
+        ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if lvap.addr not in lvaps:
+        if ue.addr not in ues:
             return
 
-        self.handle_callback(lvap)
+        self.handle_callback(ue)
+
+    def __eq__(self, other):
+
+        return super().__eq__(other) and \
+            self.callback == other.callback
+
+        return False
 
 
-class LVAPJoinWorker(ModuleLVAPPEventWorker):
-    """LVAPJoin."""
+class UEJoinWorker(ModuleVBSPEventWorker):
+    """UEJoin."""
 
     pass
 
 
-def lvapjoin(**kwargs):
+def uejoin(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[LVAPJoinWorker.__module__].add_module(**kwargs)
+    return RUNTIME.components[UEJoinWorker.__module__].add_module(**kwargs)
 
 
-def app_lvapjoin(self, **kwargs):
+def app_uejoin(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant_id
-    return lvapjoin(**kwargs)
+    return uejoin(**kwargs)
 
 
-setattr(EmpowerApp, LVAPJoin.MODULE_NAME, app_lvapjoin)
+setattr(EmpowerApp, UEJoin.MODULE_NAME, app_uejoin)
 
 
 def launch():
     """Initialize the module."""
 
-    return LVAPJoinWorker(LVAPJoin, PT_LVAP_JOIN)
+    return UEJoinWorker(UEJoin, PRT_UE_JOIN)

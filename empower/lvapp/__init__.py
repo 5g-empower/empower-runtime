@@ -53,38 +53,40 @@ PT_ADD_VAP = 0x31
 PT_DEL_VAP = 0x32
 PT_STATUS_VAP = 0x33
 
-HEADER = Struct("header", UBInt8("version"), UBInt8("type"), UBInt16("length"))
+HEADER = Struct("header", UBInt8("version"),
+                UBInt8("type"),
+                UBInt32("length"))
 
 SSIDS = Range(1, 10, Struct("ssids", UBInt8("length"),
                             Bytes("ssid", lambda ctx: ctx.length)))
 
 HELLO = Struct("hello", UBInt8("version"),
                UBInt8("type"),
-               UBInt16("length"),
+               UBInt32("length"),
                UBInt32("seq"),
                Bytes("wtp", 6),
                UBInt32("period"))
 
 PROBE_REQUEST = Struct("probe_request", UBInt8("version"),
                        UBInt8("type"),
-                       UBInt16("length"),
+                       UBInt32("length"),
                        UBInt32("seq"),
                        Bytes("wtp", 6),
                        Bytes("sta", 6),
                        Bytes("hwaddr", 6),
                        UBInt8("channel"),
                        UBInt8("band"),
-                       Bytes("ssid", lambda ctx: ctx.length - 28))
+                       Bytes("ssid", lambda ctx: ctx.length - 30))
 
 PROBE_RESPONSE = Struct("probe_response", UBInt8("version"),
                         UBInt8("type"),
-                        UBInt16("length"),
+                        UBInt32("length"),
                         UBInt32("seq"),
                         Bytes("sta", 6))
 
 AUTH_REQUEST = Struct("auth_request", UBInt8("version"),
                       UBInt8("type"),
-                      UBInt16("length"),
+                      UBInt32("length"),
                       UBInt32("seq"),
                       Bytes("wtp", 6),
                       Bytes("sta", 6),
@@ -92,29 +94,29 @@ AUTH_REQUEST = Struct("auth_request", UBInt8("version"),
 
 AUTH_RESPONSE = Struct("auth_response", UBInt8("version"),
                        UBInt8("type"),
-                       UBInt16("length"),
+                       UBInt32("length"),
                        UBInt32("seq"),
                        Bytes("sta", 6))
 
 ASSOC_REQUEST = \
     Struct("assoc_request", UBInt8("version"),
            UBInt8("type"),
-           UBInt16("length"),
+           UBInt32("length"),
            UBInt32("seq"),
            Bytes("wtp", 6),
            Bytes("sta", 6),
            Bytes("bssid", 6),
-           Bytes("ssid", lambda ctx: ctx.length - 26))
+           Bytes("ssid", lambda ctx: ctx.length - 28))
 
 ASSOC_RESPONSE = Struct("assoc_response", UBInt8("version"),
                         UBInt8("type"),
-                        UBInt16("length"),
+                        UBInt32("length"),
                         UBInt32("seq"),
                         Bytes("sta", 6))
 
 ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   UBInt8("type"),
-                  UBInt16("length"),
+                  UBInt32("length"),
                   UBInt32("seq"),
                   BitStruct("flags", Padding(13),
                             Bit("set_mask"),
@@ -132,13 +134,13 @@ ADD_LVAP = Struct("add_lvap", UBInt8("version"),
 
 DEL_LVAP = Struct("del_lvap", UBInt8("version"),
                   UBInt8("type"),
-                  UBInt16("length"),
+                  UBInt32("length"),
                   UBInt32("seq"),
                   Bytes("sta", 6))
 
 STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
                      UBInt8("type"),
-                     UBInt16("length"),
+                     UBInt32("length"),
                      UBInt32("seq"),
                      BitStruct("flags", Padding(13),
                                Bit("set_mask"),
@@ -166,7 +168,7 @@ CAPS_P = Sequence("ports", Bytes("hwaddr", 6),
 
 CAPS = Struct("caps", UBInt8("version"),
               UBInt8("type"),
-              UBInt16("length"),
+              UBInt32("length"),
               UBInt32("seq"),
               Bytes("wtp", 6),
               UBInt8("nb_resources_elements"),
@@ -176,7 +178,7 @@ CAPS = Struct("caps", UBInt8("version"),
 
 SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("type"),
-                  UBInt16("length"),
+                  UBInt32("length"),
                   UBInt32("seq"),
                   BitStruct("flags", Padding(15),
                             Bit("no_ack")),
@@ -192,7 +194,7 @@ SET_PORT = Struct("set_port", UBInt8("version"),
 
 STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("type"),
-                     UBInt16("length"),
+                     UBInt32("length"),
                      UBInt32("seq"),
                      BitStruct("flags", Padding(15),
                                Bit("no_ack")),
@@ -209,30 +211,30 @@ STATUS_PORT = Struct("status_port", UBInt8("version"),
 
 ADD_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("type"),
-                 UBInt16("length"),
+                 UBInt32("length"),
                  UBInt32("seq"),
                  Bytes("hwaddr", 6),
                  UBInt8("channel"),
                  UBInt8("band"),
                  Bytes("net_bssid", 6),
-                 Bytes("ssid", lambda ctx: ctx.length - 22))
+                 Bytes("ssid", lambda ctx: ctx.length - 24))
 
 DEL_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("type"),
-                 UBInt16("length"),
+                 UBInt32("length"),
                  UBInt32("seq"),
                  Bytes("net_bssid", 6))
 
 STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     UBInt8("type"),
-                    UBInt16("length"),
+                    UBInt32("length"),
                     UBInt32("seq"),
                     Bytes("wtp", 6),
                     Bytes("hwaddr", 6),
                     UBInt8("channel"),
                     UBInt8("band"),
                     Bytes("net_bssid", 6),
-                    Bytes("ssid", lambda ctx: ctx.length - 28))
+                    Bytes("ssid", lambda ctx: ctx.length - 30))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,

@@ -39,7 +39,7 @@ from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_CAPS
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
 
@@ -49,7 +49,7 @@ PT_DEL_SUMMARY = 0x24
 
 ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt8("type"),
-                     UBInt16("length"),
+                     UBInt32("length"),
                      UBInt32("seq"),
                      UBInt32("module_id"),
                      Bytes("addr", 6),
@@ -76,7 +76,7 @@ SUMMARY_ENTRY = Sequence("frames",
 
 SUMMARY_TRIGGER = Struct("summary", UBInt8("version"),
                          UBInt8("type"),
-                         UBInt16("length"),
+                         UBInt32("length"),
                          UBInt32("seq"),
                          UBInt32("module_id"),
                          Bytes("wtp", 6),
@@ -85,12 +85,12 @@ SUMMARY_TRIGGER = Struct("summary", UBInt8("version"),
 
 DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt8("type"),
-                     UBInt16("length"),
+                     UBInt32("length"),
                      UBInt32("seq"),
                      UBInt32("module_id"))
 
 
-class Summary(Module):
+class Summary(ModuleTrigger):
     """ Summary object. """
 
     MODULE_NAME = "summary"
@@ -98,7 +98,7 @@ class Summary(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModuleTrigger.__init__(self)
 
         # parameters
         self._addr = EtherAddress("FF:FF:FF:FF:FF:FF")
@@ -229,7 +229,7 @@ class Summary(Module):
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_SUMMARY,
-                        length=30,
+                        length=32,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         limit=self.limit,
@@ -368,7 +368,6 @@ def bound_summary(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['every'] = -1
     return summary(**kwargs)
 
 setattr(EmpowerApp, Summary.MODULE_NAME, bound_summary)

@@ -17,7 +17,6 @@
 
 """LVAPs Handerler."""
 
-import os
 import tornado.web
 import tornado.httpserver
 

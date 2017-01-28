@@ -17,19 +17,19 @@
 
 """User Equipment class."""
 
-
 from empower.core.utils import hex_to_ether
 
 
 class UE(object):
     """User Equipment."""
 
-    def __init__(self, rnti, vbs):
+    def __init__(self, ue_id, rnti, vbs):
 
+        self.addr = ue_id
         self.rnti = rnti
-        self.mac_addr = None
-        self.ue_id = hex_to_ether(self.rnti)
+        self.imsi = None
         self.vbs = vbs
+        self.tenant = None
         self.rrc_state = None
         self.capabilities = {}
         self.rrc_meas_config = {}
@@ -37,14 +37,20 @@ class UE(object):
         self.pcell_rsrp = None
         self.pcell_rsrq = None
 
-        self.vbs.connection.send_rrc_meas_conf_req(self)
+    @property
+    def plmn_id(self):
+        """Get the plmn_id."""
+
+        return self.tenant.plmn_id if self.tenant else None
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        return {'rnti': self.rnti,
+        return {'addr': self.addr,
+                'rnti': self.rnti,
+                'plmn_id': self.plmn_id,
+                'imsi': self.imsi,
                 'vbs': self.vbs.addr,
-                'ue_id': self.ue_id,
                 'rrc_state': self.rrc_state,
                 'capabilities': self.capabilities,
                 'rrc_meas_config': self.rrc_meas_config,
@@ -55,12 +61,10 @@ class UE(object):
     def __eq__(self, other):
 
         if isinstance(other, UE):
-            return self.rnti == other.rnti
+            return self.rnti == other.rnti and self.vbs.addr == other.vbs.addr
 
         return False
 
     def __ne__(self, other):
 
         return not self.__eq__(other)
-
-

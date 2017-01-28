@@ -16,14 +16,14 @@
 # under the License.
 
 from empower.core.app import EmpowerApp
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 from empower.lvnfp.lvnfpserver import ModuleLVNFPEventWorker
 from empower.lvnfp import PT_BYE
 
 from empower.main import RUNTIME
 
 
-class CPPDown(Module):
+class CPPDown(ModuleTrigger):
     """CPPDown worker."""
 
     MODULE_NAME = "cppdown"

@@ -35,7 +35,7 @@ from empower.core.app import EmpowerApp
 from empower.lvapp import PT_CAPS
 from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import Module
+from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
 
@@ -53,7 +53,7 @@ PT_DEL_RSSI = 0x21
 
 ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
-                          UBInt16("length"),
+                          UBInt32("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"),
                           Bytes("sta", 6),
@@ -63,7 +63,7 @@ ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
 
 RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
                       UBInt8("type"),
-                      UBInt16("length"),
+                      UBInt32("length"),
                       UBInt32("seq"),
                       UBInt32("module_id"),
                       Bytes("wtp", 6),
@@ -74,12 +74,12 @@ RSSI_TRIGGER = Struct("rssi_trigger", UBInt8("version"),
 
 DEL_RSSI_TRIGGER = Struct("del_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
-                          UBInt16("length"),
+                          UBInt32("length"),
                           UBInt32("seq"),
                           UBInt32("module_id"))
 
 
-class RSSI(Module):
+class RSSI(ModuleTrigger):
     """ RSSI trigger object. """
 
     MODULE_NAME = "rssi"
@@ -87,7 +87,7 @@ class RSSI(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModuleTrigger.__init__(self)
 
         # parameters
         self._lvap = None
@@ -185,7 +185,7 @@ class RSSI(Module):
 
         if self.tenant_id not in RUNTIME.tenants:
             self.log.info("Tenant %s not found", self.tenant_id)
-            for wtp in list(self.wtps):
+            for wtp in self.wtps:
                 self.remove_rssi_from_wtp(wtp)
             self.unload()
             return
@@ -204,7 +204,7 @@ class RSSI(Module):
 
         req = Container(version=PT_VERSION,
                         type=PT_ADD_RSSI,
-                        length=30,
+                        length=32,
                         seq=wtp.seq,
                         module_id=self.module_id,
                         wtp=wtp.addr.to_raw(),
@@ -232,7 +232,7 @@ class RSSI(Module):
 
         req = Container(version=PT_VERSION,
                         type=PT_DEL_RSSI,
-                        length=12,
+                        length=14,
                         seq=wtp.seq,
                         module_id=self.module_id)
 
@@ -296,7 +296,7 @@ class RssiWorker(ModuleLVAPPWorker):
         """Handle WTP BYE message."""
 
         for module in self.modules.values():
-            module.wtps.remove(wtp.addr)
+            module.wtps.remove(wtp)
 
 
 def rssi(**kwargs):
@@ -309,7 +309,6 @@ def bound_rssi(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['every'] = -1
     return rssi(**kwargs)
 
 setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)

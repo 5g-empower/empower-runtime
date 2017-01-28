@@ -57,9 +57,9 @@ class Feed(object):
                         .filter(TblFeed.feed_id == self.feed_id) \
                         .first()
         if self.pnfdev:
-            feed.pnfdev_addr = self.pnfdev.addr
+            feed.addr = self.pnfdev.addr
         else:
-            feed.pnfdev_addr = None
+            feed.addr = None
 
         session.commit()
 

@@ -42,7 +42,7 @@
 }
 
 .errormessage {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 14pt;
     padding: 4px;
     text-align: center;
@@ -51,7 +51,7 @@
 }
 
 .tiny {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 10pt;
     padding: 0px;
     text-align: center;
@@ -59,22 +59,22 @@
 
 .box {
     float: right;
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
 }
 
 .box a {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
 }
 
 p {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
 }
 
 h1 {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     font-weight: bold;
     text-align: center;
@@ -98,7 +98,7 @@ h1 {
 }
 
 .dump-centered th, .dump-centered td {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     padding: 4px;
 }
@@ -110,7 +110,7 @@ h1 {
 }
 
 .dump th, .dump td {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     border-collapse: collapse;
     border: 1px solid #597883;
@@ -122,7 +122,7 @@ html, body {
 }
 
 input {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     border: 1px solid #666;
     padding: 4px;
@@ -130,7 +130,7 @@ input {
 
 ul, li {
     list-style: none;
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     color: #666;
     margin: 0;
@@ -156,7 +156,7 @@ li {
 }
 
 .segmentedControlBase {
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     display: -webkit-box;
     -webkit-box-orient: horizontal;
@@ -185,7 +185,7 @@ li {
             #fbfbfb,
             #bdbdbd);
     color: #6b6b6b;
-    font-family: Pontano Sans, Cantarell, sans-serif;
+    font-family: sans-serif;
     font-size: 12pt;
     padding: 6px;
 }

@@ -62,16 +62,16 @@ class Survey(EmpowerApp):
         """New WTP."""
 
         for block in wtp.supports:
-            self.summary(addr=self.addr, block=block,
+            self.summary(addr=self.addr,
+                         block=block,
+                         period=1000,
                          callback=self.summary_callback)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Summary """
 
         out = super().to_dict()
-
         out['links'] = self.links
-
         return out
 
     def summary_callback(self, summary):

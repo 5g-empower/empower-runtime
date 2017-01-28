@@ -126,7 +126,7 @@ class TblFeed(Base):
     title = Column(String)
     created = Column(String)
     updated = Column(String)
-    pnfdev_addr = Column(EtherAddress, nullable=True)
+    addr = Column("addr", EtherAddress(), nullable=True)
 
 
 class TblAccount(Base):
@@ -151,6 +151,9 @@ class TblPendingTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
+    plmn_id = Column("plmn_id",
+                     Integer,
+                     default=None)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
@@ -161,6 +164,7 @@ class TblPendingTenant(Base):
 
         return {'tenant_id': self.tenant_id,
                 'owner': self.owner,
+                'plmn_id': self.plmn_id,
                 'tenant_name': self.tenant_name,
                 'desc': self.desc,
                 'bssid_type': self.bssid_type}
@@ -175,6 +179,9 @@ class TblTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
+    plmn_id = Column("plmn_id",
+                     Integer,
+                     default=None)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
@@ -260,5 +267,18 @@ class TblDeny(Base):
 
     label = Column(String)
 
+
+class TblIMSI2MAC(Base):
+    """ IMSI to MAC address mapping table. """
+
+    __tablename__ = 'imsi2mac'
+
+    imsi = Column("imsi",
+                  Integer,
+                  primary_key=True)
+
+    addr = Column("addr",
+                  EtherAddress(),
+                  unique=True)
 
 Base.metadata.create_all(ENGINE)
