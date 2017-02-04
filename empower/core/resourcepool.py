@@ -21,19 +21,15 @@ from empower.datatypes.etheraddress import EtherAddress
 
 BT_L20 = 0
 BT_HT20 = 1
-BT_HT40 = 2
 
 L20 = 'L20'
 HT20 = 'HT20'
-HT40 = 'HT40'
 
 BANDS = {BT_L20: L20,
-         BT_HT20: HT20,
-         BT_HT40: HT40}
+         BT_HT20: HT20}
 
 REVERSE_BANDS = {L20: BT_L20,
-                 HT20: BT_HT20,
-                 HT40: BT_HT40}
+                 HT20: BT_HT20}
 
 TX_MCAST_LEGACY = 0x0
 TX_MCAST_DMS = 0x1
@@ -78,7 +74,7 @@ class TxPolicy(object):
         block: the actuall block to which this tx policy refers to
         hwaddr: the mac address of the wireless interface
         channel: The channel id
-        band: The band type (0=L20, 1=HT20, 2=HT40)
+        band: The band type (0=L20, 1=HT20)
         ucqm: User interference matrix group. Rssi values to LVAPs.
         ncqm: Network interference matrix group. Rssi values to WTPs.
         supports: list of MCS supported in this Resource Block as
@@ -293,7 +289,7 @@ class ResourceBlock(object):
         radio: The WTP or the LVAP at which this resource block is available
         hwaddr: the mac address of the wireless interface
         channel: The channel id
-        band: The band type (0=L20, 1=HT20, 2=HT40)
+        band: The band type (0=L20, 1=HT20)
         ucqm: User interference matrix group. Rssi values to LVAPs.
         ncqm: Network interference matrix group. Rssi values to WTPs.
         supports: list of MCS supported in this Resource Block as
@@ -311,17 +307,18 @@ class ResourceBlock(object):
         self.ucqm = CQM()
         self.ncqm = CQM()
         self.tx_policies = TxPolicyProp(self)
+        self._supports = set()
+        self._ht_supports = set()
 
-        if self.band == BT_HT20 or self.band == BT_HT40:
-            self._supports = set([0, 1, 2, 3, 4, 5, 6, 7])
+        if self.channel > 14:
+            self.supports = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
         else:
-            if self.channel > 14:
-                self._supports = \
-                    set([6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0])
-            else:
-                self._supports = \
-                    set([1.0, 2.0, 5.5, 11.0,
-                         6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0])
+            self.supports = [1.0, 2.0, 5.5, 11.0,
+                             6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0]
+
+        if self.band == BT_HT20:
+            self.ht_supports = [0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11, 12, 13, 14, 15]
 
     @property
     def addr(self):
@@ -349,10 +346,23 @@ class ResourceBlock(object):
 
     @supports.setter
     def supports(self, supports):
-        """ Set the band. """
+        """ Set the list of supported. """
 
         for supported in supports:
             self._supports.add(int(supported))
+
+    @property
+    def ht_supports(self):
+        """ Return the list of supported MCS (HT). """
+
+        return self._ht_supports
+
+    @ht_supports.setter
+    def ht_supports(self, ht_supports):
+        """ Set the list of supported MCS (HT). """
+
+        for supported in ht_supports:
+            self._ht_supports.add(int(supported))
 
     @property
     def hwaddr(self):
@@ -406,6 +416,7 @@ class ResourceBlock(object):
                 'hwaddr': self.hwaddr,
                 'channel': self.channel,
                 'supports': sorted(self.supports),
+                'ht_supports': sorted(self.ht_supports),
                 'tx_policies': tx_policies,
                 'band': BANDS[self.band],
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
