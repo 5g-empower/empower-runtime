@@ -464,7 +464,7 @@ class LVAPPConnection(object):
                 vap = RUNTIME.tenants[tenant_id].vaps[vap_id]
                 if vap.wtp == self.wtp:
                     LOG.info("Deleting VAP: %s", vap.net_bssid)
-                    del RUNTIME.tenants[vap.tenant_id].vaps[vap.net_bssid]
+                    del RUNTIME.tenants[tenant_id].vaps[vap.net_bssid]
 
         # reset state
         self.wtp.last_seen = 0
