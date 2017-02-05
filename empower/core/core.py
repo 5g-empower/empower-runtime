@@ -669,6 +669,33 @@ class EmpowerRuntime(object):
 
         del self.lvaps[lvap.addr]
 
+    def remove_lvap(self, lvap_addr):
+        """Remove LVAP from the network"""
+
+        if lvap_addr not in self.lvaps:
+            return
+
+        lvap = self.lvaps[lvap_addr]
+
+        if lvap.tenant:
+
+            # removing LVAP from tenant, need first to look for right tenant
+            if lvap.addr in lvap.tenant.lvaps:
+                LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
+                del lvap.tenant.lvaps[lvap.addr]
+
+            # Raise LVAP leave event
+            from empower.lvapp.lvappserver import LVAPPServer
+            lvapp_server = self.components[LVAPPServer.__module__]
+            lvapp_server.send_lvap_leave_message_to_self(lvap)
+
+        # Reset LVAP
+        LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
+        lvap.clear_downlink()
+        lvap.clear_uplink()
+
+        del self.lvaps[lvap.addr]
+
     def remove_ue(self, ue_addr):
         """Remove UE from the network"""
 

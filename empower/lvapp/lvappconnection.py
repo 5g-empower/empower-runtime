@@ -296,21 +296,6 @@ class LVAPPConnection(object):
 
         RUNTIME.lvaps[sta] = lvap
 
-        # TODO: This should be built starting from the probe request
-        lvap.supports.add(ResourceBlock(lvap, sta, 1, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 2, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 3, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 4, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 5, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 6, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 7, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 8, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 9, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 10, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 11, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 36, BT_L20))
-        lvap.supports.add(ResourceBlock(lvap, sta, 48, BT_L20))
-
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
         requested = ResourcePool()
         hwaddr = EtherAddress(request.hwaddr)
@@ -528,21 +513,6 @@ class LVAPPConnection(object):
             lvap_bssid_addr = EtherAddress(status.lvap_bssid)
             lvap = LVAP(sta_addr, net_bssid_addr, lvap_bssid_addr)
 
-            # TODO: This should be built starting from the status message
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 1, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 2, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 3, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 4, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 5, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 6, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 7, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 8, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 9, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 10, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 11, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 36, BT_L20))
-            lvap.supports.add(ResourceBlock(lvap, sta_addr, 48, BT_L20))
-
             RUNTIME.lvaps[sta_addr] = lvap
 
         lvap = RUNTIME.lvaps[sta_addr]
@@ -599,8 +569,15 @@ class LVAPPConnection(object):
 
         if ssids[0]:
 
+            tenant = RUNTIME.load_tenant(ssids[0])
+
+            if not tenant:
+                LOG.info("LVAP %s from unknown tenant %s", lvap.addr, ssids[0])
+                RUNTIME.remove_lvap(lvap.addr)
+                return
+
             # setting tenant without seding out add lvap message
-            lvap._tenant = RUNTIME.load_tenant(ssids[0])
+            lvap._tenant = tenant
 
             # adding LVAP to tenant
             LOG.info("Adding %s to tenant %s", lvap.addr, ssids[0])
@@ -730,32 +707,26 @@ class LVAPPConnection(object):
 
         net_bssid_addr = EtherAddress(status.net_bssid)
         ssid = SSID(status.ssid)
-        tenant_id = None
+        tenant = RUNTIME.load_tenant(ssid)
 
-        for tenant in RUNTIME.tenants.values():
-            if tenant.tenant_name == ssid:
-                tenant_id = tenant.tenant_id
-                break
-
-        if not tenant_id:
+        if not tenant:
             LOG.info("VAP %s from unknown tenant %s", net_bssid_addr, ssid)
             return
-
-        tenant = RUNTIME.tenants[tenant_id]
 
         vap = None
         hwaddr = EtherAddress(status.hwaddr)
         block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
         ssid = status.ssid
 
-        LOG.info("VAP %s status update block %s", net_bssid_addr, block)
+        LOG.info("VAP status update from %s", net_bssid_addr)
 
         # If the VAP does not exists, then create a new one
         if net_bssid_addr not in tenant.vaps:
-            tenant.vaps[net_bssid_addr] = \
-                VAP(net_bssid_addr, block, wtp, tenant)
+            vap = VAP(net_bssid_addr, block, wtp, tenant)
+            tenant.vaps[net_bssid_addr] = vap
 
         vap = tenant.vaps[net_bssid_addr]
+
         LOG.info("VAP status %s", vap)
 
     def send_add_vap(self, vap):
@@ -782,6 +753,27 @@ class LVAPPConnection(object):
         LOG.info("Add vap %s", vap)
 
         msg = ADD_VAP.build(add_vap)
+        self.stream.write(msg)
+
+    def send_del_vap(self, net_bssid):
+        """Send a DEL_VAP message.
+        Args:
+            vap: an VAP object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        del_vap = Container(version=PT_VERSION,
+                            type=PT_DEL_VAP,
+                            length=16,
+                            seq=self.wtp.seq,
+                            sta=vap.addr.to_raw())
+
+        LOG.info("Del vap %s", vap)
+
+        msg = DEL_VAP.build(add_vap)
         self.stream.write(msg)
 
     def send_assoc_response(self, lvap):
