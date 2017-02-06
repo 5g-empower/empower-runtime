@@ -167,8 +167,6 @@ function decodeBand(band) {
         return 0
     } else if (band == 'HT20') {
         return 1
-    } else if (band == 'HT40') {
-        return 2
     } else {
         return -1
     }

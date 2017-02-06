@@ -53,7 +53,13 @@ class MobilityManager(EmpowerApp):
         """Called when a new WTP connects to the controller."""
 
         for block in wtp.supports:
+
             self.ucqm(block=block, every=self.every)
+
+            self.busyness_trigger(value=10,
+                                  relation='GT',
+                                  block=block,
+                                  callback=self.high_occupancy)
 
     def lvap_join_callback(self, lvap):
         """Called when an joins the network."""
@@ -62,6 +68,12 @@ class MobilityManager(EmpowerApp):
                   value=self.limit,
                   relation='LT',
                   callback=self.low_rssi)
+
+    def high_occupancy(self, trigger):
+        """Call when channel is too busy."""
+
+        self.log.info("Block %s busyness %f" %
+                      (trigger.block, trigger.event['current']))
 
     def handover(self, lvap):
         """ Handover the LVAP to a WTP with

@@ -124,7 +124,6 @@ class LVAP(object):
         ssid: The currently associated SSID.
         tx_samples: the transmitted packets
         rx_samples: the received packets
-        supports: a set of Resource Blocks supported by the LVAP
         block: the resource blocks to which this LVAP is assigned.
         downlink: the resource block assigned to this LVAP on the downlink
           direction.
@@ -138,7 +137,6 @@ class LVAP(object):
         # read only params
         self.addr = addr
         self.net_bssid = net_bssid_addr
-        self.supports = ResourcePool()
 
         # lvap bssid, this is the bssid to which the client is currently
         # attached, it can only be updated as a result of an auth request
@@ -555,7 +553,6 @@ class LVAP(object):
                 'assoc_id': self.assoc_id,
                 'ssid': self.ssid,
                 'encap': self.encap,
-                'supports': self.supports,
                 'tx_samples': self.tx_samples,
                 'rx_samples': self.rx_samples,
                 'rates': self.rates,
