@@ -464,6 +464,9 @@ class LVAP(object):
             downlink: A ResourcePool or a ResourceBlock
         """
 
+        if not blocks:
+            return
+
         if isinstance(blocks, ResourcePool):
             pool = blocks
         elif isinstance(blocks, ResourceBlock):
