@@ -464,6 +464,9 @@ class LVAP(object):
             downlink: A ResourcePool or a ResourceBlock
         """
 
+        if not blocks:
+            return
+
         if isinstance(blocks, ResourcePool):
             pool = blocks
         elif isinstance(blocks, ResourceBlock):
@@ -528,8 +531,13 @@ class LVAP(object):
     def clear_downlink(self):
         """ Clear all downlink blocks."""
 
+        # remove downlink
         for block in list(self._downlink.keys()):
             del self._downlink[block]
+
+        # remove intent
+        if self.dl_intent:
+            intent_server.remove_intent(self.dl_intent)
 
     def clear_uplink(self):
         """ Clear all downlink blocks."""
