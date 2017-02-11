@@ -190,7 +190,7 @@ class BinCounter(Module):
 
         stats_req = Container(version=PT_VERSION,
                               type=PT_STATS_REQUEST,
-                              length=22,
+                              length=20,
                               seq=lvap.wtp.seq,
                               module_id=self.module_id,
                               sta=lvap.addr.to_raw())
