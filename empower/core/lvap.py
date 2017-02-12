@@ -179,6 +179,9 @@ class LVAP(object):
         # downlink intent uuid
         self.dl_intent = None
 
+        # supported resource blocks
+        self.supported = ResourcePool()
+
     def set_ports(self):
         """Set virtual ports.
 
@@ -482,24 +485,6 @@ class LVAP(object):
         self.uplink = pool
 
     @property
-    def port(self):
-        """Return the port on which this LVAP is scheduled. """
-
-        if not self.default_block:
-            return None
-
-        return self.downlink[self.default_block]
-
-    @port.setter
-    def port(self, value):
-        """Set the Port."""
-
-        if not self.default_block:
-            return None
-
-        self.downlink[self.default_block] = value
-
-    @property
     def default_block(self):
         """Return the default block on which this LVAP is scheduled on."""
 
@@ -525,7 +510,7 @@ class LVAP(object):
         if not self.default_block:
             return None
 
-        matching = wtp.supports & ResourcePool([self.default_block])
+        matching = wtp.supports & self.supported
         self.scheduled_on = matching.pop() if matching else None
 
     def clear_downlink(self):
@@ -551,12 +536,12 @@ class LVAP(object):
         return {'addr': self.addr,
                 'net_bssid': self.net_bssid,
                 'lvap_bssid': self.lvap_bssid,
-                'port': self.port,
                 'ports': self.ports,
                 'wtp': self.wtp,
                 'scheduled_on': self.scheduled_on,
                 'downlink': [k for k in self._downlink.keys()],
                 'uplink': [k for k in self._uplink.keys()],
+                'supported': self.supported,
                 'ssids': self.ssids,
                 'assoc_id': self.assoc_id,
                 'ssid': self.ssid,

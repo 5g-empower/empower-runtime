@@ -261,19 +261,11 @@ class ResourcePool(set):
         result = ResourcePool()
         for rblock in self:
             for rblock_other in other:
-                if rblock.channel == rblock_other.channel and \
-                   rblock.band == rblock_other.band:
-
-                    result.add(rblock)
-
-        return result
-
-    def __or__(self, other):
-        result = ResourcePool()
-        for rblock in self:
-            result.add(rblock)
-        for rblock in other:
-            result.add(rblock)
+                if rblock.channel != rblock_other.channel:
+                    continue
+                if rblock.band < rblock_other.band:
+                    continue
+                result.add(rblock)
         return result
 
 

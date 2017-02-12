@@ -297,13 +297,13 @@ class LVAPPConnection(object):
         RUNTIME.lvaps[sta] = lvap
 
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
-        requested = ResourcePool()
+        lvap.supported = ResourcePool()
         hwaddr = EtherAddress(request.hwaddr)
         channel = request.channel
         band = request.band
-        requested.add(ResourceBlock(wtp, hwaddr, channel, band))
+        lvap.supported.add(ResourceBlock(lvap, hwaddr, channel, band))
 
-        lvap.scheduled_on = wtp.supports & requested
+        lvap.scheduled_on = wtp.supports & lvap.supported
 
         LOG.info("Sending probe response to %s", lvap.addr)
         self.send_probe_response(lvap)
@@ -425,6 +425,13 @@ class LVAPPConnection(object):
         # this will trigger an add lvap message to update the ssid
         lvap.tenant = RUNTIME.load_tenant(tenant_name)
 
+        # update supported blocks field
+        lvap.supported = ResourcePool()
+        hwaddr = EtherAddress(request.hwaddr)
+        channel = request.channel
+        band = request.band
+        lvap.supported.add(ResourceBlock(lvap, hwaddr, channel, band))
+
         # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
 
@@ -501,8 +508,6 @@ class LVAPPConnection(object):
         set_mask = bool(status.flags.set_mask)
 
         lvap = None
-        hwaddr = EtherAddress(status.hwaddr)
-        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
         LOG.info("LVAP status update from %s", sta_addr)
 
@@ -518,10 +523,13 @@ class LVAPPConnection(object):
         lvap = RUNTIME.lvaps[sta_addr]
 
         # incoming block
-        pool = ResourcePool()
-        pool.add(block)
+        lvap.supported = ResourcePool()
+        hwaddr = EtherAddress(status.hwaddr)
+        channel = status.channel
+        band = status.band
+        lvap.supported.add(ResourceBlock(lvap, hwaddr, channel, band))
 
-        match = wtp.supports & pool
+        match = wtp.supports & lvap.supported
 
         if not match:
             LOG.error("Incoming block %s is invalid", block)
