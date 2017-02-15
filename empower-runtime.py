@@ -41,7 +41,7 @@ if __name__ == "__main__":
              'bin_counter.bin_counter',
              'wtp_bin_counter.wtp_bin_counter',
              'txp_bin_counter.txp_bin_counter',
-             'tenantscheduler.tenantscheduler',
+             #'tenantscheduler.tenantscheduler',
              'maps.ucqm',
              'maps.ncqm',
              'maps.busyness',

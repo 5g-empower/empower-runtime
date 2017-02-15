@@ -177,7 +177,7 @@ class LVAP(object):
         self.__ports = {}
 
         # downlink intent uuid
-        self.dl_intent = None
+        self.poa_uuid = None
 
         # supported resource blocks
         self.supported = ResourcePool()
@@ -204,16 +204,16 @@ class LVAP(object):
 
         # set/update intent
         intent = {'version': '1.0',
-                  'ttp_dpid': self.__ports[0].dpid,
-                  'ttp_port': self.__ports[0].ovs_port_id,
-                  'match': {'dl_dst': self.addr}}
+                  'dpid': self.__ports[0].dpid,
+                  'port': self.__ports[0].ovs_port_id,
+                  'hwaddr': self.addr}
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        if self.dl_intent:
-            intent_server.update_intent(self.dl_intent, intent)
+        if self.poa_uuid:
+            intent_server.update_poa(self.poa_uuid, intent)
         else:
-            self.dl_intent = intent_server.send_intent(intent)
+            self.poa_uuid = intent_server.add_poa(intent)
 
     @property
     def ports(self):
@@ -522,7 +522,8 @@ class LVAP(object):
 
         # remove intent
         if self.dl_intent:
-            intent_server.remove_intent(self.dl_intent)
+            intent_server = RUNTIME.components[IntentServer.__module__]
+            intent_server.remove_poa(self.poa_uuid)
 
     def clear_uplink(self):
         """ Clear all downlink blocks."""
