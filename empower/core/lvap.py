@@ -211,7 +211,7 @@ class LVAP(object):
         intent_server = RUNTIME.components[IntentServer.__module__]
 
         if self.poa_uuid:
-            intent_server.update_poa(self.poa_uuid, intent)
+            intent_server.update_poa(intent, self.poa_uuid)
         else:
             self.poa_uuid = intent_server.add_poa(intent)
 
@@ -521,7 +521,7 @@ class LVAP(object):
             del self._downlink[block]
 
         # remove intent
-        if self.dl_intent:
+        if self.poa_uuid:
             intent_server = RUNTIME.components[IntentServer.__module__]
             intent_server.remove_poa(self.poa_uuid)
 

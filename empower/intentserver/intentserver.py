@@ -114,8 +114,10 @@ class IntentServer(tornado.web.Application):
             ret = self.get_response(method, url, uuid, intent, headers)
 
             if ret[0] == 201:
+                print(ret)
                 url = urlparse(ret[2])
                 uuid = UUID(url.path.split("/")[-1])
+                print(uuid)
                 return uuid
 
             if ret[0] == 204:
@@ -131,15 +133,15 @@ class IntentServer(tornado.web.Application):
 
     def add_rule(self, intent):
 
-        self.send_intent(method="POST",
-                         url=self.intent_url_rules,
-                         intent=intent)
+        return self.send_intent(method="POST",
+                                url=self.intent_url_rules,
+                                intent=intent)
 
     def add_poa(self, intent):
 
-        self.send_intent(method="POST",
-                         url=self.intent_url_poa,
-                         intent=intent)
+        return self.send_intent(method="POST",
+                                url=self.intent_url_poa,
+                                intent=intent)
 
     def update_rule(self, intent, uuid):
 
