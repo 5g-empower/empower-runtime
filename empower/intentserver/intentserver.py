@@ -48,7 +48,8 @@ class IntentServer(tornado.web.Application):
         self.port = int(port)
         self.intent_host = "localhost"
         self.intent_port = 8080
-        self.intent_url = "/intent/rules"
+        self.intent_url_rules = "/intent/rules"
+        self.intent_url_poa = "/intent/poa"
 
         handlers = []
         for handler in self.handlers:
@@ -59,110 +60,68 @@ class IntentServer(tornado.web.Application):
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
 
-        self.get_intent()
-        self.remove_intent()
+        self.get_rule()
+        self.get_poa()
 
-    def get_intent(self, uuid=None):
-        """Remove intent."""
+        self.remove_rule()
+        self.remove_poa()
 
-        if uuid:
-            LOG.info("Fetching intent: %s", uuid)
+    def get_response(self, method, url, uuid=None, body=None, headers={}):
+        """Generic get intent."""
+
+        conn = http.client.HTTPConnection(self.intent_host, self.intent_port)
+        url = url + "/%s" % uuid if uuid else url
+
+        if body:
+            body = json.dumps(body, indent=4, cls=EmpowerEncoder)
+            LOG.info("Intent %s %s:\n%s", method, url, body)
         else:
-            LOG.info("Fetching intent: ALL")
+            LOG.info("Intent %s %s", method, url)
 
+        conn.request(method, url, body, headers)
+        response = conn.getresponse()
+        location = response.getheader("Location", None)
+        ret = (response.status, response.reason, location)
+        LOG.info("Result: %u %s", ret[0], ret[1])
+        conn.close()
+
+        return ret
+
+    def get_intent(self, url, uuid=None):
         try:
-
-            conn = \
-                http.client.HTTPConnection(self.intent_host, self.intent_port)
-
-            if uuid:
-                conn.request("GET", self.intent_url + "/%s" % uuid)
-            else:
-                conn.request("GET", self.intent_url)
-
-            response = conn.getresponse()
-
-            ret = (response.status, response.reason, response.read())
-
-            LOG.info("Result: %u %s", ret[0], ret[1])
-            conn.close()
-
+            self.get_response("GET", url, uuid)
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
-
         except Exception as ex:
             LOG.exception(ex)
 
-    def send_intent(self, intent):
+    def get_rule(self, uuid=None):
+        self.get_intent(self.intent_url_rules, uuid)
+
+    def get_poa(self, uuid=None):
+        self.get_intent(self.intent_url_poa, uuid)
+
+    def send_intent(self, method, url, intent, uuid=None):
         """Create new intent."""
-
-        body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
-
-        LOG.info("Creating intent:\n%s", body)
-
-        headers = {
-            'Content-type': 'application/json',
-            'Accept': 'application/json',
-        }
 
         try:
 
-            conn = \
-                http.client.HTTPConnection(self.intent_host, self.intent_port)
+            headers = {
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            }
 
-            conn.request("POST", self.intent_url, body, headers)
-            response = conn.getresponse()
-            conn.close()
-
-            ret = (response.status, response.reason, response.read())
+            ret = self.get_response(method, url, uuid, intent, headers)
 
             if ret[0] == 201:
-
-                location = response.getheader("Location", None)
-                url = urlparse(location)
+                print(ret)
+                url = urlparse(ret[2])
                 uuid = UUID(url.path.split("/")[-1])
-                LOG.info("Result: %u %s (%s)", ret[0], ret[1], uuid)
-
+                print(uuid)
                 return uuid
-
-            LOG.info("Result: %u %s", ret[0], ret[1])
-
-        except ConnectionRefusedError:
-            LOG.error("Intent interface not found")
-
-        except Exception as ex:
-            LOG.exception(ex)
-
-        return None
-
-    def update_intent(self, uuid, intent):
-        """Create new intent."""
-
-        body = json.dumps(intent, indent=4, cls=EmpowerEncoder)
-
-        LOG.info("Updating intent: %s\n%s", uuid, body)
-
-        headers = {
-            'Content-type': 'application/json',
-            'Accept': 'application/json',
-        }
-
-        try:
-
-            conn = \
-                http.client.HTTPConnection(self.intent_host, self.intent_port)
-
-            conn.request("PUT", self.intent_url + "/%s" % uuid, body, headers)
-            response = conn.getresponse()
-            conn.close()
-
-            ret = (response.status, response.reason, response.read())
 
             if ret[0] == 204:
-                LOG.info("Result: %u %s", ret[0], ret[1])
                 return uuid
-
-            LOG.info("Result: %u %s", ret[0], ret[1])
 
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
@@ -172,48 +131,58 @@ class IntentServer(tornado.web.Application):
 
         return None
 
-    def remove_intent(self, uuid=None):
+    def add_rule(self, intent):
+
+        return self.send_intent(method="POST",
+                                url=self.intent_url_rules,
+                                intent=intent)
+
+    def add_poa(self, intent):
+
+        return self.send_intent(method="POST",
+                                url=self.intent_url_poa,
+                                intent=intent)
+
+    def update_rule(self, intent, uuid):
+
+        self.send_intent(method="PUT",
+                         url=self.intent_url_rules,
+                         intent=intent,
+                         uuid=uuid)
+
+    def update_poa(self, intent, uuid):
+
+        self.send_intent(method="PUT",
+                         url=self.intent_url_poa,
+                         intent=intent,
+                         uuid=uuid)
+
+    def remove_intent(self, url, uuid=None):
         """Remove intent."""
 
-        if uuid:
-            LOG.info("Removing intent: %s", uuid)
-        else:
-            LOG.info("Removing intent: ALL")
-
         try:
-
-            conn = \
-                http.client.HTTPConnection(self.intent_host, self.intent_port)
-
-            if uuid:
-                conn.request("DELETE", self.intent_url + "/%s" % uuid)
-            else:
-                conn.request("DELETE", self.intent_url)
-
-            response = conn.getresponse()
-
-            ret = (response.status, response.reason, response.read())
-
-            LOG.info("Result: %u %s", ret[0], ret[1])
-            conn.close()
-
+            self.get_response("DELETE", url, uuid)
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
-
         except Exception as ex:
             LOG.exception(ex)
+
+    def remove_rule(self, uuid=None):
+        self.remove_intent(self.intent_url_rules, uuid)
+
+    def remove_poa(self, uuid=None):
+        self.remove_intent(self.intent_url_poa, uuid)
 
     def to_dict(self):
         """ Return a dict representation of the object. """
 
         return {'port': self.port,
                 'intent_host': self.intent_host,
-                'intent_port': self.intent_port,
-                'intent_url': self.intent_url}
+                'intent_port': self.intent_port}
 
 
 def launch(port=DEFAULT_PORT):
-    """Start the Energino Server Module."""
+    """Start the Intent Server Module."""
 
     server = IntentServer(port)
     LOG.info("Intent Server available at %u", server.port)
