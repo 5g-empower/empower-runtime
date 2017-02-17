@@ -81,10 +81,14 @@ class MobilityManager(EmpowerApp):
 
         self.log.info("Running handover...")
 
-        valid = self.blocks(lvap, self.limit)
+        pool = self.blocks()
+        matches = pool & lvap.supported
 
-        if not valid:
+        if not matches:
             return
+
+        valid = [block for block in matches
+                 if block.ucqm[lvap.addr]['mov_rssi'] >= limit]
 
         new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
         self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
