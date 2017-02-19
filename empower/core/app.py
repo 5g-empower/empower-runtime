@@ -27,66 +27,6 @@ from empower.main import RUNTIME
 DEFAULT_PERIOD = 5000
 
 
-class EmpowerBaseApp(object):
-    """EmpowerApp base app class."""
-
-    def __init__(self, **kwargs):
-
-        self.__every = DEFAULT_PERIOD
-        self.app_name = self.__module__.split(".")[-1]
-        self.params = []
-        self.log = empower.logger.get_logger()
-        self.worker = None
-
-        for param in kwargs:
-            if hasattr(self, param):
-                setattr(self, param, kwargs[param])
-                self.params.append(param)
-
-    @property
-    def every(self):
-        """Return loop period."""
-
-        return self.__every
-
-    @every.setter
-    def every(self, value):
-        """Set loop period."""
-
-        self.log.info("Setting control loop interval to %ums", int(value))
-        self.__every = int(value)
-
-    def start(self):
-        """Start control loop."""
-
-        self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
-        self.worker.start()
-
-    def stop(self):
-        """Stop control loop."""
-
-        self.worker.stop()
-
-    def to_dict(self):
-        """Return JSON-serializable representation of the object."""
-
-        params = {}
-
-        params['app_name'] = self.app_name
-        params['ui_url'] = "/apps/%s/" % self.app_name
-        params['params'] = self.params
-
-        for param in self.params:
-            params[param] = getattr(self, param)
-
-        return params
-
-    def loop(self):
-        """Control loop."""
-
-        pass
-
-
 class EmpowerApp(object):
     """EmpowerApp base app class."""
 

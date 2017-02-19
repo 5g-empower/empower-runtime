@@ -915,8 +915,9 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=46,
+                             length=48,
                              seq=self.wtp.seq,
+                             group=lvap.group,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
                              hwaddr=block.hwaddr.to_raw(),

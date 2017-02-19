@@ -19,16 +19,50 @@
 
 import time
 
+from construct import UBInt8
+from construct import Bytes
+from construct import Sequence
+from construct import Container
+from construct import Struct
+from construct import UBInt16
+from construct import UBInt32
+from construct import Array
+
+from empower.lvapp import PT_VERSION
+from empower.datatypes.etheraddress import EtherAddress
+from empower.lvapp.lvappserver import LVAPPServer
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import Module
 from empower.core.app import EmpowerApp
-from empower.wtp_bin_counter import PT_WTP_STATS_RESPONSE
-from empower.wtp_bin_counter import WTP_STATS_RESPONSE
-from empower.wtp_bin_counter import send_stats_request
-from empower.wtp_bin_counter import parse_stats_response
 
 from empower.main import RUNTIME
+
+
+PT_WTP_STATS_REQUEST = 0x41
+PT_WTP_STATS_RESPONSE = 0x42
+
+WTP_STATS = Sequence("stats",
+                     Bytes("lvap", 6),
+                     UBInt16("bytes"),
+                     UBInt32("count"))
+
+WTP_STATS_REQUEST = Struct("stats_request", UBInt8("version"),
+                           UBInt8("type"),
+                           UBInt32("length"),
+                           UBInt32("seq"),
+                           UBInt32("module_id"))
+
+WTP_STATS_RESPONSE = \
+    Struct("stats_response", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           UBInt32("module_id"),
+           Bytes("wtp", 6),
+           UBInt16("nb_tx"),
+           UBInt16("nb_rx"),
+           Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, WTP_STATS))
 
 
 class WTPBinCounter(Module):
@@ -161,7 +195,18 @@ class WTPBinCounter(Module):
         self.log.info("Sending %s request to %s (id=%u)",
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
-        send_stats_request(wtp, self.module_id)
+        if not wtp.connection or wtp.connection.stream.closed():
+            self.log.info("WTP %s not connected", lvap.wtp.addr)
+            return
+
+        stats_req = Container(version=PT_VERSION,
+                              type=PT_WTP_STATS_REQUEST,
+                              length=14,
+                              seq=wtp.seq,
+                              module_id=self.module_id)
+
+        msg = WTP_STATS_REQUEST.build(stats_req)
+        wtp.connection.stream.write(msg)
 
     def update_stats(self, delta, last, current):
         """Update stats."""
@@ -181,6 +226,68 @@ class WTPBinCounter(Module):
 
         return stats
 
+    def fill_packets_sample(self, values):
+
+        out = {}
+
+        for value in values:
+            lvap = EtherAddress(value[0])
+            if lvap not in out:
+                out[lvap] = []
+            out[lvap].append([value[1], value[2]])
+
+        for lvap in out.keys():
+
+            data = out[lvap]
+
+            samples = sorted(data, key=lambda entry: entry[0])
+            new_out = [0] * len(self.bins)
+
+            for entry in samples:
+                if len(entry) == 0:
+                    continue
+                size = entry[0]
+                count = entry[1]
+                for i in range(0, len(self.bins)):
+                    if size <= self.bins[i]:
+                        new_out[i] = new_out[i] + count
+                        break
+
+            out[lvap] = new_out
+
+        return out
+
+    def fill_bytes_sample(self, values):
+
+        out = {}
+
+        for value in values:
+            lvap = EtherAddress(value[0])
+            if lvap not in out:
+                out[lvap] = []
+            out[lvap].append([value[1], value[2]])
+
+        for lvap in out.keys():
+
+            data = out[lvap]
+
+            samples = sorted(data, key=lambda entry: entry[0])
+            new_out = [0] * len(self.bins)
+
+            for entry in samples:
+                if len(entry) == 0:
+                    continue
+                size = entry[0]
+                count = entry[1]
+                for i in range(0, len(self.bins)):
+                    if size <= self.bins[i]:
+                        new_out[i] = new_out[i] + size * count
+                        break
+
+            out[lvap] = new_out
+
+        return out
+
     def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.
         Args:
@@ -189,7 +296,8 @@ class WTPBinCounter(Module):
             None
         """
 
-        parsed = parse_stats_response(response, self.bins)
+        tx_samples = response.stats[0:response.nb_tx]
+        rx_samples = response.stats[response.nb_tx:-1]
 
         old_tx_bytes = self.tx_bytes
         old_rx_bytes = self.rx_bytes
@@ -197,11 +305,11 @@ class WTPBinCounter(Module):
         old_tx_packets = self.tx_packets
         old_rx_packets = self.rx_packets
 
-        self.tx_bytes = parsed['tx_bytes']
-        self.rx_bytes = parsed['rx_bytes']
+        self.tx_bytes = self.fill_bytes_sample(tx_samples)
+        self.rx_bytes = self.fill_bytes_sample(rx_samples)
 
-        self.tx_packets = parsed['tx_packets']
-        self.rx_packets = parsed['rx_packets']
+        self.tx_packets = self.fill_packets_sample(tx_samples)
+        self.rx_packets = self.fill_packets_sample(rx_samples)
 
         if self.last:
             delta = time.time() - self.last

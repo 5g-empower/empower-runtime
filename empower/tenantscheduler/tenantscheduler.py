@@ -17,25 +17,156 @@
 
 """Tenant scheduler."""
 
-from empower.core.app import EmpowerBaseApp
-from empower.wtp_bin_counter import send_stats_request
-from empower.wtp_bin_counter import parse_stats_response
-from empower.wtp_bin_counter import register_callback
-from empower.wtp_bin_counter import get_module_id
+import json
+import tornado
+
+from construct import UBInt8
+from construct import Bytes
+from construct import Sequence
+from construct import Container
+from construct import Struct
+from construct import UBInt16
+from construct import UBInt32
+from construct import Array
+
+import empower.logger
+
+from empower.lvapp import PT_VERSION
+from empower.wtp_bin_counter.wtp_bin_counter import WTP_STATS_REQUEST
+from empower.wtp_bin_counter.wtp_bin_counter import PT_WTP_STATS_RESPONSE
+from empower.wtp_bin_counter.wtp_bin_counter import PT_WTP_STATS_REQUEST
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.datatypes.etheraddress import EtherAddress
 
 from empower.main import RUNTIME
 
 DEFAULT_PERIOD = 5000
 
 
-class TenantScheduler(EmpowerBaseApp):
+def send_stats_request(wtp, module_id=0):
+    """Send stats request to specified WTP."""
+
+    if not wtp.connection or wtp.connection.stream.closed():
+        return
+
+    stats_req = Container(version=PT_VERSION,
+                          type=PT_WTP_STATS_REQUEST,
+                          length=14,
+                          seq=wtp.seq,
+                          module_id=module_id)
+
+    msg = WTP_STATS_REQUEST.build(stats_req)
+    wtp.connection.stream.write(msg)
+
+
+def parse_stats_response(response, bins=[8192]):
+    """Parse stats response messge into the specified bins."""
+
+    tx_samples = response.stats[0:response.nb_tx]
+    rx_samples = response.stats[response.nb_tx:-1]
+
+    out = {}
+
+    out['wtp'] = EtherAddress(response.wtp)
+    out['module_id'] = response.module_id
+    out['tx_packets'] = fill_packets_sample(tx_samples, bins)
+    out['rx_packets'] = fill_packets_sample(rx_samples, bins)
+    out['tx_bytes'] = fill_bytes_sample(tx_samples, bins)
+    out['rx_bytes'] = fill_bytes_sample(rx_samples, bins)
+
+    return out
+
+
+def fill_packets_sample(values, bins):
+
+    out = {}
+
+    for value in values:
+        lvap = EtherAddress(value[0])
+        if lvap not in out:
+            out[lvap] = []
+        out[lvap].append([value[1], value[2]])
+
+    for lvap in out.keys():
+
+        data = out[lvap]
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        new_out = [0] * len(bins)
+
+        for entry in samples:
+            if len(entry) == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(bins)):
+                if size <= bins[i]:
+                    new_out[i] = new_out[i] + count
+                    break
+
+        out[lvap] = new_out
+
+    return out
+
+
+def fill_bytes_sample(values, bins):
+
+    out = {}
+
+    for value in values:
+        lvap = EtherAddress(value[0])
+        if lvap not in out:
+            out[lvap] = []
+        out[lvap].append([value[1], value[2]])
+
+    for lvap in out.keys():
+
+        data = out[lvap]
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        new_out = [0] * len(bins)
+
+        for entry in samples:
+            if len(entry) == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(bins)):
+                if size <= bins[i]:
+                    new_out[i] = new_out[i] + size * count
+                    break
+
+        out[lvap] = new_out
+
+    return out
+
+
+class TenantScheduler():
     """Tenant Scheduler."""
 
-    def __init__(self, **kwargs):
-        EmpowerBaseApp.__init__(self, **kwargs)
+    def __init__(self, every=DEFAULT_PERIOD):
 
+        self.every = every
+        self.log = empower.logger.get_logger()
+        self.__worker = None
+        self.wtp_bin_counter_module_id = 1
         self.wtps = {}
-        self.module_id = get_module_id()
+
+    def start(self):
+        """Start control loop."""
+
+        self.__worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
+        self.__worker.start()
+
+    def stop(self):
+        """Stop control loop."""
+
+        self.__worker.stop()
+
+    def loop(self):
+        """Control loop."""
+
+        pass
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Stats """
@@ -53,52 +184,30 @@ class TenantScheduler(EmpowerBaseApp):
     def loop(self):
         """Periodic job."""
 
+        self.log.info("Running tenants scheduler...")
+
         for tenant in RUNTIME.tenants.values():
             for wtp in tenant.wtps.values():
-                send_stats_request(wtp, self.module_id)
+                send_stats_request(wtp, self.wtp_bin_counter_module_id)
 
-    def fill_samples(self, parsed, field):
-
-        wtp_addr = parsed['wtp']
-
-        if wtp_addr not in self.wtps:
-            self.wtps[wtp_addr] = {}
-
-        for lvap_addr in parsed[field]:
-
-            lvap = RUNTIME.lvaps[lvap_addr]
-
-            if not lvap.tenant:
-                continue
-
-            tenant_id = lvap.tenant.tenant_id
-
-            if tenant_id not in self.wtps[wtp_addr]:
-                self.wtps[wtp_addr][tenant_id] = {}
-
-            if field not in self.wtps[wtp_addr][tenant_id]:
-                self.wtps[wtp_addr][tenant_id][field] = 0
-
-            self.wtps[wtp_addr][tenant_id][field] += \
-                parsed[field][lvap_addr][0]
-
-    def handle_stats(self, stats):
+    def handle_stats_response(self, stats):
         """Handle wtp bin counter response."""
 
         parsed = parse_stats_response(stats)
 
-        if parsed['module_id'] != self.module_id:
+        if parsed['module_id'] != self.wtp_bin_counter_module_id:
             return
 
-        self.fill_samples(parsed, 'tx_bytes')
-        self.fill_samples(parsed, 'rx_bytes')
-        self.fill_samples(parsed, 'tx_packets')
-        self.fill_samples(parsed, 'rx_packets')
+        self.log.info("Got stats response")
 
 
 def launch(every=DEFAULT_PERIOD):
     """Start the Energino Server Module."""
 
     sched = TenantScheduler(every=every)
-    register_callback(sched.handle_stats)
+
+    lvapp_server = RUNTIME.components[LVAPPServer.__module__]
+    lvapp_server.register_message_handler(PT_WTP_STATS_RESPONSE,
+                                          sched.handle_stats_response)
+
     return sched

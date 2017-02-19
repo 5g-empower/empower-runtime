@@ -153,6 +153,7 @@ class LVAP(object):
         # change to the agent
         self._ssids = []
         self._encap = None
+        self._group = 6000
 
         # the following parameters can be updated by both agent and
         # controller. The controller sets them when a client successfully
@@ -231,6 +232,22 @@ class LVAP(object):
         for port in self.uplink.values():
             port.block.radio.connection.send_add_lvap(port.lvap, port.block,
                                                       self.uplink.SET_MASK)
+
+    @property
+    def group(self):
+        """Get the group."""
+
+        return self._group
+
+    @group.setter
+    def group(self, group):
+        """ Set the group. """
+
+        if self._group == group:
+            return
+
+        self._group = group
+        self.refresh_lvap()
 
     @property
     def encap(self):
