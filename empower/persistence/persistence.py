@@ -36,13 +36,13 @@ class UUID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 16
+        self.impl.length = 36
         TypeDecorator.__init__(self, length=self.impl.length)
 
     def process_bind_param(self, value, dialect=None):
 
         if value and isinstance(value, uuid.UUID):
-            return value.bytes
+            return str(value)
         elif value and not isinstance(value, uuid.UUID):
             raise ValueError('value %s is not a valid uuid.UUID' % value)
         else:
@@ -51,7 +51,7 @@ class UUID(TypeDecorator):
     def process_result_value(self, value, dialect=None):
 
         if value:
-            return uuid.UUID(bytes=value)
+            return uuid.UUID(value)
         else:
             return None
 
@@ -71,7 +71,7 @@ class EtherAddress(TypeDecorator):
     def process_bind_param(self, value, dialect=None):
 
         if value and isinstance(value, etheraddress.EtherAddress):
-            return value.to_raw()
+            return value.to_str()
         elif value and not isinstance(value, etheraddress.EtherAddress):
             raise ValueError('value %s is not a valid EtherAddress' % value)
         else:
@@ -100,7 +100,7 @@ class SSID(TypeDecorator):
     def process_bind_param(self, value, dialect=None):
 
         if value and isinstance(value, ssid.SSID):
-            return value.to_raw()
+            return value.to_str()
         elif value and not isinstance(value, ssid.SSID):
             raise ValueError('value %s is not a valid SSID' % value)
         else:
