@@ -194,7 +194,9 @@ SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("tx_mcast"),
                   UBInt8("ur_mcast_count"),
                   UBInt8("nb_mcses"),
-                  Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
+                  UBInt8("nb_ht_mcses"),
+                  Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+                  Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
 STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("type"),
@@ -211,7 +213,9 @@ STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("tx_mcast"),
                      UBInt8("ur_mcast_count"),
                      UBInt8("nb_mcses"),
-                     Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
+                     UBInt8("nb_ht_mcses"),
+                     Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+                     Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
 ADD_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("type"),

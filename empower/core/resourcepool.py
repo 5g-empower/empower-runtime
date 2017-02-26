@@ -91,6 +91,7 @@ class TxPolicy(object):
         self._rts_cts = 2436
         self._mcast = TX_MCAST_LEGACY
         self._mcs = block.supports
+        self._ht_mcs = block.ht_supports
         self._ur_count = 3
 
     def to_dict(self):
@@ -100,15 +101,18 @@ class TxPolicy(object):
                 'rts_cts': self.rts_cts,
                 'mcast': TX_MCAST[self.mcast],
                 'mcs': self.mcs,
+                'ht_mcs': self.ht_mcs,
                 'ur_count': self.ur_count}
 
     def __repr__(self):
 
         mcs = ", ".join([str(x) for x in self.mcs])
+        ht_mcs = ", ".join([str(x) for x in self.ht_mcs])
 
-        return "%s no_ack %s rts_cts %u mcast %s mcs %s ur_count %u" % \
+        return \
+            "%s no_ack %s rts_cts %u mcast %s mcs %s ht_mcs %s ur_count %u" % \
             (self.addr, self.no_ack, self.rts_cts, TX_MCAST[self.mcast],
-             mcs, self.ur_count)
+             mcs, ht_mcs, self.ur_count)
 
     @property
     def ur_count(self):
@@ -152,6 +156,23 @@ class TxPolicy(object):
 
         if not self._mcs:
             self._mcs = self.block.supports
+
+        self.block.radio.connection.send_set_port(self)
+
+    @property
+    def ht_mcs(self):
+        """ Get set of HT MCS. """
+
+        return self._ht_mcs
+
+    @ht_mcs.setter
+    def ht_mcs(self, ht_mcs):
+        """ Set the list of MCS. """
+
+        self._ht_mcs = self.block.supports & set(ht_mcs)
+
+        if not self._ht_mcs:
+            self._ht_mcs = self.block.ht_supports
 
         self.block.radio.connection.send_set_port(self)
 

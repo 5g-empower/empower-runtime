@@ -636,6 +636,7 @@ class LVAPPConnection(object):
         tx_policy = block.tx_policies[sta_addr]
 
         tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
+        tx_policy._ht_mcs = set([int(x) for x in status.ht_mcs])
         tx_policy._rts_cts = int(status.rts_cts)
         tx_policy._mcast = int(status.tx_mcast)
         tx_policy._ur_count = int(status.ur_mcast_count)
@@ -873,10 +874,11 @@ class LVAPPConnection(object):
 
         flags = Container(no_ack=tx_policy.no_ack)
         rates = sorted([int(x * 2) for x in tx_policy.mcs])
+        ht_rates = sorted([int(x) for x in tx_policy.ht_mcs])
 
         set_port = Container(version=PT_VERSION,
                              type=PT_SET_PORT,
-                             length=31 + len(rates),
+                             length=32 + len(rates) + len(ht_rates),
                              seq=self.wtp.seq,
                              flags=flags,
                              sta=tx_policy.addr.to_raw(),
@@ -887,7 +889,9 @@ class LVAPPConnection(object):
                              tx_mcast=tx_policy.mcast,
                              ur_mcast_count=tx_policy.ur_count,
                              nb_mcses=len(rates),
-                             mcs=rates)
+                             nb_ht_mcses=len(ht_rates),
+                             mcs=rates,
+                             ht_mcs=ht_rates)
 
         LOG.info("Set tx policy %s", tx_policy)
 
