@@ -59,7 +59,7 @@ from empower.main import RUNTIME
 import empower.logger
 LOG = empower.logger.get_logger()
 
-BASE_MAC = EtherAddress("00:1b:b3:00:00:00")
+BASE_MAC = EtherAddress("02:ca:fe:00:00:00")
 
 
 class LVAPPConnection(object):
