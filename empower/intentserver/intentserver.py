@@ -48,7 +48,7 @@ class IntentServer(tornado.web.Application):
         self.port = int(port)
         self.intent_host = "localhost"
         self.intent_port = 8080
-        self.ntent_url_rules = "/intent/rules"
+        self.intent_url_rules = "/intent/rules"
         self.intent_url_poa = "/intent/poa"
 
         handlers = []
