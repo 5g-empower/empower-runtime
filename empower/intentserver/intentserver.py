@@ -48,7 +48,7 @@ class IntentServer(tornado.web.Application):
         self.port = int(port)
         self.intent_host = "localhost"
         self.intent_port = 8080
-        self.intent_url_rules = "/intent/rules"
+        self.ntent_url_rules = "/intent/rules"
         self.intent_url_poa = "/intent/poa"
 
         handlers = []
@@ -66,14 +66,19 @@ class IntentServer(tornado.web.Application):
         self.remove_rule()
         self.remove_poa()
 
-    def get_response(self, method, url, uuid=None, body=None, headers={}):
+    def __get_response(self, method, url, uuid=None, body=None):
         """Generic get intent."""
 
         conn = http.client.HTTPConnection(self.intent_host, self.intent_port)
         url = url + "/%s" % uuid if uuid else url
+        headers = {}
 
         if body:
             body = json.dumps(body, indent=4, cls=EmpowerEncoder)
+            headers = {
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            }
             LOG.info("Intent %s %s:\n%s", method, url, body)
         else:
             LOG.info("Intent %s %s", method, url)
@@ -87,91 +92,75 @@ class IntentServer(tornado.web.Application):
 
         return ret
 
-    def get_intent(self, url, uuid=None):
+    def __get_intent(self, url, uuid=None):
         try:
-            self.get_response("GET", url, uuid)
+            self.__get_response("GET", url, uuid)
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
         except Exception as ex:
             LOG.exception(ex)
 
     def get_rule(self, uuid=None):
-        self.get_intent(self.intent_url_rules, uuid)
+        self.__get_intent(self.intent_url_rules, uuid)
 
     def get_poa(self, uuid=None):
-        self.get_intent(self.intent_url_poa, uuid)
+        self.__get_intent(self.intent_url_poa, uuid)
 
-    def send_intent(self, method, url, intent, uuid=None):
+    def __send_intent(self, method, url, intent, uuid=None):
         """Create new intent."""
 
         try:
-
-            headers = {
-                'Content-type': 'application/json',
-                'Accept': 'application/json',
-            }
-
-            ret = self.get_response(method, url, uuid, intent, headers)
-
+            ret = self.__get_response(method, url, uuid, intent, headers)
             if ret[0] == 201:
-                print(ret)
                 url = urlparse(ret[2])
                 uuid = UUID(url.path.split("/")[-1])
-                print(uuid)
                 return uuid
-
             if ret[0] == 204:
                 return uuid
-
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
-
         except Exception as ex:
             LOG.exception(ex)
 
         return None
 
     def add_rule(self, intent):
-
-        return self.send_intent(method="POST",
-                                url=self.intent_url_rules,
-                                intent=intent)
+        return self.__send_intent(method="POST",
+                                  url=self.intent_url_rules,
+                                  intent=intent)
 
     def add_poa(self, intent):
-
-        return self.send_intent(method="POST",
-                                url=self.intent_url_poa,
-                                intent=intent)
+        return self.__send_intent(method="POST",
+                                  url=self.intent_url_poa,
+                                  intent=intent)
 
     def update_rule(self, intent, uuid):
-
-        self.send_intent(method="PUT",
-                         url=self.intent_url_rules,
-                         intent=intent,
-                         uuid=uuid)
+        self.__send_intent(method="PUT",
+                           url=self.intent_url_rules,
+                           intent=intent,
+                           uuid=uuid)
 
     def update_poa(self, intent, uuid):
+        self.__send_intent(method="PUT",
+                           url=self.intent_url_poa,
+                           intent=intent,
+                           uuid=uuid)
 
-        self.send_intent(method="PUT",
-                         url=self.intent_url_poa,
-                         intent=intent,
-                         uuid=uuid)
-
-    def remove_intent(self, url, uuid=None):
+    def __remove_intent(self, url, uuid=None):
         """Remove intent."""
 
         try:
-            self.get_response("DELETE", url, uuid)
+            self.__get_response("DELETE", url, uuid)
         except ConnectionRefusedError:
             LOG.error("Intent interface not found")
         except Exception as ex:
             LOG.exception(ex)
 
     def remove_rule(self, uuid=None):
-        self.remove_intent(self.intent_url_rules, uuid)
+        self.__remove_intent(self.intent_url_rules, uuid)
 
     def remove_poa(self, uuid=None):
-        self.remove_intent(self.intent_url_poa, uuid)
+        self.__remove_intent(self.intent_url_poa, uuid)
 
     def to_dict(self):
         """ Return a dict representation of the object. """
