@@ -110,7 +110,7 @@ class IntentServer(tornado.web.Application):
         """Create new intent."""
 
         try:
-            ret = self.__get_response(method, url, uuid, intent, headers)
+            ret = self.__get_response(method, url, uuid, intent)
             if ret[0] == 201:
                 url = urlparse(ret[2])
                 uuid = UUID(url.path.split("/")[-1])
