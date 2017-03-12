@@ -162,6 +162,14 @@ class CQMLinks(Module):
 
             addr = EtherAddress(entry[0])
 
+            if addr not in RUNTIME.lvaps:
+                continue
+
+            lvap = RUNTIME.lvaps[addr]
+
+            if not lvap.tenant or lvap.tenant.tenant_id != self.tenant_id:
+                continue
+
             value = {'addr': addr,
                      'p_pdr': entry[1] / 180.0,
                      'last_rssi_avg': entry[2] / 180.0}
