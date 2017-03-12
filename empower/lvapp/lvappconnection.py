@@ -181,9 +181,9 @@ class LVAPPConnection(object):
                 handler = getattr(self, handler_name)
                 handler(wtp, msg)
 
-        if msg_type in self.server.pt_types_handlers:
-            for handler in self.server.pt_types_handlers[msg_type]:
-                handler(msg)
+            if msg_type in self.server.pt_types_handlers:
+                for handler in self.server.pt_types_handlers[msg_type]:
+                    handler(msg)
 
     def _handle_hello(self, wtp, hello):
         """Handle an incoming HELLO message.
