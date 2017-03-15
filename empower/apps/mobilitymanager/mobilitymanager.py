@@ -88,7 +88,10 @@ class MobilityManager(EmpowerApp):
             return
 
         valid = [block for block in matches
-                 if block.ucqm[lvap.addr]['mov_rssi'] >= limit]
+                 if block.ucqm[lvap.addr]['mov_rssi'] >= self.limit]
+
+        if not valid:
+            return
 
         new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
         self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
