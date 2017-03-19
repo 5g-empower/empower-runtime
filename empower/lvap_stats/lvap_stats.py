@@ -30,7 +30,7 @@ from construct import Padding
 from construct import Bit
 
 from empower.core.resourcepool import BT_L20
-from empower.core.lvap import LVAP
+from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import Module
@@ -161,7 +161,7 @@ class LVAPStats(Module):
                 rate = entry[0] / 2.0
             else:
                 rate = entry[0]
-            self.rates[rate] = {'prob': entry[2] / 180.0, 
+            self.rates[rate] = {'prob': entry[2] / 180.0,
                                 'cur_prob': entry[3] / 180.0, }
 
         # call callback
@@ -184,10 +184,9 @@ def bound_lvap_stats(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['lvap'] = self.addr
     return lvap_stats(**kwargs)
 
-setattr(LVAP, LVAPStats.MODULE_NAME, bound_lvap_stats)
+setattr(EmpowerApp, LVAPStats.MODULE_NAME, bound_lvap_stats)
 
 
 def launch():

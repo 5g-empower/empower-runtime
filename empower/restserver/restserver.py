@@ -329,7 +329,9 @@ class DenyHandler(ACLHandler):
 
 class IMSI2MACHandler(EmpowerAPIHandler):
 
-    """IMSI to MAC address handler. Used to view and manipulate the IMSI to MAC mappings."""
+    """IMSI to MAC address handler.
+
+    Used to view and manipulate the IMSI to MAC mappings."""
 
     HANDLERS = [r"/api/v1/imsi2mac/?",
                 r"/api/v1/imsi2mac/([0-9]*)/?"]
@@ -413,7 +415,8 @@ class IMSI2MACHandler(EmpowerAPIHandler):
             func = getattr(RUNTIME, 'add_imsi2mac')
             func(int(request['imsi']), EtherAddress(request['addr']))
 
-            self.set_header("Location", "/api/v1/imsi2mac/%s" % request['imsi'])
+            self.set_header("Location",
+                            "/api/v1/imsi2mac/%s" % request['imsi'])
 
         except KeyError as ex:
             self.send_error(404, message=ex)
@@ -1290,22 +1293,6 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
-    handlers = [BaseHandler,
-                EmpowerAppHomeHandler,
-                RequestTenantHandler,
-                ProfileHandler,
-                AuthLoginHandler,
-                AuthLogoutHandler,
-                ManageTenantHandler,
-                AccountsHandler,
-                ComponentsHandler,
-                TenantComponentsHandler,
-                PendingTenantHandler,
-                TenantHandler,
-                AllowHandler,
-                DenyHandler,
-                IMSI2MACHandler]
-
     parms = {
         "template_path": settings.TEMPLATE_PATH,
         "static_path": settings.STATIC_PATH,
@@ -1320,13 +1307,7 @@ class RESTServer(tornado.web.Application):
         self.cert = cert
         self.key = key
 
-        handlers = []
-
-        for handler in self.handlers:
-            for url in handler.HANDLERS:
-                handlers.append((url, handler))
-
-        tornado.web.Application.__init__(self, handlers, **self.parms)
+        tornado.web.Application.__init__(self, [], **self.parms)
 
         if not cert or not key:
             http_server = tornado.httpserver.HTTPServer(self)
@@ -1337,6 +1318,17 @@ class RESTServer(tornado.web.Application):
             })
 
         http_server.listen(self.port)
+
+        handler_classes = [BaseHandler, EmpowerAppHomeHandler,
+                           RequestTenantHandler, ProfileHandler,
+                           AuthLoginHandler, AuthLogoutHandler,
+                           ManageTenantHandler, AccountsHandler,
+                           ComponentsHandler, TenantComponentsHandler,
+                           PendingTenantHandler, TenantHandler,
+                           AllowHandler, DenyHandler, IMSI2MACHandler]
+
+        for handler_class in handler_classes:
+            self.add_handler_class(handler_class, http_server)
 
     def add_handler_class(self, handler_class, server):
         """Add a new handler class."""

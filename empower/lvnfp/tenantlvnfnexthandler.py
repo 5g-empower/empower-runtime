@@ -28,8 +28,10 @@ from empower.main import RUNTIME
 class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant/LVNF/Port/Next Handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/" +
-                "lvnfs/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvnfs" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvnfs" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
 
     def initialize(self, server):
         self.server = server
