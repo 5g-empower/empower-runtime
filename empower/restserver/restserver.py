@@ -95,7 +95,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     error=error)
 
 
-class EmpowerAppHomeHandler(tornado.web.RequestHandler):
+class EmpowerAppHomeHandler(BaseHandler):
     """Web UI Handler.
 
     Templates must be put in the /templates/<app name>/ sub-directory. Static
