@@ -106,7 +106,10 @@ ASSOC_REQUEST = \
            Bytes("wtp", 6),
            Bytes("sta", 6),
            Bytes("bssid", 6),
-           Bytes("ssid", lambda ctx: ctx.length - 28))
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           Bytes("ssid", lambda ctx: ctx.length - 36))
 
 ASSOC_RESPONSE = Struct("assoc_response", UBInt8("version"),
                         UBInt8("type"),
@@ -118,6 +121,7 @@ ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   UBInt8("type"),
                   UBInt32("length"),
                   UBInt32("seq"),
+                  UBInt16("group"),
                   BitStruct("flags", Padding(13),
                             Bit("set_mask"),
                             Bit("associated"),
@@ -190,7 +194,9 @@ SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("tx_mcast"),
                   UBInt8("ur_mcast_count"),
                   UBInt8("nb_mcses"),
-                  Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
+                  UBInt8("nb_ht_mcses"),
+                  Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+                  Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
 STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("type"),
@@ -207,7 +213,9 @@ STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("tx_mcast"),
                      UBInt8("ur_mcast_count"),
                      UBInt8("nb_mcses"),
-                     Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")))
+                     UBInt8("nb_ht_mcses"),
+                     Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+                     Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
 ADD_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("type"),

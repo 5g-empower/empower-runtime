@@ -148,21 +148,10 @@ class EmpowerApp(object):
         # Update the Resource Pool with all
         # the available Resourse Blocks
         for wtp in self.wtps():
-            pool = pool | wtp.supports
+            for block in wtp.supports:
+                pool.add(block)
 
-        if lvap:
-
-            # Select matching Resource Blocks
-            matches = pool & lvap.scheduled_on
-
-            if limit:
-                # Filter Resource Blocks by RSSI
-                return [block for block in matches
-                        if block.ucqm[lvap.addr]['mov_rssi'] >= limit]
-
-            return list(matches)
-
-        return list(pool)
+        return pool
 
     def wtps(self):
         """Return WTPs in this tenant."""

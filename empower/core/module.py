@@ -88,6 +88,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
 
             if len(args) > 2 or len(args) < 1:
                 raise ValueError("Invalid URL")
+
             tenant_id = UUID(args[0])
 
             resp = {k: v for k, v in self.server.modules.items()
@@ -98,6 +99,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
             else:
                 module_id = int(args[1])
                 self.write_as_json(resp[module_id])
+
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
@@ -172,8 +174,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
             module = self.server.modules[module_id]
 
             if module.tenant_id != tenant_id:
-                raise KeyError("Module %u not in tenant %s" % (module_id,
-                                                               tenant_id))
+                raise KeyError("Module %u not found" % module_id)
 
             module.unload()
 
@@ -209,11 +210,6 @@ class Module(object):
         self.__callback = None
         self.__periodic = None
         self.log = empower.logger.get_logger()
-
-    def cleanup(self):
-        """Perform cleaup operation prior to module deletion."""
-
-        pass
 
     def unload(self):
         """Remove this module."""
@@ -516,10 +512,6 @@ class ModuleWorker(object):
                 raise ValueError("Invalid param %s" % arg)
             setattr(module, arg, kwargs[arg])
 
-        # check if tenant is available
-        if module.tenant_id not in RUNTIME.tenants:
-            raise KeyError("tenant %s not defined" % module.tenant_id)
-
         # check if an equivalent module has already been defined in the tenant
         for val in self.modules.values():
             # if so return a reference to that trigger
@@ -543,13 +535,13 @@ class ModuleWorker(object):
         """Remove a module.
 
         Args:
-            tenant_id, the tenant id
+            module_id, the tenant id
 
         Returns:
             None
 
         Raises:
-            KeyError, if tenant_id is not found
+            KeyError, if module_id is not found
         """
 
         if module_id not in self.modules:
@@ -563,8 +555,6 @@ class ModuleWorker(object):
 
         if module.every >= 0:
             module.stop()
-
-        module.cleanup()
 
         del self.modules[module_id]
 

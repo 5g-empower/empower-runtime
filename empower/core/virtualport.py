@@ -144,7 +144,7 @@ class VirtualPortProp(dict):
         # remove virtual links
         if key in self.__uuids__:
             for uuid in self.__uuids__[key]:
-                intent_server.remove_intent(uuid)
+                intent_server.remove_rule(uuid)
             del self.__uuids__[key]
 
         # remove old entry
@@ -187,7 +187,7 @@ class VirtualPortPropLvap(VirtualPortProp):
                       'match': ofmatch_s2d(key)}
 
             # add new virtual link
-            uuid = intent_server.send_intent(intent)
+            uuid = intent_server.add_rule(intent)
             self.__uuids__[key].append(uuid)
 
             # add entry
@@ -220,7 +220,7 @@ class VirtualPortPropLvnf(VirtualPortProp):
                   'match': ofmatch_s2d(key)}
 
         # add new virtual link
-        uuid = intent_server.send_intent(intent)
+        uuid = intent_server.add_rule(intent)
         self.__uuids__[key].append(uuid)
 
         # add entry

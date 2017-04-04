@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
+# Copyright (c) 2016 Roberto Riggio, Estefania Coronado
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,5 +42,7 @@ def generate_bssid(base_mac, sta_mac):
     """ Generate a new BSSID address. """
 
     base = str(base_mac).split(":")[0:3]
+    unicast_addr_mask = int(base[0], 16) & 0xFE
+    base[0] = str(format(unicast_addr_mask, 'X'))
     sta = str(sta_mac).split(":")[3:6]
     return EtherAddress(":".join(base + sta))

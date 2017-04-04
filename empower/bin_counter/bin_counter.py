@@ -31,7 +31,7 @@ from construct import Array
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import Module
-from empower.core.lvap import LVAP
+from empower.core.app import EmpowerApp
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
@@ -190,7 +190,7 @@ class BinCounter(Module):
 
         stats_req = Container(version=PT_VERSION,
                               type=PT_STATS_REQUEST,
-                              length=22,
+                              length=20,
                               seq=lvap.wtp.seq,
                               module_id=self.module_id,
                               sta=lvap.addr.to_raw())
@@ -325,10 +325,9 @@ def bound_bin_counter(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    kwargs['lvap'] = self.addr
     return bin_counter(**kwargs)
 
-setattr(LVAP, BinCounter.MODULE_NAME, bound_bin_counter)
+setattr(EmpowerApp, BinCounter.MODULE_NAME, bound_bin_counter)
 
 
 def launch():

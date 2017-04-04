@@ -38,10 +38,24 @@ class VAP(object):
 
         # read only params
         self.net_bssid = net_bssid
-        self.ssid = tenant.tenant_name
         self.block = block
         self.wtp = wtp
-        self.tenant_id = tenant.tenant_id
+        self._tenant = tenant
+
+    @property
+    def ssid(self):
+        """ Get the SSID assigned to this LVAP. """
+
+        if not self._tenant:
+            return None
+
+        return self._tenant.tenant_name
+
+    @property
+    def tenant(self):
+        """ Get the tenant assigned to this LVAP. """
+
+        return self._tenant
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
@@ -49,8 +63,7 @@ class VAP(object):
         return {'net_bssid': self.net_bssid,
                 'ssid': self.ssid,
                 'block': self.block,
-                'wtp': self.wtp,
-                'tenant_id': self.tenant_id}
+                'wtp': self.wtp}
 
     def __str__(self):
 
@@ -63,8 +76,6 @@ class VAP(object):
         accum.append(str(self.block))
         accum.append(" wtp ")
         accum.append(str(self.wtp.addr))
-        accum.append(" tenant_id ")
-        accum.append(str(self.tenant_id))
 
         return ''.join(accum)
 

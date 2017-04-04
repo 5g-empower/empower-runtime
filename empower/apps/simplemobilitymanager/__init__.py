@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio, Tejas
+# Copyright (c) 2016 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""EmPOWER application implementing an LVNF Chaining."""
-
-from empower.core.app import EmpowerApp
-from empower.core.app import DEFAULT_PERIOD
-
-
-class Tropea(EmpowerApp):
-    pass
-
-
-def launch(tenant_id, every=DEFAULT_PERIOD):
-    """ Initialize the module. """
-
-    return Tropea(tenant_id=tenant_id, every=every)
+"""Basic mobility manager."""

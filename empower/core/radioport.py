@@ -103,6 +103,18 @@ class RadioPort():
         self._block.tx_policies[self._lvap.addr].mcs = mcs
 
     @property
+    def ht_mcs(self):
+        """ Get set of HT MCS. """
+
+        return self._block.tx_policies[self._lvap.addr].ht_mcs
+
+    @ht_mcs.setter
+    def ht_mcs(self, ht_mcs):
+        """ Set the list of HT MCS. """
+
+        self._block.tx_policies[self._lvap.addr].ht_mcs = ht_mcs
+
+    @property
     def no_ack(self):
         """ Get no ack flag. """
 

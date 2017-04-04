@@ -414,7 +414,7 @@ function acceptTenant(tenant_id) {
         },
         cache: false,
         success: function (data) {
-            createTenant(data.tenant_id, data.tenant_name, data.owner, data.plmn_id, data.desc, data.bssid_type)
+           createTenant(data.tenant_id, data.tenant_name, data.owner, data.plmn_id, data.desc, data.bssid_type)
         },
         error: function (data) {
         },
@@ -422,11 +422,24 @@ function acceptTenant(tenant_id) {
 }
 
 function createTenant(tenant_id, tenant_name, owner, plmn_id, desc, bssid_type) {
+
+    var request = {
+        "version": "1.0",
+        "owner": owner,
+        "desc": desc,
+        "tenant_name": tenant_name,
+        "bssid_type": bssid_type
+    }
+
+    if (plmn_id) {
+        request['plmn_id'] = plmn_id
+    }
+
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id,
         type: 'POST',
         dataType: 'json',
-        data: '{"version":"1.0", "owner":"'+owner+'", "desc":"'+desc+'", "tenant_name":"'+tenant_name+'", "bssid_type":"'+bssid_type+'", "plmn_id":"'+plmn_id+'" }',
+        data: JSON.stringify(request),
         cache: false,
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", BASE_AUTH);
@@ -457,9 +470,12 @@ function requestTenant(pending) {
     var request = {
         "version": "1.0",
         "tenant_name": tenant_name,
-        "plmn_id": plmn_id,
         "desc": desc,
         "bssid_type": bssid_type
+    }
+
+    if (plmn_id != "") {
+        request['plmn_id'] = plmn_id
     }
 
     $.ajax({

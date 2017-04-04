@@ -370,3 +370,12 @@ class PNFPServer():
 
         if handler:
             self.pt_types_handlers[pt_type].append(handler)
+
+    def register_message_handler(self, pt_type, handler):
+        """ Register new handler. This will be called after the default. """
+
+        if pt_type not in self.pt_types_handlers:
+            self.pt_types_handlers[pt_type] = []
+
+        if handler:
+            self.pt_types_handlers[pt_type].append(handler)
