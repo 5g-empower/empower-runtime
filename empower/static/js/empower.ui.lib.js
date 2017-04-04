@@ -475,7 +475,7 @@ function requestTenant(pending) {
     }
 
     if (plmn_id != "") {
-        request['plmn_id'] = plmn_id
+        request["plmn_id"] = plmn_id;
     }
 
     $.ajax({

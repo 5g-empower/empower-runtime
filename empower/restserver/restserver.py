@@ -1052,9 +1052,8 @@ class TenantHandler(EmpowerAPIHandler):
             # If PLMN ID is not given, default it to 000000 value
             plmn_id = 000000
 
-            if "plmn_id" in request and request['plmn_id'] != None and \
-                (len(request['plmn_id']) == 5 or len(request['plmn_id']) == 6):
-                plmn_id = int(request['plmn_id'])
+            if "plmn_id" in request and request['plmn_id'] != None:
+                plmn_id = request['plmn_id']
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
