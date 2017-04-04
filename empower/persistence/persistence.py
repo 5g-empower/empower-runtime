@@ -153,7 +153,7 @@ class TblPendingTenant(Base):
                        default=uuid.uuid4)
     plmn_id = Column("plmn_id",
                      Integer,
-                     default=None)
+                     default=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
@@ -181,7 +181,7 @@ class TblTenant(Base):
                        default=uuid.uuid4)
     plmn_id = Column("plmn_id",
                      Integer,
-                     default=None)
+                     default=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
