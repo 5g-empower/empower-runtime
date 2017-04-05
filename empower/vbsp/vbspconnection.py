@@ -270,12 +270,13 @@ class VBSPConnection(object):
             for ue in ues_id_msg_repl["active_ue_id"]:
                 active_ues[(self.vbs.addr, ue["rnti"])] = {}
                 if "imsi" in ue:
-                    active_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = ue["imsi"]
+                    active_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = \
+                                                                int(ue["imsi"])
                 else:
                     active_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = None
                 if "plmn_id" in ue:
                     active_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = \
-                                                                ue["plmn_id"]
+                                                            int(ue["plmn_id"])
                 else:
                     active_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = None
 
@@ -285,12 +286,12 @@ class VBSPConnection(object):
                 inactive_ues[(self.vbs.addr, ue["rnti"])] = {}
                 if "imsi" in ue:
                     inactive_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = \
-                                                                    ue["imsi"]
+                                                                int(ue["imsi"])
                 else:
                     inactive_ues[(self.vbs.addr, ue["rnti"])]["imsi"] = None
                 if "plmn_id" in ue:
                     inactive_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = \
-                                                                ue["plmn_id"]
+                                                            int(ue["plmn_id"])
                 else:
                     inactive_ues[(self.vbs.addr, ue["rnti"])]["plmn_id"] = None
 
@@ -305,7 +306,7 @@ class VBSPConnection(object):
             ue = RUNTIME.ues[ue_id]
 
             imsi = active_ues[ue_id]["imsi"]
-            plmn_id = int(active_ues[ue_id]["plmn_id"])
+            plmn_id = active_ues[ue_id]["plmn_id"]
 
             # Setting IMSI of UE
             ue.imsi = imsi
@@ -401,8 +402,8 @@ class VBSPConnection(object):
         ues_id_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
-        # Transaction identifier is zero by default.
-        create_header(0, enb_id, ues_id_req.head)
+        # Transaction identifier is one by default.
+        create_header(1, enb_id, ues_id_req.head)
 
         # Creating a trigger message to fetch UE RNTIs
         trigger_msg = ues_id_req.te
@@ -424,8 +425,8 @@ class VBSPConnection(object):
         rrc_m_conf_req = main_pb2.emage_msg()
         enb_id = ether_to_hex(self.vbs.addr)
 
-        # Transaction identifier is zero by default.
-        create_header(0, enb_id, rrc_m_conf_req.head)
+        # Transaction identifier is one by default.
+        create_header(1, enb_id, rrc_m_conf_req.head)
 
         # Creating a trigger message to fetch UE RNTIs
         trigger_msg = rrc_m_conf_req.te

@@ -891,17 +891,15 @@ class PendingTenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
-            if "bssid_type" not in request:
-                bssid_type = T_TYPE_UNIQUE
-            else:
+            bssid_type = T_TYPE_UNIQUE
+            if "bssid_type" in request:
                 bssid_type = request['bssid_type']
 
-            if bssid_type not in T_TYPES:
-                raise ValueError("invalid bssid_type %s" % bssid_type)
+            # If PLMN ID is not given, default it to 000000 value
+            plmn_id = 000000
 
-            if "plmn_id" not in request:
-                plmn_id = None
-            else:
+            if "plmn_id" in request and request['plmn_id'] != None and \
+                (len(request['plmn_id']) == 5 or len(request['plmn_id']) == 6):
                 plmn_id = int(request['plmn_id'])
 
             if len(args) == 1:
@@ -1051,10 +1049,11 @@ class TenantHandler(EmpowerAPIHandler):
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
 
-            if "plmn_id" not in request:
-                plmn_id = None
-            else:
-                plmn_id = int(request['plmn_id'])
+            # If PLMN ID is not given, default it to 000000 value
+            plmn_id = 000000
+
+            if "plmn_id" in request and request['plmn_id'] != None:
+                plmn_id = request['plmn_id']
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])

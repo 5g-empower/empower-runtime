@@ -2,9 +2,10 @@ jQuery(document).ready(function($){
 
 function send_rrc_req() {
 
-var selected_ue = $("#ueSelect :selected").val();
+    var selected_ue = $("#ueSelect :selected").val();
+    var sel_ue_text = $("#ueSelect :selected").text();
 
-    if (selected_ue !== "") {
+    if (selected_ue !== "" && sel_ue_text.indexOf("LTE") !== -1) {
 
         var url = "/api/v1/tenants/" + tenant_id + "/vbs_rrc_stats";
 
@@ -78,13 +79,14 @@ var svg = d3.select('#graphRow')
     .attr('width', area_width)
     .attr('height', area_height);
 
-var p, gl, gwt, gue;
+var p, gl, gwt, gue, gsta;
 
 /* Handles to link and node element groups. */
 var nw_paths = svg.append('svg:g').selectAll('.link'),
     nw_enbs = svg.append('svg:g').selectAll('.enb'),
     nw_wtps = svg.append('svg:g').selectAll('.wtp'),
-    nw_ues = svg.append('svg:g').selectAll('.ue');
+    nw_ues = svg.append('svg:g').selectAll('.ue'),
+    nw_sta = svg.append('svg:g').selectAll('.sta');
 
 /* Introduce force layout in the graph. */
 var force = d3.layout.force()
@@ -149,6 +151,7 @@ function fetchSignalData(tenant_id) {
                             node_id: n.node_id,
                             entity: n.entity,
                             tooltip: n.tooltip,
+                            mac: n.mac,
                             x: en.x,
                             y: en.y,
                             fixed: en.fixed
@@ -168,6 +171,7 @@ function fetchSignalData(tenant_id) {
                             node_id: n.node_id,
                             entity: n.entity,
                             tooltip: n.tooltip,
+                            mac: n.mac,
                             x: n.x,
                             y: (area_height - n.y),
                             fixed: false
@@ -359,7 +363,7 @@ function updateSignalGraph() {
             tp_div.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tp_div .html(d.tooltip + ": " + d.node_id)
+            tp_div .html(d.tooltip + ": " + d.node_id + "(" + d.mac + ")")
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
         });
@@ -373,6 +377,53 @@ function updateSignalGraph() {
         .style('stroke-width', '2.5px');
 
     nw_ues.exit().remove();
+
+    nw_sta = nw_sta.data(g_nodes.filter(function(d) {
+                                        return d.entity === "sta";
+                        }),
+                        function(d) {
+                                    return d.id;
+                        });
+
+    gsta = nw_sta.enter()
+        .append('svg:g')
+        .attr('class', 'sta');
+
+    gsta.append('svg:circle')
+        .attr('r', 13)
+        .style('fill', function(d) { return colors(d.id); })
+        .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
+        .style('stroke-width', '2.5px');
+
+    gsta.append('svg:text')
+        .attr('x', 0)
+        .attr('y', 4)
+        .attr('class', 'node_id')
+        .text(function(d) {
+            return "STA";
+        });
+
+    gsta.on("mouseover", function(d) {
+            tp_div.transition()
+                .duration(500)
+                .style("opacity", 0);
+            tp_div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tp_div .html(d.tooltip + ": " + d.node_id)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        });
+
+    gsta.on("dblclick", dblclick)
+        .call(drag);
+
+    gsta.selectAll('circle')
+        .style('fill', function(d) { return colors(d.id); })
+        .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
+        .style('stroke-width', '2.5px');
+
+    nw_sta.exit().remove();
 
     force.start();
 }
@@ -403,6 +454,10 @@ function tick() {
     nw_ues.attr('transform', function(d) {
         return 'translate(' + d.x + ',' + d.y + ')';
     });
+
+    nw_sta.attr('transform', function(d) {
+        return 'translate(' + d.x + ',' + d.y + ')';
+    });
 }
 
 function dblclick(d) {
@@ -413,8 +468,6 @@ function dragstart(d, i) {
     d3.select(this).classed("fixed", d.fixed = true);
 }
 
-var UE_MAC_ADDR1 = "A0:39:F7:4C:AB:87"
-
 function loadUEsSelectBox() {
 
     if ((nodes !== null) && (nodes !== undefined) && (nodes !== [])) {
@@ -423,12 +476,13 @@ function loadUEsSelectBox() {
 
         for (var id in nodes) {
             var n = nodes[id];
-            if (n["entity"] === 'ue') {
+            if (n["entity"] === 'ue' || n["entity"] === 'sta') {
                 var node = {
                                 id: n.id,
                                 node_id: n.node_id,
                                 entity: n.entity,
                                 tooltip: n.tooltip,
+                                mac: n.mac,
                                 x: n.x,
                                 y: n.y,
                                 fixed: true
@@ -484,7 +538,11 @@ function loadUEsSelectBox() {
         });
 
         $.each(ue_data, function(index, ue) {
-            selectUEMenu.append("<option value= "+ ue.node_id +">" + ue.node_id + "</option>");
+            if (ue.entity === 'ue') {
+                selectUEMenu.append("<option value= "+ ue.node_id +">" + ue.node_id + " (LTE UE)" + "</option>");
+            } else {
+                selectUEMenu.append("<option value= "+ ue.node_id +">" + ue.node_id + " (Wifi station)" + "</option>");
+            }
         });
     }
 }
