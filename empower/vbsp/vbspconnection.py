@@ -402,8 +402,8 @@ class VBSPConnection(object):
         ues_id_req = main_pb2.emage_msg()
 
         enb_id = ether_to_hex(self.vbs.addr)
-        # Transaction identifier is zero by default.
-        create_header(0, enb_id, ues_id_req.head)
+        # Transaction identifier is one by default.
+        create_header(1, enb_id, ues_id_req.head)
 
         # Creating a trigger message to fetch UE RNTIs
         trigger_msg = ues_id_req.te
@@ -425,8 +425,8 @@ class VBSPConnection(object):
         rrc_m_conf_req = main_pb2.emage_msg()
         enb_id = ether_to_hex(self.vbs.addr)
 
-        # Transaction identifier is zero by default.
-        create_header(0, enb_id, rrc_m_conf_req.head)
+        # Transaction identifier is one by default.
+        create_header(1, enb_id, rrc_m_conf_req.head)
 
         # Creating a trigger message to fetch UE RNTIs
         trigger_msg = rrc_m_conf_req.te
