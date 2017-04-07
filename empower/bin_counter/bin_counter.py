@@ -180,12 +180,14 @@ class BinCounter(Module):
 
         if self.lvap not in tenant.lvaps:
             self.log.info("LVAP %s not found", self.lvap)
+            self.unload()
             return
 
         lvap = tenant.lvaps[self.lvap]
 
         if not lvap.wtp.connection or lvap.wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", lvap.wtp.addr)
+            self.unload()
             return
 
         stats_req = Container(version=PT_VERSION,

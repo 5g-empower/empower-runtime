@@ -32,7 +32,7 @@ from empower.core.resourcepool import ResourcePool
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
-from empower.lvapp import PT_CAPS
+from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleTrigger
@@ -105,7 +105,7 @@ class BusynessTrigger(ModuleTrigger):
     def __eq__(self, other):
 
         return super().__eq__(other) and \
-            self.lvap == other.lvap and \
+            self.block == other.block and \
             self.relation == other.relation and \
             self.value == other.value and \
             self.period == other.period
@@ -218,13 +218,6 @@ class BusynessTrigger(ModuleTrigger):
     def run_once(self):
         """ Send out rate request. """
 
-        if self.tenant_id not in RUNTIME.tenants:
-            self.log.info("Tenant %s not found", self.tenant_id)
-            for wtp in self.wtps:
-                self.remove_busyness_from_wtp(wtp)
-            self.unload()
-            return
-
         for wtp in RUNTIME.tenants[self.tenant_id].wtps.values():
             self.add_busyness_to_wtp(wtp)
 
@@ -318,13 +311,8 @@ class BusynessTrigger(ModuleTrigger):
 class BusynessTriggerWorker(ModuleLVAPPWorker):
     """ Busyness worker. """
 
-    def handle_caps(self, caps):
+    def handle_caps(self, _):
         """Handle WTP CAPS message."""
-
-        wtp_addr = EtherAddress(caps.wtp)
-
-        if wtp_addr not in RUNTIME.wtps:
-            return
 
         for module in self.modules.values():
             module.run_once()
@@ -339,7 +327,8 @@ class BusynessTriggerWorker(ModuleLVAPPWorker):
 def busyness_trigger(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[BusynessTriggerWorker.__module__].add_module(**kwargs)
+    module = RUNTIME.components[BusynessTriggerWorker.__module__]
+    return module.add_module(**kwargs)
 
 
 def bound_busyness_trigger(self, **kwargs):
@@ -354,9 +343,9 @@ setattr(EmpowerApp, BusynessTrigger.MODULE_NAME, bound_busyness_trigger)
 def launch():
     """ Initialize the module. """
 
-    busyness_worker = BusynessTriggerWorker(BusynessTrigger, PT_BUSYNESS, 
+    busyness_worker = BusynessTriggerWorker(BusynessTrigger, PT_BUSYNESS,
                                             BUSYNESS_TRIGGER)
-    busyness_worker.pnfp_server.register_message(PT_CAPS, None,
+    busyness_worker.pnfp_server.register_message(PT_REGISTER, None,
                                                  busyness_worker.handle_caps)
     busyness_worker.pnfp_server.register_message(PT_BYE, None,
                                                  busyness_worker.handle_bye)

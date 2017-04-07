@@ -118,7 +118,7 @@ class IntentServer(tornado.web.Application):
             if ret[0] == 204:
                 return uuid
         except ConnectionRefusedError:
-            LOG.error("Intent interface not found")
+            LOG.warning("Intent interface not found")
         except Exception as ex:
             LOG.exception(ex)
 

@@ -131,7 +131,9 @@ class Joule(EmpowerApp):
         """ Handle RSSI trigger event. """
 
         # track packets and bytes counter for the new LVAP
-        stats = lvap.bin_counter(bins=self.bins, every=self.every)
+        stats = self.bin_counter(lvap=lvap.addr,
+                                 bins=self.bins,
+                                 every=self.every)
 
         self.stats[lvap.addr] = stats
         self.power[lvap.addr] = 0.0

@@ -188,6 +188,7 @@ class WTPBinCounter(Module):
 
         if self.wtp not in tenant.wtps:
             self.log.info("WTP %s not found", self.wtp)
+            self.unload()
             return
 
         wtp = tenant.wtps[self.wtp]
@@ -197,6 +198,7 @@ class WTPBinCounter(Module):
 
         if not wtp.connection or wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", lvap.wtp.addr)
+            self.unload()
             return
 
         stats_req = Container(version=PT_VERSION,

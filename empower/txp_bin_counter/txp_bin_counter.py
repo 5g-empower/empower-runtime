@@ -202,6 +202,7 @@ class TXPBinCounter(Module):
 
         if not wtp.connection or wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", wtp.addr)
+            self.unload()
             return
 
         stats_req = Container(version=PT_VERSION,
