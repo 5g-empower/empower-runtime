@@ -32,7 +32,7 @@ from empower.core.resourcepool import ResourcePool
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
-from empower.lvapp import PT_CAPS
+from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleTrigger
@@ -183,13 +183,6 @@ class RSSI(ModuleTrigger):
     def run_once(self):
         """ Send out rate request. """
 
-        if self.tenant_id not in RUNTIME.tenants:
-            self.log.info("Tenant %s not found", self.tenant_id)
-            for wtp in self.wtps:
-                self.remove_rssi_from_wtp(wtp)
-            self.unload()
-            return
-
         for wtp in RUNTIME.tenants[self.tenant_id].wtps.values():
             self.add_rssi_to_wtp(wtp)
 
@@ -281,13 +274,8 @@ class RSSI(ModuleTrigger):
 class RssiWorker(ModuleLVAPPWorker):
     """ Rssi worker. """
 
-    def handle_caps(self, caps):
+    def handle_caps(self, _):
         """Handle WTP CAPS message."""
-
-        wtp_addr = EtherAddress(caps.wtp)
-
-        if wtp_addr not in RUNTIME.wtps:
-            return
 
         for module in self.modules.values():
             module.run_once()
@@ -318,7 +306,7 @@ def launch():
     """ Initialize the module. """
 
     rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
-    rssi_worker.pnfp_server.register_message(PT_CAPS, None,
+    rssi_worker.pnfp_server.register_message(PT_REGISTER, None,
                                              rssi_worker.handle_caps)
     rssi_worker.pnfp_server.register_message(PT_BYE, None,
                                              rssi_worker.handle_bye)

@@ -36,7 +36,7 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.lvapp import PT_CAPS
+from empower.lvapp import PT_REGISTER
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import ResourcePool
 from empower.core.module import ModuleTrigger
@@ -342,15 +342,8 @@ class Summary(ModuleTrigger):
 class SummaryWorker(ModuleLVAPPWorker):
     """ Summary worker. """
 
-    def handle_caps(self, caps):
+    def handle_caps(self, wtp):
         """Handle WTP CAPS message."""
-
-        wtp_addr = EtherAddress(caps.wtp)
-
-        if wtp_addr not in RUNTIME.wtps:
-            return
-
-        wtp = RUNTIME.wtps[wtp_addr]
 
         for module in self.modules:
             block = self.modules[module].block
@@ -377,6 +370,6 @@ def launch():
     """ Initialize the module. """
 
     summary_worker = SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
-    summary_worker.pnfp_server.register_message(PT_CAPS, None,
+    summary_worker.pnfp_server.register_message(PT_REGISTER, None,
                                                 summary_worker.handle_caps)
     return summary_worker

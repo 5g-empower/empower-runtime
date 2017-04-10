@@ -50,6 +50,7 @@ class UELeave(ModuleTrigger):
 
         return False
 
+
 class UELeaveWorker(ModuleVBSPEventWorker):
     """UELeave."""
 

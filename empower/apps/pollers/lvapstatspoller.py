@@ -42,7 +42,9 @@ class LVAPStatsPoller(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """ New LVAP. """
 
-        lvap.lvap_stats(every=self.every, callback=self.lvap_stats_callback)
+        self.lvap_stats(lvap=lvap.addr,
+                        every=self.every,
+                        callback=self.lvap_stats_callback)
 
     def lvap_stats_callback(self, counter):
         """ New stats available. """

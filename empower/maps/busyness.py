@@ -147,6 +147,7 @@ class Busyness(Module):
 
         if not wtp.connection or wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", wtp.addr)
+            self.unload()
             return
 
         req = Container(version=PT_VERSION,
