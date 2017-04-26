@@ -75,7 +75,7 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def put(self, *args, **kwargs):
+    def post(self, *args, **kwargs):
         """Set next flow rules.
 
         Args:
