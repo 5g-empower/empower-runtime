@@ -193,13 +193,13 @@ class WTPBinCounter(Module):
 
         wtp = tenant.wtps[self.wtp]
 
-        self.log.info("Sending %s request to %s (id=%u)",
-                      self.MODULE_NAME, wtp.addr, self.module_id)
-
         if not wtp.connection or wtp.connection.stream.closed():
             self.log.info("WTP %s not connected", lvap.wtp.addr)
             self.unload()
             return
+
+        self.log.info("Sending %s request to %s (id=%u)",
+                      self.MODULE_NAME, wtp.addr, self.module_id)
 
         stats_req = Container(version=PT_VERSION,
                               type=PT_WTP_STATS_REQUEST,
