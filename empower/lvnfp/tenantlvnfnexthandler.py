@@ -67,13 +67,18 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvnf.ports[port_id]
 
-            self.write_as_json(port.next)
-            self.set_status(200, None)
+            if len(args) == 3:
+                self.write_as_json(port.next)
+            else:
+                match = args[3]
+                self.write_as_json(port.next[match])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
+
+        self.set_status(200, None)
 
     def post(self, *args, **kwargs):
         """Set next flow rules.
@@ -108,6 +113,12 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             if "next" not in request:
                 raise ValueError("missing next element")
 
+            match = request['match']
+
+            if not isinstance(match, str):
+                raise ValueError("Field match must be a string, got %s",
+                                 type(match))
+
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
@@ -126,17 +137,19 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             next_port_id = int(request['next']['port_id'])
             next_port = next_lvnf.ports[next_port_id]
 
-            match = request['match']
             port.next[match] = next_port
+
+            url = "/api/v1/tenants/%s/lvaps/%s/ports/%u/next/%s"
+            tokens = (tenant_id, lvap_id, port_id, match)
+
+            self.set_header("Location", url % tokens)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
-        except OSError as ex:
-            self.send_error(500, message=ex)
 
-        self.set_status(204, None)
+        self.set_status(201, None)
 
     def delete(self, *args, **kwargs):
         """Delete next flow rules.
@@ -148,25 +161,15 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports
-
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                   lvnfs/00:14:d3:45:aa:5c/ports/1/next/
+                   dl_src=00:18:DE:CC:D3:40;dpid=00:0D:B9:2F:56:64;port_id=2
         """
 
         try:
 
-            if len(args) != 3:
+            if len(args) != 4:
                 raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "match" not in request:
-                raise ValueError("missing match element")
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
@@ -177,14 +180,13 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvnf.ports[port_id]
 
-            match = request['match']
+            match = args[3]
+
             del port.next[match]
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
-        except OSError as ex:
-            self.send_error(500, message=ex)
 
         self.set_status(204, None)
