@@ -42,9 +42,6 @@ def ofmatch_s2d(match):
         if key_t == 'dl_vlan':
             value_t = int(value_t)
 
-        if key_t == 'dl_type':
-            value_t = int(value_t)
-
         if key_t == 'nw_proto':
             value_t = int(value_t)
 
