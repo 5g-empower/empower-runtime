@@ -23,6 +23,10 @@ from empower.events.uejoin import uejoin
 
 from empower.main import RUNTIME
 
+CONF_REQ = {
+    "event_type": "trigger"
+}
+
 MEAS_REQ = {
     "rat_type": "EUTRA",
     "cell_to_measure": [],
@@ -67,12 +71,8 @@ class SimpleGraph(EmpowerApp):
     def ue_join_callback(self, ue):
         """Reconfigure RRC measurement on UE join."""
 
-        ue.vbs_rrc_stats(meas_req=MEAS_REQ, callback=self.rrc_stats_callback)
-
-    def rrc_stats_callback(self, meas_resp):
-        """RRC measurement callback."""
-
-        pass
+        self.ue_rrc_meas_confs(ue=ue.addr, conf_req=CONF_REQ)
+        self.vbs_rrc_stats(ue=ue.addr, meas_req=MEAS_REQ)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
