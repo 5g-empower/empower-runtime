@@ -43,3 +43,10 @@ class VBS(BasePNFDev):
         """Return tenant id."""
 
         return ether_to_hex(self.addr)
+
+    def to_dict(self):
+        """Return a JSON-serializable dictionary representing the CPP."""
+
+        out = super().to_dict()
+        out['enb_id'] = self.enb_id
+        return out
