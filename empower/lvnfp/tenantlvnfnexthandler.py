@@ -139,8 +139,8 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
 
             port.next[match] = next_port
 
-            url = "/api/v1/tenants/%s/lvaps/%s/ports/%u/next/%s"
-            tokens = (tenant_id, lvap_id, port_id, match)
+            url = "/api/v1/tenants/%s/lvnfs/%s/ports/%u/next/%s"
+            tokens = (tenant_id, lvnf_id, port_id, match)
 
             self.set_header("Location", url % tokens)
 
