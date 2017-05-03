@@ -24,6 +24,7 @@ from empower.main import RUNTIME
 import empower.logger
 LOG = empower.logger.get_logger()
 
+
 class UEHandler(EmpowerAPIHandlerAdminUsers):
     """UE handler. Used to view UEs attached to a VBS (controller-wide)."""
 
@@ -49,7 +50,7 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
                 raise ValueError("Invalid URL")
 
             if len(args) == 0:
-               self.write_as_json(RUNTIME.ues.values())
+                self.write_as_json(RUNTIME.ues.values())
             else:
                 vbs_id = EtherAddress(args[0])
 
