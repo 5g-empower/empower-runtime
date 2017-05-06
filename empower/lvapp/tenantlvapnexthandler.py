@@ -160,7 +160,7 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) != 4:
+            if len(args) not in [3, 4]:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -172,7 +172,10 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvap.ports[port_id]
 
-            match = args[3]
+            if len(args) == 4:
+                match = args[3]
+            else:
+                match = ""
 
             del port.next[match]
 
