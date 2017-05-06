@@ -36,10 +36,19 @@ def ofmatch_s2d(match):
 
     key = {}
 
+    if match == "":
+        return key
+
     for token in match.split(","):
         key_t, value_t = token.split("=")
 
         if key_t == 'dl_vlan':
+            value_t = int(value_t)
+
+        if key_t == 'dl_type':
+            value_t = int(value_t, 16)
+
+        if key_t == 'in_port':
             value_t = int(value_t)
 
         if key_t == 'nw_proto':

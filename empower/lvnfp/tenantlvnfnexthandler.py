@@ -116,8 +116,7 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             match = request['match']
 
             if not isinstance(match, str):
-                raise ValueError("Field match must be a string, got %s",
-                                 type(match))
+                raise ValueError("Field match must be a string")
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
@@ -168,7 +167,7 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) != 4:
+            if len(args) not in [3, 4]:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -180,7 +179,10 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvnf.ports[port_id]
 
-            match = args[3]
+            if len(args) == 4:
+                match = args[3]
+            else:
+                match = ""
 
             del port.next[match]
 
