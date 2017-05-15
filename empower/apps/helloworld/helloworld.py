@@ -37,8 +37,20 @@ class HelloWorld(EmpowerApp):
     def loop(self):
         """Periodic job."""
 
-        print("Hello! World.")
+        print("Hello! %s." % self.message)
+
+    @property
+    def message(self):
+        """Return message."""
+
+        return self.__message
+
+    @message.setter
+    def message(self, value):
+        """Set message."""
+
+        self.__message = value
 
 
-def launch(tenant_id, every=5000):
-    return HelloWorld(tenant_id=tenant_id, every=every)
+def launch(tenant_id, message="World", every=5000):
+    return HelloWorld(tenant_id=tenant_id, message=message, every=every)

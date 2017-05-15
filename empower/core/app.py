@@ -40,9 +40,8 @@ class EmpowerApp(object):
         self.worker = None
 
         for param in kwargs:
-            if hasattr(self, param):
-                setattr(self, param, kwargs[param])
-                self.params.append(param)
+            setattr(self, param, kwargs[param])
+            self.params.append(param)
 
     @property
     def tenant_id(self):
