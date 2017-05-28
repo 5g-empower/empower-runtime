@@ -177,7 +177,7 @@ class CQMLinks(Module):
             value = {'addr': addr,
                      'p_pdr': entry[1] / 180.0,
                      'p_available_bw': entry[2] / 180.0,
-                     'p_throughput': entry[3] / 180.0
+                     'p_throughput': entry[3] / 180.0,
                      'p_channel_busy_fraction': entry[4] / 180.0}
 
             self.cqm_links[addr] = value
