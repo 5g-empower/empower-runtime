@@ -284,7 +284,7 @@ class ResourcePool(set):
             for rblock_other in other:
                 if rblock.channel != rblock_other.channel:
                     continue
-                if rblock.band > rblock_other.band:
+                if rblock_other.band > rblock.band:
                     continue
                 result.add(rblock)
         return result

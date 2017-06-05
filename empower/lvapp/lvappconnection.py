@@ -303,6 +303,11 @@ class LVAPPConnection(object):
         band = request.band
         lvap.supported.add(ResourceBlock(lvap, hwaddr, channel, band))
 
+        valid = wtp.supports & lvap.supported
+        if not valid:
+            LOG.warning("No valid intersection found. Ingnoring request.")
+            return
+
         lvap.scheduled_on = wtp.supports & lvap.supported
 
         LOG.info("Sending probe response to %s", lvap.addr)
