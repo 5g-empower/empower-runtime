@@ -308,7 +308,7 @@ class LVAPPConnection(object):
             LOG.warning("No valid intersection found. Ingnoring request.")
             return
 
-        lvap.scheduled_on = wtp.supports & lvap.supported
+        lvap.scheduled_on = valid
 
         LOG.info("Sending probe response to %s", lvap.addr)
         self.send_probe_response(lvap)
