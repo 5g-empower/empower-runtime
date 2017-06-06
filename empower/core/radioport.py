@@ -19,6 +19,7 @@
 
 from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import BT_HT20
 
 
 class RadioPort():
@@ -53,11 +54,27 @@ class RadioPort():
         self._lvap = lvap
         self._block = block
 
+        rblock = next(iter(self._lvap.supported))
+        txp = self._block.tx_policies[self._lvap.addr]
+
+        if rblock.channel > 14:
+            txp._mcs = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
+        else:
+            txp._mcs = [1.0, 2.0, 5.5, 11.0,
+                        6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0]
+
+        if rblock.band == BT_HT20:
+            txp._ht_mcs = \
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        else:
+            txp._ht_mcs = []
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
         return {'no_ack': self.no_ack,
                 'mcs': self.mcs,
+                'ht_mcs': self.ht_mcs,
                 'rts_cts': self.rts_cts}
 
     @property
