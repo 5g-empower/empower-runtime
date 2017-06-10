@@ -17,10 +17,12 @@
 
 """EmPOWER base app class."""
 
+import uuid
 import tornado.ioloop
 import empower.logger
 
 from empower.core.resourcepool import ResourcePool
+from empower.core.lvnf import LVNF
 
 from empower.main import RUNTIME
 
@@ -208,3 +210,26 @@ class EmpowerApp(object):
             return None
 
         return RUNTIME.tenants[self.tenant_id].lvnfs[addr]
+
+    def spawn_lvnf(self, image, cpp, lvnf_id=None):
+        """Spawn a new LVNF on the specified CPP."""
+
+        if not lvnf_id:
+            lvnf_id = uuid.uuid4()
+        else:
+            lvnf_id = uuid.UUID(lvnf_id)
+
+        lvnf = LVNF(lvnf_id=lvnf_id,
+                    tenant_id=self.tenant_id,
+                    image=image,
+                    cpp=cpp)
+
+        lvnf.start()
+
+    def delete_lvnf(self, lvnf_id):
+        """Remove LVNF."""
+
+        tenant = RUNTIME.tenants[self.tenant_id]
+        lvnf = tenant.lvnfs[lvnf_id]
+
+        lvnf.stop()

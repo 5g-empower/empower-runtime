@@ -31,7 +31,7 @@ class Image(object):
         state_handlers: the list of state handlers supported by the vnf
     """
 
-    def __init__(self, nb_ports, vnf, state_handlers, handlers):
+    def __init__(self, vnf, nb_ports=1, state_handlers=[], handlers=[]):
 
         self.nb_ports = nb_ports
         self.vnf = vnf

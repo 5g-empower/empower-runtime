@@ -303,13 +303,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 return
 
-            # Raise LVNF join event
-            if lvnf.state == PROCESS_SPAWNING:
-                LOG.info("LVNF JOIN %s", lvnf.lvnf_id)
-                handlers = self.server.pt_types_handlers[PT_LVNF_JOIN]
-                for handler in handlers:
-                    handler(lvnf)
-
             # Configure ports
             for port in status_lvnf['ports'].values():
 
@@ -339,6 +332,13 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             lvnf.contex = status_lvnf['context']
 
             lvnf.state = PROCESS_RUNNING
+
+            # Raise LVNF join event
+            if lvnf.state == PROCESS_RUNNING:
+                LOG.info("LVNF JOIN %s", lvnf.lvnf_id)
+                handlers = self.server.pt_types_handlers[PT_LVNF_JOIN]
+                for handler in handlers:
+                    handler(lvnf)
 
         elif lvnf.state == PROCESS_STOPPING:
 
