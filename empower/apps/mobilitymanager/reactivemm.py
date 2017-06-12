@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic mobility manager."""
+"""Reactive mobility manager."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class SimpleMobilityManager(EmpowerApp):
-    """Basic mobility manager.
+class ReactiveMobilityManager(EmpowerApp):
+    """Reactive mobility manager.
 
     Command Line Parameters:
 
@@ -51,20 +51,25 @@ class SimpleMobilityManager(EmpowerApp):
         """ Periodic job. """
 
         for lvap in self.lvaps():
+            self.handover(lvap)
 
-            pool = self.blocks()
-            valid = pool & lvap.supported
+    def handover(self, lvap):
+        """ Handover the LVAP to a WTP with
+        an RSSI higher that -65dB. """
 
-            if not valid:
-                return
+        pool = self.blocks()
+        valid = pool & lvap.supported
 
-            new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
-            self.log.info("LVAP %s -> %s" % (lvap.addr, new_block))
+        if not valid:
+            return
 
-            lvap.scheduled_on = new_block
+        new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
+        self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
+
+        lvap.scheduled_on = new_block
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return SimpleMobilityManager(tenant_id=tenant_id, every=every)
+    return ReactiveMobilityManager(tenant_id=tenant_id, every=every)
