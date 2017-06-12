@@ -23,7 +23,7 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class SampleLvnf(EmpowerApp):
+class DeployLvnf(EmpowerApp):
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)
@@ -53,4 +53,4 @@ class SampleLvnf(EmpowerApp):
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return SampleLvnf(tenant_id=tenant_id, every=every)
+    return DeployLvnf(tenant_id=tenant_id, every=every)
