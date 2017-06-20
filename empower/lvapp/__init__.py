@@ -229,7 +229,7 @@ ADD_VAP = Struct("add_vap", UBInt8("version"),
                  Bytes("net_bssid", 6),
                  Bytes("ssid", lambda ctx: ctx.length - 24))
 
-DEL_VAP = Struct("add_vap", UBInt8("version"),
+DEL_VAP = Struct("del_vap", UBInt8("version"),
                  UBInt8("type"),
                  UBInt32("length"),
                  UBInt32("seq"),
