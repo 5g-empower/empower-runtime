@@ -44,11 +44,11 @@ PT_CQM_LINKS_RESPONSE = 0x44
 
 CQM_LINK = Sequence("stats",
                     Bytes("ta", 6),
-                    UBInt32("p_pdf"),
-                    UBInt32("p_available_bw"),
-                    UBInt32("p_throughput"),
                     UBInt32("p_channel_busy_fraction"),
-                    UBInt32("p_available_throughput"))
+                    UBInt32("p_throughput"),
+                    UBInt32("p_available_bw"),
+                    UBInt32("p_pdf"),
+                    UBInt32("p_attainable_throughput"))
 
 CQM_LINKS_REQUEST = Struct("stats_request", UBInt8("version"),
                            UBInt8("type"),
@@ -176,11 +176,12 @@ class CQMLinks(Module):
                 continue
 
             value = {'addr': addr,
-                     'p_pdr': entry[1] / 180.0,
-                     'p_available_bw': entry[2] / 180.0,
-                     'p_throughput': entry[3] / 180.0,
-                     'p_channel_busy_fraction': entry[4] / 180.0,
-                     'p_available_throughput': entry[5] / 180.0}
+                     'p_channel_busy_fraction': entry[1] / 180.0,
+                     'p_throughput': entry[2] / 180.0,
+                     'p_available_bw': entry[3] / 180.0,
+                     'p_pdr': entry[4] / 180.0,
+                     'p_attainable_throughput': entry[5] / 180.0
+                     }
 
             self.cqm_links[addr] = value
 
