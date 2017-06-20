@@ -768,7 +768,7 @@ class LVAPPConnection(object):
         msg = ADD_VAP.build(add_vap)
         self.stream.write(msg)
 
-    def send_del_vap(self, net_bssid):
+    def send_del_vap(self, vap):
         """Send a DEL_VAP message.
         Args:
             vap: an VAP object
@@ -782,11 +782,11 @@ class LVAPPConnection(object):
                             type=PT_DEL_VAP,
                             length=16,
                             seq=self.wtp.seq,
-                            sta=vap.addr.to_raw())
+                            net_bssid=vap.net_bssid.to_raw())
 
         LOG.info("Del vap %s", vap)
 
-        msg = DEL_VAP.build(add_vap)
+        msg = DEL_VAP.build(del_vap)
         self.stream.write(msg)
 
     def send_assoc_response(self, lvap):
