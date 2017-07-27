@@ -108,13 +108,6 @@ class LVNF(object):
     def start(self):
         """Spawn LVNF."""
 
-        tenant = RUNTIME.tenants[self.tenant_id]
-
-        if self.lvnf_id in tenant.lvnfs:
-            raise KeyError("Already defined %s", self.lvnf_id)
-
-        tenant.lvnfs[self.lvnf_id] = self
-
         self.state = PROCESS_SPAWNING
 
     def stop(self):

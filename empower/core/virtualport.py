@@ -54,6 +54,12 @@ def ofmatch_s2d(match):
         if key_t == 'nw_proto':
             value_t = int(value_t)
 
+        if key_t == 'tp_dst':
+            value_t = int(value_t)
+
+        if key_t == 'tp_src':
+            value_t = int(value_t)
+
         key[key_t] = value_t
 
     return key

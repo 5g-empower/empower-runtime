@@ -64,6 +64,11 @@ class Image(object):
 
             self.state_handlers.append(state_handler)
 
+    def __eq__(self, other):
+        if isinstance(other, Image):
+            return self.vnf == other.vnf
+        return False
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """
 

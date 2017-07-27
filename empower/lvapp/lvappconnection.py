@@ -53,6 +53,7 @@ from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
+from empower.core.virtualport import VirtualPortLvap
 
 from empower.main import RUNTIME
 
@@ -522,6 +523,10 @@ class LVAPPConnection(object):
             lvap_bssid_addr = EtherAddress(status.lvap_bssid)
             lvap = LVAP(sta_addr, net_bssid_addr, lvap_bssid_addr)
 
+            lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
+                                            virtual_port_id=0,
+                                            lvap=lvap)
+
             RUNTIME.lvaps[sta_addr] = lvap
 
         lvap = RUNTIME.lvaps[sta_addr]
@@ -600,9 +605,6 @@ class LVAPPConnection(object):
 
         # update remaining ssids
         lvap._ssids = ssids[1:]
-
-        # set ports
-        lvap.set_ports()
 
         LOG.info("LVAP status %s", lvap)
 
@@ -921,12 +923,9 @@ class LVAPPConnection(object):
         if lvap.encap:
             encap = lvap.encap
 
-        lvap_block = next(iter(lvap.supported))
-        lvap_band = lvap_block.band
-
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=49,
+                             length=48,
                              seq=self.wtp.seq,
                              group=lvap.group,
                              flags=flags,
@@ -934,7 +933,6 @@ class LVAPPConnection(object):
                              hwaddr=block.hwaddr.to_raw(),
                              channel=block.channel,
                              band=block.band,
-                             lvap_band=lvap_band,
                              sta=lvap.addr.to_raw(),
                              encap=encap.to_raw(),
                              net_bssid=lvap.net_bssid.to_raw(),

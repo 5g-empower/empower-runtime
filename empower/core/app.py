@@ -230,6 +230,9 @@ class EmpowerApp(object):
         """Remove LVNF."""
 
         tenant = RUNTIME.tenants[self.tenant_id]
-        lvnf = tenant.lvnfs[lvnf_id]
 
+        if lvnf_id not in tenant.lvnfs:
+            raise KeyError("LVNF not found %s", lvnf_id)
+
+        lvnf = tenant.lvnfs[lvnf_id]
         lvnf.stop()
