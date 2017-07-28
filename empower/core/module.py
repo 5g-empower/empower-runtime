@@ -342,14 +342,18 @@ class Module(object):
     def start(self):
         """Start worker."""
 
-        self.__periodic = \
-            tornado.ioloop.PeriodicCallback(self.run_once, self.every)
-        self.__periodic.start()
+        if self.every > 0:
+            self.__periodic = \
+                tornado.ioloop.PeriodicCallback(self.run_once, self.every)
+            self.__periodic.start()
+        else:
+            self.run_once
 
     def stop(self):
         """Stop worker."""
 
-        self.__periodic.stop()
+        if self.every > 0:
+            self.__periodic.stop()
 
     def run_once(self):
         """Period task."""

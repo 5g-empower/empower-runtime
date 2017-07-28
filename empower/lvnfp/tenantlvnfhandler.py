@@ -148,6 +148,11 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
             lvnf.start()
 
+            # the LVNF is added to the list because in this way its state is
+            # maintained as spawning, then as a result of the lvnf status
+            # message this can change to running or stopped.
+            tenant.lvnfs[lvnf_id] = lvnf
+
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:

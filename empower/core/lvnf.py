@@ -20,8 +20,6 @@
 import types
 import time
 
-from empower.main import RUNTIME
-
 import empower.logger
 LOG = empower.logger.get_logger()
 

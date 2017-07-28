@@ -121,7 +121,7 @@ class LVAPStats(Module):
         tenant = RUNTIME.tenants[self.tenant_id]
 
         if self.lvap not in tenant.lvaps:
-            self.log.info("LVAP %s not found", self.lvap)
+            self.log.info("LVNF %s not found", self.lvap)
             self.unload()
             return
 

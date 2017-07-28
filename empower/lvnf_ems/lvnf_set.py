@@ -97,12 +97,15 @@ class LVNFSet(Module):
         """Send out handler requests."""
 
         if self.tenant_id not in RUNTIME.tenants:
+            self.log.info("Tenant %s not found", self.tenant_id)
+            self.unload()
             return
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.lvnf not in tenant.lvnfs:
+        if self.lvnf not in lvnfs:
             self.log.error("LVNF %s not found.", self.lvnf)
+            self.unload()
             return
 
         lvnf = tenant.lvnfs[self.lvnf]
