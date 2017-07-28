@@ -298,9 +298,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 lvnf.state = PROCESS_STOPPED
 
-                # remove lvnf
-                del tenant.lvnfs[lvnf_id]
-
                 return
 
             # Configure ports

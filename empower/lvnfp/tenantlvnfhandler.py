@@ -235,6 +235,8 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
             lvnf.stop()
 
+            tenant.lvnfs[lvnf_id]
+
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:

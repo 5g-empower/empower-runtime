@@ -246,5 +246,6 @@ class EmpowerApp(object):
 
         lvnf = tenant.lvnfs[lvnf_id]
 
-        # the LVNF object will be removed by the LVNF status update message
         lvnf.stop()
+
+        del tenant.lvnfs[lvnf_id]

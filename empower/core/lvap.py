@@ -175,7 +175,7 @@ class LVAP(object):
         self.rates = {}
 
         # virtual ports (VNFs)
-        self.__ports = {}
+        self.ports = {}
 
         # downlink intent uuid
         self.poa_uuid = None
@@ -191,22 +191,14 @@ class LVAP(object):
         property is made.
         """
 
-        # Delete all outgoing virtual link and then remove the entire port
-        if self.__ports:
-            self.__ports[0].clear()
-            del self.__ports[0]
-
-        if not self.wtp:
-            return
-
-        self.__ports[0] = VirtualPortLvap(phy_port=self.wtp.port(),
-                                          virtual_port_id=0,
-                                          lvap=self)
+        # Delete all outgoing virtual links
+        for port_id in self.ports:
+            self.ports[port_id].clear()
 
         # set/update intent
         intent = {'version': '1.0',
-                  'dpid': self.__ports[0].dpid,
-                  'port': self.__ports[0].ovs_port_id,
+                  'dpid': self.ports[0].dpid,
+                  'port': self.ports[0].ovs_port_id,
                   'hwaddr': self.addr}
 
         intent_server = RUNTIME.components[IntentServer.__module__]
@@ -215,12 +207,6 @@ class LVAP(object):
             intent_server.update_poa(intent, self.poa_uuid)
         else:
             self.poa_uuid = intent_server.add_poa(intent)
-
-    @property
-    def ports(self):
-        """Get the virtual ports."""
-
-        return self.__ports
 
     def refresh_lvap(self):
         """Send add lvap message on the selected port."""

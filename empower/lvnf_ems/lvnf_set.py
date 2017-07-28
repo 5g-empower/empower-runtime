@@ -101,14 +101,14 @@ class LVNFSet(Module):
             self.unload()
             return
 
-        tenant = RUNTIME.tenants[self.tenant_id]
+        lvnfs = RUNTIME.tenants[self.tenant_id].lvnfs
 
         if self.lvnf not in lvnfs:
             self.log.error("LVNF %s not found.", self.lvnf)
             self.unload()
             return
 
-        lvnf = tenant.lvnfs[self.lvnf]
+        lvnf = lvnfs[self.lvnf]
 
         if not lvnf.cpp.connection:
             return
