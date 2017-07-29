@@ -28,6 +28,16 @@ class VBSUp(ModuleTrigger):
 
     MODULE_NAME = "vbsup"
 
+    def run_once(self):
+        """This will be executed only once after initialization."""
+
+        for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
+
+            if not vbs.connection:
+                continue
+
+            vbs.connection.send_register_message_to_self()
+
     def handle_response(self, vbs):
         """ Handle a REGISTER message.
 
@@ -43,16 +53,7 @@ class VBSUp(ModuleTrigger):
         if vbs.addr not in vbses:
             return
 
-        vbs = vbses[vbs.addr]
-
         self.handle_callback(vbs)
-
-    def __eq__(self, other):
-
-        return super().__eq__(other) and \
-            self.callback == other.callback
-
-        return False
 
 
 class VBSUpWorker(ModuleVBSPEventWorker):

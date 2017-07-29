@@ -43,16 +43,7 @@ class VBSDown(ModuleTrigger):
         if vbs.addr not in vbses:
             return
 
-        vbs = vbses[vbs.addr]
-
         self.handle_callback(vbs)
-
-    def __eq__(self, other):
-
-        return super().__eq__(other) and \
-            self.callback == other.callback
-
-        return False
 
 
 class VBSDownWorker(ModuleVBSPEventWorker):

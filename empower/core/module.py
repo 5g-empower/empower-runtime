@@ -332,7 +332,8 @@ class Module(object):
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
-                self.every == other.every
+                self.every == other.every and \
+                self.callback == other.callback
 
         return False
 
@@ -397,7 +398,8 @@ class ModuleTrigger(Module):
 
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
-                self.tenant_id == other.tenant_id
+                self.tenant_id == other.tenant_id and \
+                self.callback == other.callback
 
         return False
 

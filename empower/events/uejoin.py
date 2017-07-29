@@ -43,13 +43,6 @@ class UEJoin(ModuleTrigger):
 
         self.handle_callback(ue)
 
-    def __eq__(self, other):
-
-        return super().__eq__(other) and \
-            self.callback == other.callback
-
-        return False
-
 
 class UEJoinWorker(ModuleVBSPEventWorker):
     """UEJoin."""

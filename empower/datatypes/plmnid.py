@@ -81,16 +81,3 @@ class PLMNID(object):
 
     def __repr__(self):
         return self.__class__.__name__ + "('" + self.to_str() + "')"
-
-
-if __name__ == "__main__":
-
-    x = PLMNID("00110")
-
-    print(x.mnc)
-    print(x.mcc)
-    print(x.to_tuple())
-
-    y = PLMNID("00112")
-
-    print(x == y)
