@@ -307,16 +307,16 @@ class LVAPPConnection(object):
             LOG.warning("No valid intersection found. Ignoring request.")
             return
 
-        # save LVAP in the runtime
-        RUNTIME.lvaps[sta] = lvap
-
-        # This will trigger an LVAP ADD message (and REMOVE if necessary)
-        lvap.scheduled_on = valid
-
         # Set default LVAP virtual port
         lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
                                         virtual_port_id=0,
                                         lvap=lvap)
+
+        # This will trigger an LVAP ADD message (and REMOVE if necessary)
+        lvap.scheduled_on = valid
+
+        # save LVAP in the runtime
+        RUNTIME.lvaps[sta] = lvap
 
         LOG.info("Sending probe response to %s", lvap.addr)
         self.send_probe_response(lvap)
@@ -939,7 +939,7 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=48,
+                             length=46,
                              seq=self.wtp.seq,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
