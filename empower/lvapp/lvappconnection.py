@@ -865,17 +865,16 @@ class LVAPPConnection(object):
             TypeError: if lvap is not an LVAP object.
         """
 
-        flags = Container(csa_active=False)
+        target_block = lvap.target_block
 
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
                              length=16,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw(),
-                             target_hwaddr=EtherAddress.bcast().to_raw(),
-                             target_channel=0,
-                             tagert_band=BT_L20,
-                             csa_flags=flags,
+                             target_hwaddr=target_block.hwaddr.to_raw(),
+                             target_channel=target_block.channel,
+                             tagert_band=target_block.band,
                              csa_switch_mode=0,
                              csa_switch_count=0)
 

@@ -182,6 +182,10 @@ class LVAP(object):
         # supported resource blocks
         self.supported = ResourcePool()
 
+        # this is set before clearing the DL blocks, so that the del_lvap
+        # message can be filled with the target block information
+        target_block = None
+
     def set_ports(self):
         """Set virtual ports.
 
@@ -343,12 +347,18 @@ class LVAP(object):
             self.set_ports()
             return
 
+        # downlink block
+        default_block = pool.pop()
+
+        # save target block
+        self.target_block = default_block
+
         # clear downlink blocks
         for block in list(self._downlink.keys()):
             del self._downlink[block]
 
-        # downlink block
-        default_block = pool.pop()
+        # reset target block
+        self.target_block = None
 
         # check if block is also in the uplink, if so remove it
         if default_block in self._uplink:
@@ -492,9 +502,6 @@ class LVAP(object):
     @wtp.setter
     def wtp(self, wtp):
         """Assigns LVAP to new wtp."""
-
-        if not self.default_block:
-            return None
 
         matching = wtp.supports & self.supported
         self.scheduled_on = matching.pop() if matching else None

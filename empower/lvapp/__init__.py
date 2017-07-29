@@ -143,7 +143,6 @@ DEL_LVAP = Struct("del_lvap", UBInt8("version"),
                   Bytes("target_hwaddr", 6),
                   UBInt8("target_channel"),
                   UBInt8("tagert_band"),
-                  BitStruct("csa_flags", Padding(7), Bit("csa_active")),
                   UBInt8("csa_switch_mode"),
                   UBInt8("csa_switch_count"))
 
