@@ -319,7 +319,7 @@ class LVAPPConnection(object):
         RUNTIME.lvaps[sta] = lvap
 
         LOG.info("Sending probe response to %s", lvap.addr)
-        self.send_probe_response(lvap)
+        self.send_probe_response(lvap, ssid)
 
     def _handle_auth_request(self, wtp, request):
         """Handle an incoming AUTH_REQUEST message.
@@ -836,7 +836,7 @@ class LVAPPConnection(object):
         msg = AUTH_RESPONSE.build(response)
         self.stream.write(msg)
 
-    def send_probe_response(self, lvap):
+    def send_probe_response(self, lvap, ssid):
         """Send a PROBE_RESPONSE message.
         Args:
             lvap: an LVAP object
@@ -850,7 +850,8 @@ class LVAPPConnection(object):
                              type=PT_PROBE_RESPONSE,
                              length=16,
                              seq=self.wtp.seq,
-                             sta=lvap.addr.to_raw())
+                             sta=lvap.addr.to_raw(),
+                             ssid=ssid.to_raw())
 
         msg = PROBE_RESPONSE.build(response)
         self.stream.write(msg)

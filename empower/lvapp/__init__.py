@@ -82,7 +82,8 @@ PROBE_RESPONSE = Struct("probe_response", UBInt8("version"),
                         UBInt8("type"),
                         UBInt32("length"),
                         UBInt32("seq"),
-                        Bytes("sta", 6))
+                        Bytes("sta", 6),
+                        Bytes("ssid", lambda ctx: ctx.length - 16))
 
 AUTH_REQUEST = Struct("auth_request", UBInt8("version"),
                       UBInt8("type"),
