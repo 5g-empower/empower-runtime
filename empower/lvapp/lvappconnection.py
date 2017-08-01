@@ -867,9 +867,18 @@ class LVAPPConnection(object):
 
         target_block = lvap.target_block
 
+        target_hwaddr = EtherAddress.bcast()
+        target_channel = 0
+        target_band = 0
+
+        if target_block:
+            target_hwaddr = target_block.hwaddr
+            target_channel = target_block.channel
+            target_band = target_block.band
+
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
-                             length=16,
+                             length=26,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw(),
                              target_hwaddr=target_block.hwaddr.to_raw(),
