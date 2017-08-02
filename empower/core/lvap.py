@@ -184,7 +184,7 @@ class LVAP(object):
 
         # this is set before clearing the DL blocks, so that the del_lvap
         # message can be filled with the target block information
-        target_block = None
+        self.target_block = None
 
     def set_ports(self):
         """Set virtual ports.
@@ -348,41 +348,19 @@ class LVAP(object):
             return
 
         # downlink block
-        default_block = pool.pop()
+        downlink_block = pool.pop()
 
-        # save target block
-        self.target_block = default_block
-
-        # clear downlink blocks
-        for block in list(self._downlink.keys()):
-            del self._downlink[block]
-
-        # reset target block
-        self.target_block = None
-
-        # check if block is also in the uplink, if so remove it
-        if default_block in self._uplink:
-            del self._uplink[default_block]
-
-        # If lvap is associated to a shared tenant. I need to reset the lvap
-        # before moving it.
+        # If LVAP is associated to a shared tenant, then reset LVAP
         if self._tenant and self._tenant.bssid_type == T_TYPE_SHARED:
 
             # check if tenant is available at target block
             base_bssid = self._tenant.get_prefix()
-            net_bssid = generate_bssid(base_bssid, default_block.hwaddr)
+            net_bssid = generate_bssid(base_bssid, downlink_block.hwaddr)
 
             # if not ignore request
             if net_bssid not in self._tenant.vaps:
                 LOG.error("VAP %s not found on tenant %s", net_bssid,
                           self._tenant.tenant_name)
-                self.set_ports()
-                return
-
-            # check if vap is available at target block
-            if net_bssid != self._tenant.vaps[net_bssid].net_bssid:
-                LOG.error("VAP %s not available at target block %s",
-                          net_bssid, default_block)
                 self.set_ports()
                 return
 
@@ -393,9 +371,22 @@ class LVAP(object):
             self._assoc_id = 0
             self._lvap_bssid = net_bssid
 
+        # check if block is also in the uplink, if so remove it
+        if downlink_block in self._uplink:
+            del self._uplink[downlink_block]
+
+        # save target block
+        self.target_block = downlink_block
+
+        # clear downlink blocks
+        del self._downlink[self.dafault_block]
+
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message
-        self._downlink[default_block] = RadioPort(self, default_block)
+        self._downlink[downlink_block] = RadioPort(self, downlink_block)
+
+        # reset target block
+        self.target_block = None
 
         # set ports
         self.set_ports()

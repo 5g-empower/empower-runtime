@@ -23,8 +23,6 @@ import uuid
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
 
