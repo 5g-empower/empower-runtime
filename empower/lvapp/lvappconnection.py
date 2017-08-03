@@ -554,11 +554,17 @@ class LVAPPConnection(object):
         try:
             if set_mask:
                 # set downlink+uplink block
+                # if radios are then same this is the result of a band steering
+                # remove default block and replace with new one
+                if lvap.default_block.radio == block.radio:
+                    LOG.info("YESSSSSSSS")
+                    lvap._downlink.delitem(lvap.default_block)
                 lvap._downlink.setitem(block, RadioPort(lvap, block))
             else:
                 # set uplink only blocks
                 lvap._uplink.setitem(block, RadioPort(lvap, block))
-        except ValueError:
+        except Exception as e:
+            LOG.exception(e)
             LOG.error("Error while importing block %s, removing.", block)
             wtp.connection.send_del_lvap(lvap)
             return
