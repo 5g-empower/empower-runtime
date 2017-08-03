@@ -23,12 +23,13 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class DeployLvnf(EmpowerApp):
+class LvnfDeploy(EmpowerApp):
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)
         self.cppup(callback=self.cpp_up_callback)
         self.lvnfjoin(callback=self.lvnf_join_callback)
+        self.lvnfleave(callback=self.lvnf_leave_callback)
 
     def cpp_up_callback(self, cpp):
         """Called when a new cpp connects to the controller."""
@@ -42,15 +43,20 @@ class DeployLvnf(EmpowerApp):
         self.spawn_lvnf(img, cpp)
 
     def lvnf_join_callback(self, lvnf):
-        """Called when an LVNF associates to a tennant."""
+        """Called when an LVNF associates to a tenant."""
 
         self.log.info("LVNF %s joined %s" % (lvnf.lvnf_id, lvnf.tenant_id))
 
-        # Delete LVNF
-        self.delete_lvnf(lvnf.lvnf_id)
+        # Stop LVNF
+        lvnf.stop()
+
+    def lvnf_leave_callback(self, lvnf):
+        """Called when an LVNF leaves a tennant."""
+
+        self.log.info("LVNF %s stopped" % lvnf.lvnf_id)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return DeployLvnf(tenant_id=tenant_id, every=every)
+    return LvnfDeploy(tenant_id=tenant_id, every=every)

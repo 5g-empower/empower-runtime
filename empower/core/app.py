@@ -235,17 +235,3 @@ class EmpowerApp(object):
         # maintained as spawning, then as a result of the lvnf status message
         # this can change to running or stopped.
         tenant.lvnfs[lvnf_id] = lvnf
-
-    def delete_lvnf(self, lvnf_id):
-        """Remove LVNF."""
-
-        tenant = RUNTIME.tenants[self.tenant_id]
-
-        if lvnf_id not in tenant.lvnfs:
-            raise KeyError("LVNF not found %s", lvnf_id)
-
-        lvnf = tenant.lvnfs[lvnf_id]
-
-        lvnf.stop()
-
-        del tenant.lvnfs[lvnf_id]

@@ -163,8 +163,10 @@ class LVAPStats(Module):
                 rate = entry[0] / 2.0
             else:
                 rate = entry[0]
-            self.rates[rate] = {'prob': entry[2] / 180.0,
-                                'cur_prob': entry[3] / 180.0, }
+            value = {'prob': entry[2] / 180.0,
+                     'cur_prob': entry[3] / 180.0, }
+            lvap.default_block.rates[rate] = value
+            self.rates[rate] = value
 
         # call callback
         self.handle_callback(self)

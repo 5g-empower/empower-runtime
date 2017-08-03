@@ -22,7 +22,7 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class ServiceFunctionChain(EmpowerApp):
+class LvnfChain(EmpowerApp):
 
     def __init__(self, **kwargs):
         EmpowerApp.__init__(self, **kwargs)
@@ -46,4 +46,4 @@ class ServiceFunctionChain(EmpowerApp):
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return ServiceFunctionChain(tenant_id=tenant_id, every=every)
+    return LvnfChain(tenant_id=tenant_id, every=every)

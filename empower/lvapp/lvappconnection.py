@@ -882,11 +882,11 @@ class LVAPPConnection(object):
                              length=26,
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw(),
-                             target_hwaddr=target_block.hwaddr.to_raw(),
-                             target_channel=target_block.channel,
-                             tagert_band=target_block.band,
+                             target_hwaddr=target_hwaddr.to_raw(),
+                             target_channel=target_channel,
+                             tagert_band=target_band,
                              csa_switch_mode=0,
-                             csa_switch_count=0)
+                             csa_switch_count=3)
 
         msg = DEL_LVAP.build(del_lvap)
         self.stream.write(msg)

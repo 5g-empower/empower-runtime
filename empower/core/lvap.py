@@ -170,9 +170,6 @@ class LVAP(object):
         self.tx_samples = []
         self.rx_samples = []
 
-        # rates statistics
-        self.rates = {}
-
         # virtual ports (VNFs)
         self.ports = {}
 
@@ -379,7 +376,8 @@ class LVAP(object):
         self.target_block = downlink_block
 
         # clear downlink blocks
-        del self._downlink[self.default_block]
+        if self.default_block:
+            del self._downlink[self.default_block]
 
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message
@@ -533,7 +531,6 @@ class LVAP(object):
                 'encap': self.encap,
                 'tx_samples': self.tx_samples,
                 'rx_samples': self.rx_samples,
-                'rates': self.rates,
                 'authentication_state': self.authentication_state,
                 'association_state': self.association_state}
 

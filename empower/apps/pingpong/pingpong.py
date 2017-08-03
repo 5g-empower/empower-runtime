@@ -21,7 +21,7 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.datatypes.etheraddress import EtherAddress
 
-DEFAULT_LVAP = "00:24:D7:7B:B7:7C"
+DEFAULT_LVAP = "18:5E:0F:E3:B8:68"
 DEFAULT_WTPS = "00:0D:B9:2F:56:58,00:0D:B9:2F:56:5C,00:0D:B9:2F:56:64"
 
 
