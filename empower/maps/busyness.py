@@ -175,6 +175,7 @@ class Busyness(Module):
         """
 
         self.busyness = response.busyness / 180.0
+        self.block.busyness = response.busyness / 180.0
 
         # call callback
         self.handle_callback(self)
