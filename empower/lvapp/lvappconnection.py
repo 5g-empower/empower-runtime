@@ -313,7 +313,7 @@ class LVAPPConnection(object):
                                         lvap=lvap)
 
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
-        lvap.scheduled_on = valid#.pop()
+        lvap.scheduled_on = valid.pop()
 
         # save LVAP in the runtime
         RUNTIME.lvaps[sta] = lvap
