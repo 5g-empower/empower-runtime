@@ -368,14 +368,14 @@ class LVAP(object):
             self._assoc_id = 0
             self._lvap_bssid = net_bssid
 
-        # check if block is also in the uplink, if so remove it
-        if downlink_block in self._uplink:
-            del self._uplink[downlink_block]
+        # clear uplink blocks
+        for block in list(self._uplink.keys()):
+            del self._uplink[block]
 
         # save target block
         self.target_block = downlink_block
 
-        # clear downlink blocks
+        # clear downlink block
         if self.default_block:
             del self._downlink[self.default_block]
 
@@ -422,6 +422,10 @@ class LVAP(object):
         # make sure we are not overwriting a downlink block
         downlink = ResourcePool(list(self._downlink.keys()))
         pool = pool - downlink
+
+        # make sure if specified block is not at the same wtp of the current
+        # downlink block, in this case remove it
+        pool = pool - self.default_block.radio.supports
 
         # clear uplink blocks
         for block in list(self._uplink.keys()):
