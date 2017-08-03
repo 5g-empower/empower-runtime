@@ -20,9 +20,6 @@
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.maps.ucqm import ucqm
-from empower.maps.ncqm import ncqm
-from empower.events.wtpup import wtpup
 
 DEFAULT_ADDRESS = "ff:ff:ff:ff:ff:ff"
 
@@ -46,7 +43,7 @@ class RSSITracker(EmpowerApp):
     def __init__(self, **kwargs):
         self.__addrs = None
         EmpowerApp.__init__(self, **kwargs)
-        wtpup(tenant_id=self.tenant.tenant_id, callback=self.wtp_up_callback)
+        self.wtpup(callback=self.wtp_up_callback)
 
     @property
     def addrs(self):
@@ -65,15 +62,13 @@ class RSSITracker(EmpowerApp):
 
         for block in wtp.supports:
 
-            ucqm(block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.every,
-                 callback=self.ucqm_callback)
+            self.ucqm(block=block,
+                      every=self.every,
+                      callback=self.ucqm_callback)
 
-            ncqm(block=block,
-                 tenant_id=self.tenant.tenant_id,
-                 every=self.every,
-                 callback=self.ncqm_callback)
+            self.ncqm(block=block,
+                      every=self.every,
+                      callback=self.ncqm_callback)
 
     def ucqm_callback(self, poller):
         """Called when a UCQM response is received from a WTP."""
