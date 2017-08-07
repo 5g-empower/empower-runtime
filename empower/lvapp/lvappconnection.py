@@ -626,7 +626,7 @@ class LVAPPConnection(object):
                 LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
                 del lvap.tenant.lvaps[lvap.addr]
 
-        lvap._tenant = None
+            lvap._tenant = None
 
         if ssids[0]:
 
