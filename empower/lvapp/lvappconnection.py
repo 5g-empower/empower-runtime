@@ -521,7 +521,41 @@ class LVAPPConnection(object):
 
         lvap = None
 
-        LOG.info("LVAP status update from %s at wtp %s", sta, wtp.addr)
+        accum = []
+        incoming_ssids = [SSID(x.ssid) for x in status.ssids]
+
+        accum.append("addr ")
+        accum.append(EtherAddress(status.sta).to_str())
+        accum.append(" net_bssid ")
+        accum.append(EtherAddress(status.net_bssid).to_str())
+        accum.append(" lvap_bssid ")
+        accum.append(EtherAddress(status.lvap_bssid).to_str())
+
+        accum.append(" ssid ")
+
+        if incoming_ssids[0]:
+            accum.append(incoming_ssids[0].to_str())
+        else:
+            accum.append("None")
+
+        accum.append(" ssids [")
+
+        for ssid in incoming_ssids[1:]:
+            accum.append(" ")
+            accum.append(ssid.to_str())
+
+        accum.append(" ]")
+
+        accum.append(" assoc_id ")
+        accum.append(str(status.assoc_id))
+
+        if bool(status.flags.authenticated):
+            accum.append(" AUTH")
+
+        if bool(status.flags.associated):
+            accum.append(" ASSOC")
+
+        LOG.info("LVAP status %s", ''.join(accum))
 
         # If the LVAP does not exists, then create a new one
         if sta not in RUNTIME.lvaps:
@@ -615,8 +649,6 @@ class LVAPPConnection(object):
 
         # update remaining ssids
         lvap._ssids = ssids[1:]
-
-        LOG.info("LVAP status %s", lvap)
 
     @classmethod
     def _handle_status_port(cls, wtp, status):
