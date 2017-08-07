@@ -17,12 +17,13 @@
 
 """Ping-pong handover App."""
 
+import random
+
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.datatypes.etheraddress import EtherAddress
 
 DEFAULT_LVAP = "18:5E:0F:E3:B8:68"
-DEFAULT_WTPS = "00:0D:B9:2F:56:58,00:0D:B9:2F:56:5C,00:0D:B9:2F:56:64"
 
 
 class PingPong(EmpowerApp):
@@ -32,8 +33,6 @@ class PingPong(EmpowerApp):
 
         tenant_id: tenant id
         lvap: the lvap address (optinal, default 00:18:DE:CC:D3:40)
-        wtps: comma separated list (optional, default 00:0D:B9:2F:56:58,
-            00:0D:B9:2F:56:5C, 00:0D:B9:2F:56:64)
         every: loop period in ms (optional, default 5000ms)
 
     Example:
@@ -44,21 +43,7 @@ class PingPong(EmpowerApp):
 
     def __init__(self, **kwargs):
         self.__lvap_addr = None
-        self.__wtp_addrs = []
         EmpowerApp.__init__(self, **kwargs)
-        self.idx = 0
-
-    @property
-    def wtp_addrs(self):
-        """Return wtp_addrs."""
-
-        return self.__wtp_addrs
-
-    @wtp_addrs.setter
-    def wtp_addrs(self, value):
-        """Set wtp_addrs."""
-
-        self.__wtp_addrs = [EtherAddress(x) for x in value.split(",")]
 
     @property
     def lvap_addr(self):
@@ -75,27 +60,22 @@ class PingPong(EmpowerApp):
     def loop(self):
         """ Periodic job. """
 
-        # if the LVAP is not active, then return
         lvap = self.lvap(self.lvap_addr)
+
         if not lvap:
             return
 
-        wtp_addr = self.wtp_addrs[self.idx % len(self.wtp_addrs)]
-        self.idx = self.idx + 1
+        block = random.sample(self.blocks(), 1)
 
-        wtp = self.wtp(wtp_addr)
-
-        if not wtp or not wtp.connection:
+        if not block:
             return
 
-        # perform handover
-        self.log.info("LVAP %s moving to WTP %s" % (lvap.addr, wtp.addr))
-        lvap.wtp = wtp
+        self.log.info("LVAP %s %s -> %s", lvap.addr, lvap.default_block,
+                      block[0])
+        lvap.scheduled_on = block[0]
 
 
-def launch(tenant_id, lvap=DEFAULT_LVAP, wtps=DEFAULT_WTPS,
-           period=DEFAULT_PERIOD):
-    """ Initialize the module. """
+def launch(tenant_id, lvap=DEFAULT_LVAP, period=5000):
+    """Initialize the module.`"""
 
-    return PingPong(tenant_id=tenant_id, lvap_addr=lvap, wtp_addrs=wtps,
-                    every=period)
+    return PingPong(tenant_id=tenant_id, lvap_addr=lvap)

@@ -521,7 +521,7 @@ class LVAPPConnection(object):
 
         lvap = None
 
-        LOG.info("LVAP status update from %s", sta)
+        LOG.info("LVAP status update from %s at wtp %s", sta, wtp.addr)
 
         # If the LVAP does not exists, then create a new one
         if sta not in RUNTIME.lvaps:
@@ -564,7 +564,6 @@ class LVAPPConnection(object):
                 # set uplink only blocks
                 lvap._uplink.setitem(block, RadioPort(lvap, block))
         except Exception as e:
-            LOG.exception(e)
             LOG.error("Error while importing block %s, removing.", block)
             wtp.connection.send_del_lvap(lvap)
             return
@@ -892,6 +891,8 @@ class LVAPPConnection(object):
                              tagert_band=target_band,
                              csa_switch_mode=0,
                              csa_switch_count=3)
+
+        LOG.info("Del lvap %s", lvap)
 
         msg = DEL_LVAP.build(del_lvap)
         self.stream.write(msg)

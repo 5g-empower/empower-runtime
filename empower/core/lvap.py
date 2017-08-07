@@ -379,12 +379,12 @@ class LVAP(object):
         if self.default_block:
             del self._downlink[self.default_block]
 
+        # reset target block
+        self.target_block = None
+
         # assign default port policy to downlink resource block, this will
         # trigger a send_add_lvap and a set_port (radio) message
         self._downlink[downlink_block] = RadioPort(self, downlink_block)
-
-        # reset target block
-        self.target_block = None
 
         # set ports
         self.set_ports()
