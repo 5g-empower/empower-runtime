@@ -556,8 +556,8 @@ class LVAPPConnection(object):
                 # set downlink+uplink block
                 # if radios are then same this is the result of a band steering
                 # remove default block and replace with new one
-                if lvap.default_block.radio == block.radio:
-                    LOG.info("YESSSSSSSS")
+                default_block = lvap.default_block
+                if default_block and default_block.radio == block.radio:
                     lvap._downlink.delitem(lvap.default_block)
                 lvap._downlink.setitem(block, RadioPort(lvap, block))
             else:
