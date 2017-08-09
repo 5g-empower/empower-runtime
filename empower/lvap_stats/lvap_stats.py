@@ -159,13 +159,12 @@ class LVAPStats(Module):
         # update this object
         self.rates = {}
         for entry in response.rates:
-            if lvap.default_block.band == BT_L20:
+            if lvap.supported_band == BT_L20:
                 rate = entry[0] / 2.0
             else:
                 rate = entry[0]
             value = {'prob': entry[2] / 180.0,
                      'cur_prob': entry[3] / 180.0, }
-            lvap.default_block.rates[rate] = value
             self.rates[rate] = value
 
         # call callback

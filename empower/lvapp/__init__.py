@@ -76,7 +76,8 @@ PROBE_REQUEST = Struct("probe_request", UBInt8("version"),
                        Bytes("hwaddr", 6),
                        UBInt8("channel"),
                        UBInt8("band"),
-                       Bytes("ssid", lambda ctx: ctx.length - 30))
+                       UBInt8("supported_band"),
+                       Bytes("ssid", lambda ctx: ctx.length - 31))
 
 PROBE_RESPONSE = Struct("probe_response", UBInt8("version"),
                         UBInt8("type"),
@@ -110,7 +111,8 @@ ASSOC_REQUEST = \
            Bytes("hwaddr", 6),
            UBInt8("channel"),
            UBInt8("band"),
-           Bytes("ssid", lambda ctx: ctx.length - 36))
+           UBInt8("supported_band"),
+           Bytes("ssid", lambda ctx: ctx.length - 37))
 
 ASSOC_RESPONSE = Struct("assoc_response", UBInt8("version"),
                         UBInt8("type"),
@@ -130,6 +132,7 @@ ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   Bytes("hwaddr", 6),
                   UBInt8("channel"),
                   UBInt8("band"),
+                  UBInt8("supported_band"),
                   Bytes("sta", 6),
                   Bytes("encap", 6),
                   Bytes("net_bssid", 6),
@@ -162,6 +165,7 @@ STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
                      Bytes("hwaddr", 6),
                      UBInt8("channel"),
                      UBInt8("band"),
+                     UBInt8("supported_band"),
                      Bytes("net_bssid", 6),
                      Bytes("lvap_bssid", 6),
                      SSIDS)

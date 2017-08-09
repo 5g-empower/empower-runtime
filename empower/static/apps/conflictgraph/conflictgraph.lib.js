@@ -37,8 +37,8 @@ function updateCm(data, channel, element) {
         src = data['conflicts'].networks[i][0]
         dst = data['conflicts'].networks[i][1]
 
-        for (j in src.scheduled_on) {
-            block = src.scheduled_on[j]
+        for (j in src.blocks) {
+            block = src.blocks[j]
             if (block.channel != channel) {
                 continue
             }
@@ -63,8 +63,8 @@ function updateCm(data, channel, element) {
         src = data['conflicts'].stations[i][0]
         dst = data['conflicts'].stations[i][1]
 
-        for (j in src.scheduled_on) {
-            block = src.scheduled_on[j]
+        for (j in src.blocks) {
+            block = src.blocks[j]
             if (block.channel != channel) {
                 continue
             }

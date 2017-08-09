@@ -35,7 +35,7 @@ class ReactiveMobilityManager(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.mobilitymanager.mobilitymanager \
+        ./empower-runtime.py apps.mobilitymanager.reactivemm \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
@@ -99,19 +99,17 @@ class ReactiveMobilityManager(EmpowerApp):
         self.handover(lvap)
 
     def handover(self, lvap):
-        """ Handover the LVAP to a WTP with
-        an RSSI higher that -65dB. """
+        """Handover the LVAP to the best WTP."""
 
         pool = self.blocks()
-        valid = pool & lvap.supported
 
-        if not valid:
+        if not pool:
             return
 
-        new_block = max(valid, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
+        new_block = max(pool, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
         self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
 
-        lvap.scheduled_on = new_block
+        lvap.blocks = new_block
 
 
 def launch(tenant_id, limit=DEFAULT_LIMIT, every=DEFAULT_PERIOD):

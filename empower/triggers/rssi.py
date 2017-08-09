@@ -28,7 +28,6 @@ from construct import UBInt32
 from construct import Bytes
 
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
@@ -255,16 +254,15 @@ class RSSI(ModuleTrigger):
         if wtp_addr not in RUNTIME.tenants[self.tenant_id].wtps:
             return
 
-        incoming = ResourcePool()
         hwaddr = EtherAddress(message.hwaddr)
         channel = message.channel
         band = message.band
-        incoming.add(ResourceBlock(wtp, hwaddr, channel, band))
+        incoming = ResourceBlock(wtp, hwaddr, channel, band)
 
-        matches = wtp.supports & incoming
+        match = [block for block in wtp.supports if block == incoming]
 
         self.event = \
-            {'block': matches.pop(),
+            {'block': matches[0],
              'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
              'current': message.current}
 

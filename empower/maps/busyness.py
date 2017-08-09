@@ -33,7 +33,6 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import Module
 from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
@@ -105,12 +104,12 @@ class Busyness(Module):
             if 'wtp' not in value:
                 raise ValueError("Missing field: wtp")
 
-            incoming = ResourcePool()
-            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                                  int(value['channel']), int(value['band']))
-            incoming.add(block)
+            # Check if block is valid
+            incoming = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                     int(value['channel']),
+                                     int(value['band']))
 
-            match = wtp.supports & incoming
+            match = [block for block in wtp.supports if block == incoming]
 
             if not match:
                 raise ValueError("No block specified")
@@ -118,7 +117,7 @@ class Busyness(Module):
             if len(match) > 1:
                 raise ValueError("More than one block specified")
 
-            self._block = match.pop()
+            self._block = match[0]
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary. """

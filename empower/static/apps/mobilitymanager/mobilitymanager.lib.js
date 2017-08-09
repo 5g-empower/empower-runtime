@@ -25,7 +25,7 @@ function refreshLVAPs() {
                 var c = 0
                 var sta = row.insertCell(c++);
                 var lvap_addr = data[stream].addr
-                sta.innerHTML = "<img src='/static/apps/mobilitymanager/sta.png' width='100' /><br />" + data[stream].addr + "<br />RB: (" + data[stream].scheduled_on[0].addr + ", " + data[stream].scheduled_on[0].channel + ", " + data[stream].scheduled_on[0].band + ")"
+                sta.innerHTML = "<img src='/static/apps/mobilitymanager/sta.png' width='100' /><br />" + data[stream].addr + "<br />RB: (" + data[stream].blocks[0].addr + ", " + data[stream].blocks[0].channel + ", " + data[stream].blocks[0].band + ")"
                 var aps = row.insertCell(c++);
                 var apLogo = ""
                 tmp = "<table width='100%'><tr>"

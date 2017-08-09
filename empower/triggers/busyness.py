@@ -28,7 +28,6 @@ from construct import UBInt32
 from construct import Bytes
 
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
@@ -118,13 +117,14 @@ class BusynessTrigger(ModuleTrigger):
 
     @block.setter
     def block(self, value):
-        """Set block."""
 
         if isinstance(value, ResourceBlock):
 
             self._block = value
 
         elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
             if 'hwaddr' not in value:
                 raise ValueError("Missing field: hwaddr")
@@ -138,14 +138,12 @@ class BusynessTrigger(ModuleTrigger):
             if 'wtp' not in value:
                 raise ValueError("Missing field: wtp")
 
-            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+            # Check if block is valid
+            incoming = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                     int(value['channel']),
+                                     int(value['band']))
 
-            incoming = ResourcePool()
-            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                                  int(value['channel']), int(value['band']))
-            incoming.add(block)
-
-            match = wtp.supports & incoming
+            match = [block for block in wtp.supports if block == incoming]
 
             if not match:
                 raise ValueError("No block specified")
@@ -153,7 +151,7 @@ class BusynessTrigger(ModuleTrigger):
             if len(match) > 1:
                 raise ValueError("More than one block specified")
 
-            self._block = match.pop()
+            self._block = match[0]
 
     @property
     def period(self):
@@ -292,16 +290,15 @@ class BusynessTrigger(ModuleTrigger):
         if wtp_addr not in RUNTIME.tenants[self.tenant_id].wtps:
             return
 
-        incoming = ResourcePool()
         hwaddr = EtherAddress(message.hwaddr)
         channel = message.channel
         band = message.band
-        incoming.add(ResourceBlock(wtp, hwaddr, channel, band))
+        incoming = ResourceBlock(wtp, hwaddr, channel, band)
 
-        matches = wtp.supports & incoming
+        match = [block for block in wtp.supports if block == incoming]
 
         self.event = \
-            {'block': matches.pop(),
+            {'block': matches[0],
              'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
              'current': message.current / 180.0}
 

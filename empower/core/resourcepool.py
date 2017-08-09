@@ -262,32 +262,6 @@ def build_block(block):
     raise KeyError(requested)
 
 
-class ResourcePool(set):
-    """ Resource Pool class.
-
-    A resource block represents the minimum allocation element in a EmPOWER
-    network. It typically consists of a wifi channel and the number of
-    streams. However it could also consist of multiple bands (for example 160
-    MHz channel obtained by aggregating two 80 MHz channels in 802.11ac
-    networks).
-
-    The class Overrides the set object's "and" method for ResourceBlock
-    objects by excluding the Resource Block address form the matching.from
-    """
-
-    def __init__(self, *args, **kwds):
-        super(ResourcePool, self).__init__(*args, **kwds)
-
-    def __and__(self, other):
-        result = ResourcePool()
-        for rblock in self:
-            for rblock_other in other:
-                if rblock_other.band > rblock.band:
-                    continue
-                result.add(rblock)
-        return result
-
-
 class ResourceBlock(object):
     """ EmPOWER resource block.
 
@@ -317,7 +291,6 @@ class ResourceBlock(object):
         self._band = band
         self.ucqm = CQM()
         self.ncqm = CQM()
-        self.rates = {}
         self.busyness = None
         self.tx_policies = TxPolicyProp(self)
         self._supports = set()
@@ -432,7 +405,6 @@ class ResourceBlock(object):
                 'ht_supports': sorted(self.ht_supports),
                 'tx_policies': tx_policies,
                 'band': BANDS[self.band],
-                'rates': self.rates,
                 'busyness': self.busyness,
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
                 'ncqm': {str(k): v for k, v in self.ncqm.items()}}

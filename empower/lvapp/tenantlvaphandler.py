@@ -24,7 +24,6 @@ import uuid
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
 
@@ -108,28 +107,11 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
                 wtp = tenant.wtps[wtp_addr]
                 lvap.wtp = wtp
 
-            elif "scheduled_on" in request:
+            elif "blocks" in request:
 
-                pool = ResourcePool()
+                pool = []
 
-                for block in request["scheduled_on"]:
-
-                    wtp_addr = EtherAddress(block['wtp'])
-                    wtp = RUNTIME.wtps[wtp_addr]
-                    hwaddr = EtherAddress(block['hwaddr'])
-                    channel = int(block['channel'])
-                    band = int(block['band'])
-
-                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
-                    pool.add(r_block)
-
-                lvap.scheduled_on = pool
-
-            elif "downlink" in request:
-
-                pool = ResourcePool()
-
-                for block in request["downlink"]:
+                for block in request["blocks"]:
 
                     wtp_addr = EtherAddress(block['wtp'])
                     wtp = RUNTIME.wtps[wtp_addr]
@@ -138,26 +120,9 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
                     band = int(block['band'])
 
                     r_block = ResourceBlock(wtp, hwaddr, channel, band)
-                    pool.add(r_block)
+                    pool.append(r_block)
 
-                lvap.downlink = pool
-
-            elif "uplink" in request:
-
-                pool = ResourcePool()
-
-                for block in request["uplink"]:
-
-                    wtp_addr = EtherAddress(block['wtp'])
-                    wtp = RUNTIME.wtps[wtp_addr]
-                    hwaddr = EtherAddress(block['hwaddr'])
-                    channel = int(block['channel'])
-                    band = int(block['band'])
-
-                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
-                    pool.add(r_block)
-
-                lvap.uplink = pool
+                lvap.blocks = pool
 
             if "encap" in request:
 

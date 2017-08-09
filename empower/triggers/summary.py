@@ -38,7 +38,6 @@ from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_REGISTER
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
@@ -134,13 +133,14 @@ class Summary(ModuleTrigger):
 
     @block.setter
     def block(self, value):
-        """Set block."""
 
         if isinstance(value, ResourceBlock):
 
             self._block = value
 
         elif isinstance(value, dict):
+
+            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
 
             if 'hwaddr' not in value:
                 raise ValueError("Missing field: hwaddr")
@@ -154,14 +154,12 @@ class Summary(ModuleTrigger):
             if 'wtp' not in value:
                 raise ValueError("Missing field: wtp")
 
-            wtp = RUNTIME.wtps[EtherAddress(value['wtp'])]
+            # Check if block is valid
+            incoming = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
+                                     int(value['channel']),
+                                     int(value['band']))
 
-            incoming = ResourcePool()
-            block = ResourceBlock(wtp, EtherAddress(value['hwaddr']),
-                                  int(value['channel']), int(value['band']))
-            incoming.add(block)
-
-            match = wtp.supports & incoming
+            match = [block for block in wtp.supports if block == incoming]
 
             if not match:
                 raise ValueError("No block specified")
@@ -169,7 +167,7 @@ class Summary(ModuleTrigger):
             if len(match) > 1:
                 raise ValueError("More than one block specified")
 
-            self._block = match.pop()
+            self._block = match[0]
 
     @property
     def period(self):

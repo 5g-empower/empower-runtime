@@ -75,7 +75,7 @@ class ConflictGraph(EmpowerApp):
                 # in the conflict map (for both clients
                 # and access points)
 
-                for blk in dst.scheduled_on:
+                for blk in dst.blocks:
 
                     if src.addr in blk.ucqm:
 

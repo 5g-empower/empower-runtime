@@ -25,7 +25,6 @@ from construct import Container
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
 from empower.core.resourcepool import BT_L20
 from empower.core.radioport import RadioPort
 from empower.lvapp import HEADER
@@ -295,13 +294,14 @@ class LVAPPConnection(object):
         lvap = LVAP(sta, net_bssid, net_bssid)
         lvap.set_ssids(list(ssids))
 
-        # Check if block is valid
-        lvap.supported = ResourcePool()
-        channel = request.channel
-        band = request.band
-        lvap.supported.add(ResourceBlock(lvap, sta, channel, band))
+        # set supported band
+        lvap.supported_band = request.supported_band
 
-        valid = wtp.supports & lvap.supported
+        # Check if block is valid
+        incoming = \
+            ResourceBlock(wtp, request.hwaddr, request.channel, request.band)
+
+        valid = [block for block in wtp.supports if block == incoming]
 
         if not valid:
             LOG.warning("No valid intersection found. Ignoring request.")
@@ -313,7 +313,7 @@ class LVAPPConnection(object):
                                         lvap=lvap)
 
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
-        lvap.scheduled_on = valid.pop()
+        lvap.blocks = valid[0]
 
         # save LVAP in the runtime
         RUNTIME.lvaps[sta] = lvap
@@ -438,11 +438,8 @@ class LVAPPConnection(object):
         # this will trigger an add lvap message to update the ssid
         lvap.tenant = RUNTIME.load_tenant(tenant_name)
 
-        # update supported blocks field
-        lvap.supported = ResourcePool()
-        channel = request.channel
-        band = request.band
-        lvap.supported.add(ResourceBlock(lvap, sta, channel, band))
+        # set supported band
+        lvap.supported_band = request.supported_band
 
         # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
@@ -489,7 +486,7 @@ class LVAPPConnection(object):
         self.wtp.last_seen = 0
         self.wtp.connection = None
         self.wtp.ports = {}
-        self.wtp.supports = ResourcePool()
+        self.wtp.supports = set()
         self.wtp = None
 
     def send_bye_message_to_self(self):
@@ -568,37 +565,29 @@ class LVAPPConnection(object):
 
         lvap = RUNTIME.lvaps[sta]
 
-        # incoming block
-        lvap.supported = ResourcePool()
-        channel = status.channel
-        band = status.band
-        lvap.supported.add(ResourceBlock(lvap, sta, channel, band))
+        # Check if block is valid
+        incoming = \
+            ResourceBlock(wtp, status.hwaddr, status.channel, status.band)
 
-        match = wtp.supports & lvap.supported
+        valid = [block for block in wtp.supports if block == incoming]
 
-        if not match:
-            LOG.error("Incoming block %s is invalid", lvap.supported)
+        if not valid:
+            LOG.warning("No valid intersection found. Removing block.")
             wtp.connection.send_del_lvap(lvap)
             return
-
-        block = match.pop()
 
         # this will try to updated the lvap object with the resource block
         # coming in this status update message.
         try:
             if set_mask:
                 # set downlink+uplink block
-                # if radios are then same this is the result of a band steering
-                # remove default block and replace with new one
-                default_block = lvap.default_block
-                if default_block and default_block.radio == block.radio:
-                    lvap._downlink.delitem(lvap.default_block)
-                lvap._downlink.setitem(block, RadioPort(lvap, block))
+                lvap._downlink.setitem(valid[0], RadioPort(lvap, valid[0]))
             else:
                 # set uplink only blocks
-                lvap._uplink.setitem(block, RadioPort(lvap, block))
+                lvap._uplink.setitem(valid[0], RadioPort(lvap, valid[0]))
         except Exception as e:
-            LOG.error("Error while importing block %s, removing.", block)
+            LOG.exception(e)
+            LOG.error("Error while importing block %s, removing.", valid[0])
             wtp.connection.send_del_lvap(lvap)
             return
 
@@ -606,6 +595,9 @@ class LVAPPConnection(object):
         lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
                                         virtual_port_id=0,
                                         lvap=lvap)
+
+        # set supported band
+        lvap.supported_band = status.supported_band
 
         # update LVAP params
         lvap.authentication_state = bool(status.flags.authenticated)
@@ -664,20 +656,18 @@ class LVAPPConnection(object):
             return
 
         sta_addr = EtherAddress(status.sta)
-        hwaddr = EtherAddress(status.hwaddr)
-        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
 
         # incoming block
-        pool = ResourcePool()
-        pool.add(block)
+        incoming = \
+            ResourceBlock(wtp, status.hwaddr, status.channel, status.band)
 
-        match = wtp.supports & pool
+        valid = [block for block in wtp.supports if block == incoming]
 
-        if not match:
-            LOG.error("Incoming block %s is invalid", block)
+        if not valid:
+            LOG.error("Incoming block %s is invalid", incoming)
             return
 
-        block = match.pop()
+        block = valid[0]
 
         LOG.info("Port status from %s, station %s", wtp.addr, sta_addr)
 
@@ -884,7 +874,7 @@ class LVAPPConnection(object):
 
         response = Container(version=PT_VERSION,
                              type=PT_PROBE_RESPONSE,
-                             length=16,
+                             length=16 + len(ssid.to_raw()),
                              seq=self.wtp.seq,
                              sta=lvap.addr.to_raw(),
                              ssid=ssid.to_raw())
@@ -986,13 +976,14 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=46,
+                             length=47,
                              seq=self.wtp.seq,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
                              hwaddr=block.hwaddr.to_raw(),
                              channel=block.channel,
                              band=block.band,
+                             supported_band=lvap.supported_band,
                              sta=lvap.addr.to_raw(),
                              encap=encap.to_raw(),
                              net_bssid=lvap.net_bssid.to_raw(),

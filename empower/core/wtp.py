@@ -18,7 +18,6 @@
 """Wireless Termination Point."""
 
 from empower.core.pnfdev import BasePNFDev
-from empower.core.resourcepool import ResourcePool
 
 
 class WTP(BasePNFDev):
@@ -42,7 +41,7 @@ class WTP(BasePNFDev):
 
     def __init__(self, addr, label):
         super().__init__(addr, label)
-        self.supports = ResourcePool()
+        self.supports = set()
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""

@@ -28,20 +28,7 @@ class RadioPort():
     A port represents the properties of an assignment LVAP <-> ResourceBlock.
     The PortProp class extends the dictornary overriding the set method in
     order to send a Port Update message when the port is changed and an ADD/
-    DEL LVAP when a port is added/removed. Examples:
-
-      lvap.block = block
-
-    pool is a ResourcePool object. This results effectivelly in:
-
-      for block in pool:
-        lvap.block[block] = Port(lvap, block)
-
-    Similarly:
-
-      lvap.block[block] = port
-
-    is used to update a port configuration
+    DEL LVAP when a port is added/removed.
 
     Attributes:
 
@@ -54,16 +41,15 @@ class RadioPort():
         self._lvap = lvap
         self._block = block
 
-        rblock = next(iter(self._lvap.supported))
         txp = self._block.tx_policies[self._lvap.addr]
 
-        if rblock.channel > 14:
+        if self._block.channel > 14:
             txp._mcs = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
         else:
             txp._mcs = [1.0, 2.0, 5.5, 11.0,
                         6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0]
 
-        if rblock.band == BT_HT20:
+        if self._lvap.supported_band == BT_HT20:
             txp._ht_mcs = \
                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         else:

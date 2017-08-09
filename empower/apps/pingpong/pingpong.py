@@ -70,9 +70,8 @@ class PingPong(EmpowerApp):
         if not block:
             return
 
-        self.log.info("LVAP %s %s -> %s", lvap.addr, lvap.default_block,
-                      block[0])
-        lvap.scheduled_on = block[0]
+        self.log.info("LVAP %s %s -> %s", lvap.addr, lvap.blocks[0], block[0])
+        lvap.blocks = block[0]
 
 
 def launch(tenant_id, lvap=DEFAULT_LVAP, period=5000):
