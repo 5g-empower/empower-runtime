@@ -2,9 +2,7 @@
 selectedLvap = "18:5E:0F:E3:B8:68"
 lvap = null
 
-Lvnf_Dupe_Filter = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"
-Lvnf_To_Dump = "20c7ecf7-be9e-4643-8f98-8ac582b4bc07"
-
+selectedLvnf = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"
 lvnf = null
 
 eth_type = 0x0800
@@ -27,8 +25,7 @@ var tenant_id="{{tenant_id}}"
 function initialize() {
 
     lvapDown(selectedLvap)
-    lvnfDown(Lvnf_To_Dump)
-    lvnfDown(Lvnf_Dupe_Filter)
+    lvnfDown(selectedLvnf)
 
     var inputDiv = document.getElementById('incoming');
     inputGraph2D = new vis.Graph2d(inputDiv, inputDataset, options);
@@ -72,94 +69,49 @@ function loop() {
 
         // render wtps
         $("#wtps").html("")
-        for (var i in wtps) {
-            // look for downlink
-            found = false
-            for (var j in lvaps[selectedLvap].downlink) {
-                sched_on = lvaps[selectedLvap].downlink[j]
-                if (sched_on.addr == wtps[i].addr) {
-                    found = true
-                }
-            }
-            if (found) {
-                html = "<img title='" + wtps[i].addr + "' src='/static/apps/scylla/ap_dl_ul.png' width='90'>"
-                $("#wtps").append(html)
-                continue
-            }
-            // look for uplinks
-            found = false
-            for (var j in lvaps[selectedLvap].uplink) {
-                sched_on = lvaps[selectedLvap].uplink[j]
-                if (sched_on.addr == wtps[i].addr) {
-                    found = true
-                }
-            }
-            if (found) {
-                html = "<img title='" + wtps[i].addr + "' src='/static/apps/scylla/ap_ul_on.png' onclick='disableMultipleUplinks()' width='90'>"
-                $("#wtps").append(html)
-            } else {
-                html = "<img title='" + wtps[i].addr + "' src='/static/apps/scylla/ap_ul_off.png' onclick='enableMultipleUplinks()' width='90'>"
-                $("#wtps").append(html)
-            }
+
+        html = "<img src='/static/apps/scylla/ap_dl_ul.png' width='90'>"
+        $("#wtps").append(html)
+
+        if (lvaps[selectedLvap].blocks.length > 1) {
+            html = "<img src='/static/apps/scylla/ap_ul_on.png' onclick='disableMultipleUplinks()' width='90'>"
+            $("#wtps").append(html)
+        } else {
+            html = "<img src='/static/apps/scylla/ap_ul_off.png' onclick='enableMultipleUplinks()' width='90'>"
+            $("#wtps").append(html)
         }
 
         // render next
-        $.getJSON("/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
+        url = "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next"
+        $.getJSON(url,
             function(data) {
                 if (Object.keys(data).length > 0) {
-                    html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain1()' width='180'>"
+                    html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain()' width='180'>"
                     $("#next1").html(html)
-                    chain1_next1 = true
                 } else {
-                    html = "<img src='/static/apps/scylla/next_off.png' onclick='chain1()' width='180'>"
+                    html = "<img src='/static/apps/scylla/next_off.png' onclick='chain()' width='180'>"
                     $("#next1").html(html)
-                    chain1_next1 = false
                 }
-            });
+            }
+        );
 
-        if (chain1_next1 == true) {
-        $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next",
-            function(data) {
-                if (Object.keys(data).length > 0) {
-                      html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain2()' width='180'>"
-                      $("#next2").html(html)
-                } else {
-                      html = "<img src='/static/apps/scylla/next_off.png' onclick='chain2()' width='180'>"
-                      $("#next2").html(html)
-                }
-            });
-		}
     }
 
-    if (lvnfs[Lvnf_Dupe_Filter]) {
+    if (lvnfs[selectedLvnf]) {
         // render cpps
-        $("#cpps1").html("")
+        $("#cpps").html("")
         for (var i in cpps) {
-            cpp = lvnfs[Lvnf_Dupe_Filter].cpp
+            cpp = lvnfs[selectedLvnf].cpp
             if (cpp.addr == cpps[i].addr) {
                 html = "<img title='" + cpps[i].addr + "' src='/static/apps/scylla/cpp_on.png' width='90'>"
-                $("#cpps1").append(html)
+                $("#cpps").append(html)
             } else {
                 html = "<img title='" + cpps[i].addr + "' src='/static/apps/scylla/cpp_off.png' onclick='setCpp(\"" + cpps[i].addr + "\")' width='90'>"
-                $("#cpps1").append(html)
+                $("#cpps").append(html)
             }
         }
     }
 
-    if (lvnfs[Lvnf_To_Dump]) {
-        // render cpps
-        $("#cpps2").html("")
-        for (var i in cpps) {
-            cpp = lvnfs[Lvnf_To_Dump].cpp
-            if (cpp.addr == cpps[i].addr) {
-                html = "<img title='" + cpps[i].addr + "' src='/static/apps/scylla/cpp_on.png' width='90'>"
-                $("#cpps2").append(html)
-            } else {
-                html = "<img title='" + cpps[i].addr + "' src='/static/apps/scylla/cpp_off.png' onclick='setCpp(\"" + cpps[i].addr + "\")' width='90'>"
-                $("#cpps2").append(html)
-            }
-        }
-    }
 }
 
 function decodeBand(band) {
@@ -176,14 +128,17 @@ function enableMultipleUplinks() {
 
     console.log("Enabling multiple uplinks...")
 
-    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "uplink": []}
+    downlink = lvaps[selectedLvap].blocks[0]
+
+    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "blocks": []}
+
+    data["blocks"].push({'wtp':downlink.addr, 'band': decodeBand(downlink.band), 'channel':downlink.channel, 'hwaddr':downlink.hwaddr})
 
     for (var i in wtps) {
-        downlink = lvaps[selectedLvap].downlink[0]
         for (var j in wtps[i].supports) {
             block = wtps[i].supports[j]
-            if (block.band == downlink.band && block.channel == downlink.channel) {
-                data["uplink"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
+            if (block.hwaddr != downlink.hwaddr && block.band == downlink.band && block.channel == downlink.channel) {
+                data["blocks"].push({'wtp':wtps[i].addr,'band': decodeBand(block.band),'channel':block.channel,'hwaddr':block.hwaddr})
             }
         }
     }
@@ -219,7 +174,11 @@ function disableMultipleUplinks() {
 
     console.log("Disabling multiple uplinks...")
 
-    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "uplink": []}
+    downlink = lvaps[selectedLvap].blocks[0]
+
+    data = {"version":"1.0", "encap":"00:00:00:00:00:00", "blocks": []}
+
+    data["blocks"].push({'wtp':downlink.addr, 'band': decodeBand(downlink.band), 'channel':downlink.channel, 'hwaddr':downlink.hwaddr})
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap,
@@ -249,36 +208,9 @@ function disableMultipleUplinks() {
 }
 
 function setCpp(idCpp) {
-
     console.log("Setting new CPP...")
-
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_To_Dump,
-        type: 'PUT',
-        dataType: 'json',
-        data: '{"version":"1.0","addr":"'+idCpp+'"}',
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            204: function (data) {
-                console.log("LVNF migrated")
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert(data.responseJSON.message);
-            },
-            500: function (data) {
-                alert(data.responseJSON.message);
-            }
-        }
-    });
-
-        $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter,
+        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + selectedLvnf,
         type: 'PUT',
         dataType: 'json',
         data: '{"version":"1.0","addr":"'+idCpp+'"}',
@@ -304,26 +236,18 @@ function setCpp(idCpp) {
 }
 
 function lvnfUp(idLvnf) {
-    if (idLvnf == Lvnf_To_Dump) {
 
-        console.log("LVNF " + Lvnf_To_Dump + " is up!")
-        html = "<div class='tiny' id='stats'></div><img title='" + idLvnf + "' src='/static/apps/scylla/ToDump_on.png' onclick='undeployLvnfToDump()' width='180'>"
+    if (idLvnf == selectedLvnf) {
 
-        $("#todump").html(html)
-        $("#cpps2").html("")
-    }
-
-    if (idLvnf == Lvnf_Dupe_Filter) {
-
-        console.log("LVNF " + Lvnf_Dupe_Filter + " is up!")
+        console.log("LVNF " + selectedLvnf + " is up!")
         html = "<div class='tiny' id='stats'></div><img title='" + idLvnf + "' src='/static/apps/scylla/DupeFilter_on.png' onclick='undeployLvnfDupeFilter()' width='180'>"
 
         $("#dupefilter").html(html)
-        $("#cpps1").html("")
+        $("#cpps").html("")
 
         // monitor dupes table
         data = {"version": "1.0",
-                "lvnf": Lvnf_Dupe_Filter,
+                "lvnf": selectedLvnf,
                 "handler": "dupes_table",
                 "every": READ_HANDLERS_PERIOD}
 
@@ -358,7 +282,7 @@ function lvnfUp(idLvnf) {
 
         // monitor lvnf_stats
         data = {"version": "1.0",
-                "lvnf": Lvnf_Dupe_Filter,
+                "lvnf": selectedLvnf,
                 "every": READ_HANDLERS_PERIOD}
 
         // create lvnf_stats poller
@@ -395,7 +319,7 @@ function dupesTable() {
     $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_get", function(data) {
         $('#dupes tr').slice(1).remove();
         for (var i in data) {
-            if (data[i].lvnf==Lvnf_Dupe_Filter && data[i].handler=="dupes_table") {
+            if (data[i].lvnf==selectedLvnf && data[i].handler=="dupes_table") {
                 if (!data[i].samples || data[i].samples.length == 0) {
                     continue
                 }
@@ -413,18 +337,11 @@ function dupesTable() {
 }
 
 function lvnfDown(idLvnf) {
-    if (idLvnf == Lvnf_To_Dump) {
-        console.log("LVNF " + Lvnf_To_Dump + " is down!")
-        html = "<img title='" + idLvnf + "' src='/static/apps/scylla/ToDump_off.png' onclick='deployLvnfToDump()' width='180'>"
-        $("#todump").html(html)
-        $("#cpps2").html("")
-    }
-
-    if (idLvnf == Lvnf_Dupe_Filter) {
-	    console.log("LVNF " + Lvnf_Dupe_Filter + " is down!")
+    if (idLvnf == selectedLvnf) {
+	    console.log("LVNF " + selectedLvnf + " is down!")
 	    html = "<img title='" + idLvnf + "' src='/static/apps/scylla/DupeFilter_off.png' onclick='deployLvnfDupeFilter()' width='180'>"
 	    $("#dupefilter").html(html)
-	    $("#cpps1").html("")
+	    $("#cpps").html("")
     }
 }
 
@@ -446,7 +363,7 @@ function lvapDown(idLvap) {
     }
 }
 
-function chain1() {
+function chain() {
 
     console.log("Enabling encap...")
 
@@ -464,7 +381,7 @@ function chain1() {
         statusCode: {
             204: function (data) {
                 console.log("Encap enabled!")
-                setNextChain1()
+                setNextChain()
             },
             400: function (data) {
                 alert(data.responseJSON.message);
@@ -479,7 +396,7 @@ function chain1() {
     });
 }
 
-function setNextChain1() {
+function setNextChain() {
 
     console.log("Chaining...")
 
@@ -487,7 +404,7 @@ function setNextChain1() {
 
     data = {"version":"1.0",
             "match":"dl_src="+addr+",dl_dst=66:C3:CE:D9:05:51",
-            "next": {"lvnf_id": Lvnf_Dupe_Filter, "port_id": 0}}
+            "next": {"lvnf_id": selectedLvnf, "port_id": 0}}
 
     $.ajax({
         url: "/api/v1/tenants/" + tenant_id + "/lvaps/" + selectedLvap + "/ports/0/next",
@@ -519,7 +436,7 @@ function setNextChain1() {
     });
 }
 
-function unchain1() {
+function unchain() {
 
     console.log("Disabling encap...")
 
@@ -537,7 +454,7 @@ function unchain1() {
         statusCode: {
             204: function (data) {
                 console.log("Encap enabled!")
-                unsetNextChain1()
+                unsetNextChain()
             },
             400: function (data) {
                 alert(data.responseJSON.message);
@@ -553,7 +470,7 @@ function unchain1() {
 
 }
 
-function unsetNextChain1() {
+function unsetNextChain() {
 
     console.log("Chaining...")
 
@@ -587,126 +504,8 @@ function unsetNextChain1() {
 
 }
 
-function chain2() {
-
-    console.log("Chaining...")
-
-    addr = lvaps[selectedLvap].addr
-
-    data = {"version": "1.0",
-            "match": "dl_src="+ addr,
-            "next": {"lvnf_id": Lvnf_To_Dump, "port_id": 0}}
-
-    $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next",
-        type: 'PUT',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            204: function (data) {
-                console.log("Next enabled!")
-                console.log("Chaining completed!")
-                html = "<img src='/static/apps/scylla/next_on.png' onclick='unchain2()' width='180'>"
-                $("#next2").html(html)
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert(data.responseJSON.message);
-            },
-            500: function (data) {
-                alert(data.responseJSON.message);
-            }
-        }
-    });
-}
-
-function unchain2() {
-
-    console.log("Chaining...")
-
-    addr = lvaps[selectedLvap].addr
-
-    data = {"version":"1.0", "match": "dl_src=" + addr}
-
-    $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter + "/ports/0/next/",
-        type: 'DELETE',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            204: function (data) {
-                console.log("Unchaining completed!")
-                html = "<img src='/static/apps/scylla/next_off.png' onclick='chain2()' width='180'>"
-                $("#next2").html(html)
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert(data.responseJSON.message);
-            },
-            500: function (data) {
-                alert(data.responseJSON.message);
-            }
-        }
-    });
-}
-
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function deployLvnfToDump() {
-
-    console.log("Deploying lvnf...")
-
-    var keys = Object.keys(cpps);
-    var addr = cpps[keys[0]].addr
-
-    image = {"nb_ports": 1,
-             "vnf": "in_0 -> td::ToDump(dumper_file) -> out_0",
-             "handlers": [["count", "td.count"]],
-             "state_handlers": []}
-
-    data = {"version": "1.0",
-            "image": image,
-            "addr": addr}
-
-    $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_To_Dump,
-        type: 'POST',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            204: function (data) {
-                console.log("LVNF deployed")
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert(data.responseJSON.message);
-            },
-            500: function (data) {
-                alert(data.responseJSON.message);
-            }
-        }
-    });
-
 }
 
 function deployLvnfDupeFilter() {
@@ -728,7 +527,7 @@ function deployLvnfDupeFilter() {
             "addr": addr}
 
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter,
+        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + selectedLvnf,
         type: 'POST',
         dataType: 'json',
         data: JSON.stringify(data),
@@ -753,40 +552,12 @@ function deployLvnfDupeFilter() {
     });
 }
 
-function undeployLvnfToDump() {
-
-    console.log("Undeploying lvnf...")
-
-    $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_To_Dump,
-        type: 'DELETE',
-        cache: false,
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", BASE_AUTH);
-        },
-        statusCode: {
-            204: function (data) {
-                console.log("LVNF undeployed!")
-            },
-            400: function (data) {
-                alert(data.responseJSON.message);
-            },
-            404: function (data) {
-                alert('Component not found');
-            },
-            500: function (data) {
-                alert('Internal error');
-            }
-        }
-    });
-}
-
 function undeployLvnfDupeFilter() {
 
     console.log("Undeploying lvnf...")
 
     $.ajax({
-        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + Lvnf_Dupe_Filter,
+        url: "/api/v1/tenants/" + tenant_id + "/lvnfs/" + selectedLvnf,
         type: 'DELETE',
         cache: false,
         beforeSend: function (request) {
@@ -814,8 +585,8 @@ function addDataPoint(type, graph, dataset, prev, timer) {
     $.getJSON("/api/v1/tenants/" + tenant_id + "/lvnf_stats", function(data) {
         rate = 0.0
         for (var i in data) {
-            if (data[i].lvnf==Lvnf_Dupe_Filter) {
-                iface = lvnfs[Lvnf_Dupe_Filter].ports['0'].iface
+            if (data[i].lvnf==selectedLvnf) {
+                iface = lvnfs[selectedLvnf].ports['0'].iface
                 stats = data[i]['stats'][iface]
                 if (!stats) {
                     break
@@ -863,5 +634,3 @@ function renderStep(graph) {
         renderStep(graph);
     }, RENDERING_PERIOD)
 }
-
-

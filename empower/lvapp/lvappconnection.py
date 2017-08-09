@@ -166,8 +166,8 @@ class LVAPPConnection(object):
 
         if self.server.pt_types[msg_type]:
 
-            LOG.error("Got message type %u (%s)", msg_type,
-                      self.server.pt_types[msg_type].name)
+            LOG.info("Got message type %u (%s)", msg_type,
+                     self.server.pt_types[msg_type].name)
 
             msg = self.server.pt_types[msg_type].parse(self.__buffer)
             addr = EtherAddress(msg.wtp)
@@ -735,9 +735,7 @@ class LVAPPConnection(object):
         LOG.info("Received caps from %s", wtp.addr)
 
         for block in caps.blocks:
-
             hwaddr = EtherAddress(block[0])
-
             r_block = ResourceBlock(wtp, hwaddr, block[1], block[2])
             wtp.supports.add(r_block)
 
