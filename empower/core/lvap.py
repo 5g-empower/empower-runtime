@@ -171,6 +171,21 @@ class LVAP(object):
         # message can be filled with the target block information
         self.target_block = None
 
+        # module id incremental counter
+        self.__module_id = 0
+
+        # pending ids
+        self.pending = []
+
+    @property
+    def module_id(self):
+        """Return new sequence id."""
+
+        self.__module_id += 1
+        self.pending.append(self.__module_id)
+
+        return self.__module_id
+
     def set_ports(self):
         """Set virtual ports.
 
@@ -332,6 +347,9 @@ class LVAP(object):
             blocks: A list of ResourceBlocks or a ResourceBlock
         """
 
+        if self.pending:
+            raise ValueError("Handover alredy in progress")
+
         if not blocks:
             return
 
@@ -476,6 +494,7 @@ class LVAP(object):
                 'ssids': self.ssids,
                 'assoc_id': self.assoc_id,
                 'ssid': self.ssid,
+                'pending': self.pending,
                 'encap': self.encap,
                 'tx_samples': self.tx_samples,
                 'rx_samples': self.rx_samples,

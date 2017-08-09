@@ -44,6 +44,8 @@ from empower.lvapp import PT_DEL_LVAP
 from empower.lvapp import DEL_LVAP
 from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PROBE_RESPONSE
+from empower.lvapp import PT_ADD_LVAP_RESPONSE
+from empower.lvapp import PT_DEL_LVAP_RESPONSE
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -159,11 +161,13 @@ class LVAPPConnection(object):
     def _trigger_message(self, msg_type):
 
         if msg_type not in self.server.pt_types:
-
             LOG.error("Unknown message type %u", msg_type)
             return
 
         if self.server.pt_types[msg_type]:
+
+            LOG.error("Got message type %u (%s)", msg_type,
+                      self.server.pt_types[msg_type].name)
 
             msg = self.server.pt_types[msg_type].parse(self.__buffer)
             addr = EtherAddress(msg.wtp)
@@ -184,6 +188,44 @@ class LVAPPConnection(object):
             if msg_type in self.server.pt_types_handlers:
                 for handler in self.server.pt_types_handlers[msg_type]:
                     handler(msg)
+
+    def _handle_add_del_lvap(self, wtp, status):
+        """Handle an incoming ADD_DEL_LVAP message.
+        Args:
+            status, a ADD_DEL_LVAP message
+        Returns:
+            None
+        """
+
+        if not wtp.connection:
+            LOG.info("Add/del response from disconnected WTP %s", wtp.addr)
+            return
+
+        if status.type == PT_ADD_LVAP_RESPONSE:
+            msg_subtype = "add_lvap"
+        else:
+            msg_subtype = "del_lvap"
+
+        LOG.info("%s from %s WTP %s module_id %u status %u", msg_subtype,
+                 EtherAddress(status.sta), EtherAddress(status.wtp),
+                 status.module_id, status.status)
+
+        sta = EtherAddress(status.sta)
+
+        if sta not in RUNTIME.lvaps:
+            LOG.info("Add/del response from unknown LVAP %s", sta)
+            return
+
+        lvap = RUNTIME.lvaps[sta]
+
+        if status.module_id in lvap.pending:
+            LOG.info("LVAP %s, pending module id %s found. Removing.",
+                     lvap.addr, status.module_id)
+            idx = lvap.pending.index(status.module_id)
+            del lvap.pending[idx]
+        else:
+            LOG.info("LVAP %s, pending module id %s not found. Ignoring.",
+                     lvap.addr, status.module_id)
 
     def _handle_hello(self, wtp, hello):
         """Handle an incoming HELLO message.
@@ -903,8 +945,9 @@ class LVAPPConnection(object):
 
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
-                             length=26,
+                             length=30,
                              seq=self.wtp.seq,
+                             module_id=lvap.module_id,
                              sta=lvap.addr.to_raw(),
                              target_hwaddr=target_hwaddr.to_raw(),
                              target_channel=target_channel,
@@ -974,8 +1017,9 @@ class LVAPPConnection(object):
 
         add_lvap = Container(version=PT_VERSION,
                              type=PT_ADD_LVAP,
-                             length=47,
+                             length=51,
                              seq=self.wtp.seq,
+                             module_id=lvap.module_id,
                              flags=flags,
                              assoc_id=lvap.assoc_id,
                              hwaddr=block.hwaddr.to_raw(),

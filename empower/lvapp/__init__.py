@@ -52,6 +52,8 @@ PT_CAPS = 0x16
 PT_ADD_VAP = 0x31
 PT_DEL_VAP = 0x32
 PT_STATUS_VAP = 0x33
+PT_ADD_LVAP_RESPONSE = 0x50
+PT_DEL_LVAP_RESPONSE = 0x51
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
@@ -124,6 +126,7 @@ ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   UBInt8("type"),
                   UBInt32("length"),
                   UBInt32("seq"),
+                  UBInt32("module_id"),
                   BitStruct("flags", Padding(13),
                             Bit("set_mask"),
                             Bit("associated"),
@@ -143,6 +146,7 @@ DEL_LVAP = Struct("del_lvap", UBInt8("version"),
                   UBInt8("type"),
                   UBInt32("length"),
                   UBInt32("seq"),
+                  UBInt32("module_id"),
                   Bytes("sta", 6),
                   Bytes("target_hwaddr", 6),
                   UBInt8("target_channel"),
@@ -253,6 +257,15 @@ STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     Bytes("net_bssid", 6),
                     Bytes("ssid", lambda ctx: ctx.length - 30))
 
+ADD_DEL_LVAP_RESPONSE = Struct("add_del_lvap", UBInt8("version"),
+                               UBInt8("type"),
+                               UBInt32("length"),
+                               UBInt32("seq"),
+                               Bytes("wtp", 6),
+                               Bytes("sta", 6),
+                               UBInt32("module_id"),
+                               UBInt32("status"))
+
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
             PT_LVAP_JOIN: None,
@@ -270,7 +283,9 @@ PT_TYPES = {PT_BYE: None,
             PT_CAPS: CAPS,
             PT_SET_PORT: SET_PORT,
             PT_STATUS_PORT: STATUS_PORT,
-            PT_STATUS_VAP: STATUS_VAP}
+            PT_STATUS_VAP: STATUS_VAP,
+            PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
+            PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -289,4 +304,6 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_CAPS: [],
                      PT_SET_PORT: [],
                      PT_STATUS_PORT: [],
-                     PT_STATUS_VAP: []}
+                     PT_STATUS_VAP: [],
+                     PT_ADD_LVAP_RESPONSE: [],
+                     PT_DEL_LVAP_RESPONSE: []}
