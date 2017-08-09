@@ -298,8 +298,8 @@ class LVAPPConnection(object):
         lvap.supported_band = request.supported_band
 
         # Check if block is valid
-        incoming = \
-            ResourceBlock(wtp, request.hwaddr, request.channel, request.band)
+        incoming = ResourceBlock(wtp, EtherAddress(request.hwaddr),
+                                 request.channel, request.band)
 
         valid = [block for block in wtp.supports if block == incoming]
 
@@ -566,8 +566,8 @@ class LVAPPConnection(object):
         lvap = RUNTIME.lvaps[sta]
 
         # Check if block is valid
-        incoming = \
-            ResourceBlock(wtp, status.hwaddr, status.channel, status.band)
+        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
+                                 status.channel, status.band)
 
         valid = [block for block in wtp.supports if block == incoming]
 
@@ -658,8 +658,8 @@ class LVAPPConnection(object):
         sta_addr = EtherAddress(status.sta)
 
         # incoming block
-        incoming = \
-            ResourceBlock(wtp, status.hwaddr, status.channel, status.band)
+        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
+                                 status.channel, status.band)
 
         valid = [block for block in wtp.supports if block == incoming]
 
@@ -760,16 +760,14 @@ class LVAPPConnection(object):
             LOG.info("VAP %s from unknown tenant %s", net_bssid_addr, ssid)
             return
 
-        vap = None
-        hwaddr = EtherAddress(status.hwaddr)
-        block = ResourceBlock(wtp, hwaddr, status.channel, status.band)
-        ssid = status.ssid
+        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
+                                 status.channel, status.band)
 
         LOG.info("VAP status update from %s", net_bssid_addr)
 
         # If the VAP does not exists, then create a new one
         if net_bssid_addr not in tenant.vaps:
-            vap = VAP(net_bssid_addr, block, wtp, tenant)
+            vap = VAP(net_bssid_addr, incoming, wtp, tenant)
             tenant.vaps[net_bssid_addr] = vap
 
         vap = tenant.vaps[net_bssid_addr]
