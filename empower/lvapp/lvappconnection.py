@@ -662,6 +662,9 @@ class LVAPPConnection(object):
 
             lvap._tenant = None
 
+        # update remaining ssids
+        lvap._ssids = ssids[1:]
+
         if ssids[0]:
 
             tenant = RUNTIME.load_tenant(ssids[0])
@@ -680,9 +683,6 @@ class LVAPPConnection(object):
 
             # Raise LVAP join event
             self.server.send_lvap_join_message_to_self(lvap)
-
-        # update remaining ssids
-        lvap._ssids = ssids[1:]
 
     @classmethod
     def _handle_status_port(cls, wtp, status):
