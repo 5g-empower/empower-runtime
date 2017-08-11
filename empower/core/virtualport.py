@@ -75,7 +75,6 @@ class VirtualPort(object):
         self.ovs_port_id = phy_port.port_id
         self.hwaddr = phy_port.hwaddr
         self.iface = phy_port.iface
-
         self.next = dict()
 
     def clear(self):

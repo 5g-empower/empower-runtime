@@ -349,11 +349,6 @@ class LVAPPConnection(object):
             LOG.warning("No valid intersection found. Ignoring request.")
             return
 
-        # Set default LVAP virtual port
-        lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
-                                        virtual_port_id=0,
-                                        lvap=lvap)
-
         # This will trigger an LVAP ADD message (and REMOVE if necessary)
         lvap.blocks = valid[0]
 

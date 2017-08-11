@@ -186,7 +186,7 @@ class LVAP(object):
 
         return self.__module_id
 
-    def set_ports(self):
+    def __set_ports(self):
         """Set virtual ports.
 
         This method is called everytime an LVAP is moved to another WTP. More
@@ -194,9 +194,15 @@ class LVAP(object):
         property is made.
         """
 
-        # Delete all outgoing virtual links
-        for port_id in self.ports:
-            self.ports[port_id].clear()
+        # Delete all outgoing virtual link and then remove the entire port
+        if self.ports:
+            self.ports[0].clear()
+            del self.ports[0]
+
+        # Create a new port from scratch
+        self.ports[0] = VirtualPortLvap(phy_port=self.wtp.port(),
+                                        virtual_port_id=0,
+                                        lvap=self)
 
         # set/update intent
         intent = {'version': '1.0',
@@ -372,7 +378,7 @@ class LVAP(object):
         self.__assign_uplink(pool[1:])
 
         # send intents
-        self.set_ports()
+        self.__set_ports()
 
     def __assign_downlink(self, dl_block):
         """Set the downlink block.
@@ -397,7 +403,6 @@ class LVAP(object):
             if net_bssid not in self._tenant.vaps:
                 LOG.error("VAP %s not found on tenant %s", net_bssid,
                           self._tenant.tenant_name)
-                self.set_ports()
                 return
 
             # otherwise reset lvap
