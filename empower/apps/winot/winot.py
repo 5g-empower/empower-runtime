@@ -54,13 +54,15 @@ class WiNot(EmpowerApp):
         EmpowerApp.__init__(self, **kwargs)
         self.cppup(callback=self.cpp_up_callback)
         self.wtpup(callback=self.wtp_up_callback)
-        self.lvapjoin(callback=self.lvap_join_callback)
         self.lvnfjoin(callback=self.lvnf_join_callback)
         self.lvnf = None
 
-    def lvap_join_callback(self, lvap):
+    def loop(self):
+        """ Periodic job. """
 
-        if not self.lvap_addr == lvap.addr:
+        lvap = self.lvap(self.lvap_addr)
+
+        if not lvap:
             return
 
         if self.max_uplinks == 1:
@@ -71,7 +73,6 @@ class WiNot(EmpowerApp):
         blocks = self.blocks()
 
         selected = []
-        selected.append(lvap.blocks[0])
 
         for block in blocks:
             if block.channel == lvap.blocks[0].channel and \
@@ -82,7 +83,12 @@ class WiNot(EmpowerApp):
         selected.sort(key=lambda x: x.ucqm[lvap.addr]['mov_rssi'],
                       reverse=True)
 
-        lvap.blocks = selected[0:self.max_uplinks]
+        selected = [lvap.blocks[0]] + selected[0:self.max_uplinks-1]
+
+        if set(lvap.blocks) == set(selected):
+            return
+
+        lvap.blocks = selected
 
         lvap.encap = EtherAddress("66:C3:CE:D9:05:51")
         rules = (lvap.addr.to_str(), lvap.encap.to_str())
@@ -92,6 +98,8 @@ class WiNot(EmpowerApp):
             lvap.ports[0].next[match] = self.lvnf.ports[0]
 
     def lvnf_join_callback(self, lvnf):
+        """Called when an LVNF joins the tenant."""
+
         if not self.lvnf:
             self.lvnf = lvnf
         else:
@@ -104,6 +112,8 @@ class WiNot(EmpowerApp):
             self.ucqm(block=block, every=self.every)
 
     def cpp_up_callback(self, cpp):
+        """Called when a new CPP connects to the controller."""
+
         img = Image(vnf=VNF_DUPE_FILTER)
         self.spawn_lvnf(img, cpp)
 
@@ -112,6 +122,12 @@ class WiNot(EmpowerApp):
         """Return max_uplinks."""
 
         return self.__max_uplinks
+
+    @max_uplinks.setter
+    def max_uplinks(self, value):
+        """Set max_uplinks."""
+
+        self.__max_uplinks = int(value)
 
     @property
     def lvap_addr(self):
@@ -124,12 +140,6 @@ class WiNot(EmpowerApp):
         """Set lvap_addr."""
 
         self.__lvap_addr = EtherAddress(value)
-
-    @max_uplinks.setter
-    def max_uplinks(self, value):
-        """Set max_uplinks."""
-
-        self.__max_uplinks = int(value)
 
 
 def launch(tenant_id, lvap_addr=DEFAULT_LVAP, max_uplinks=1, period=5000):
