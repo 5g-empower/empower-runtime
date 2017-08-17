@@ -17,7 +17,6 @@
 
 """EmPOWER Radio Port."""
 
-from empower.core.resourcepool import build_block
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_HT20
 
@@ -165,16 +164,12 @@ class RadioPortProp(dict):
     def delitem(self, key):
         """Notice this will del the item without sending out any message."""
 
-        key = build_block(key)
-
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
 
         dict.__delitem__(self, key)
 
     def __delitem__(self, key):
-
-        key = build_block(key)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
@@ -192,8 +187,6 @@ class RadioPortProp(dict):
 
     def setitem(self, key, value):
         """Notice this will set the item without sending out any message."""
-
-        key = build_block(key)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
@@ -219,8 +212,6 @@ class RadioPortProp(dict):
             dict.__setitem__(self, key, value)
 
     def __setitem__(self, key, value):
-
-        key = build_block(key)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))
@@ -252,8 +243,6 @@ class RadioPortProp(dict):
             key.radio.connection.send_set_port(value.tx_policy)
 
     def __getitem__(self, key):
-
-        key = build_block(key)
 
         if not isinstance(key, ResourceBlock):
             raise KeyError("Expected ResourceBlock, got %s" % type(key))

@@ -230,38 +230,6 @@ class CQM(dict):
             return inf
 
 
-def build_block(block):
-    """Build a new resource block from another block or from a tuple."""
-
-    if isinstance(block, ResourceBlock):
-
-        requested = block
-
-    elif isinstance(block, tuple):
-
-        if len(tuple) < 3:
-            raise ValueError("Invalid tuple")
-
-        from empower.main import RUNTIME
-
-        wtp = RUNTIME.wtps[EtherAddress(block[0])]
-        hwaddr = EtherAddress(block[1])
-        channel = block[2]
-        band = REVERSE_BANDS[block[3]]
-        requested = ResourceBlock(wtp, hwaddr, channel, band)
-
-    else:
-
-        raise ValueError("Expected ResourceBlock or tuple, got %s",
-                         type(block))
-
-    for supported in requested.radio.supports:
-        if supported == requested:
-            return supported
-
-    raise KeyError(requested)
-
-
 class ResourceBlock(object):
     """ EmPOWER resource block.
 
