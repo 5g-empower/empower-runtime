@@ -108,6 +108,8 @@ class LVNFGet(Module):
         lvnf = lvnfs[self.lvnf]
 
         if not lvnf.cpp.connection:
+            self.log.info("CPP %s not connected", lvnf.cpp.addr)
+            self.unload()
             return
 
         handler_req = {'module_id': self.module_id,
