@@ -230,6 +230,26 @@ class CQM(dict):
             return inf
 
 
+class ResourcePool(list):
+    """ EmPOWER resource pool.
+
+    This extends the list in order to add a few filtering and sorting methods
+    """
+
+    def sortByRssi(self, addr):
+        blocks = sorted(self, key=lambda x: x.ucqm[addr]['mov_rssi'],
+                        reverse=True)
+        return ResourcePool(blocks)
+
+    def first(self):
+        block = list.__getitem__(self, 0)
+        return ResourcePool([block])
+
+    def last(self):
+        selected = list.__getitem__(self, -1)
+        return ResourcePool([block])
+
+
 class ResourceBlock(object):
     """ EmPOWER resource block.
 

@@ -22,6 +22,7 @@ import tornado.ioloop
 import empower.logger
 
 from empower.core.lvnf import LVNF
+from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
 
@@ -143,12 +144,12 @@ class EmpowerApp(object):
         """Return all ResourseBlocks in this Tenant."""
 
         # Initialize the Resource Pool
-        pool = set()
+        pool = ResourcePool()
 
         # Update the pool with all the available ResourseBlocks
         for wtp in self.wtps():
             for block in wtp.supports:
-                pool.add(block)
+                pool.append(block)
 
         return pool
 

@@ -54,6 +54,7 @@ class ReactiveMobilityManager(EmpowerApp):
     def wtp_up_callback(self, wtp):
         """Called when a new WTP connects to the controller."""
 
+        # Start polling the WTP
         for block in wtp.supports:
             self.ucqm(block=block, every=self.every)
 
@@ -96,20 +97,7 @@ class ReactiveMobilityManager(EmpowerApp):
         if not lvap:
             return
 
-        self.handover(lvap)
-
-    def handover(self, lvap):
-        """Handover the LVAP to the best WTP."""
-
-        pool = self.blocks()
-
-        if not pool:
-            return
-
-        new_block = max(pool, key=lambda x: x.ucqm[lvap.addr]['mov_rssi'])
-        self.log.info("LVAP %s setting new block %s" % (lvap.addr, new_block))
-
-        lvap.blocks = new_block
+        lvap.blocks = self.blocks().sortByRssi(lvap.addr).first()
 
 
 def launch(tenant_id, limit=DEFAULT_LIMIT, every=DEFAULT_PERIOD):

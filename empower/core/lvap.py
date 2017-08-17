@@ -360,6 +360,7 @@ class LVAP(object):
             raise ValueError("Handover alredy in progress")
 
         if not blocks:
+            LOG.info("Empty resource blocks list, ignoring.")
             return
 
         if isinstance(blocks, list):
