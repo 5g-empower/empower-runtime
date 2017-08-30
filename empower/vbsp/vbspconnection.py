@@ -299,19 +299,12 @@ class VBSPConnection(object):
                     ue.imsi = new_ue["imsi"]
 
                 if "plmn_id" in new_ue:
-
-                    ue.tenant = \
-                        RUNTIME.load_tenant_by_plmn_id(new_ue["plmn_id"])
+                    tenant = RUNTIME.load_tenant_by_plmn_id(new_ue["plmn_id"])
+                    ue.tenant = tenant
+                    tenant.ues[new_ue["addr"]] = ue
 
                 RUNTIME.ues[new_ue["addr"]] = ue
-
-                continue
-
-            ue = RUNTIME.ues[new_ue["addr"]]
-
-            if "plmn_id" in new_ue:
-                ue.tenant = \
-                    RUNTIME.load_tenant_by_plmn_id(new_ue["plmn_id"])
+                self.server.send_ue_join_message_to_self(ue)
 
         for addr in list(RUNTIME.ues.keys()):
             if addr not in active_ues:
