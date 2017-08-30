@@ -17,8 +17,6 @@
 
 """User Equipment class."""
 
-from empower.core.utils import hex_to_ether
-
 from empower.main import RUNTIME
 
 import empower.logger
@@ -58,31 +56,7 @@ class UE(object):
     def tenant(self, tenant):
         """ Set the tenant. """
 
-        if self._tenant == tenant:
-            return
-
-        if self.tenant:
-
-            LOG.info("Removing %s from PLMN id %s", self.addr, self.plmn_id)
-
-            self._tenant = None
-            del self._tenant.ues[self.addr]
-
-            # Raise UE leave
-            self.vbs.connection.server.send_ue_leave_message_to_self(self)
-
-            return
-
-        if not tenant:
-            return
-
-        LOG.info("Adding UE %s to PLMN id %s", self.addr, tenant.plmn_id)
-
         self._tenant = tenant
-        self._tenant.ues[self.addr] = self
-
-        # Raise UE join
-        self.vbs.connection.server.send_ue_join_message_to_self(self)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
