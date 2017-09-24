@@ -18,6 +18,7 @@
 """EmPOWER Light Virtual Access Point (LVAP) class."""
 
 from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import BANDS
 from empower.core.radioport import RadioPort
 from empower.core.radioport import DownlinkPort
 from empower.core.radioport import UplinkPort
@@ -499,7 +500,7 @@ class LVAP(object):
                 'blocks': self.blocks,
                 'downlink': [k for k in self._downlink.keys()],
                 'uplink': [k for k in self._uplink.keys()],
-                'supported_band': self.supported_band,
+                'supported_band': BANDS[self.supported_band],
                 'ssids': self.ssids,
                 'assoc_id': self.assoc_id,
                 'ssid': self.ssid,
