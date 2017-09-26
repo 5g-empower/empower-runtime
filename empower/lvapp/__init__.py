@@ -48,12 +48,13 @@ PT_DEL_LVAP = 0x12
 PT_STATUS_LVAP = 0x13
 PT_SET_PORT = 0x14
 PT_STATUS_PORT = 0x15
-PT_CAPS = 0x16
+PT_CAPS_RESPONSE = 0x16
 PT_ADD_VAP = 0x31
 PT_DEL_VAP = 0x32
 PT_STATUS_VAP = 0x33
 PT_ADD_LVAP_RESPONSE = 0x50
 PT_DEL_LVAP_RESPONSE = 0x51
+PT_CAPS_REQUEST = 0x52
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
@@ -183,15 +184,20 @@ CAPS_P = Sequence("ports", Bytes("hwaddr", 6),
                   UBInt16("port_id"),
                   Bytes("iface", 10))
 
-CAPS = Struct("caps", UBInt8("version"),
-              UBInt8("type"),
-              UBInt32("length"),
-              UBInt32("seq"),
-              Bytes("wtp", 6),
-              UBInt8("nb_resources_elements"),
-              UBInt8("nb_ports_elements"),
-              Array(lambda ctx: ctx.nb_resources_elements, CAPS_R),
-              Array(lambda ctx: ctx.nb_ports_elements, CAPS_P))
+CAPS_RESPONSE = Struct("caps", UBInt8("version"),
+                       UBInt8("type"),
+                       UBInt32("length"),
+                       UBInt32("seq"),
+                       Bytes("wtp", 6),
+                       UBInt8("nb_resources_elements"),
+                       UBInt8("nb_ports_elements"),
+                       Array(lambda ctx: ctx.nb_resources_elements, CAPS_R),
+                       Array(lambda ctx: ctx.nb_ports_elements, CAPS_P))
+
+CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
+                      UBInt8("type"),
+                      UBInt32("length"),
+                      UBInt32("seq"))
 
 SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("type"),
@@ -280,7 +286,8 @@ PT_TYPES = {PT_BYE: None,
             PT_ADD_LVAP: ADD_LVAP,
             PT_DEL_LVAP: DEL_LVAP,
             PT_STATUS_LVAP: STATUS_LVAP,
-            PT_CAPS: CAPS,
+            PT_CAPS_RESPONSE: CAPS_RESPONSE,
+            PT_CAPS_REQUEST: CAPS_REQUEST,
             PT_SET_PORT: SET_PORT,
             PT_STATUS_PORT: STATUS_PORT,
             PT_STATUS_VAP: STATUS_VAP,
@@ -301,7 +308,8 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_ADD_LVAP: [],
                      PT_DEL_LVAP: [],
                      PT_STATUS_LVAP: [],
-                     PT_CAPS: [],
+                     PT_CAPS_REQUEST: [],
+                     PT_CAPS_RESPONSE: [],
                      PT_SET_PORT: [],
                      PT_STATUS_PORT: [],
                      PT_STATUS_VAP: [],
