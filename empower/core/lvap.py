@@ -433,6 +433,12 @@ class LVAP(object):
         # this will add a new id to pending
         self._downlink[dl_block] = RadioPort(self, dl_block)
 
+    def reset_downlink_port(self):
+        """Reset downlink radio port."""
+
+        dl_block = self.blocks[0]
+        self._downlink[dl_block] = RadioPort(self, dl_block)
+
     def __assign_uplink(self, ul_blocks):
         """Set the downlink blocks."""
 

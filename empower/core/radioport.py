@@ -225,6 +225,9 @@ class RadioPortProp(dict):
             # update dict
             dict.__setitem__(self, key, value)
 
+            # update Port configuration
+            key.radio.connection.send_set_port(value.tx_policy)
+
         # the block is not found, max_ports is exceed
         elif dict.__len__(self) == self.MAX_PORTS:
 
