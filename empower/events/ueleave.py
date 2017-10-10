@@ -18,7 +18,7 @@
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
-from empower.vbsp import PRT_UE_LEAVE
+from empower.vbsp import PT_UE_LEAVE
 
 from empower.main import RUNTIME
 
@@ -38,7 +38,7 @@ class UELeave(ModuleTrigger):
 
         ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if ue.addr not in ues:
+        if ue.imsi not in ues:
             return
 
         self.handle_callback(ue)
@@ -69,4 +69,4 @@ setattr(EmpowerApp, UELeave.MODULE_NAME, app_ueleave)
 def launch():
     """Initialize the module."""
 
-    return UELeaveWorker(UELeave, PRT_UE_LEAVE)
+    return UELeaveWorker(UELeave, PT_UE_LEAVE)

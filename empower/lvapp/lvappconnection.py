@@ -247,6 +247,9 @@ class LVAPPConnection(object):
             # set connection
             wtp.connection = self
 
+            # change state
+            wtp.set_connected()
+
         # Update WTP params
         wtp.period = hello.period
         wtp.last_seen = hello.seq
@@ -527,6 +530,7 @@ class LVAPPConnection(object):
         self.wtp.connection = None
         self.wtp.ports = {}
         self.wtp.supports = set()
+        self.wtp.set_disconnected()
         self.wtp = None
 
     def send_bye_message_to_self(self):
@@ -748,34 +752,8 @@ class LVAPPConnection(object):
 
             wtp.ports[network_port.port_id] = network_port
 
-        # WTP can be considered as available once the empower0 port has been
-        # added to the OVS
-        if wtp.port():
-            self.send_register_message_to_self()
-
-    @classmethod
-    def _handle_interference_map(cls, wtp, interference_map):
-        """Handle an incoming INTERFERENCE_MAP message.
-        Args:
-            interference_map, an INTERFERENCE_MAP message
-        Returns:
-            None
-        """
-
-        if not wtp.connection:
-            LOG.info("Status from disconnected WTP %s", wtp.addr)
-            return
-
-        LOG.info("Received interference map from %s", wtp.addr)
-
-        for block in wtp.supports:
-            block.rssi_to = {}
-
-        for block in wtp.supports:
-            for entry in interference_map.map_entries:
-                sta = EtherAddress(entry[0])
-                if sta in RUNTIME.lvaps or sta in RUNTIME.wtps:
-                    block.rssi_to[sta] = entry[1]
+        # set state to online
+        wtp.set_online()
 
     @classmethod
     def _handle_status_vap(cls, wtp, status):

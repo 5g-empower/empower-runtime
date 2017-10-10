@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Supreeth Herle
+# Copyright (c) 2017 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,70 +19,44 @@
 
 import time
 import tornado.ioloop
-import socket
-import sys
 
-from protobuf_to_dict import protobuf_to_dict
+from construct import Container
 
-from empower.vbsp import EMAGE_VERSION
-from empower.vbsp import PRT_UE_JOIN
-from empower.vbsp import PRT_UE_LEAVE
-from empower.vbsp import PRT_VBSP_HELLO
-from empower.vbsp import PRT_VBSP_BYE
-from empower.vbsp import PRT_VBSP_REGISTER
-from empower.vbsp import PRT_VBSP_TRIGGER_EVENT
-from empower.vbsp import PRT_VBSP_AGENT_SCHEDULED_EVENT
-from empower.vbsp import PRT_VBSP_SINGLE_EVENT
-from empower.vbsp.messages import main_pb2
-from empower.vbsp.messages import configs_pb2
+from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.ssid import SSID
+from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import BT_L20
+from empower.core.radioport import RadioPort
+from empower.vbsp import LENGTH
+from empower.vbsp import HEADER
+from empower.vbsp import PT_VERSION
+from empower.vbsp import PT_BYE
+from empower.vbsp import PT_REGISTER
+from empower.vbsp import PT_UE_JOIN
+from empower.vbsp import PT_UE_LEAVE
+from empower.vbsp import E_TYPE_SINGLE
+from empower.vbsp import E_TYPE_SCHED
+from empower.vbsp import E_TYPE_TRIG
+from empower.vbsp import E_SINGLE
+from empower.vbsp import E_SCHED
+from empower.vbsp import E_TRIG
+from empower.vbsp import EP_ACT_ECAP
+from empower.vbsp import EP_DIR_REQUEST
+from empower.vbsp import EP_OPERATION_UNSPECIFIED
+from empower.vbsp import CAPS_REQUEST
+from empower.vbsp import EP_ACT_UE_REPORT
+from empower.vbsp import EP_OPERATION_ADD
+from empower.vbsp import UE_REPORT_REQUEST
 from empower.core.utils import hex_to_ether
 from empower.core.utils import ether_to_hex
 from empower.core.utils import rnti_to_ue_id
+from empower.core.vbs import Cell
 from empower.core.ue import UE
-from empower.datatypes.etheraddress import EtherAddress
 
 from empower.main import RUNTIME
 
 import empower.logger
 LOG = empower.logger.get_logger()
-
-
-def create_header(t_id, b_id, header):
-    """Create message header."""
-
-    if not header:
-        LOG.error("header parameter is None")
-
-    header.vers = EMAGE_VERSION
-    # Set the transaction identifier (module id).
-    header.t_id = t_id
-    # Set the Base station identifier.
-    header.b_id = b_id
-    # Start the sequence number for messages from zero.
-    header.seq = 0
-
-
-def serialize_message(message):
-    """Serialize message."""
-
-    if not message:
-        LOG.error("message parameter is None")
-        return None
-
-    return message.SerializeToString()
-
-
-def deserialize_message(serialized_data):
-    """De-Serialize message."""
-
-    if not serialized_data:
-        LOG.error("Received serialized data is None")
-        return None
-
-    msg = main_pb2.emage_msg()
-    msg.ParseFromString(serialized_data)
-
-    return msg
 
 
 class VBSPConnection(object):
@@ -106,13 +80,11 @@ class VBSPConnection(object):
         self.addr = addr
         self.server = server
         self.vbs = None
-        self.seq = 0
         self.stream.set_close_callback(self._on_disconnect)
         self.__buffer = b''
         self._hb_interval_ms = 500
         self._hb_worker = tornado.ioloop.PeriodicCallback(self._heartbeat_cb,
                                                           self._hb_interval_ms)
-        self.endian = sys.byteorder
         self._hb_worker.start()
         self._wait()
 
@@ -122,30 +94,13 @@ class VBSPConnection(object):
         return self.addr
 
     def _heartbeat_cb(self):
-        """Check if connection is still active."""
-
+        """ Check if vbs connection is still active. Disconnect if no hellos
+        have been received from the vbs for twice the hello period. """
         if self.vbs and not self.stream.closed():
             timeout = (self.vbs.period / 1000) * 3
             if (self.vbs.last_seen_ts + timeout) < time.time():
                 LOG.info('Client inactive %s at %r', self.vbs.addr, self.addr)
                 self.stream.close()
-
-    def stream_send(self, message):
-        """Send message."""
-
-        # Update the sequence number of the messages
-        message.head.seq = self.seq + 1
-
-        size = message.ByteSize()
-
-        size_bytes = (socket.htonl(size)).to_bytes(4, byteorder=self.endian)
-        send_buff = serialize_message(message)
-        buff = size_bytes + send_buff
-
-        if buff is None:
-            LOG.error("errno %u occured")
-
-        self.stream.write(buff)
 
     def _on_read(self, line):
         """ Appends bytes read from socket to a buffer. Once the full packet
@@ -153,76 +108,115 @@ class VBSPConnection(object):
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        self.__buffer = b''
+        # if buffer is empty then read message length
+        if len(self.__buffer) == 0:
+            self.__buffer = line
+            hdr = LENGTH.parse(self.__buffer)
+            self.stream.read_bytes(hdr.length, self._on_read)
+            return
 
-        if line is not None:
+        self.__buffer = line
+        hdr = HEADER.parse(self.__buffer)
 
-            self.__buffer = self.__buffer + line
+        try:
+            self._trigger_message(hdr)
+        except Exception as ex:
+            LOG.exception(ex)
+            self.stream.close()
 
-            if len(line) == 4:
-                temp_size = int.from_bytes(line, byteorder=self.endian)
-                size = socket.ntohl(int(temp_size))
-                self.stream.read_bytes(size, self._on_read)
-                return
-
-            deserialized_msg = deserialize_message(line)
-
-            # Update the sequency number from received message
-            self.seq = deserialized_msg.head.seq
-
-            self._trigger_message(deserialized_msg)
+        if not self.stream.closed():
             self._wait()
 
-    def _trigger_message(self, deserialized_msg):
+    def _trigger_message(self, hdr):
 
-        event_type = deserialized_msg.WhichOneof("event_types")
-
-        if event_type == PRT_VBSP_SINGLE_EVENT:
-            msg_type = deserialized_msg.se.WhichOneof("events")
-        elif event_type == PRT_VBSP_AGENT_SCHEDULED_EVENT:
-            msg_type = deserialized_msg.sche.WhichOneof("events")
-        elif event_type == PRT_VBSP_TRIGGER_EVENT:
-            msg_type = deserialized_msg.te.WhichOneof("events")
+        if hdr.type == E_TYPE_SINGLE:
+            event = E_SINGLE.parse(self.__buffer[HEADER.sizeof():])
+            offset = HEADER.sizeof() + E_SINGLE.sizeof()
+        elif hdr.type == E_TYPE_SCHED:
+            event = E_SCHED.parse(self.__buffer[HEADER.sizeof():])
+            offset = HEADER.sizeof() + E_SCHED.sizeof()
+        elif hdr.type == E_TYPE_TRIG:
+            event = E_TRIG.parse(self.__buffer[HEADER.sizeof():])
+            offset = HEADER.sizeof() + E_TRIG.sizeof()
         else:
-            LOG.error("Unknown message event type %s", event_type)
-
-        if not msg_type or msg_type not in self.server.pt_types:
-            LOG.error("Unknown message type %s", msg_type)
+            LOG.error("Unknown message event %u", hdr.type)
             return
 
-        if msg_type != PRT_VBSP_HELLO and not self.vbs:
+        msg_type = event.action
+
+        if msg_type not in self.server.pt_types:
+            LOG.error("Unknown message type %u", msg_type)
             return
 
-        handler_name = "_handle_%s" % self.server.pt_types[msg_type]
+        if self.server.pt_types[msg_type]:
 
-        if hasattr(self, handler_name):
-            handler = getattr(self, handler_name)
-            handler(deserialized_msg)
+            LOG.info("Got message type %u (%s)", msg_type,
+                     self.server.pt_types[msg_type].name)
 
-        if msg_type in self.server.pt_types_handlers:
-            for handler in self.server.pt_types_handlers[msg_type]:
-                handler(deserialized_msg)
+            msg = self.server.pt_types[msg_type].parse(self.__buffer[offset:])
+            addr = hex_to_ether(hdr.enbid)
 
-    def _handle_hello(self, main_msg):
+            try:
+                vbs = RUNTIME.vbses[addr]
+            except KeyError:
+                LOG.error("Unknown VBS (%s), closing connection", addr)
+                self.stream.close()
+                return
+
+            handler_name = "_handle_%s" % self.server.pt_types[msg_type].name
+
+            if hasattr(self, handler_name):
+                handler = getattr(self, handler_name)
+                handler(vbs, hdr, event, msg)
+
+            if msg_type in self.server.pt_types_handlers:
+                for handler in self.server.pt_types_handlers[msg_type]:
+                    handler(msg)
+
+    def _wait(self):
+        """ Wait for incoming packets on signalling channel """
+
+        self.__buffer = b''
+        self.stream.read_bytes(4, self._on_read)
+
+    def _on_disconnect(self):
+        """ Handle VBS disconnection """
+
+        if not self.vbs:
+            return
+
+        LOG.info("VBS disconnected: %s", self.vbs.addr)
+
+        # reset state
+        self.vbs.last_seen = 0
+        self.vbs.connection = None
+        self.vbs.ports = {}
+        self.vbs.supports = set()
+        self.vbs.set_disconnected()
+        self.vbs = None
+
+    def send_bye_message_to_self(self):
+        """Send a unsollicited BYE message to senf."""
+
+        for handler in self.server.pt_types_handlers[PT_BYE]:
+            handler(self.vbs)
+
+    def send_register_message_to_self(self):
+        """Send a unsollicited REGISTER message to senf."""
+
+        for handler in self.server.pt_types_handlers[PT_REGISTER]:
+            handler(self.vbs)
+
+    def _handle_hello(self, vbs, hdr, event, hello):
         """Handle an incoming HELLO message.
-
         Args:
-            main_msg, a emage_msg containing HELLO message
+            hello, a HELLO message
         Returns:
             None
         """
 
-        enb_id = main_msg.head.b_id
-        vbs_id = hex_to_ether(enb_id)
-
-        try:
-            vbs = RUNTIME.vbses[vbs_id]
-        except KeyError:
-            LOG.error("Hello from unknown VBS (%s)", (vbs_id))
-            return
-
         LOG.info("Hello from %s VBS %s seq %u", self.addr[0], vbs.addr,
-                 main_msg.head.seq)
+                 hdr.seq)
 
         # New connection
         if not vbs.connection:
@@ -233,139 +227,131 @@ class VBSPConnection(object):
             # set connection
             vbs.connection = self
 
-            # request registered UEs
-            self.send_UEs_id_req()
+            # change state
+            vbs.set_connected()
 
-            # generate register message
-            self.send_register_message_to_self()
+            # send caps request
+            self.send_caps_request(vbs)
 
-        # Update VBSP params
-        vbs.period = main_msg.se.mHello.repl.period
-        vbs.last_seen = main_msg.head.seq
+        # Update WTP params
+        vbs.period = event.interval
+        vbs.last_seen = hdr.seq
         vbs.last_seen_ts = time.time()
 
-    def _handle_UEs_id_repl(self, main_msg):
-        """Handle an incoming UEs ID reply.
-
+    def send_caps_request(self, vbs):
+        """Send a CAPS_REQUEST message.
         Args:
-            message, a emage_msg containing UE IDs (RNTIs)
+            vbs: an VBS object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        caps_request = Container(length=23,
+                                 type=E_TYPE_SINGLE,
+                                 version=PT_VERSION,
+                                 enbid=vbs.enb_id,
+                                 cellid=0,
+                                 modid=0,
+                                 seq=self.vbs.seq,
+                                 action=EP_ACT_ECAP,
+                                 dir=EP_DIR_REQUEST,
+                                 op=EP_OPERATION_UNSPECIFIED,
+                                 dummy=0)
+
+        LOG.info("Sending caps request to %s", vbs)
+
+        msg = CAPS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def _handle_caps_response(self, vbs, hdr, event, caps):
+        """Handle an incoming HELLO message.
+        Args:
+            hello, a CAPS message
         Returns:
             None
         """
 
-        enb_id = main_msg.head.b_id
+        LOG.info("Caps from %s VBS %s seq %u", self.addr[0], vbs.addr,
+                 hdr.seq)
 
-        active_ues = {}
-        inactive_ues = {}
+        # clear cells
+        vbs.cells = {}
 
-        event_type = main_msg.WhichOneof("event_types")
-        msg = protobuf_to_dict(main_msg)
-        ues_id_msg_repl = msg[event_type]["mUEs_id"]["repl"]
+        # add new cells
+        for c in caps.cells:
+            vbs.cells[c.pci] = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
+                                    c.UL_earfcn, c.UL_prbs)
 
-        if ues_id_msg_repl["status"] != configs_pb2.CREQS_SUCCESS:
-            return
+        # transition to the online state
+        vbs.set_online()
 
-        # List of active UEs
-        if "active_ue_id" in ues_id_msg_repl:
-            for ue in ues_id_msg_repl["active_ue_id"]:
-                addr = rnti_to_ue_id(ue["rnti"], enb_id)
-                active_ues[addr] = {}
-                active_ues[addr]["addr"] = addr
-                active_ues[addr]["rnti"] = ue["rnti"]
-                if "imsi" in ue:
-                    active_ues[addr]["imsi"] = int(ue["imsi"])
-                if "plmn_id" in ue:
-                    active_ues[addr]["plmn_id"] = ue["plmn_id"]
+        # if UE reports are supported then activate them
+        if bool(caps.flags.ue_report):
+            self.send_ue_reports_request(vbs)
 
-        # List of inactive UEs
-        if "inactive_ue_id" in ues_id_msg_repl:
-            for ue in ues_id_msg_repl["inactive_ue_id"]:
-                addr = rnti_to_ue_id(ue["rnti"], enb_id)
-                inactive_ues[addr] = {}
-                inactive_ues[addr]["addr"] = addr
-                inactive_ues[addr]["rnti"] = ue["rnti"]
-                if "imsi" in ue:
-                    inactive_ues[addr]["imsi"] = int(ue["imsi"])
-                if "plmn_id" in ue:
-                    inactive_ues[addr]["plmn_id"] = ue["plmn_id"]
+    def send_ue_reports_request(self, vbs):
+        """Send a UE Reports message.
+        Args:
+            vbs: an VAP object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
 
-        for new_ue in active_ues.values():
+        ue_report = Container(length=23,
+                              type=E_TYPE_TRIG,
+                              version=PT_VERSION,
+                              enbid=vbs.enb_id,
+                              cellid=0,
+                              modid=0,
+                              seq=self.vbs.seq,
+                              action=EP_ACT_UE_REPORT,
+                              dir=EP_DIR_REQUEST,
+                              op=EP_OPERATION_ADD,
+                              dummy=0)
 
-            if new_ue["addr"] not in RUNTIME.ues:
+        LOG.info("Sending ue reports request to %s", vbs)
 
-                ue = UE(new_ue["addr"], new_ue["rnti"], self.vbs)
+        msg = UE_REPORT_REQUEST.build(ue_report)
+        self.stream.write(msg)
 
-                if "imsi" in new_ue:
-                    ue.imsi = new_ue["imsi"]
+    def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
+        """Handle an incoming UE_REPORT message.
+        Args:
+            hello, a UE_REPORT message
+        Returns:
+            None
+        """
 
-                if "plmn_id" in new_ue:
-                    tenant = RUNTIME.load_tenant_by_plmn_id(new_ue["plmn_id"])
-                    ue.tenant = tenant
-                    tenant.ues[new_ue["addr"]] = ue
+        LOG.info("UE report from %s VBS %s seq %u", self.addr[0], vbs.addr,
+                 hdr.seq)
 
-                RUNTIME.ues[new_ue["addr"]] = ue
+        ues = {u.imsi: u for u in ue_report.ues}
+
+        for u in ues.values():
+
+            tenant = RUNTIME.load_tenant_by_plmn_id(u.plmn_id)
+
+            if not tenant:
+                LOG.info("Unable to find PLMN id %u", u.plmn_id)
+                continue
+
+            if vbs.addr not in tenant.vbses:
+                LOG.info("VBS %s does not belong to PLMN id %u", vbs.addr,
+                         u.plmn_id)
+                continue
+
+            ue = UE(u.pci, u.plmn_id, u.rnti, u.imsi, tenant, vbs)
+
+            if u.imsi not in RUNTIME.ues:
                 self.server.send_ue_join_message_to_self(ue)
 
-        for addr in list(RUNTIME.ues.keys()):
-            if addr not in active_ues:
-                RUNTIME.remove_ue(addr)
+            RUNTIME.ues[u.imsi] = ue
+            tenant.ues[u.imsi] = ue
 
-    def send_UEs_id_req(self):
-        """ Send request for UEs ID registered in VBS """
-
-        ues_id_req = main_pb2.emage_msg()
-
-        enb_id = ether_to_hex(self.vbs.addr)
-        # Transaction identifier is one by default.
-        create_header(1, enb_id, ues_id_req.head)
-
-        # Creating a trigger message to fetch UE RNTIs
-        trigger_msg = ues_id_req.te
-        trigger_msg.action = main_pb2.EA_ADD
-
-        UEs_id_msg = trigger_msg.mUEs_id
-        UEs_id_req_msg = UEs_id_msg.req
-
-        UEs_id_req_msg.dummy = 1
-
-        LOG.info("Sending UEs request to VBS %s (%u)",
-                 self.vbs.addr, enb_id)
-
-        self.stream_send(ues_id_req)
-
-    def _wait(self):
-        """ Wait for incoming packets on signalling channel """
-        self.stream.read_bytes(4, self._on_read)
-
-    def _on_disconnect(self):
-        """Handle VBSP disconnection."""
-
-        if not self.vbs:
-            return
-
-        LOG.info("VBS disconnected: %s", self.vbs.addr)
-
-        # remove hosted ues
-        for addr in list(RUNTIME.ues.keys()):
-            ue = RUNTIME.ues[addr]
-            if ue.vbs == self.vbs:
-                RUNTIME.remove_ue(ue.addr)
-
-        # reset state
-        self.vbs.last_seen = 0
-        self.vbs.connection = None
-        self.vbs.ues = {}
-        self.vbs.period = 0
-        self.vbs = None
-
-    def send_bye_message_to_self(self):
-        """Send a unsollicited BYE message to self."""
-
-        for handler in self.server.pt_types_handlers[PRT_VBSP_BYE]:
-            handler(self.vbs)
-
-    def send_register_message_to_self(self):
-        """Send a REGISTER message to self."""
-
-        for handler in self.server.pt_types_handlers[PRT_VBSP_REGISTER]:
-            handler(self.vbs)
+        for ue in RUNTIME.ues.values():
+            if ue.imsi not in ues:
+                self.server.send_ue_leave_message_to_self(ue)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Supreeth Herle
+# Copyright (c) 2017 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,20 +19,22 @@
 
 from tornado.tcpserver import TCPServer
 
-from empower.vbsp import PRT_UE_JOIN
-from empower.vbsp import PRT_UE_LEAVE
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
-from empower.core.pnfpserver import PNFPServer
-from empower.core.vbs import VBS
-from empower.core.module import ModuleEventWorker
-from empower.core.module import ModuleWorker
 from empower.restserver.restserver import RESTServer
-from empower.persistence.persistence import TblVBS
-from empower.vbsp import PRT_TYPES
-from empower.vbsp import PRT_TYPES_HANDLERS
+from empower.core.pnfpserver import PNFPServer
+from empower.core.module import ModuleWorker
+from empower.core.module import ModuleEventWorker
 from empower.vbsp.vbspconnection import VBSPConnection
+from empower.persistence.persistence import TblVBS
+from empower.core.vbs import VBS
+
+from empower.vbsp import PT_UE_LEAVE
+from empower.vbsp import PT_UE_JOIN
+from empower.vbsp import PT_TYPES
+from empower.vbsp import PT_TYPES_HANDLERS
 from empower.vbsp.uehandler import UEHandler
+from empower.vbsp.tenantuehandler import TenantUEHandler
 from empower.vbsp.tenantuehandler import TenantUEHandler
 
 from empower.main import RUNTIME
@@ -120,22 +122,20 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_leave_message_to_self(self, ue):
         """Send an UE_LEAVE message to self."""
 
-        self.log.info("UE LEAVE %s (%u)", ue.addr, ue.plmn_id)
-        for handler in self.pt_types_handlers[PRT_UE_LEAVE]:
+        for handler in self.pt_types_handlers[PT_UE_LEAVE]:
             handler(ue)
 
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
-        self.log.info("UE JOIN %s (%u)", ue.addr, ue.plmn_id)
-        for handler in self.pt_types_handlers[PRT_UE_JOIN]:
+        for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 
 
 def launch(port=DEFAULT_PORT):
     """Start VBSP Server Module."""
 
-    server = VBSPServer(port, PRT_TYPES, PRT_TYPES_HANDLERS)
+    server = VBSPServer(port, PT_TYPES, PT_TYPES_HANDLERS)
 
     rest_server = RUNTIME.components[RESTServer.__module__]
     rest_server.add_handler_class(TenantVBSHandler, server)

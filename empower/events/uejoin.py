@@ -18,7 +18,7 @@
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
-from empower.vbsp import PRT_UE_JOIN
+from empower.vbsp import PT_UE_JOIN
 
 from empower.main import RUNTIME
 
@@ -38,7 +38,7 @@ class UEJoin(ModuleTrigger):
 
         ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if ue.addr not in ues:
+        if ue.imsi not in ues:
             return
 
         self.handle_callback(ue)
@@ -69,4 +69,4 @@ setattr(EmpowerApp, UEJoin.MODULE_NAME, app_uejoin)
 def launch():
     """Initialize the module."""
 
-    return UEJoinWorker(UEJoin, PRT_UE_JOIN)
+    return UEJoinWorker(UEJoin, PT_UE_JOIN)

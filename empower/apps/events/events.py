@@ -93,12 +93,12 @@ class EventsApp(EmpowerApp):
     def ue_join_callback(self, ue):
         """Called when an UE associates to a tennant."""
 
-        self.log.info("UE %s joined %u" % (ue.addr, ue.plmn_id))
+        self.log.info("UE %s joined %u" % (ue.imsi, ue.plmn_id))
 
     def ue_leave_callback(self, ue):
         """Called when an UE leaves a tennant."""
 
-        self.log.info("UE %s left %u" % (ue.addr, ue.plmn_id))
+        self.log.info("UE %s left %u" % (ue.imsi, ue.plmn_id))
 
     def wtp_up_callback(self, wtp):
         """Called when a new wtp connects to the controller."""

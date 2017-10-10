@@ -21,6 +21,35 @@ from empower.core.pnfdev import BasePNFDev
 from empower.core.utils import ether_to_hex
 
 
+class Cell(object):
+    """An eNB cell, this track the parameters of one cell.
+
+    Attributes:
+    """
+
+    def __init__(self, vbs, pci, cap, DL_earfcn, DL_prbs, UL_earfcn, UL_prbs):
+        self.vbs = vbs
+        self.pci = pci
+        self.cap = cap
+        self.DL_earfcn = DL_earfcn
+        self.DL_prbs = DL_prbs
+        self.UL_earfcn = UL_earfcn
+        self.UL_prbs = UL_prbs
+
+    def to_dict(self):
+        """Return a JSON-serializable dictionary representing the CPP."""
+
+        out = {}
+        out['enb_id'] = self.vbs.enb_id
+        out['pci'] = self.pci
+        out['cap'] = self.cap
+        out['DL_earfcn'] = self.DL_earfcn
+        out['DL_prbs'] = self.DL_prbs
+        out['UL_earfcn'] = self.UL_earfcn
+        out['UL_prbs'] = self.UL_prbs
+        return out
+
+
 class VBS(BasePNFDev):
     """A Virtual Base Station Point.
 
@@ -38,6 +67,10 @@ class VBS(BasePNFDev):
     ALIAS = "vbses"
     SOLO = "vbs"
 
+    def __init__(self, addr, label):
+        super().__init__(addr, label)
+        self.cells = set()
+
     @property
     def enb_id(self):
         """Return tenant id."""
@@ -49,4 +82,5 @@ class VBS(BasePNFDev):
 
         out = super().to_dict()
         out['enb_id'] = self.enb_id
+        out['cells'] = self.cells
         return out

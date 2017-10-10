@@ -17,7 +17,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
-from empower.vbsp import PRT_VBSP_REGISTER
+from empower.vbsp import PT_REGISTER
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
 
 from empower.main import RUNTIME
@@ -81,4 +81,4 @@ setattr(EmpowerApp, VBSUp.MODULE_NAME, app_vbsup)
 def launch():
     """Initialize the module."""
 
-    return VBSUpWorker(VBSUp, PRT_VBSP_REGISTER)
+    return VBSUpWorker(VBSUp, PT_REGISTER)

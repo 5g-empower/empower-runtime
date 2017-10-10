@@ -17,7 +17,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.module import ModuleTrigger
-from empower.vbsp import PRT_VBSP_BYE
+from empower.vbsp import PT_BYE
 from empower.vbsp.vbspserver import ModuleVBSPEventWorker
 
 from empower.main import RUNTIME
@@ -71,4 +71,4 @@ setattr(EmpowerApp, VBSDown.MODULE_NAME, app_vbsdown)
 def launch():
     """Initialize the module."""
 
-    return VBSDownWorker(VBSDown, PRT_VBSP_BYE)
+    return VBSDownWorker(VBSDown, PT_BYE)

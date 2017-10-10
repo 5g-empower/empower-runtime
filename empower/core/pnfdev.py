@@ -19,9 +19,23 @@
 
 from datetime import datetime
 
+from empower.main import RUNTIME
+
+import empower.logger
+LOG = empower.logger.get_logger()
+
+P_STATE_DISCONNECTED = "disconnected"
+P_STATE_CONNECTED = "connected"
+P_STATE_ONLINE = "online"
+
 
 class BasePNFDev(object):
     """A Programmable Network Fabric Device (PNFDev).
+
+    The PNFDev State machine is the following:
+
+    disconnected <-> connected -> online
+    online -> disconnected
 
     Attributes:
         addr: This PNFDev MAC address (EtherAddress)
@@ -49,6 +63,79 @@ class BasePNFDev(object):
         self.__seq = 0
         self.period = 0
         self.ports = {}
+        self.__state = P_STATE_DISCONNECTED
+
+    @property
+    def state(self):
+        """Return the state."""
+
+        return self.__state
+
+    @state.setter
+    def state(self, state):
+        """Set the PNFDev state."""
+
+        LOG.info("PNFDev %s transition %s->%s", self.addr, self.state, state)
+
+        method = "_%s_%s" % (self.state, state)
+
+        if hasattr(self, method):
+            callback = getattr(self, method)
+            callback()
+            return
+
+        raise IOError("Invalid transistion %s -> %s" % (self.state, state))
+
+    def set_connected(self):
+        """Move to connected state."""
+
+        self.state = P_STATE_CONNECTED
+
+    def set_disconnected(self):
+        """Move to connected state."""
+
+        self.state = P_STATE_DISCONNECTED
+
+    def set_online(self):
+        """Move to connected state."""
+
+        self.state = P_STATE_ONLINE
+
+    def is_online(self):
+        """Return if pnfdev is online"""
+
+        return self.state == P_STATE_CONNECTED
+
+    def _online_online(self):
+
+        # null transition
+        pass
+
+    def _disconnected_connected(self):
+
+        # set new state
+        self.__state = P_STATE_CONNECTED
+
+    def _connected_disconnected(self):
+
+        # set new state
+        self.__state = P_STATE_DISCONNECTED
+
+    def _online_disconnected(self):
+
+        # set new state
+        self.__state = P_STATE_DISCONNECTED
+
+        # generate bye message
+        self.__connection.send_bye_message_to_self()
+
+    def _connected_online(self):
+
+        # set new state
+        self.__state = P_STATE_ONLINE
+
+        # generate register message
+        self.__connection.send_register_message_to_self()
 
     def port(self, ifname="empower0"):
         """Return OVS port."""
@@ -69,9 +156,6 @@ class BasePNFDev(object):
     def connection(self, connection):
         """Set the connection assigned to this PNFDev."""
 
-        if not connection and self.__connection:
-            self.__connection.send_bye_message_to_self()
-
         self.__connection = connection
 
     def to_dict(self):
@@ -87,6 +171,7 @@ class BasePNFDev(object):
                 'label': self.label,
                 'feed': self.feed,
                 'ports': self.ports,
+                'state': self.state,
                 'connection': self.connection}
 
     @property

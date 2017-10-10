@@ -117,7 +117,6 @@ class LVAPPServer(PNFPServer, TCPServer):
 
         self.listen(self.port)
 
-        self.lvaps = {}
         self.__assoc_id = 0
 
     def handle_stream(self, stream, address):

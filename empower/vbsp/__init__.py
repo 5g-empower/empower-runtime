@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Supreeth Herle
+# Copyright (c) 2017 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,37 +15,142 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""VBSP Server module."""
+""" VBSP Server module. """
 
-EMAGE_VERSION = 1
-
-MAX_NUM_CCS = 1
-
-PRT_UE_JOIN = "join"
-PRT_UE_LEAVE = "leave"
-PRT_VBSP_BYE = "bye"
-PRT_VBSP_REGISTER = "register"
-PRT_VBSP_TRIGGER_EVENT = "te"
-PRT_VBSP_AGENT_SCHEDULED_EVENT = "sche"
-PRT_VBSP_SINGLE_EVENT = "se"
-PRT_VBSP_HELLO = "mHello"
-PRT_VBSP_UES_ID = "mUEs_id"
-PRT_VBSP_RRC_MEAS_CONF = "mUE_rrc_meas_conf"
-PRT_VBSP_STATS = "mStats"
-
-PRT_TYPES = {PRT_VBSP_BYE: None,
-             PRT_VBSP_REGISTER: None,
-             PRT_UE_JOIN: None,
-             PRT_UE_LEAVE: None,
-             PRT_VBSP_HELLO: "hello",
-             PRT_VBSP_UES_ID: "UEs_id_repl",
-             PRT_VBSP_RRC_MEAS_CONF: None,
-             PRT_VBSP_STATS: None}
+from construct import Sequence
+from construct import Array
+from construct import Struct
+from construct import UBInt8
+from construct import UBInt16
+from construct import UBInt32
+from construct import UBInt64
+from construct import Bytes
+from construct import Range
+from construct import BitStruct
+from construct import Bit
+from construct import Padding
 
 
-PRT_TYPES_HANDLERS = {PRT_VBSP_BYE: [],
-                      PRT_VBSP_REGISTER: [],
-                      PRT_UE_JOIN: [],
-                      PRT_UE_LEAVE: [],
-                      PRT_VBSP_HELLO: [],
-                      PRT_VBSP_UES_ID: []}
+PT_VERSION = 0x01
+
+EP_DIR_REQUEST = 0
+EP_DIR_REPLY = 1
+
+EP_OPERATION_UNSPECIFIED = 0
+EP_OPERATION_SUCCESS = 1
+EP_OPERATION_FAIL = 2
+EP_OPERATION_NOT_SUPPORTED = 3
+EP_OPERATION_ADD = 4
+EP_OPERATION_REM = 5
+
+EP_ACT_INVALID = 0
+EP_ACT_HELLO = 1
+EP_ACT_ECAP = 2
+EP_ACT_CCAP = 3
+EP_ACT_UE_REPORT = 4
+EP_ACT_UE_MEASURE = 5
+
+PT_BYE = 0xFF00
+PT_REGISTER = 0xFF01
+PT_UE_JOIN = 0xFF02
+PT_UE_LEAVE = 0xFF03
+
+E_TYPE_SINGLE = 0x01
+E_TYPE_SCHED = 0x02
+E_TYPE_TRIG = 0x03
+
+LENGTH = Struct("length", UBInt32("length"))
+
+HEADER = Struct("header",
+                UBInt8("type"),
+                UBInt8("version"),
+                UBInt32("enbid"),
+                UBInt16("cellid"),
+                UBInt32("modid"),
+                UBInt32("seq"))
+
+E_SCHED = Struct("e_sched",
+                 UBInt8("action"),
+                 UBInt8("dir"),
+                 UBInt8("op"),
+                 UBInt32("interval"))
+
+E_SINGLE = Struct("e_sched",
+                  UBInt8("action"),
+                  UBInt8("dir"),
+                  UBInt8("op"))
+
+E_TRIG = Struct("e_sched",
+                UBInt8("action"),
+                UBInt8("dir"),
+                UBInt8("op"))
+
+HELLO = Struct("hello",
+               UBInt32("padding"))
+
+CAPS_C = Struct("cells",
+                UBInt16("pci"),
+                UBInt32("cap"),
+                UBInt16("DL_earfcn"),
+                UBInt8("DL_prbs"),
+                UBInt16("UL_earfcn"),
+                UBInt8("UL_prbs"))
+
+CAPS_RESPONSE = Struct("caps_response",
+                       BitStruct("flags", Padding(30),
+                                 Bit("ue_measure"),
+                                 Bit("ue_report")),
+                       UBInt32("nof_cells"),
+                       Array(lambda ctx: ctx.nof_cells, CAPS_C))
+
+UE_R = Struct("ues",
+              UBInt16("pci"),
+              UBInt32("plmn_id"),
+              UBInt16("rnti"),
+              UBInt64("imsi"))
+
+UE_REPORT_RESPONSE = Struct("ue_report_response",
+                            UBInt32("nof_ues"),
+                            Array(lambda ctx: ctx.nof_ues, UE_R))
+
+CAPS_REQUEST = Struct("caps_request",
+                      UBInt32("length"),
+                      UBInt8("type"),
+                      UBInt8("version"),
+                      UBInt32("enbid"),
+                      UBInt16("cellid"),
+                      UBInt32("modid"),
+                      UBInt32("seq"),
+                      UBInt8("action"),
+                      UBInt8("dir"),
+                      UBInt8("op"),
+                      UBInt32("dummy"))
+
+UE_REPORT_REQUEST = Struct("ue_report_request",
+                           UBInt32("length"),
+                           UBInt8("type"),
+                           UBInt8("version"),
+                           UBInt32("enbid"),
+                           UBInt16("cellid"),
+                           UBInt32("modid"),
+                           UBInt32("seq"),
+                           UBInt8("action"),
+                           UBInt8("dir"),
+                           UBInt8("op"),
+                           UBInt32("dummy"))
+
+PT_TYPES = {PT_BYE: None,
+            PT_REGISTER: None,
+            PT_UE_JOIN: None,
+            PT_UE_LEAVE: None,
+            EP_ACT_HELLO: HELLO,
+            EP_ACT_ECAP: CAPS_RESPONSE,
+            EP_ACT_UE_REPORT: UE_REPORT_RESPONSE}
+
+PT_TYPES_HANDLERS = {PT_BYE: [],
+                     PT_REGISTER: [],
+                     PT_UE_JOIN: [],
+                     PT_UE_LEAVE: [],
+                     EP_ACT_HELLO: [],
+                     EP_ACT_ECAP: [],
+                     EP_ACT_UE_REPORT: []}
