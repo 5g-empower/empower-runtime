@@ -188,11 +188,11 @@ class VBSPConnection(object):
         LOG.info("VBS disconnected: %s", self.vbs.addr)
 
         # reset state
+        self.vbs.set_disconnected()
         self.vbs.last_seen = 0
         self.vbs.connection = None
         self.vbs.ports = {}
         self.vbs.supports = set()
-        self.vbs.set_disconnected()
         self.vbs = None
 
     def send_bye_message_to_self(self):
