@@ -37,8 +37,8 @@ from empower.lvapp import PT_VERSION
 from empower.main import RUNTIME
 
 
-PT_STATS_REQUEST = 0x17
-PT_STATS_RESPONSE = 0x18
+PT_STATS_REQUEST = 0x18
+PT_STATS_RESPONSE = 0x19
 
 STATS = Sequence("stats", UBInt16("bytes"), UBInt32("count"))
 

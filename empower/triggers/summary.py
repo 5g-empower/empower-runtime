@@ -42,9 +42,9 @@ from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
 
-PT_ADD_SUMMARY = 0x22
-PT_SUMMARY = 0x23
-PT_DEL_SUMMARY = 0x24
+PT_ADD_SUMMARY = 0x23
+PT_SUMMARY = 0x24
+PT_DEL_SUMMARY = 0x25
 
 ADD_SUMMARY = Struct("add_summary", UBInt8("version"),
                      UBInt8("type"),

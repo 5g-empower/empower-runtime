@@ -24,8 +24,8 @@ from empower.maps.maps import Maps
 
 from empower.main import RUNTIME
 
-PT_POLLER_REQUEST = 0x27
-PT_POLLER_RESPONSE = 0x28
+PT_POLLER_REQUEST = 0x28
+PT_POLLER_RESPONSE = 0x29
 
 
 class NCQM(Maps):

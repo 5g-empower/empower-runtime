@@ -46,6 +46,8 @@ from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PROBE_RESPONSE
 from empower.lvapp import PT_ADD_LVAP_RESPONSE
 from empower.lvapp import PT_DEL_LVAP_RESPONSE
+from empower.lvapp import CAPS_REQUEST
+from empower.lvapp import PT_CAPS_REQUEST
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -249,6 +251,10 @@ class LVAPPConnection(object):
 
             # change state
             wtp.set_connected()
+
+            # send caps request
+            LOG.info("Sending caps request to %s", wtp.addr)
+            self.send_caps_request()
 
         # Update WTP params
         wtp.period = hello.period
@@ -754,6 +760,19 @@ class LVAPPConnection(object):
 
         # set state to online
         wtp.set_online()
+
+
+    def send_caps_request(self):
+        caps_request = Container(version=PT_VERSION,
+                            type=PT_CAPS_REQUEST,
+                            length=10,
+                            seq=self.wtp.seq)
+
+        LOG.info("Sending caps request to %s", self.wtp.addr)
+
+        msg = CAPS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
 
     @classmethod
     def _handle_status_vap(cls, wtp, status):

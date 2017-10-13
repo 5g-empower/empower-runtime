@@ -39,8 +39,8 @@ from empower.lvapp import PT_VERSION
 from empower.main import RUNTIME
 
 
-PT_RATES_REQUEST = 0x29
-PT_RATES_RESPONSE = 0x30
+PT_RATES_REQUEST = 0x30
+PT_RATES_RESPONSE = 0x31
 
 RATES_ENTRY = Sequence("rates",
                        UBInt8("rate"),

@@ -46,9 +46,9 @@ R_LE = 'LE'
 
 RELATIONS = {R_EQ: 0, R_GT: 1, R_LT: 2, R_GE: 3, R_LE: 4}
 
-PT_ADD_BUSYNESS = 0x38
-PT_BUSYNESS = 0x39
-PT_DEL_BUSYNESS = 0x40
+PT_ADD_BUSYNESS = 0x39
+PT_BUSYNESS = 0x40
+PT_DEL_BUSYNESS = 0x41
 
 ADD_BUSYNESS_TRIGGER = Struct("add_busyness_trigger", UBInt8("version"),
                               UBInt8("type"),

@@ -24,8 +24,8 @@ from empower.maps.maps import Maps
 
 from empower.main import RUNTIME
 
-PT_POLLER_REQUEST = 0x25
-PT_POLLER_RESPONSE = 0x26
+PT_POLLER_REQUEST = 0x26
+PT_POLLER_RESPONSE = 0x27
 
 
 class UCQM(Maps):

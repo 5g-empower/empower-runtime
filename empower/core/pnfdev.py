@@ -111,11 +111,6 @@ class BasePNFDev(object):
         # null transition
         pass
 
-    def _disconnected_online(self):
-
-        # set new state
-        self.__state = P_STATE_CONNECTED
-
     def _disconnected_connected(self):
 
         # set new state
