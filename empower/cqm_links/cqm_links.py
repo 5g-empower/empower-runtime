@@ -39,8 +39,8 @@ from empower.core.app import EmpowerApp
 from empower.main import RUNTIME
 
 
-PT_CQM_LINKS_REQUEST = 0x43
-PT_CQM_LINKS_RESPONSE = 0x44
+PT_CQM_LINKS_REQUEST = 0x44
+PT_CQM_LINKS_RESPONSE = 0x45
 
 CQM_LINK = Sequence("stats",
                     Bytes("ta", 6),

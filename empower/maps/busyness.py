@@ -37,8 +37,8 @@ from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
 
-PT_BUSYNESS_REQUEST = 0x36
-PT_BUSYNESS_RESPONSE = 0x37
+PT_BUSYNESS_REQUEST = 0x37
+PT_BUSYNESS_RESPONSE = 0x38
 
 BUSYNESS_REQUEST = Struct("busyness_request", UBInt8("version"),
                           UBInt8("type"),

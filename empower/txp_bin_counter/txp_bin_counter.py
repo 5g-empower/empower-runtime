@@ -36,8 +36,8 @@ from empower.lvapp import PT_VERSION
 from empower.main import RUNTIME
 
 
-PT_TXP_BIN_COUNTER_REQUEST = 0x34
-PT_TXP_BIN_COUNTER_RESPONSE = 0x35
+PT_TXP_BIN_COUNTER_REQUEST = 0x35
+PT_TXP_BIN_COUNTER_RESPONSE = 0x36
 
 STATS = Sequence("stats", UBInt16("bytes"), UBInt32("count"))
 

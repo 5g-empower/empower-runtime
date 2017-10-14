@@ -39,8 +39,8 @@ from empower.core.app import EmpowerApp
 from empower.main import RUNTIME
 
 
-PT_WTP_STATS_REQUEST = 0x41
-PT_WTP_STATS_RESPONSE = 0x42
+PT_WTP_STATS_REQUEST = 0x42
+PT_WTP_STATS_RESPONSE = 0x43
 
 WTP_STATS = Sequence("stats",
                      Bytes("lvap", 6),

@@ -46,9 +46,9 @@ R_LE = 'LE'
 
 RELATIONS = {R_EQ: 0, R_GT: 1, R_LT: 2, R_GE: 3, R_LE: 4}
 
-PT_ADD_RSSI = 0x19
-PT_RSSI = 0x20
-PT_DEL_RSSI = 0x21
+PT_ADD_RSSI = 0x20
+PT_RSSI = 0x21
+PT_DEL_RSSI = 0x22
 
 ADD_RSSI_TRIGGER = Struct("add_rssi_trigger", UBInt8("version"),
                           UBInt8("type"),
