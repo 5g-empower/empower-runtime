@@ -761,18 +761,25 @@ class LVAPPConnection(object):
         # set state to online
         wtp.set_online()
 
-
     def send_caps_request(self):
+        """Send a CAPS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
         caps_request = Container(version=PT_VERSION,
-                            type=PT_CAPS_REQUEST,
-                            length=10,
-                            seq=self.wtp.seq)
+                                 type=PT_CAPS_REQUEST,
+                                 length=10,
+                                 seq=self.wtp.seq)
 
         LOG.info("Sending caps request to %s", self.wtp.addr)
 
         msg = CAPS_REQUEST.build(caps_request)
         self.stream.write(msg)
-
 
     @classmethod
     def _handle_status_vap(cls, wtp, status):
