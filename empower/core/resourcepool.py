@@ -169,7 +169,7 @@ class TxPolicy(object):
     def ht_mcs(self, ht_mcs):
         """ Set the list of MCS. """
 
-        self._ht_mcs = self.block.supports & set(ht_mcs)
+        self._ht_mcs = self.block.ht_supports & set(ht_mcs)
 
         if not self._ht_mcs:
             self._ht_mcs = self.block.ht_supports
