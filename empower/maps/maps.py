@@ -181,8 +181,16 @@ class Maps(Module):
         """
 
         # update cache
-        setattr(self.block, self.MODULE_NAME, CQM())
         map_entry_block = getattr(self.block, self.MODULE_NAME)
+
+        lvap_addrs = [EtherAddress(entry[0]) for entry in response.img_entries]
+
+        keys = [entry for entry in map_entry_block.keys()]
+
+        for key in keys:
+
+            if key not in lvap_addrs:
+                del map_entry_block[key]
 
         # update this object
         self.maps = CQM()
