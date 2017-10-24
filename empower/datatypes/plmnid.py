@@ -15,69 +15,61 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""EmPOWER EtherAddress Class."""
+"""EmPOWER PLMNID."""
+
+import re
 
 
 class PLMNID(object):
-    """An Ethernet (MAC) address type."""
+    """PLMNID object representing a PLMNID
 
-    def __init__(self, plmn_id=None):
-        """Understands PLMNID in int and string form."""
+    Attributes:
+        plmnid: The PLMNID. Only numeric characters are accepted (0 - 9)
+    """
 
-        if isinstance(plmn_id, str):
-            if len(plmn_id) == 5 or len(plmn_id) == 6:
-                tokens = [int(x) for x in list(plmn_id)]
-                self._value = "".join([str(x) for x in tokens])
-            else:
-                raise ValueError("Expected 5/6 integers")
+    def __init__(self, plmnid):
 
-        elif isinstance(plmn_id, int):
-            self._value = PLMNID(str(plmn_id)).to_str()
-
-        elif isinstance(addr, PLMNID):
-            self._value = addr.to_str()
-
-        elif addr is None:
-            self._value = "00000"
-
+        if isinstance(plmnid, int):
+            self.plmnid = str(plmnid)
+        elif isinstance(plmnid, bytes):
+            self.plmnid = plmnid.decode('UTF-8')
+        elif isinstance(plmnid, str):
+            allowed = re.compile(r'^[f0-9]+$', re.VERBOSE | re.IGNORECASE)
+            if allowed.match(plmnid) is None:
+                raise ValueError("Invalid PLMNID name")
+            self.plmnid = plmnid
+        elif isinstance(plmnid, PLMNID):
+            self.plmnid = str(plmnid)
+        elif not plmnid:
+            self.plmnid
         else:
-            raise ValueError("Expected 5/6 integers")
+            raise ValueError("PLMNID must be a string or an array of UTF-8 "
+                             "encoded bytes array of UTF-8 encoded bytes")
 
-    def to_tuple(self):
-        """Return the plmnid as a mcc/mnc tuple."""
-
-        tokens = list(self._value)
-        return ("".join(tokens[0:3]), "".join(tokens[3:]))
+    def to_raw(self):
+        """ Return the bytes represenation of the PLMNID """
+        return self.plmnid.encode('UTF-8')
 
     def to_str(self):
-        """Return the plmnid as a string."""
+        """ Return the ASCII represenation of the PLMNID """
+        return self.plmnid
 
-        return self._value
-
-    @property
-    def mcc(self):
-        """Return the mcc."""
-
-        return self.to_tuple()[0]
-
-    @property
-    def mnc(self):
-        """Return the mnc."""
-
-        return self.to_tuple()[1]
+    def __bool__(self):
+        return True if self.plmnid else False
 
     def __str__(self):
         return self.to_str()
 
-    def __eq__(self, other):
-
-        if type(other) != PLMNID:
-            return false
-
-        return self.to_str() == other.to_str()
+    def __len__(self):
+        return len(self.plmnid)
 
     def __hash__(self):
-        return self._value.__hash__()
+        return hash(self.plmnid)
 
-    def __repr__(self):
-        return self.__class__.__name__ + "('" + self.to_str() + "')"
+    def __eq__(self, other):
+        if isinstance(other, PLMNID):
+            return self.plmnid == other.plmnid
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

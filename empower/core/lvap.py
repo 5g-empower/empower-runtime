@@ -480,7 +480,7 @@ class LVAP(object):
 
         self.block = []
 
-    def clear_lvaps(self):
+    def clear_lvap(self):
         """Clear all downlink blocks."""
 
         # remove downlink

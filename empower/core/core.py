@@ -192,8 +192,8 @@ class EmpowerRuntime(object):
         """Add IMSI to MAC mapped value to table."""
 
         imsi2mac = Session().query(TblIMSI2MAC) \
-                         .filter(TblIMSI2MAC.imsi == imsi) \
-                         .first()
+                            .filter(TblIMSI2MAC.imsi == imsi) \
+                            .first()
         if imsi2mac:
             raise ValueError(imsi)
 
@@ -214,8 +214,8 @@ class EmpowerRuntime(object):
         """Remove IMSI to MAC mapped value from table."""
 
         imsi2mac = Session().query(TblIMSI2MAC) \
-                         .filter(TblIMSI2MAC.imsi == imsi) \
-                         .first()
+                            .filter(TblIMSI2MAC.imsi == imsi) \
+                            .first()
         if not imsi2mac:
             raise KeyError(imsi)
 
@@ -376,7 +376,7 @@ class EmpowerRuntime(object):
             setattr(account, param, request[param])
 
     def register_app(self, name, init_method, params):
-        """Register new component."""
+        """Register new app."""
 
         tenant_id = params['tenant_id']
 
@@ -409,7 +409,7 @@ class EmpowerRuntime(object):
             self.components[name].start()
 
     def unregister_app(self, tenant_id, app_id):
-        """Unregister component."""
+        """Unregister app."""
 
         LOG.info("Unregistering: %s (%s)", app_id, tenant_id)
 
@@ -425,7 +425,7 @@ class EmpowerRuntime(object):
         del tenant.components[app_id]
 
     def unregister(self, name):
-        """Unregister component."""
+        """Unregister module."""
 
         LOG.info("Unregistering '%s'", name)
 
@@ -625,7 +625,7 @@ class EmpowerRuntime(object):
                 component.remove_module(module_id)
 
     def load_tenant(self, tenant_name):
-        """Load tenant from network name."""
+        """Load tenant from network name (SSID)."""
 
         for tenant in self.tenants.values():
             if tenant.tenant_name == tenant_name:
@@ -664,28 +664,28 @@ class EmpowerRuntime(object):
 
         # Reset LVAP
         LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
-        lvap.clear_lvaps()
+        lvap.clear_lvap()
 
         del self.lvaps[lvap.addr]
 
-    def remove_ue(self, ue_addr):
+    def remove_ue(self, imsi):
         """Remove UE from the network"""
 
-        if ue_addr not in self.ues:
+        if imsi not in self.ues:
             return
 
-        ue = self.ues[ue_addr]
+        ue = self.ues[imsi]
 
         if ue.tenant:
 
             # removing UE from tenant, need first to look for right tenant
-            if ue.addr in ue.tenant.ues:
-                LOG.info("Removing %s from tenant %u", ue.addr, ue.plmn_id)
-                del ue.tenant.ues[ue.addr]
+            if ue.imsi in ue.tenant.ues:
+                LOG.info("Removing %s from tenant %s", ue.imsi, ue.plmn_id)
+                del ue.tenant.ues[ue.imsi]
 
             # Raise UE leave event
             from empower.vbsp.vbspserver import VBSPServer
             vbsp_server = self.components[VBSPServer.__module__]
             vbsp_server.send_ue_leave_message_to_self(ue)
 
-        del self.ues[ue.addr]
+        del self.ues[ue.imsi]

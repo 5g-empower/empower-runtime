@@ -23,6 +23,7 @@ import tornado.ioloop
 from construct import Container
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
@@ -187,6 +188,11 @@ class VBSPConnection(object):
 
         LOG.info("VBS disconnected: %s", self.vbs.addr)
 
+        # remove hosted UEs
+        for imsi in list(RUNTIME.ues.keys()):
+            ue = RUNTIME.ues[imsi]
+            RUNTIME.remove_ue(ue.imsi)
+
         # reset state
         self.vbs.set_disconnected()
         self.vbs.last_seen = 0
@@ -333,18 +339,18 @@ class VBSPConnection(object):
 
         for u in ues.values():
 
-            tenant = RUNTIME.load_tenant_by_plmn_id(u.plmn_id)
+            plmn_id = PLMNID(u.plmn_id)
+            tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:
-                LOG.info("Unable to find PLMN id %u", u.plmn_id)
+                LOG.info("Unable to find PLMN id %s", plmn_id)
                 continue
 
             if vbs.addr not in tenant.vbses:
-                LOG.info("VBS %s does not belong to PLMN id %u", vbs.addr,
-                         u.plmn_id)
+                LOG.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            ue = UE(u.pci, u.plmn_id, u.rnti, u.imsi, tenant, vbs)
+            ue = UE(u.pci, plmn_id, u.rnti, u.imsi, tenant, vbs)
 
             if u.imsi not in RUNTIME.ues:
                 self.server.send_ue_join_message_to_self(ue)

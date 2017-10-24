@@ -20,6 +20,7 @@
 import uuid
 import empower.datatypes.etheraddress as etheraddress
 import empower.datatypes.ssid as ssid
+import empower.datatypes.plmnid as plmnid
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey
@@ -117,6 +118,35 @@ class SSID(TypeDecorator):
         return False
 
 
+class PLMNID(TypeDecorator):
+    """PLMNID type."""
+
+    impl = Unicode
+
+    def __init__(self):
+        self.impl.length = 5
+        TypeDecorator.__init__(self, length=self.impl.length)
+
+    def process_bind_param(self, value, dialect=None):
+
+        if value and isinstance(value, plmnid.PLMNID):
+            return value.to_str()
+        elif value and not isinstance(value, plmnid.PLMNID):
+            raise ValueError('value %s is not a valid PLMNID' % value)
+        else:
+            return None
+
+    def process_result_value(self, value, dialect=None):
+
+        if value:
+            return plmnid.PLMNID(value)
+        else:
+            return None
+
+    def is_mutable(self):
+        return False
+
+
 class TblFeed(Base):
     """ Energino Feeds Table. """
 
@@ -151,9 +181,7 @@ class TblPendingTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    plmn_id = Column("plmn_id",
-                     Integer,
-                     default=True)
+    plmn_id = Column("plmn_id", PLMNID, unique=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
@@ -179,9 +207,7 @@ class TblTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    plmn_id = Column("plmn_id",
-                     Integer,
-                     default=True)
+    plmn_id = Column("plmn_id", PLMNID, unique=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
