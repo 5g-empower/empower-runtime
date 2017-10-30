@@ -30,7 +30,7 @@ from construct import Array
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
 from empower.lvapp import PT_VERSION
@@ -58,7 +58,7 @@ BUSYNESS_RESPONSE = Struct("busyness_response", UBInt8("version"),
                            UBInt32("busyness"))
 
 
-class Busyness(Module):
+class Busyness(ModulePeriodic):
     """ A maps poller. """
 
     MODULE_NAME = "busyness"
@@ -66,7 +66,7 @@ class Busyness(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModulePeriodic.__init__(self)
 
         # parameters
         self._block = None

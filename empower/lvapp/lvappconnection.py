@@ -253,7 +253,6 @@ class LVAPPConnection(object):
             wtp.set_connected()
 
             # send caps request
-            LOG.info("Sending caps request to %s", wtp.addr)
             self.send_caps_request()
 
         # Update WTP params

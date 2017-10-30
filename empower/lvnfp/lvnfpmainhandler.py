@@ -261,6 +261,13 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         tenant_id = uuid.UUID(status_lvnf['tenant_id'])
         lvnf_id = uuid.UUID(status_lvnf['lvnf_id'])
 
+        if tenant_id not in RUNTIME.tenants:
+            LOG.warning("Tenant %s not found, ignoring LVNF %s",
+                        tenant_id,
+                        lvnf_id)
+
+        return
+
         tenant = RUNTIME.tenants[tenant_id]
 
         LOG.info("LVNF %s status update", lvnf_id)

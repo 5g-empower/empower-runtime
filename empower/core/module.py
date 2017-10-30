@@ -186,7 +186,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class Module(object):
+class _Module(object):
     """Module object.
 
     Attributes:
@@ -194,7 +194,6 @@ class Module(object):
         module_type: A system-wide unique name for the module
         worker: the module worker responsible for reating new module instances.
         tenant_id: The tenant's Id for convenience (UUID)
-        every: loop period
         callback: Module callback (FunctionType)
     """
 
@@ -206,7 +205,6 @@ class Module(object):
         self.module_type = None
         self.worker = None
         self.__tenant_id = None
-        self.__every = 5000
         self.__callback = None
         self.__periodic = None
         self.log = empower.logger.get_logger()
@@ -266,25 +264,12 @@ class Module(object):
 
         self.__tenant_id = value
 
-    @property
-    def every(self):
-        """Return every."""
-
-        return self.__every
-
-    @every.setter
-    def every(self, value):
-        """Set every."""
-
-        self.__every = int(value)
-
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
         out = {'id': self.module_id,
                'module_type': self.module_type,
                'tenant_id': self.tenant_id,
-               'every': self.every,
                'callback': self.callback}
 
         return out
@@ -329,10 +314,9 @@ class Module(object):
 
     def __eq__(self, other):
 
-        if isinstance(other, Module):
+        if isinstance(other, _Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
-                self.every == other.every and \
                 self.callback == other.callback
 
         return False
@@ -343,18 +327,12 @@ class Module(object):
     def start(self):
         """Start worker."""
 
-        if self.every > 0:
-            self.__periodic = \
-                tornado.ioloop.PeriodicCallback(self.run_once, self.every)
-            self.__periodic.start()
-        else:
-            self.run_once
+        self.run_once()
 
     def stop(self):
         """Stop worker."""
 
-        if self.every > 0:
-            self.__periodic.stop()
+        pass
 
     def run_once(self):
         """Period task."""
@@ -367,22 +345,54 @@ class Module(object):
         pass
 
 
-class ModuleTrigger(Module):
-    """Module Trigger object.
+class ModuleSingle(_Module):
+    """Module Single object."""
 
-    Works like the module object. The only difference is that the every
-    parameter is ignored.
-    """
+    pass
+
+
+class ModuleScheduled(_Module):
+    """Module Scheduled object."""
+
+    pass
+
+
+class ModuleTrigger(_Module):
+    """Module Trigger object."""
+
+    pass
+
+
+class ModulePeriodic(_Module):
+    """Module Scheduled object."""
+
+    def __init_(self):
+        super().__init__()
+        self.__every = 5000
+
+    @property
+    def every(self):
+        """Return every."""
+
+        return self.__every
+
+    @every.setter
+    def every(self, value):
+        """Set every."""
+
+        self.__every = int(value)
 
     def start(self):
         """Start worker."""
 
-        self.run_once()
+        self.__periodic = \
+            tornado.ioloop.PeriodicCallback(self.run_once, self.every)
+        self.__periodic.start()
 
     def stop(self):
         """Stop worker."""
 
-        pass
+        self.__periodic.stop()
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -390,6 +400,7 @@ class ModuleTrigger(Module):
         out = {'id': self.module_id,
                'module_type': self.module_type,
                'tenant_id': self.tenant_id,
+               'every': self.every,
                'callback': self.callback}
 
         return out
@@ -399,6 +410,7 @@ class ModuleTrigger(Module):
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
+                self.every == other.every and \
                 self.callback == other.callback
 
         return False
@@ -559,8 +571,7 @@ class ModuleWorker(object):
         self.log.info("Removing %s (id=%u)", module.module_type,
                       module.module_id)
 
-        if module.every >= 0:
-            module.stop()
+        module.stop()
 
         del self.modules[module_id]
 

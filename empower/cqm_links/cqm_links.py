@@ -33,7 +33,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.app import EmpowerApp
 
 from empower.main import RUNTIME
@@ -67,7 +67,7 @@ CQM_LINKS_RESPONSE = \
            Array(lambda ctx: ctx.nb_links, CQM_LINK))
 
 
-class CQMLinks(Module):
+class CQMLinks(ModulePeriodic):
     """ CQM_links object.
 
     This primitive retrieves the Channel quality map links from a WTP
@@ -84,7 +84,7 @@ class CQMLinks(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        ModulePeriodic.__init__(self)
 
         # parameters
         self._wtp = None

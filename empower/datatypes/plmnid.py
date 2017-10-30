@@ -40,8 +40,6 @@ class PLMNID(object):
             self.plmnid = plmnid
         elif isinstance(plmnid, PLMNID):
             self.plmnid = str(plmnid)
-        elif not plmnid:
-            self.plmnid
         else:
             raise ValueError("PLMNID must be a string or an array of UTF-8 "
                              "encoded bytes array of UTF-8 encoded bytes")
