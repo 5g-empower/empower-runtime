@@ -186,7 +186,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class _Module(object):
+class Module():
     """Module object.
 
     Attributes:
@@ -314,7 +314,7 @@ class _Module(object):
 
     def __eq__(self, other):
 
-        if isinstance(other, _Module):
+        if isinstance(other, Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
                 self.callback == other.callback
@@ -345,28 +345,28 @@ class _Module(object):
         pass
 
 
-class ModuleSingle(_Module):
+class ModuleSingle(Module):
     """Module Single object."""
 
     pass
 
 
-class ModuleScheduled(_Module):
+class ModuleScheduled(Module):
     """Module Scheduled object."""
 
     pass
 
 
-class ModuleTrigger(_Module):
+class ModuleTrigger(Module):
     """Module Trigger object."""
 
     pass
 
 
-class ModulePeriodic(_Module):
+class ModulePeriodic(Module):
     """Module Scheduled object."""
 
-    def __init_(self):
+    def __init__(self):
         super().__init__()
         self.__every = 5000
 

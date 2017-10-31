@@ -76,13 +76,14 @@ class LVAPStats(ModulePeriodic):
 
     def __init__(self):
 
-        ModulePeriodic.__init__(self)
+        super().__init__()
 
         # parameters
         self._lvap = None
 
         # data structures
         self.rates = {}
+        self.best_prob = None
 
     def __eq__(self, other):
 
@@ -106,6 +107,7 @@ class LVAPStats(ModulePeriodic):
         out = super().to_dict()
 
         out['lvap'] = self.lvap
+        out['best_prob'] = self.best_prob
         out['rates'] = {str(k): v for k, v in self.rates.items()}
 
         return out
@@ -166,6 +168,13 @@ class LVAPStats(ModulePeriodic):
             value = {'prob': entry[2] / 180.0,
                      'cur_prob': entry[3] / 180.0, }
             self.rates[rate] = value
+
+        max_idx = max(self.rates.keys(),
+                      key=(lambda key: self.rates[key]['prob']))
+        max_val = self.rates[max_idx]['prob']
+
+        self.best_prob = \
+            max([k for k, v in self.rates.items() if v['prob'] == max_val])
 
         # call callback
         self.handle_callback(self)

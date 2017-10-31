@@ -29,7 +29,7 @@ from empower.main import RUNTIME
 DEFAULT_PERIOD = 5000
 
 
-class EmpowerApp(object):
+class EmpowerApp():
     """EmpowerApp base app class."""
 
     def __init__(self, tenant_id, **kwargs):
@@ -121,13 +121,18 @@ class EmpowerApp(object):
 
         return RUNTIME.tenants[self.tenant_id].vbsps[addr]
 
-    def lvaps(self):
+    def lvaps(self, block=None):
         """Return LVAPs in this tenant."""
 
         if self.tenant_id not in RUNTIME.tenants:
             return None
 
-        return RUNTIME.tenants[self.tenant_id].lvaps.values()
+        lvaps = RUNTIME.tenants[self.tenant_id].lvaps.values()
+
+        if not block:
+            return lvaps
+
+        return [x for x in lvaps if x.blocks[0] == block]
 
     def lvap(self, addr):
         """Return a particular LVAP in this tenant."""

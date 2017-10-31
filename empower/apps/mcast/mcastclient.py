@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016, Estefanía Coronado
+# Copyright (c) 2017, Estefanía Coronado
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,164 +25,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Multicast management app."""
-
-import tornado.web
-import tornado.httpserver
-import time
-import datetime
-import sys
-
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
+"""Multicast client info."""
 
 
 class MCastClientInfo(object):
-	def __init__(self):
-		self.__addr = None
-		self.__rssi = 0 # rssi of the current block attached to
-		self.__attached_hwaddr = None
-		self.__rx_pkts = dict() # dst_addr: rx_pkts
-		self.__rates = dict()
-		self.__wtps = dict() # ap/block: rssi
-		self.__higher_thershold_ewma_rates = []
-		self.__higher_thershold_cur_prob_rates = []
-		self.__highest_rate = 0
-		self.__highest_cur_prob_rate = 0
-		self.__last_unsuccessful_handover = dict()
-		self.__last_handover_time = None
 
-	@property
-	def addr(self):
-		"""Return the lvap_addr of the client."""
-		return self.__addr
+    def __init__(self, addr):
+        self.addr = addr
+        self.best_prob = None
+        self.best_rate = None
+        self.valid_rates = None
 
-	@addr.setter
-	def addr(self, addr):
-		self.__addr = addr
+        self.rssi = 0
+        self.attached_hwaddr = None
+        self.rx_pkts = {}
+        self.rates = {}
+        self.higher_thershold_ewma_rates = []
+        self.higher_thershold_cur_prob_rates = []
+        self.highest_rate = 0
+        self.highest_cur_prob_rate = 0
 
-	@property
-	def rssi(self):
-		"""Return the rssi perceived from the wtp currenty attached to."""
-		return self.__rssi
+    def to_dict(self):
+        """ Return a JSON-serializable."""
 
-	@rssi.setter
-	def rssi(self, rssi):
-		self.__rssi = rssi
+        out = {}
 
-	@property
-	def attached_hwaddr(self):
-		"""Return the hwaddr of the wtp currenty attached to."""
-		return self.__attached_hwaddr
+        out['addr'] = self.addr
+        out['best_prob'] = self.best_prob
+        out['best_rate'] = self.best_rate
+        out['valid_rates'] = self.valid_rates
 
-	@attached_hwaddr.setter
-	def attached_hwaddr(self, attached_hwaddr):
-		self.__attached_hwaddr = attached_hwaddr
-
-	@property
-	def rx_pkts(self):
-		"""Return the number of packets received from a given address"""
-		return self.__rx_pkts
-
-	@rx_pkts.setter
-	def rx_pkts(self, rx_pkts_info):
-		self.__rx_pkts = rx_pkts_info
-
-	@property
-	def rates(self):
-		"""Return the number of packets received from a given address"""
-		return self.__rates
-
-	@rates.setter
-	def rates(self, rates_info):
-		self.__rates = rates_info
-
-	@property
-	def wtps(self):
-		"""Return the rssi of the wtps that are holding the tenant that this client is attached to"""
-		return self.__wtps
-
-	@wtps.setter
-	def wtps(self, wtps_info):
-		self.__wtps.clear()
-		self.__wtps = wtps_info
-
-	@property
-	def higher_thershold_ewma_rates(self):
-		"""Return the rates that offer a emwa probability higher than a thershold"""
-		return self.__higher_thershold_ewma_rates
-
-	@higher_thershold_ewma_rates.setter
-	def higher_thershold_ewma_rates(self, higher_thershold_ewma_rates_info):
-		self.__higher_thershold_ewma_rates = higher_thershold_ewma_rates_info
-
-	@property
-	def higher_thershold_cur_prob_rates(self):
-		"""Return the rates that offer a cur probability higher than a thershold"""
-		return self.__higher_thershold_cur_prob_rates
-
-	@higher_thershold_cur_prob_rates.setter
-	def higher_thershold_cur_prob_rates(self, higher_thershold_cur_prob_rates_info):
-		self.__higher_thershold_cur_prob_rates = higher_thershold_cur_prob_rates_info
-
-	@property
-	def highest_rate(self):
-		"""Return the best rate for this client regarding ewma prob."""
-		return self.__highest_rate
-
-	@highest_rate.setter
-	def highest_rate(self, highest_rate):
-		self.__highest_rate = highest_rate
-
-	@property
-	def highest_cur_prob_rate(self):
-		"""Return the second best rate for this client regarding cur prob."""
-		return self.__highest_cur_prob_rate
-
-	@highest_cur_prob_rate.setter
-	def highest_cur_prob_rate(self, highest_cur_prob_rate):
-		self.__highest_cur_prob_rate = highest_cur_prob_rate
-
-	@property
-	def last_unsuccessful_handover(self):
-		"""Return the last_unsuccessful_handover done."""
-		return self.__last_unsuccessful_handover
-
-	@last_unsuccessful_handover.setter
-	def last_unsuccessful_handover(self, last_unsuccessful_handover):
-		self.__last_unsuccessful_handover = last_unsuccessful_handover
-
-	@property
-	def last_handover_time(self):
-		"""Return the time of the handover done."""
-		return self.__last_handover_time
-
-	@last_handover_time.setter
-	def last_handover_time(self, last_handover_time):
-		self.__last_handover_time = last_handover_time
-
-
-	def to_dict(self):
-		"""Return JSON-serializable representation of the object."""
-
-		params = {}
-		wtps = {str(k): v for k, v in self.wtps.items()}
-		rx_pkts = {str(k): v for k, v in self.rx_pkts.items()}
-		last_unsuccessful_handover = {str(k): v for k, v in self.last_unsuccessful_handover.items()}
-
-		params['addr'] = self.addr
-		params['rssi'] = self.rssi
-		params['attached_hwaddr'] = self.attached_hwaddr
-		params['rx_pkts'] = rx_pkts
-		params['rates'] = self.rates
-		params['wtps'] = wtps
-		params['higher_thershold_ewma_rates'] = self.higher_thershold_ewma_rates
-		params['higher_thershold_cur_prob_rates'] = self.higher_thershold_cur_prob_rates
-		params['highest_rate'] = self.highest_rate
-		params['highest_cur_prob_rate'] = self.highest_cur_prob_rate
-		params['last_unsuccessful_handover'] = last_unsuccessful_handover
-		params['last_handover_time'] = self.last_handover_time
-
-		return params
+        return out
