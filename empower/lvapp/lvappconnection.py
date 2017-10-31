@@ -47,7 +47,13 @@ from empower.lvapp import PROBE_RESPONSE
 from empower.lvapp import PT_ADD_LVAP_RESPONSE
 from empower.lvapp import PT_DEL_LVAP_RESPONSE
 from empower.lvapp import CAPS_REQUEST
+from empower.lvapp import LVAP_STATUS_REQUEST
+from empower.lvapp import VAP_STATUS_REQUEST
+from empower.lvapp import PORT_STATUS_REQUEST
 from empower.lvapp import PT_CAPS_REQUEST
+from empower.lvapp import PT_LVAP_STATUS_REQ
+from empower.lvapp import PT_VAP_STATUS_REQ
+from empower.lvapp import PT_PORT_STATUS_REQ
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -760,6 +766,15 @@ class LVAPPConnection(object):
         # set state to online
         wtp.set_online()
 
+        # fetch active lvaps
+        self.send_lvap_status_request()
+
+        # fetch active vaps
+        self.send_vap_status_request()
+
+        # fetch active pports
+        self.send_port_status_request()
+
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
         Args:
@@ -778,6 +793,66 @@ class LVAPPConnection(object):
         LOG.info("Sending caps request to %s", self.wtp.addr)
 
         msg = CAPS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_lvap_status_request(self):
+        """Send a LVAP_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_LVAP_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending lvap status request to %s", self.wtp.addr)
+
+        msg = LVAP_STATUS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_vap_status_request(self):
+        """Send a VAP_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_VAP_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending vap status request to %s", self.wtp.addr)
+
+        msg = VAP_STATUS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_port_status_request(self):
+        """Send a PORT_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_PORT_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending port status request to %s", self.wtp.addr)
+
+        msg = PORT_STATUS_REQUEST.build(caps_request)
         self.stream.write(msg)
 
     @classmethod
