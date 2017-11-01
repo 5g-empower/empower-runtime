@@ -55,7 +55,7 @@ class MCastManager(EmpowerApp):
         super().__init__(**kwargs)
 
         # app parameters
-        self.mcast_clients = {}
+        self.receptors = {}
         self.prob_thershold = 90.0
         self.mcast_addr = EtherAddress("01:00:5e:00:c8:dd")
         self.current = 0
@@ -71,13 +71,13 @@ class MCastManager(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """Called when a new LVAP joins the network."""
 
-        self.mcast_clients[lvap.addr] = \
+        self.receptors[lvap.addr] = \
             self.lvap_stats(lvap=lvap.addr, every=self.every)
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP leaves the network."""
 
-        del self.mcast_clients[lvap.addr]
+        del self.receptors[lvap.addr]
 
     def get_next_mode(self):
         """Get next mcast mode in the schedule."""
@@ -126,8 +126,8 @@ class MCastManager(EmpowerApp):
         out = super().to_dict()
 
         out['schedule'] = [TX_MCAST[x] for x in self.schedule]
-        out['mcast_clients'] = \
-            {str(k): v for k, v in self.mcast_clients.items()}
+        out['receptors'] = \
+            {str(k): v for k, v in self.receptors.items()}
 
         return out
 
