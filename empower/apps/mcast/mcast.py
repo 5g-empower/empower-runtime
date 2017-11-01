@@ -112,7 +112,7 @@ class MCastManager(EmpowerApp):
 
             # assign MCS
             self.info("Block %s setting mcast address %s to %s",
-                          lock, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
+                      block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
             txp.mcast = TX_MCAST_LEGACY
             if mcs_type == BT_HT20:
                 txp.ht_mcs = [mcs]
