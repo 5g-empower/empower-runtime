@@ -17,6 +17,7 @@
 
 """EmPOWER base app class."""
 
+import time
 import uuid
 import tornado.ioloop
 import empower.logger
@@ -73,7 +74,8 @@ class EmpowerApp():
     def start(self):
         """Start control loop."""
 
-        self.worker = tornado.ioloop.PeriodicCallback(self.loop, self.every)
+        self.worker = \
+            tornado.ioloop.PeriodicCallback(self.profiler_loop, self.every)
         self.worker.start()
 
     def stop(self):
@@ -96,6 +98,14 @@ class EmpowerApp():
             params[param] = getattr(self, param)
 
         return params
+
+    def profiler_loop(self):
+        """Control loop."""
+
+        start = time.time()
+        self.loop()
+        delta = (time.time() - start) * 1000
+        self.log.info("Job took %f ms", delta)
 
     def loop(self):
         """Control loop."""
