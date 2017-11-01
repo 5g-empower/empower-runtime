@@ -29,6 +29,7 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.resourcepool import BT_HT20
+from empower.core.resourcepool import TX_MCAST
 from empower.core.resourcepool import TX_MCAST_DMS
 from empower.core.resourcepool import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress
@@ -53,7 +54,7 @@ class MCastManager(EmpowerApp):
 
         super().__init__(**kwargs)
 
-        self.mcast_clients = {}
+        # app parameters
         self.prob_thershold = 90.0
         self.mcast_addr = EtherAddress("01:00:5e:00:c8:dd")
         self.current = 0
@@ -62,32 +63,20 @@ class MCastManager(EmpowerApp):
         self.schedule = [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy
 
-        # Register an lvap join event
+        # register lvap join/leave events
         self.lvapjoin(callback=self.lvap_join_callback)
         self.lvapleave(callback=self.lvap_leave_callback)
 
     def lvap_join_callback(self, lvap):
         """Called when a new LVAP joins the network."""
 
-        self.lvap_stats(lvap=lvap.addr,
-                        every=self.every,
-                        callback=self.lvap_stats_callback)
-
-        self.mcast_clients[lvap.addr] = MCastClientInfo(lvap.addr)
+        self.mcast_clients[lvap.addr] = \
+            self.lvap_stats(lvap=lvap.addr, every=self.every)
 
     def lvap_leave_callback(self, lvap):
         """Called when an LVAP leaves the network."""
 
         del self.mcast_clients[lvap.addr]
-
-    def lvap_stats_callback(self, counter):
-        """ New stats available. """
-
-        client_info = self.mcast_clients[counter.lvap]
-        client_info.best_prob = counter.best_prob
-        client_info.valid_rates = \
-            {k: v for k, v in counter.rates.items()
-             if v['prob'] > self.prob_thershold}
 
     def get_next_mode(self):
         """Get next mcast mode in the schedule."""
@@ -97,15 +86,11 @@ class MCastManager(EmpowerApp):
 
         return mode
 
-    def calculate_wtp_rate(self, wtp_info):
-        """Calculate optimal mcast rate."""
-
-        pass
-
     def loop(self):
         """ Periodic job. """
 
         mode = self.get_next_mode()
+        self.log.info("Mcast mode %s", TX_MCAST[mode])
 
         for block in self.blocks():
 
@@ -114,11 +99,20 @@ class MCastManager(EmpowerApp):
 
             # no clients or DMS slot
             if not self.lvaps(block) or mode == TX_MCAST_DMS:
+                self.log.info("Block %s setting mcast address %s to %s",
+                              block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
                 txp.mcast = TX_MCAST_DMS
                 continue
 
-            # Legacy period
-            mcs, mcs_type = self.calculate_wtp_rate(block)
+            # legacy period
+            mcs_type = BT_HT20
+
+            # compute MCS
+            mcs = 0
+
+            # assign MCS
+            self.info("Block %s setting mcast address %s to %s",
+                          lock, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
             txp.mcast = TX_MCAST_LEGACY
             if mcs_type == BT_HT20:
                 txp.ht_mcs = [mcs]
@@ -130,6 +124,7 @@ class MCastManager(EmpowerApp):
 
         out = super().to_dict()
 
+        out['schedule'] = [TX_MCAST[x] for x in self.schedule]
         out['mcast_clients'] = \
             {str(k): v for k, v in self.mcast_clients.items()}
 

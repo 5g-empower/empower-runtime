@@ -25,6 +25,16 @@ import empower.datatypes.etheraddress
 import empower.datatypes.ssid
 
 
+class IterEncoder(json.JSONEncoder):
+    """Encode iterable objects as lists."""
+
+    def default(self, obj):
+        try:
+            return list(obj)
+        except TypeError:
+            return super().default(obj)
+
+
 class EmpowerEncoder(IterEncoder):
     """Handle the representation of the EmPOWER datatypes in JSON format."""
 
