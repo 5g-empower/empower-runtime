@@ -55,6 +55,7 @@ class MCastManager(EmpowerApp):
         super().__init__(**kwargs)
 
         # app parameters
+        self.mcast_clients = {}
         self.prob_thershold = 90.0
         self.mcast_addr = EtherAddress("01:00:5e:00:c8:dd")
         self.current = 0
