@@ -344,6 +344,11 @@ class Module():
 
         pass
 
+    def handle_bye(self, pnfdev):
+        """Handle PNFDev left."""
+
+        pass
+
 
 class ModuleSingle(Module):
     """Module Single object."""
@@ -542,11 +547,12 @@ class ModuleWorker(object):
         # set worker
         module.worker = self
 
-        # start module
-        module.start()
-
         # add to dict
         self.modules[module.module_id] = module
+
+        # start module
+        self.modules[module.module_id].start()
+
         return module
 
     def remove_module(self, module_id):

@@ -29,6 +29,7 @@ from empower.vbsp.vbspconnection import VBSPConnection
 from empower.persistence.persistence import TblVBS
 from empower.core.vbs import VBS
 
+from empower.vbsp import PT_BYE
 from empower.vbsp import PT_UE_LEAVE
 from empower.vbsp import PT_UE_JOIN
 from empower.vbsp import PT_TYPES
@@ -84,6 +85,15 @@ class ModuleVBSPWorker(ModuleWorker):
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleWorker.__init__(self, VBSPServer.__module__, module, pt_type,
                               pt_packet)
+
+        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+
+    def handle_bye(self, vbs):
+        """VBS left."""
+
+        for module_id in list(self.modules.keys()):
+            if self.modules[module_id].vbs == vbs:
+                self.modules[module_id].unload()
 
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""

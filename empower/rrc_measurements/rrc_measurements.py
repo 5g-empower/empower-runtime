@@ -86,6 +86,7 @@ class RRCMeasurements(ModuleTrigger):
         self._imsi = None
         self._earfcn = 1750
         self._interval = 2000
+        self.vbs = None
 
         # data structures
         self.measurements = {}
@@ -159,18 +160,20 @@ class RRCMeasurements(ModuleTrigger):
 
         ue = tenant.ues[self.imsi]
 
-        if not ue.vbs.connection or ue.vbs.connection.stream.closed():
+        if not ue.vbs or not ue.vbs.is_online():
             self.log.info("VBS %s not connected", ue.vbs.addr)
             self.unload()
             return
 
+        self.vbs = ue.vbs
+
         rrc_request = Container(length=34,
                                 type=E_TYPE_TRIG,
                                 version=PT_VERSION,
-                                enbid=ue.vbs.enb_id,
+                                enbid=self.vbs.enb_id,
                                 cellid=ue.cell.pci,
                                 modid=self.module_id,
-                                seq=ue.vbs.seq,
+                                seq=self.vbs.seq,
                                 action=EP_ACT_RRC_MEASUREMENT,
                                 dir=EP_DIR_REQUEST,
                                 op=EP_OPERATION_ADD,
@@ -182,10 +185,10 @@ class RRCMeasurements(ModuleTrigger):
                                 max_meas=10)
 
         self.log.info("Sending rrc request to %s @ %s (id=%u)",
-                      ue.rnti, ue.vbs.addr, self.module_id)
+                      ue.rnti, self.vbs.addr, self.module_id)
 
         msg = RRC_REQUEST.build(rrc_request)
-        ue.vbs.connection.stream.write(msg)
+        self.vbs.connection.stream.write(msg)
 
     def handle_response(self, meas):
         """Handle an incoming RRC_MEASUREMENTS message.

@@ -104,7 +104,7 @@ class BasePNFDev(object):
     def is_online(self):
         """Return if pnfdev is online"""
 
-        return self.state == P_STATE_CONNECTED
+        return self.state == P_STATE_ONLINE
 
     def _online_online(self):
 
