@@ -64,7 +64,7 @@ class TxPolicyProp(dict):
             return dict.__getitem__(self, key)
 
 
-class TxPolicy(object):
+class TxPolicy:
     """Transmission policy.
 
     A transmission policy is a set of rule that must be used by the rate
@@ -250,7 +250,7 @@ class ResourcePool(list):
         return ResourcePool([block])
 
 
-class ResourceBlock(object):
+class ResourceBlock:
     """ EmPOWER resource block.
 
     A resource block is identified by a channel, a timeslot, and the

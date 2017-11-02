@@ -20,7 +20,7 @@
 import re
 
 
-class PLMNID(object):
+class PLMNID:
     """PLMNID object representing a PLMNID
 
     Attributes:

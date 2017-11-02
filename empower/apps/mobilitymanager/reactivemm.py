@@ -41,7 +41,7 @@ class ReactiveMobilityManager(EmpowerApp):
 
     def __init__(self, **kwargs):
 
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.__limit = DEFAULT_LIMIT
 

@@ -87,7 +87,7 @@ def generate_default_accounts():
         session.commit()
 
 
-class EmpowerRuntime(object):
+class EmpowerRuntime:
     """EmPOWER Runtime."""
 
     def __init__(self, options):

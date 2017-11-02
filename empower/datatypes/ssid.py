@@ -20,7 +20,7 @@
 import re
 
 
-class SSID(object):
+class SSID:
     """SSID object representing an alphanumeric SSID
 
     Attributes:

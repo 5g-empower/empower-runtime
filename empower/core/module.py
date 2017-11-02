@@ -421,7 +421,7 @@ class ModulePeriodic(Module):
         return False
 
 
-class ModuleWorker(object):
+class ModuleWorker:
     """Module worker.
 
     Keeps track of the currently defined modules for each tenant

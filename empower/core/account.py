@@ -24,7 +24,7 @@ ROLE_ADMIN = "admin"
 ROLE_USER = "user"
 
 
-class Account(object):
+class Account:
     """An user account on this controller."""
 
     def __init__(self, username, password, name, surname, email, role):

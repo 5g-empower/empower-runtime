@@ -18,7 +18,7 @@
 """EmPOWER EtherAddress Class."""
 
 
-class EtherAddress(object):
+class EtherAddress:
     """An Ethernet (MAC) address type."""
 
     def __init__(self, addr):

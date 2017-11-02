@@ -72,7 +72,7 @@ LOG = empower.logger.get_logger()
 BASE_MAC = EtherAddress("02:ca:fe:00:00:00")
 
 
-class LVAPPConnection(object):
+class LVAPPConnection:
     """LVAPP Connection.
 
     Represents a connection to a WTP (Wireless Termination Point) using

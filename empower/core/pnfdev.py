@@ -29,7 +29,7 @@ P_STATE_CONNECTED = "connected"
 P_STATE_ONLINE = "online"
 
 
-class BasePNFDev(object):
+class BasePNFDev:
     """A Programmable Network Fabric Device (PNFDev).
 
     The PNFDev State machine is the following:

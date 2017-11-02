@@ -38,7 +38,7 @@ class PowerTracker(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.filename = "./powertracker.csv"
 
     def loop(self):

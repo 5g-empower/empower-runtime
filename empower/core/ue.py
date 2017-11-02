@@ -23,7 +23,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class UE(object):
+class UE:
     """User Equipment."""
 
     def __init__(self, imsi, rnti, cell, plmn_id, tenant):

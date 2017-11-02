@@ -33,7 +33,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class LVAP(object):
+class LVAP:
     """ The EmPOWER Light Virtual Access Point
 
     One LVAP is created for every station probing the network (unless the MAC

@@ -60,7 +60,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class VBSPConnection(object):
+class VBSPConnection:
     """VBSP Connection.
 
     Represents a connection to a ENB (EUTRAN Base Station) using

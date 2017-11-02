@@ -21,7 +21,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class VAP(object):
+class VAP:
     """ The EmPOWER Virtual Access Point
 
     Attributes:

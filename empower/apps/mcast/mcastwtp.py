@@ -33,12 +33,10 @@ from empower.core.resourcepool import TX_MCAST_DMS_H
 from empower.core.resourcepool import TX_MCAST_LEGACY_H
 
 
-class MCastWTPInfo(object):
+class MCastWTPInfo:
 
     def __init__(self, block):
         self.block = block
-
-
         self.mode = TX_MCAST_DMS_H
         self.last_txp_bin_tx_pkts_counter = {}
         self.last_tx_pkts = {}

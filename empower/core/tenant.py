@@ -27,7 +27,7 @@ T_TYPE_UNIQUE = "unique"
 T_TYPES = [T_TYPE_SHARED, T_TYPE_UNIQUE]
 
 
-class Tenant(object):
+class Tenant:
     """Tenant object representing a network slice.
 
     This represents basically a virtual network or slice requested and managed

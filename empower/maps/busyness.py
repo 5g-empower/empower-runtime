@@ -66,7 +66,7 @@ class Busyness(ModulePeriodic):
 
     def __init__(self):
 
-        ModulePeriodic.__init__(self)
+        super().__init__()
 
         # parameters
         self._block = None

@@ -36,7 +36,7 @@ class MapsPoller(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.wtpup(callback=self.wtp_up_callback)
 
     def wtp_up_callback(self, wtp):

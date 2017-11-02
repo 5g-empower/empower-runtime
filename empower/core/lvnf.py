@@ -44,7 +44,7 @@ PROCESS_MIGRATING_STOP = "migrating_stop"
 PROCESS_MIGRATING_START = "migrating_start"
 
 
-class LVNF(object):
+class LVNF:
     """A Light Virtual Network Function.
 
     An object representing a Light Virtual Network Function. An LVNF is

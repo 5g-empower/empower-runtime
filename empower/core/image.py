@@ -21,7 +21,7 @@ DEFAULT_HANDLERS = [["config", "config"],
                     ["handlers", "handlers"]]
 
 
-class Image(object):
+class Image:
     """Image object representing a VNF template.
 
     Attributes:

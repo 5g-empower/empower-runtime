@@ -42,8 +42,8 @@ class PingPong(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.__lvap_addr = None
-        EmpowerApp.__init__(self, **kwargs)
 
     @property
     def lvap_addr(self):

@@ -36,7 +36,7 @@ class LVAPStatsPoller(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.lvapjoin(callback=self.lvap_join_callback)
 
     def lvap_join_callback(self, lvap):

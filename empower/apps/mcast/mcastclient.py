@@ -28,7 +28,7 @@
 """Multicast client info."""
 
 
-class MCastClientInfo(object):
+class MCastClientInfo:
 
     def __init__(self, addr):
         self.addr = addr

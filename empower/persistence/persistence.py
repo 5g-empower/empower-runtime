@@ -37,8 +37,7 @@ class UUID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 36
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=36)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -66,8 +65,7 @@ class EtherAddress(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 6
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=6)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -95,8 +93,7 @@ class SSID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 30
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=30)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -124,8 +121,7 @@ class PLMNID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 5
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=5)
 
     def process_bind_param(self, value, dialect=None):
 
