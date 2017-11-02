@@ -1596,14 +1596,14 @@ function loadUEs(tenant_id) {
                 var table = document.getElementById('ues');
                 var row = table.insertRow(table.rows.length);
                 var c = 0
-                var vbs = row.insertCell(c++);
-                vbs.innerHTML = data[stream].vbs
+                var rnti = row.insertCell(c++);
+                rnti.innerHTML = data[stream].rnti
                 var imsi = row.insertCell(c++);
                 imsi.innerHTML = data[stream].imsi
                 var plmn_id = row.insertCell(c++);
                 plmn_id.innerHTML = data[stream].plmn_id
-                var rnti = row.insertCell(c++);
-                rnti.innerHTML = data[stream].rnti
+                var vbs = row.insertCell(c++);
+                vbs.innerHTML = data[stream].vbs.addr + "(" + data[stream].vbs.enb_id + ")"
             }
         },
     });
