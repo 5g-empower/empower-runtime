@@ -41,6 +41,7 @@ class Cell(object):
 
         out = {}
         out['enb_id'] = self.vbs.enb_id
+        out['addr'] = self.vbs.addr
         out['pci'] = self.pci
         out['cap'] = self.cap
         out['DL_earfcn'] = self.DL_earfcn

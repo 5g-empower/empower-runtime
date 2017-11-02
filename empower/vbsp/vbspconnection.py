@@ -172,7 +172,7 @@ class VBSPConnection(object):
 
             if msg_type in self.server.pt_types_handlers:
                 for handler in self.server.pt_types_handlers[msg_type]:
-                    handler(msg)
+                    handler(vbs, hdr, event, msg)
 
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
@@ -350,13 +350,23 @@ class VBSPConnection(object):
                 LOG.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            ue = UE(u.pci, plmn_id, u.rnti, u.imsi, tenant, vbs)
+            if u.pci not in vbs.cells:
+                LOG.info("PCI %u not found", u.pci)
+                continue
+
+            cell = vbs.cells[u.pci]
+            ue = UE(u.imsi, u.rnti, cell, u.plmn_id, tenant)
+
+            new_ue = False
 
             if u.imsi not in RUNTIME.ues:
-                self.server.send_ue_join_message_to_self(ue)
+                new_ue = True
 
             RUNTIME.ues[u.imsi] = ue
             tenant.ues[u.imsi] = ue
+
+            if new_ue:
+                self.server.send_ue_join_message_to_self(ue)
 
         for ue in RUNTIME.ues.values():
             if ue.imsi not in ues:

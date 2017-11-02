@@ -85,18 +85,18 @@ class ModuleVBSPWorker(ModuleWorker):
         ModuleWorker.__init__(self, VBSPServer.__module__, module, pt_type,
                               pt_packet)
 
-    def handle_packet(self, response):
+    def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""
 
-        if response.head.t_id not in self.modules:
+        if hdr.modid not in self.modules:
             return
 
-        module = self.modules[response.head.t_id]
+        module = self.modules[hdr.modid]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response.head.t_id)
+                      hdr.modid)
 
-        module.handle_response(response)
+        module.handle_response(msg)
 
 
 class VBSPServer(PNFPServer, TCPServer):
