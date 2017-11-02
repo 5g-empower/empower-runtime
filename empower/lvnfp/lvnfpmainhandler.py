@@ -195,8 +195,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             # set connection
             cpp.connection = self
 
-            # generate register message
-            self.send_register_message_to_self()
+            # change state
+            cpp.set_connected()
 
         LOG.info("Hello from %s CPP %s seq %u", self.addr, cpp.addr,
                  hello['seq'])
@@ -228,6 +228,9 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                                        hwaddr=EtherAddress(port['hwaddr']))
 
             pnfdev.ports[network_port.port_id] = network_port
+
+        # set state to online
+        wtp.set_online()
 
     def send_del_lvnf(self, lvnf_id):
         """Send del LVNF."""

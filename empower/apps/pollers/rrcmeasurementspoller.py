@@ -40,7 +40,7 @@ class RRCMeasurementsPoller(EmpowerApp):
         self.uejoin(callback=self.ue_join_callback)
 
     def ue_join_callback(self, ue):
-        """ New LVAP. """
+        """ New UE. """
 
         self.rrc_measurements(imsi=ue.imsi,
                               callback=self.rrc_measurements_callback)

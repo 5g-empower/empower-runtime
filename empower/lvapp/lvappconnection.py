@@ -195,7 +195,7 @@ class LVAPPConnection:
 
             if msg_type in self.server.pt_types_handlers:
                 for handler in self.server.pt_types_handlers[msg_type]:
-                    handler(msg)
+                    handler(wtp, msg)
 
     def _handle_add_del_lvap(self, wtp, status):
         """Handle an incoming ADD_DEL_LVAP message.

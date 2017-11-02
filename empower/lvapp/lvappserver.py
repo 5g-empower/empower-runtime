@@ -29,6 +29,7 @@ from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP
 
+from empower.lvapp import PT_BYE
 from empower.lvapp import PT_LVAP_LEAVE
 from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_TYPES
@@ -87,18 +88,27 @@ class ModuleLVAPPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
 
-    def handle_packet(self, response):
+        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+
+    def handle_bye(self, wtp):
+        """WTP left."""
+
+        for module_id in list(self.modules.keys()):
+            if self.modules[module_id].wtp == wtp:
+                self.modules[module_id].unload()
+
+    def handle_packet(self, wtp, msg):
         """Handle response message."""
 
-        if response.module_id not in self.modules:
+        if msg.module_id not in self.modules:
             return
 
-        module = self.modules[response.module_id]
+        module = self.modules[msg.module_id]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response.module_id)
+                      msg.module_id)
 
-        module.handle_response(response)
+        module.handle_response(msg)
 
 
 class LVAPPServer(PNFPServer, TCPServer):
