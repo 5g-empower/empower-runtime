@@ -283,12 +283,13 @@ class VBSPConnection:
                  hdr.seq)
 
         # clear cells
-        vbs.cells = {}
+        vbs.cells = set()
 
         # add new cells
         for c in caps.cells:
-            vbs.cells[c.pci] = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
-                                    c.UL_earfcn, c.UL_prbs)
+            cell = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
+                        c.UL_earfcn, c.UL_prbs)
+            vbs.cells.add(cell)
 
         # transition to the online state
         vbs.set_online()
@@ -350,11 +351,16 @@ class VBSPConnection:
                 LOG.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            if u.pci not in vbs.cells:
+            cell = None
+
+            for c in vbs.cells:
+                if c.pci == u.pci:
+                    cell = c
+
+            if not cell:
                 LOG.info("PCI %u not found", u.pci)
                 continue
 
-            cell = vbs.cells[u.pci]
             ue = UE(u.imsi, u.rnti, cell, u.plmn_id, tenant)
 
             new_ue = False

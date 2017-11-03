@@ -119,6 +119,10 @@ class Busyness(ModulePeriodic):
 
             self._block = match[0]
 
+        else:
+
+            raise ValueError("Invalid block")
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary. """
 

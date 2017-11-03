@@ -94,7 +94,8 @@ class RRCMeasurements(ModuleTrigger):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.imsi == other.imsi
+        return super().__eq__(other) and self.imsi == other.imsi and \
+            self.measurements == other.measurements
 
     @property
     def measurements(self):
