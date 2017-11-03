@@ -33,7 +33,6 @@ from empower.core.resourcepool import TX_MCAST
 from empower.core.resourcepool import TX_MCAST_DMS
 from empower.core.resourcepool import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress
-from empower.apps.mcast.mcastclient import MCastClientInfo
 
 
 class MCastManager(EmpowerApp):
