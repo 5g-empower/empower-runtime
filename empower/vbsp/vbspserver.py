@@ -68,6 +68,7 @@ class ModuleVBSPEventWorker(ModuleEventWorker):
     """
 
     def __init__(self, module, pt_type, pt_packet=None):
+
         ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
                                    pt_type, pt_packet)
 
@@ -85,6 +86,16 @@ class ModuleVBSPWorker(ModuleWorker):
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleWorker.__init__(self, VBSPServer.__module__, module, pt_type,
                               pt_packet)
+
+        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+
+    def handle_bye(self, vbs):
+        """VBS left."""
+
+        for module_id in list(self.modules.keys()):
+            module = self.modules[module_id]
+            if hasattr(module, "vbs") and module.vbs == vbs:
+                self.modules[module_id].unload()
 
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""

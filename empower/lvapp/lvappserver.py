@@ -94,7 +94,8 @@ class ModuleLVAPPWorker(ModuleWorker):
         """WTP left."""
 
         for module_id in list(self.modules.keys()):
-            if self.modules[module_id].wtp == wtp:
+            module = self.modules[module_id]
+            if hasattr(module, "wtp") and module.wtp == wtp:
                 self.modules[module_id].unload()
 
     def handle_packet(self, wtp, msg):

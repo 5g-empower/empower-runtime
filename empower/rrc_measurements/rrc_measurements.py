@@ -89,6 +89,9 @@ class RRCMeasurements(ModuleTrigger):
         # stats
         self.results = []
 
+        # set this for auto-cleanup
+        self.vbs = None
+
     def __eq__(self, other):
 
         return super().__eq__(other) and self.imsi == other.imsi
@@ -159,7 +162,7 @@ class RRCMeasurements(ModuleTrigger):
             self.unload()
             return
 
-        self.pnfdev = ue.vbs
+        self.vbs = ue.vbs
 
         for i in range(0, len(self.measurements)):
 
