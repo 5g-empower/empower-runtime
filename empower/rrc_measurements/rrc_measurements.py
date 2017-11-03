@@ -76,7 +76,7 @@ class RRCMeasurements(ModuleTrigger):
     """ LVAPStats object. """
 
     MODULE_NAME = "rrc_measurements"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'imsi']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'imsi', 'measurements']
 
     def __init__(self):
 
@@ -84,20 +84,39 @@ class RRCMeasurements(ModuleTrigger):
 
         # parameters
         self._imsi = None
-        self._earfcn = 1750
-        self._interval = 2000
-        self.vbs = None
+        self._measurements = []
 
-        # data structures
-        self.measurements = {}
+        # stats
+        self.results = []
 
     def __eq__(self, other):
 
         return super().__eq__(other) and self.imsi == other.imsi
 
     @property
+    def measurements(self):
+        """Return measurements."""
+
+        return self._measurements
+
+    @measurements.setter
+    def measurements(self, value):
+        """Set measurements."""
+
+        for meas in value:
+
+            measurement = {
+                "earfcn": int(meas["earfcn"]),
+                "interval": int(meas["interval"]),
+                "max_cells": int(meas["max_cells"]),
+                "max_meas": int(meas["max_meas"])
+            }
+
+            self._measurements.append(measurement)
+
+    @property
     def imsi(self):
-        """Return IMSI Address."""
+        """Return the imsi."""
 
         return self._imsi
 
@@ -107,39 +126,14 @@ class RRCMeasurements(ModuleTrigger):
 
         self._imsi = int(value)
 
-    @property
-    def earfcn(self):
-        """Return earfcn."""
-
-        return self._earfcn
-
-    @earfcn.setter
-    def earfcn(self, value):
-        """Set earfcn."""
-
-        self._earfcn = int(value)
-
-    @property
-    def interval(self):
-        """Return interval."""
-
-        return self._interval
-
-    @interval.setter
-    def interval(self, value):
-        """Set interval."""
-
-        self._interval = int(value)
-
     def to_dict(self):
         """ Return a JSON-serializable."""
 
         out = super().to_dict()
 
         out['imsi'] = self.imsi
-        out['earfcn'] = self.earfcn
-        out['interval'] = self.interval
         out['measurements'] = self.measurements
+        out['results'] = self.results
 
         return out
 
@@ -165,30 +159,36 @@ class RRCMeasurements(ModuleTrigger):
             self.unload()
             return
 
-        self.vbs = ue.vbs
+        self.pnfdev = ue.vbs
 
-        rrc_request = Container(length=34,
-                                type=E_TYPE_TRIG,
-                                version=PT_VERSION,
-                                enbid=self.vbs.enb_id,
-                                cellid=ue.cell.pci,
-                                modid=self.module_id,
-                                seq=self.vbs.seq,
-                                action=EP_ACT_RRC_MEASUREMENT,
-                                dir=EP_DIR_REQUEST,
-                                op=EP_OPERATION_ADD,
-                                meas_id=0,
-                                rnti=ue.rnti,
-                                earfcn=self.earfcn,
-                                interval=self.interval,
-                                max_cells=10,
-                                max_meas=10)
+        for i in range(0, len(self.measurements)):
 
-        self.log.info("Sending rrc request to %s @ %s (id=%u)",
-                      ue.rnti, self.vbs.addr, self.module_id)
+            measurement = self.measurements[i]
 
-        msg = RRC_REQUEST.build(rrc_request)
-        self.vbs.connection.stream.write(msg)
+            rrc_request = Container(length=34,
+                                    type=E_TYPE_TRIG,
+                                    version=PT_VERSION,
+                                    enbid=self.vbs.enb_id,
+                                    cellid=ue.cell.pci,
+                                    modid=self.module_id,
+                                    seq=self.vbs.seq,
+                                    action=EP_ACT_RRC_MEASUREMENT,
+                                    dir=EP_DIR_REQUEST,
+                                    op=EP_OPERATION_ADD,
+                                    meas_id=i,
+                                    rnti=ue.rnti,
+                                    earfcn=measurement["earfcn"],
+                                    interval=measurement["interval"],
+                                    max_cells=measurement["max_cells"],
+                                    max_meas=measurement["max_meas"])
+
+            print(rrc_request)
+
+            self.log.info("Sending rrc request to %s @ %s (id=%u, mead_id=%u)",
+                          ue.rnti, self.vbs.addr, self.module_id, i)
+
+            msg = RRC_REQUEST.build(rrc_request)
+            self.vbs.connection.stream.write(msg)
 
     def handle_response(self, meas):
         """Handle an incoming RRC_MEASUREMENTS message.

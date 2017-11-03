@@ -209,6 +209,10 @@ class Module():
         self.__periodic = None
         self.log = empower.logger.get_logger()
 
+        # set this if you want the controller to automatically clean the module
+        # when the PNFDEV disconnects
+        self.pnfdev = None
+
     def unload(self):
         """Remove this module."""
 
@@ -344,11 +348,6 @@ class Module():
 
         pass
 
-    def handle_bye(self, pnfdev):
-        """Handle PNFDev left."""
-
-        pass
-
 
 class ModuleSingle(Module):
     """Module Single object."""
@@ -455,8 +454,20 @@ class ModuleWorker:
         handler = (url % module_name, ModuleHandler, dict(server=self))
         self.rest_server.add_handler(handler)
 
-        self.pnfp_server.register_message(self.pt_type, self.pt_packet,
+        self.pnfp_server.register_message(self.pt_type,
+                                          self.pt_packet,
                                           self.handle_packet)
+
+        self.pnfp_server.register_message(PT_BYE,
+                                          None,
+                                          self.handle_bye)
+
+    def handle_bye(self, pnfdev):
+        """VBS left."""
+
+        for module_id in list(self.modules.keys()):
+            if self.modules[module_id].pnfdev == pnfdev:
+                self.modules[module_id].unload()
 
     def remove_handlers(self):
         """Remove primitive handlers."""

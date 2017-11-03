@@ -42,7 +42,12 @@ class RRCMeasurementsPoller(EmpowerApp):
     def ue_join_callback(self, ue):
         """ New UE. """
 
+        measurements = \
+            [{"earfcn": 1750, "interval": 2000, "max_cells": 2, "max_meas": 2},
+             {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
+
         self.rrc_measurements(imsi=ue.imsi,
+                              measurements=measurements,
                               callback=self.rrc_measurements_callback)
 
     def rrc_measurements_callback(self, rrc):
