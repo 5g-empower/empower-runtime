@@ -22,7 +22,6 @@ from datetime import datetime
 from empower.main import RUNTIME
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 P_STATE_DISCONNECTED = "disconnected"
 P_STATE_CONNECTED = "connected"
@@ -64,6 +63,7 @@ class BasePNFDev:
         self.period = 0
         self.ports = {}
         self.__state = P_STATE_DISCONNECTED
+        self.log = empower.logger.get_logger()
 
     @property
     def state(self):
@@ -75,7 +75,7 @@ class BasePNFDev:
     def state(self, state):
         """Set the PNFDev state."""
 
-        LOG.info("PNFDev %s transition %s->%s", self.addr, self.state, state)
+        self.log.info("PNFDev %s mode %s->%s", self.addr, self.state, state)
 
         method = "_%s_%s" % (self.state, state)
 

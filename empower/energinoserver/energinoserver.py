@@ -25,6 +25,7 @@ from tornado.web import HTTPError
 from tornado.web import asynchronous
 from tornado.httpclient import AsyncHTTPClient
 
+from empower.core.service import Service
 from empower.persistence.persistence import TblFeed
 from empower.persistence.persistence import TblPNFDev
 from empower.persistence import Session
@@ -36,8 +37,6 @@ from empower.restserver.restserver import exceptions
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 5533
 
@@ -227,7 +226,7 @@ class EnerginoDatastreamsHandler(tornado.web.RequestHandler):
         self.set_status(204, None)
 
 
-class EnerginoServer(tornado.web.Application):
+class EnerginoServer(Service, tornado.web.Application):
     """Energino Server.
 
     Simple server implementing just the put method of the Xively interface.
@@ -238,6 +237,8 @@ class EnerginoServer(tornado.web.Application):
     handlers = [EnerginoDatastreamsHandler]
 
     def __init__(self, port):
+
+        Service.__init__(self, every=-1)
 
         self.port = int(port)
         self.__feed_id = 0
@@ -374,9 +375,11 @@ class EnerginoServer(tornado.web.Application):
         session.commit()
 
     def to_dict(self):
-        """ Return a dict representation of the object. """
+        """Return a dict representation of the object."""
 
-        return {'port': self.port}
+        out = Service.to_dict(self)
+        out['port'] = self.port
+        return out
 
 
 def launch(port=DEFAULT_PORT):
@@ -387,6 +390,6 @@ def launch(port=DEFAULT_PORT):
     rest_server = RUNTIME.components[RESTServer.__module__]
     rest_server.add_handler_class(FeedHandler, server)
 
-    LOG.info("Energino Server available at %u", server.port)
+    server.log.info("Energino Server available at %u", server.port)
 
     return server

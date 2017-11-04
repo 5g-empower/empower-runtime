@@ -120,10 +120,9 @@ class LVAPPServer(PNFPServer, TCPServer):
 
     def __init__(self, port, pt_types, pt_types_handlers):
 
-        PNFPServer.__init__(self, pt_types, pt_types_handlers)
+        PNFPServer.__init__(self, port, pt_types, pt_types_handlers)
         TCPServer.__init__(self)
 
-        self.port = int(port)
         self.connection = None
 
         self.listen(self.port)

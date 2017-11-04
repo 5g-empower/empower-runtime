@@ -26,9 +26,6 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantUEHandler(EmpowerAPIHandlerUsers):
     """TenantUE handler. Used to view and manipulate UEs in tenants."""

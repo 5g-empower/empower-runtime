@@ -22,11 +22,6 @@ import uuid
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.datatypes.etheraddress import EtherAddress
 
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantLVAPPortHandler(EmpowerAPIHandlerAdminUsers):
     """Tenant/LVAP/Port Handler."""

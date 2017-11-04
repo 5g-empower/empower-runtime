@@ -17,11 +17,6 @@
 
 """User Equipment class."""
 
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class UE:
     """User Equipment."""

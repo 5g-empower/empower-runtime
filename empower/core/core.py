@@ -43,7 +43,6 @@ from empower.persistence.persistence import TblDeny
 from empower.persistence.persistence import TblIMSI2MAC
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PERIOD = 5000
 
@@ -62,8 +61,6 @@ def generate_default_accounts():
     """
 
     if not Session().query(TblAccount).all():
-
-        LOG.info("Generating default accounts")
 
         session = Session()
         session.add(TblAccount(username="root",
@@ -104,14 +101,16 @@ class EmpowerRuntime:
         self.allowed = {}
         self.denied = {}
         self.imsi2mac = {}
+        self.log = empower.logger.get_logger()
 
-        LOG.info("Starting EmPOWER Runtime")
+        self.log.info("Starting EmPOWER Runtime")
 
         # generate default users if database is empty
+        self.log.info("Generating default accounts")
         generate_default_accounts()
 
         # load defaults
-        LOG.info("Loading EmPOWER Runtime defaults")
+        self.log.info("Loading EmPOWER Runtime defaults")
         self.__load_accounts()
         self.__load_tenants()
         self.__load_acl()
@@ -323,7 +322,7 @@ class EmpowerRuntime:
         """Create a new account."""
 
         if username in self.accounts:
-            LOG.error("'%s' already registered", username)
+            self.log.error("'%s' already registered", username)
             raise ValueError("%s already registered" % username)
 
         session = Session()
@@ -384,10 +383,10 @@ class EmpowerRuntime:
             return
 
         if name in self.tenants[tenant_id].components:
-            LOG.error("'%s' already registered", name)
+            self.log.error("'%s' already registered", name)
             raise ValueError("%s already registered" % name)
 
-        LOG.info("Registering '%s'", name)
+        self.log.info("Registering '%s'", name)
 
         self.tenants[tenant_id].components[name] = init_method(**params)
 
@@ -398,10 +397,10 @@ class EmpowerRuntime:
         """Register new component."""
 
         if name in self.components:
-            LOG.error("'%s' already registered", name)
+            self.log.error("'%s' already registered", name)
             raise ValueError("%s already registered" % name)
 
-        LOG.info("Registering '%s'", name)
+        self.log.info("Registering '%s'", name)
 
         self.components[name] = init_method(**params)
 
@@ -411,7 +410,7 @@ class EmpowerRuntime:
     def unregister_app(self, tenant_id, app_id):
         """Unregister app."""
 
-        LOG.info("Unregistering: %s (%s)", app_id, tenant_id)
+        self.log.info("Unregistering: %s (%s)", app_id, tenant_id)
 
         tenant = self.tenants[tenant_id]
         app = tenant.components[app_id]
@@ -427,7 +426,7 @@ class EmpowerRuntime:
     def unregister(self, name):
         """Unregister module."""
 
-        LOG.info("Unregistering '%s'", name)
+        self.log.info("Unregistering '%s'", name)
 
         worker = self.components[name]
 
@@ -654,7 +653,8 @@ class EmpowerRuntime:
 
             # removing LVAP from tenant, need first to look for right tenant
             if lvap.addr in lvap.tenant.lvaps:
-                LOG.info("Removing %s from tenant %s", lvap.addr, lvap.ssid)
+                self.log.info("Removing %s from tenant %s", lvap.addr,
+                              lvap.ssid)
                 del lvap.tenant.lvaps[lvap.addr]
 
             # Raise LVAP leave event
@@ -663,7 +663,7 @@ class EmpowerRuntime:
             lvapp_server.send_lvap_leave_message_to_self(lvap)
 
         # Reset LVAP
-        LOG.info("Deleting LVAP (DL+UL): %s", lvap.addr)
+        self.log.info("Deleting LVAP (DL+UL): %s", lvap.addr)
         lvap.clear_lvap()
 
         del self.lvaps[lvap.addr]
@@ -680,7 +680,8 @@ class EmpowerRuntime:
 
             # removing UE from tenant, need first to look for right tenant
             if ue.imsi in ue.tenant.ues:
-                LOG.info("Removing %s from tenant %s", ue.imsi, ue.plmn_id)
+                self.log.info("Removing %s from tenant %s", ue.imsi,
+                              ue.plmn_id)
                 del ue.tenant.ues[ue.imsi]
 
             # Raise UE leave event

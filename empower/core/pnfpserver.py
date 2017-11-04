@@ -25,6 +25,9 @@ from uuid import UUID
 
 import empower.logger
 
+from tornado.tcpserver import TCPServer
+
+from empower.core.service import Service
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
@@ -264,20 +267,21 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class PNFPServer():
+class PNFPServer(Service):
     """Exposes the PNF Protocol API."""
 
     PNFDEV = None
     TBL_PNFDEV = None
 
-    def __init__(self, pt_types, pt_types_handlers):
+    def __init__(self, port, pt_types, pt_types_handlers):
 
-        self.port = None
+        super().__init__(every=-1)
+
+        self.port = port
         self.__load_pnfdevs()
         self.__load_belongs()
         self.pt_types = pt_types
         self.pt_types_handlers = pt_types_handlers
-        self.log = empower.logger.get_logger()
 
     @property
     def pnfdevs(self):
@@ -318,7 +322,9 @@ class PNFPServer():
     def to_dict(self):
         """ Return a dict representation of the object. """
 
-        return {'port': self.port}
+        out = super().to_dict()
+        out['port'] = self.port
+        return out
 
     def add_pnfdev(self, addr, label):
         """Add PNFDev."""

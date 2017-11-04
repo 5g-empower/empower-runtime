@@ -30,7 +30,7 @@ from empower.main import RUNTIME
 DEFAULT_PERIOD = 5000
 
 
-class EmpowerApp():
+class EmpowerApp:
     """EmpowerApp base app class."""
 
     def __init__(self, tenant_id, **kwargs):
@@ -89,6 +89,7 @@ class EmpowerApp():
         params = {}
 
         params['app_name'] = self.app_name
+        params['every'] = self.every
         params['tenant_id'] = self.tenant_id
         params['ui_url'] = "/apps/tenants/%s/%s/" % \
             (self.tenant_id, self.app_name)

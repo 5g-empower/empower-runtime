@@ -23,7 +23,6 @@ import time
 from empower.main import RUNTIME
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 # add lvnf message sent, no status received
 PROCESS_SPAWNING = "spawning"
@@ -103,6 +102,7 @@ class LVNF:
         self.__target_cpp = None
         self.__migration_timer = None
         self.__creation_timer = None
+        self.log = empower.logger.get_logger()
 
     def start(self):
         """Spawn LVNF."""
@@ -124,7 +124,8 @@ class LVNF:
     def state(self, state):
         """Set the CPP."""
 
-        LOG.info("LVNF %s transition %s->%s", self.lvnf_id, self.state, state)
+        self.log.info("LVNF %s transition %s->%s", self.lvnf_id, self.state,
+                      state)
 
         if self.state:
             method = "_%s_%s" % (self.state, state)
@@ -162,7 +163,7 @@ class LVNF:
     def _spawning_running(self):
 
         delta = int((time.time() - self.__creation_timer) * 1000)
-        LOG.info("LVNF %s started in %sms", self.lvnf_id, delta)
+        self.log.info("LVNF %s started in %sms", self.lvnf_id, delta)
 
         self.__state = PROCESS_RUNNING
 
@@ -213,7 +214,7 @@ class LVNF:
         self.__state = PROCESS_RUNNING
 
         delta = int((time.time() - self.__migration_timer) * 1000)
-        LOG.info("LVNF %s migration took %sms", self.lvnf_id, delta)
+        self.log.info("LVNF %s migration took %sms", self.lvnf_id, delta)
 
     def _none_spawning(self):
 

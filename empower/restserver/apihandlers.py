@@ -30,7 +30,6 @@ from empower.core.jsonserializer import EmpowerEncoder
 from empower.main import RUNTIME
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class EmpowerAPIHandler(tornado.web.RequestHandler):
@@ -45,6 +44,7 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         """Set pointer to actual rest server."""
 
         self.server = server
+        self.log = empower.logger.get_logger()
 
     def write_error(self, code, message=None, **kwargs):
         self.set_header('Content-Type', 'application/json')

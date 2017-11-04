@@ -31,13 +31,12 @@ from multiprocessing.pool import ThreadPool
 
 import empower.logger
 
+from empower.core.service import Service
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
 
 from empower.main import RUNTIME
-
-LOG = empower.logger.get_logger()
 
 
 _WORKERS = ThreadPool(10)
@@ -45,8 +44,6 @@ _WORKERS = ThreadPool(10)
 
 def exec_xmlrpc(callback, args=()):
     """Execute XML-RPC call."""
-
-    LOG.info("Calling %s:%s", callback[0], callback[1])
 
     proxy = xmlrpc.client.ServerProxy(callback[0])
     func = getattr(proxy, callback[1])
@@ -250,7 +247,7 @@ class Module():
 
         except Exception as ex:
 
-            LOG.exception(ex)
+            self.log.exception(ex)
 
     @property
     def tenant_id(self):
@@ -416,7 +413,7 @@ class ModulePeriodic(Module):
         return False
 
 
-class ModuleWorker:
+class ModuleWorker(Service):
     """Module worker.
 
     Keeps track of the currently defined modules for each tenant
@@ -431,6 +428,8 @@ class ModuleWorker:
 
     def __init__(self, server, module, pt_type, pt_packet):
 
+        super().__init__(every=-1)
+
         self.__module_id = 0
         self.modules = {}
         self.pt_type = pt_type
@@ -438,7 +437,6 @@ class ModuleWorker:
         self.module = module
         self.pnfp_server = RUNTIME.components[server]
         self.rest_server = RUNTIME.components[RESTServer.__module__]
-        self.log = empower.logger.get_logger()
 
         module_name = self.module.MODULE_NAME
 
@@ -453,6 +451,13 @@ class ModuleWorker:
         self.pnfp_server.register_message(self.pt_type,
                                           self.pt_packet,
                                           self.handle_packet)
+
+    def to_dict(self):
+        """Return json representation."""
+
+        out = super().to_dict()
+        out['modules'] = self.modules
+        return out
 
     def remove_handlers(self):
         """Remove primitive handlers."""
@@ -596,10 +601,10 @@ class ModuleEventWorker(ModuleWorker):
             if module.tenant_id not in RUNTIME.tenants:
                 continue
 
-            LOG.info("New event %s: (id=%u)", self.module.MODULE_NAME,
-                     module.module_id)
+            self.log.info("New event %s: (id=%u)", self.module.MODULE_NAME,
+                          module.module_id)
 
             try:
                 module.handle_response(event)
             except Exception as ex:
-                LOG.exception(ex)
+                self.log.exception(ex)

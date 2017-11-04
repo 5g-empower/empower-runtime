@@ -23,6 +23,7 @@ import tornado.httpserver
 from tornado.web import MissingArgumentError
 from uuid import UUID
 from empower import settings
+from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
@@ -35,9 +36,6 @@ from empower.datatypes.ssid import SSID
 from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
 
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 8888
 
@@ -650,7 +648,7 @@ class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
     HANDLERS = [r"/api/v1/components/?",
-                r"/api/v1/components/([a-zA-Z0-9:\-.]*)/?"]
+                r"/api/v1/components/([a-zA-Z0-9:_\-.]*)/?"]
 
     def get(self, *args):
         """ Lists either all the components running in this controller or just
@@ -689,8 +687,8 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        #except KeyError as ex:
+        #    self.send_error(404, message=ex)
 
     def put(self, *args):
         """ Update a component.
@@ -1286,7 +1284,7 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
 
-class RESTServer(tornado.web.Application):
+class RESTServer(Service, tornado.web.Application):
     """Exposes the REST API."""
 
     parms = {
@@ -1298,6 +1296,8 @@ class RESTServer(tornado.web.Application):
     }
 
     def __init__(self, port, cert, key):
+
+        Service.__init__(self, every=-1)
 
         self.port = int(port)
         self.cert = cert
@@ -1340,14 +1340,17 @@ class RESTServer(tornado.web.Application):
     def to_dict(self):
         """Return a dict representation of the object."""
 
-        return {'port': self.port,
-                'certfile': self.cert,
-                'keyfile': self.key}
+        out = Service.to_dict(self)
+        out['port'] = self.port
+        out['certfile'] = self.cert
+        out['keyfile'] = self.key
+
+        return out
 
 
 def launch(port=DEFAULT_PORT, cert=None, key=None):
     """ Start REST Server module. """
 
     server = RESTServer(int(port), cert, key)
-    LOG.info("REST Server available at %u", server.port)
+    server.log.info("REST Server available at %u", server.port)
     return server

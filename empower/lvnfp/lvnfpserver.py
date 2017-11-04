@@ -108,9 +108,7 @@ class LVNFPServer(PNFPServer, tornado.web.Application):
 
     def __init__(self, port, pt_types, pt_types_handlers):
 
-        PNFPServer.__init__(self, pt_types, pt_types_handlers)
-
-        self.port = int(port)
+        PNFPServer.__init__(self, port, pt_types, pt_types_handlers)
 
         handlers = []
 
