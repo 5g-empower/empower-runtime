@@ -186,10 +186,8 @@ class RRCMeasurements(ModuleTrigger):
                                     max_cells=measurement["max_cells"],
                                     max_meas=measurement["max_meas"])
 
-            print(rrc_request)
-
-            self.log.info("Sending rrc request to %s @ %s (id=%u, mead_id=%u)",
-                          ue.rnti, self.vbs.addr, self.module_id, i)
+            self.log.info("Sending rrc request to %s @ %s (id=%u, meas_id=%u)",
+                          ue.rnti, self.vbs.enb_id, self.module_id, i)
 
             msg = RRC_REQUEST.build(rrc_request)
             self.vbs.connection.stream.write(msg)
