@@ -140,7 +140,7 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
-        self.log.info("UE JOIN %u (%u)", ue.imsi, ue.plmn_id)
+        self.log.info("UE JOIN %u (%s)", ue.imsi, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 
