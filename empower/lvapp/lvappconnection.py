@@ -26,6 +26,8 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
+from empower.core.resourcepool import TrafficType
+from empower.core.resourcepool import DSCPS
 from empower.core.radioport import RadioPort
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
@@ -289,6 +291,16 @@ class LVAPPConnection(object):
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
+
+            for dscp in DSCPS.values():
+                traffic_params = {
+                        "tenant": tenant.tenant_name,
+                        "dscp": dscp
+                        }
+                traffic_type = TrafficType(traffic_params)
+                # TODO. Check dict types and keys
+                # self.send_add_traffic_type(tenant.tenant_name, dscp)
+                self.send_add_traffic_type(traffic_type)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -1050,4 +1062,30 @@ class LVAPPConnection(object):
         LOG.info("Add lvap %s", lvap)
 
         msg = ADD_LVAP.build(add_lvap)
+        self.stream.write(msg)
+
+    def send_add_traffic_type(self, traffic_type):
+        """Send a SET_TRAFFIC_TYPE message.
+        Args:
+            traffic_type: a TrafficType object
+        Returns:
+            None
+        """
+
+        flags = Container(amsdu_aggregation=traffic_type.amsdu_aggregation,
+                          ampdu_aggregation=traffic_type.ampdu_aggregation)
+
+        add_traffic_type = Container(version=PT_VERSION,
+                             type=SET_TRAFFIC_TYPE,
+                             length=15,
+                             seq=self.wtp.seq,
+                             flags=flags,
+                             priority=traffic_type.priority,
+                             parent_priority=traffic_type.parent_priority,
+                             dscp=traffic_type.dscp,
+                             ssid=traffic_type.ssid.to_raw())
+
+        LOG.info("Added traffic type: %s", traffic_type)
+
+        msg = SET_PORT.build(add_traffic_type)
         self.stream.write(msg)
