@@ -105,7 +105,7 @@ CAPS_RESPONSE = Struct("caps_response",
 
 UE_R = Struct("ues",
               UBInt16("pci"),
-              UBInt32("plmn_id"),
+              Bytes("plmn_id", 4),
               UBInt16("rnti"),
               UBInt64("imsi"))
 

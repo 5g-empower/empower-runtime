@@ -340,7 +340,9 @@ class VBSPConnection:
 
         for u in ues.values():
 
-            plmn_id = PLMNID(u.plmn_id)
+            print(u.plmn_id[1:].hex())
+
+            plmn_id = PLMNID(u.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:

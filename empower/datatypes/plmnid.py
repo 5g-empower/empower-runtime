@@ -29,11 +29,7 @@ class PLMNID:
 
     def __init__(self, plmnid):
 
-        if isinstance(plmnid, int):
-            self.plmnid = str(plmnid)
-        elif isinstance(plmnid, bytes):
-            self.plmnid = plmnid.decode('UTF-8')
-        elif isinstance(plmnid, str):
+        if isinstance(plmnid, str):
             allowed = re.compile(r'^[f0-9]+$', re.VERBOSE | re.IGNORECASE)
             if allowed.match(plmnid) is None:
                 raise ValueError("Invalid PLMNID name")

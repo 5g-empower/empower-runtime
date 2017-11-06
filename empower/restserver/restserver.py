@@ -687,8 +687,8 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         except ValueError as ex:
             self.send_error(400, message=ex)
-        #except KeyError as ex:
-        #    self.send_error(404, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
 
     def put(self, *args):
         """ Update a component.
