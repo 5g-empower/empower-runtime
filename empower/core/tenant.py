@@ -39,6 +39,8 @@ class Tenant:
         owner: The username of the user that requested this pool
         desc: Human readable description
         bssid_type: shared (VAP) or unique (LVAP)
+        traffic_rules: dictionary mapping dscp values to traffic rules. 0 is
+            the default traffic rule created when the WTP connects.
     """
 
     TO_DICT = ['tenant_id',
@@ -71,6 +73,7 @@ class Tenant:
         self.lvnfs = {}
         self.vaps = {}
         self.components = {}
+        self.traffic_rules = {}
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """

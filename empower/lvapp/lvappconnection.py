@@ -266,8 +266,18 @@ class LVAPPConnection:
         wtp.last_seen = hello.seq
         wtp.last_seen_ts = time.time()
 
-        # Upon connection to the controller, the WTP must be provided
-        # with the list of shared VAP
+    def send_vaps(self):
+        """Send VAPs configurations.
+
+        Upon connection to the controller, the WTP must be provided
+        with the list of shared VAPs
+
+        Args:
+            None
+        Returns:
+            None
+        """
+
         for tenant in RUNTIME.tenants.values():
 
             # tenant does not use shared VAPs
@@ -772,8 +782,51 @@ class LVAPPConnection:
         # fetch active vaps
         self.send_vap_status_request()
 
-        # fetch active pports
+        # fetch active ports
         self.send_port_status_request()
+
+        # fetch active traffic rules
+        self.send_traffic_rule_status_request()
+
+        # send vaps
+        self.send_vaps()
+
+        # send vaps
+        self.send_traffic_rules()
+
+    def send_traffic_rule_status_request(self):
+        """Send a TRAFFIC_RULE_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        pass
+
+    def send_add_traffic_rules(self):
+        """Send a ADD_TRAFFIC_RULE message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        pass
+
+    def handle_status_traffic_rule(self, status):
+        """Handle an incoming STATUS_TRAFFIC_RULE message.
+        Args:
+            status, a STATUS_TRAFFIC_RULE message
+        Returns:
+            None
+        """
+
+        pass
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
