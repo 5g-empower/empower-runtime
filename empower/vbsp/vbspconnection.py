@@ -340,8 +340,6 @@ class VBSPConnection:
 
         for u in ues.values():
 
-            print(u.plmn_id[1:].hex())
-
             plmn_id = PLMNID(u.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
@@ -363,7 +361,7 @@ class VBSPConnection:
                 LOG.info("PCI %u not found", u.pci)
                 continue
 
-            ue = UE(u.imsi, u.rnti, cell, u.plmn_id, tenant)
+            ue = UE(u.imsi, u.rnti, cell, plmn_id, tenant)
 
             new_ue = False
 

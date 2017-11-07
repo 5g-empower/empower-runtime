@@ -1,5 +1,5 @@
 
-selectedLvap = "18:5E:0F:E3:B8:68"
+selectedLvap = "00:24:D7:07:F2:10"
 lvap = null
 
 selectedLvnf = "20c7ecf7-be9e-4643-8f98-8ac582b4bc03"

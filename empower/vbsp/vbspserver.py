@@ -105,10 +105,11 @@ class ModuleVBSPWorker(ModuleWorker):
 
         module = self.modules[hdr.modid]
 
-        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      hdr.modid)
+        self.log.info("Received %s response (id=%u, op=%u)",
+                      self.module.MODULE_NAME, hdr.modid, event.op)
 
-        module.handle_response(msg)
+        if event.op == 1:
+            module.handle_response(msg)
 
 
 class VBSPServer(PNFPServer, TCPServer):
