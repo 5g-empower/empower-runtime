@@ -136,24 +136,21 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         if not self.cpp:
             return
 
+        # remove hosted lvnfs
+        for tenant in RUNTIME.tenants.values():
+            for lvnf_id in list(tenant.lvnfs.keys()):
+                lvnf = tenant.lvnfs[lvnf_id]
+                LOG.info("LVNF LEAVE %s", lvnf.lvnf_id)
+                for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
+                    handler(lvnf)
+                LOG.info("Deleting LVNF: %s", lvnf.lvnf_id)
+                tenant = RUNTIME.tenants[lvnf.tenant_id]
+                del tenant.lvnfs[lvnf.lvnf_id]
+
         # reset state
+        self.cpp.set_disconnected()
         self.cpp.connection = None
         self.cpp.ports = {}
-
-        # remove hosted lvnfs
-        to_be_removed = []
-        for tenant in RUNTIME.tenants.values():
-            for lvnf in tenant.lvnfs.values():
-                if lvnf.cpp == self.cpp:
-                    to_be_removed.append(lvnf)
-
-        for lvnf in to_be_removed:
-            LOG.info("LVNF LEAVE %s", lvnf.lvnf_id)
-            for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
-                handler(lvnf)
-            LOG.info("Deleting LVNF: %s", lvnf.lvnf_id)
-            tenant = RUNTIME.tenants[lvnf.tenant_id]
-            del tenant.lvnfs[lvnf.lvnf_id]
 
     def send_message(self, message_type, message):
         """Add fixed header fields and send message. """
@@ -216,21 +213,27 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
 
-        addr = EtherAddress(caps['addr'])
-        pnfdev = self.server.pnfdevs[addr]
-        pnfdev.ports = {}
+        cpp_addr = EtherAddress(caps['addr'])
+
+        try:
+            cpp = RUNTIME.cpps[cpp_addr]
+        except KeyError:
+            LOG.info("Caps from unknown CPP (%s)", cpp_addr)
+            raise KeyError("Hello from unknown CPP (%s)", cpp_addr)
+
+        cpp.ports = {}
 
         for port in caps['ports'].values():
 
-            network_port = NetworkPort(dpid=pnfdev.addr,
+            network_port = NetworkPort(dpid=cpp.addr,
                                        port_id=port['port_id'],
                                        iface=port['iface'],
                                        hwaddr=EtherAddress(port['hwaddr']))
 
-            pnfdev.ports[network_port.port_id] = network_port
+            cpp.ports[network_port.port_id] = network_port
 
         # set state to online
-        wtp.set_online()
+        cpp.set_online()
 
     def send_del_lvnf(self, lvnf_id):
         """Send del LVNF."""
@@ -265,11 +268,9 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         lvnf_id = uuid.UUID(status_lvnf['lvnf_id'])
 
         if tenant_id not in RUNTIME.tenants:
-            LOG.warning("Tenant %s not found, ignoring LVNF %s",
-                        tenant_id,
+            LOG.warning("Tenant %s not found, ignoring LVNF %s", tenant_id,
                         lvnf_id)
-
-        return
+            return
 
         tenant = RUNTIME.tenants[tenant_id]
 

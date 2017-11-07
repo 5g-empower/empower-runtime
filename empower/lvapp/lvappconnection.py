@@ -285,14 +285,14 @@ class LVAPPConnection:
                 continue
 
             # wtp not in this tenant
-            if wtp.addr not in tenant.wtps:
+            if self.wtp.addr not in tenant.wtps:
                 continue
 
             tenant_id = tenant.tenant_id
             tokens = [tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
             base_bssid = EtherAddress(':'.join(tokens))
 
-            for block in wtp.supports:
+            for block in self.wtp.supports:
 
                 net_bssid = generate_bssid(base_bssid, block.hwaddr)
 
@@ -300,7 +300,7 @@ class LVAPPConnection:
                 if net_bssid in RUNTIME.tenants[tenant_id].vaps:
                     continue
 
-                vap = VAP(net_bssid, block, wtp, tenant)
+                vap = VAP(net_bssid, block, self.wtp, tenant)
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
@@ -806,7 +806,7 @@ class LVAPPConnection:
 
         pass
 
-    def send_add_traffic_rules(self):
+    def send_traffic_rules(self):
         """Send a ADD_TRAFFIC_RULE message.
         Args:
             None

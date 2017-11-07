@@ -41,8 +41,8 @@ class Survey(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self.__addr = None
+        super().__init__(**kwargs)
         self.links = {}
         self.wtpup(callback=self.wtp_up_callback)
 

@@ -123,6 +123,7 @@ class Summary(ModuleTrigger):
     @addr.setter
     def addr(self, addr):
         """ Set the address. """
+
         self._addr = EtherAddress(addr)
 
     @property

@@ -57,7 +57,7 @@ class EtherAddress:
         elif isinstance(addr, EtherAddress):
             self._value = addr.to_raw()
         elif addr is None:
-            self._value = '\x00' * 6
+            self._value = b'\x00' * 6
         else:
             raise ValueError("EtherAddress must be a string of 6 raw bytes")
 

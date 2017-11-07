@@ -23,7 +23,7 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.datatypes.etheraddress import EtherAddress
 
-DEFAULT_LVAP = "18:5E:0F:E3:B8:68"
+DEFAULT_LVAP = "00:24:d7:07:f2:10"
 
 
 class PingPong(EmpowerApp):
@@ -42,8 +42,8 @@ class PingPong(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self.__lvap_addr = None
+        super().__init__(**kwargs)
 
     @property
     def lvap_addr(self):
