@@ -47,9 +47,6 @@ REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
                     TX_MCAST_DMS_H: TX_MCAST_DMS,
                     TX_MCAST_UR_H: TX_MCAST_UR}
 
-DSCPS = [0x08, 0x16, 0x00, 0x24, 0x32, 0x40, 0x48, 0x56]
-
-
 class TxPolicyProp(dict):
     """Override getitem behaviour by a default TxPolicy."""
 
@@ -231,118 +228,6 @@ class CQM(dict):
 
             return inf
 
-class TrafficType(object):
-    """ EmPOWER traffic type.
-
-    It defines the management rules for a traffyc type to be considered for the queues management in the WTPs
-
-    Attributes:
-        dscp: traffic priority in the IP header
-        tenant: the network slice that the wtp are serving
-        amsdu_aggregation: indicates if the traffic of this queue is going to be aggregated in A-MSDUs according to 802.11n settings
-        ampdu_aggregation: indicates if the traffic of this queue is going to be aggregated in A-MPDUs according to 802.11n settings
-        priority: indicates the priority of the slice defined for this queue
-        parent_priority: indicates the priority of the traffic types belonging to the same tenant
-    """
-    def __init__(self, block, **kwargs):
-
-        self.block = block
-        self._amsdu_aggregation = False
-        self._ampdu_aggregation = False
-        self._priority = 0
-        self._parent_priority = 0
-
-        # self.dscp = dscp
-        # self.tenant = tenant
-
-        for key, value in kwargs.iteritems():
-            setattr(self, key, value)
-
-    def to_dict(self):
-        """Return a json-frinedly representation of the object."""
-
-        return {'dscp': self.dscp,
-                'tenant': self.tenant,
-                'amsdu_aggregation': self.amsdu_aggregation,
-                'ampdu_aggregation': self.ampdu_aggregation,
-                'priority': self.priority,
-                'parent_priority': self.parent_priority}
-
-    @property
-    def amsdu_aggregation(self):
-        """ Get amsdu_aggregation . """
-
-        return self._amsdu_aggregation
-
-    @amsdu_aggregation.setter
-    def amsdu_aggregation(self, amsdu_aggregation):
-        """ Set amsdu_aggregation . """
-
-        self._amsdu_aggregation = int(amsdu_aggregation)
-
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
-
-    @property
-    def ampdu_aggregation(self):
-        """ Get ampdu_aggregation . """
-
-        return self._ampdu_aggregation
-
-    @ampdu_aggregation.setter
-    def ampdu_aggregation(self, ampdu_aggregation):
-        """ Set ampdu_aggregation . """
-
-        self._ampdu_aggregation = ampdu_aggregation
-
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
-
-    @property
-    def priority(self):
-        """ Get priority . """
-
-        return self._priority
-
-    @priority.setter
-    def priority(self, priority):
-        """ Set priority . """
-
-        self._priority = priority
-
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
-
-    @property
-    def parent_priority(self):
-        """ Get parent_priority . """
-
-        return self._parent_priority
-
-    @parent_priority.setter
-    def parent_priority(self, parent_priority):
-        """ Set parent_priority . """
-
-        self._parent_priority = parent_priority
-
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
-
-class TrafficTypeProp(dict):
-    """Override getitem behaviour by a default TrafficType."""
-
-    def __init__(self, block, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.block = block
-
-    def __getitem__(self, key):
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            # key is a dict of parameters that define the traffic rule
-            value = TrafficType(self.block, key)
-            dict.__setitem__(self, key, value)
-            return dict.__getitem__(self, key)
 
 class ResourcePool(list):
     """ EmPOWER resource pool.

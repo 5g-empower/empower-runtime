@@ -55,6 +55,9 @@ PT_DEL_VAP = 0x33
 PT_STATUS_VAP = 0x34
 PT_ADD_LVAP_RESPONSE = 0x51
 PT_DEL_LVAP_RESPONSE = 0x52
+PT_ADD_TRAFFIC_RULE = 0x56
+PT_TRAFFIC_RULE_STATUS_REQUEST = 0x57
+PT_STATUS_TRAFFIC_RULE = 0x58
 
 
 HEADER = Struct("header", UBInt8("version"),
@@ -273,7 +276,7 @@ ADD_DEL_LVAP_RESPONSE = Struct("add_del_lvap", UBInt8("version"),
                                UBInt32("module_id"),
                                UBInt32("status"))
 
-SET_TRAFFIC_TYPE = Struct("set_traffic_type", UBInt8("version"),
+ADD_TRAFFIC_RULE = Struct("add_traffic_rule", UBInt8("version"),
                   UBInt8("type"),
                   UBInt32("length"),
                   UBInt32("seq"),
@@ -284,6 +287,19 @@ SET_TRAFFIC_TYPE = Struct("set_traffic_type", UBInt8("version"),
                   UBInt8("parent_priority"),
                   UBInt8("dscp"),
                   Bytes("ssid", lambda ctx: ctx.length - 15))
+
+STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
+                    UBInt8("type"),
+                    UBInt32("length"),
+                    UBInt32("seq"),
+                    Bytes("wtp", 6),
+                    BitStruct("flags", Padding(14),
+                            Bit("amsdu_aggregation"),
+                            Bit("ampdu_aggregation")),
+                    UBInt8("priority"),
+                    UBInt8("parent_priority"),
+                    UBInt8("dscp"),
+                    Bytes("ssid", lambda ctx: ctx.length - 21))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -306,7 +322,9 @@ PT_TYPES = {PT_BYE: None,
             PT_STATUS_VAP: STATUS_VAP,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_SET_TRAFFIC_TYPE: SET_TRAFFIC_TYPE}
+            PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE,
+            PT_TRAFFIC_RULE_STATUS_REQUEST: TRAFFIC_RULE_STATUS_REQUEST,
+            PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -329,4 +347,6 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_STATUS_VAP: [],
                      PT_ADD_LVAP_RESPONSE: [],
                      PT_DEL_LVAP_RESPONSE: [],
-                     PT_SET_TRAFFIC_TYPE: []}
+                     PT_ADD_TRAFFIC_RULE: [],
+                     PT_TRAFFIC_RULE_STATUS_REQUEST: [],
+                     PT_STATUS_TRAFFIC_RULE: []}
