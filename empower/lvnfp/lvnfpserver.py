@@ -69,18 +69,18 @@ class ModuleLVNFPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
                               pt_packet)
 
-    def handle_packet(self, response):
+    def handle_packet(self, msg):
         """Handle response message."""
 
-        if response['module_id'] not in self.modules:
+        if msg['module_id'] not in self.modules:
             return
 
-        module = self.modules[response['module_id']]
+        module = self.modules[msg['module_id']]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response['module_id'])
+                      msg['module_id'])
 
-        module.handle_response(response)
+        module.handle_response(msg)
 
 
 class ModuleLVNFPEventWorker(ModuleEventWorker):
@@ -108,9 +108,7 @@ class LVNFPServer(PNFPServer, tornado.web.Application):
 
     def __init__(self, port, pt_types, pt_types_handlers):
 
-        PNFPServer.__init__(self, pt_types, pt_types_handlers)
-
-        self.port = int(port)
+        PNFPServer.__init__(self, port, pt_types, pt_types_handlers)
 
         handlers = []
 

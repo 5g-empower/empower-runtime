@@ -33,7 +33,7 @@ from empower.core.core import EmpowerRuntime
 RUNTIME = None
 
 
-class Options(object):
+class Options:
     """Options parser."""
 
     def set(self, given_name, value):

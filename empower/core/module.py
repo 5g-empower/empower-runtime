@@ -31,13 +31,12 @@ from multiprocessing.pool import ThreadPool
 
 import empower.logger
 
+from empower.core.service import Service
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
 
 from empower.main import RUNTIME
-
-LOG = empower.logger.get_logger()
 
 
 _WORKERS = ThreadPool(10)
@@ -45,8 +44,6 @@ _WORKERS = ThreadPool(10)
 
 def exec_xmlrpc(callback, args=()):
     """Execute XML-RPC call."""
-
-    LOG.info("Calling %s:%s", callback[0], callback[1])
 
     proxy = xmlrpc.client.ServerProxy(callback[0])
     func = getattr(proxy, callback[1])
@@ -186,7 +183,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class Module(object):
+class Module():
     """Module object.
 
     Attributes:
@@ -194,7 +191,6 @@ class Module(object):
         module_type: A system-wide unique name for the module
         worker: the module worker responsible for reating new module instances.
         tenant_id: The tenant's Id for convenience (UUID)
-        every: loop period
         callback: Module callback (FunctionType)
     """
 
@@ -206,7 +202,6 @@ class Module(object):
         self.module_type = None
         self.worker = None
         self.__tenant_id = None
-        self.__every = 5000
         self.__callback = None
         self.__periodic = None
         self.log = empower.logger.get_logger()
@@ -252,7 +247,7 @@ class Module(object):
 
         except Exception as ex:
 
-            LOG.exception(ex)
+            self.log.exception(ex)
 
     @property
     def tenant_id(self):
@@ -266,25 +261,12 @@ class Module(object):
 
         self.__tenant_id = value
 
-    @property
-    def every(self):
-        """Return every."""
-
-        return self.__every
-
-    @every.setter
-    def every(self, value):
-        """Set every."""
-
-        self.__every = int(value)
-
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
         out = {'id': self.module_id,
                'module_type': self.module_type,
                'tenant_id': self.tenant_id,
-               'every': self.every,
                'callback': self.callback}
 
         return out
@@ -332,7 +314,6 @@ class Module(object):
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
-                self.every == other.every and \
                 self.callback == other.callback
 
         return False
@@ -343,18 +324,12 @@ class Module(object):
     def start(self):
         """Start worker."""
 
-        if self.every > 0:
-            self.__periodic = \
-                tornado.ioloop.PeriodicCallback(self.run_once, self.every)
-            self.__periodic.start()
-        else:
-            self.run_once
+        self.run_once()
 
     def stop(self):
         """Stop worker."""
 
-        if self.every > 0:
-            self.__periodic.stop()
+        pass
 
     def run_once(self):
         """Period task."""
@@ -367,22 +342,61 @@ class Module(object):
         pass
 
 
-class ModuleTrigger(Module):
-    """Module Trigger object.
+class ModuleSingle(Module):
+    """Module Single object."""
 
-    Works like the module object. The only difference is that the every
-    parameter is ignored.
-    """
+    pass
+
+
+class ModuleScheduled(Module):
+    """Module Scheduled object."""
+
+    pass
+
+
+class ModuleTrigger(Module):
+    """Module Trigger object."""
+
+    pass
+
+
+class ModulePeriodic(Module):
+    """Module Scheduled object."""
+
+    def __init__(self):
+        super().__init__()
+        self.__every = 5000
+
+    @property
+    def every(self):
+        """Return every."""
+
+        return self.__every
+
+    @every.setter
+    def every(self, value):
+        """Set every."""
+
+        self.__every = int(value)
 
     def start(self):
         """Start worker."""
 
-        self.run_once()
+        if self.every == -1:
+            self.run_once()
+            return
+
+        self.__periodic = \
+            tornado.ioloop.PeriodicCallback(self.run_once, self.every)
+        self.__periodic.start()
 
     def stop(self):
         """Stop worker."""
 
-        pass
+        if self.every == -1:
+            return
+
+        self.__periodic.stop()
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -390,6 +404,7 @@ class ModuleTrigger(Module):
         out = {'id': self.module_id,
                'module_type': self.module_type,
                'tenant_id': self.tenant_id,
+               'every': self.every,
                'callback': self.callback}
 
         return out
@@ -399,12 +414,13 @@ class ModuleTrigger(Module):
         if isinstance(other, Module):
             return self.module_type == other.module_type and \
                 self.tenant_id == other.tenant_id and \
+                self.every == other.every and \
                 self.callback == other.callback
 
         return False
 
 
-class ModuleWorker(object):
+class ModuleWorker(Service):
     """Module worker.
 
     Keeps track of the currently defined modules for each tenant
@@ -419,6 +435,8 @@ class ModuleWorker(object):
 
     def __init__(self, server, module, pt_type, pt_packet):
 
+        super().__init__(every=-1)
+
         self.__module_id = 0
         self.modules = {}
         self.pt_type = pt_type
@@ -426,7 +444,6 @@ class ModuleWorker(object):
         self.module = module
         self.pnfp_server = RUNTIME.components[server]
         self.rest_server = RUNTIME.components[RESTServer.__module__]
-        self.log = empower.logger.get_logger()
 
         module_name = self.module.MODULE_NAME
 
@@ -438,8 +455,16 @@ class ModuleWorker(object):
         handler = (url % module_name, ModuleHandler, dict(server=self))
         self.rest_server.add_handler(handler)
 
-        self.pnfp_server.register_message(self.pt_type, self.pt_packet,
+        self.pnfp_server.register_message(self.pt_type,
+                                          self.pt_packet,
                                           self.handle_packet)
+
+    def to_dict(self):
+        """Return json representation."""
+
+        out = super().to_dict()
+        out['modules'] = self.modules
+        return out
 
     def remove_handlers(self):
         """Remove primitive handlers."""
@@ -530,11 +555,12 @@ class ModuleWorker(object):
         # set worker
         module.worker = self
 
-        # start module
-        module.start()
-
         # add to dict
         self.modules[module.module_id] = module
+
+        # start module
+        self.modules[module.module_id].start()
+
         return module
 
     def remove_module(self, module_id):
@@ -559,8 +585,7 @@ class ModuleWorker(object):
         self.log.info("Removing %s (id=%u)", module.module_type,
                       module.module_id)
 
-        if module.every >= 0:
-            module.stop()
+        module.stop()
 
         del self.modules[module_id]
 
@@ -583,10 +608,10 @@ class ModuleEventWorker(ModuleWorker):
             if module.tenant_id not in RUNTIME.tenants:
                 continue
 
-            LOG.info("New event %s: (id=%u)", self.module.MODULE_NAME,
-                     module.module_id)
+            self.log.info("New event %s: (id=%u)", self.module.MODULE_NAME,
+                          module.module_id)
 
             try:
                 module.handle_response(event)
             except Exception as ex:
-                LOG.exception(ex)
+                self.log.exception(ex)

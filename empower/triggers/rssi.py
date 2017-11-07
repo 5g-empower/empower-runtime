@@ -86,7 +86,7 @@ class RSSI(ModuleTrigger):
 
     def __init__(self):
 
-        ModuleTrigger.__init__(self)
+        super().__init__()
 
         # parameters
         self._lvap = None

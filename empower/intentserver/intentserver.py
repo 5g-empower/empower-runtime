@@ -24,10 +24,9 @@ import http.client
 from uuid import UUID
 from urllib.parse import urlparse
 
+from empower.core.service import Service
 from empower.core.jsonserializer import EmpowerEncoder
 
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 4444
 
@@ -38,12 +37,14 @@ class IntentHandler(tornado.web.RequestHandler):
     HANDLERS = [r"/intents/([a-zA-Z0-9-]*)"]
 
 
-class IntentServer(tornado.web.Application):
+class IntentServer(Service, tornado.web.Application):
     """Intent Server."""
 
     handlers = [IntentHandler]
 
     def __init__(self, port):
+
+        Service.__init__(self, every=-1)
 
         self.port = int(port)
         self.intent_host = "localhost"
@@ -79,15 +80,15 @@ class IntentServer(tornado.web.Application):
                 'Content-type': 'application/json',
                 'Accept': 'application/json',
             }
-            LOG.info("Intent %s %s:\n%s", method, url, body)
+            self.log.info("Intent %s %s:\n%s", method, url, body)
         else:
-            LOG.info("Intent %s %s", method, url)
+            self.log.info("Intent %s %s", method, url)
 
         conn.request(method, url, body, headers)
         response = conn.getresponse()
         location = response.getheader("Location", None)
         ret = (response.status, response.reason, location)
-        LOG.info("Result: %u %s", ret[0], ret[1])
+        self.log.info("Result: %u %s", ret[0], ret[1])
         conn.close()
 
         return ret
@@ -96,9 +97,9 @@ class IntentServer(tornado.web.Application):
         try:
             self.__get_response("GET", url, uuid)
         except ConnectionRefusedError:
-            LOG.error("Intent interface not found")
+            self.log.error("Intent interface not found")
         except Exception as ex:
-            LOG.exception(ex)
+            self.log.exception(ex)
 
     def get_rule(self, uuid=None):
         self.__get_intent(self.intent_url_rules, uuid)
@@ -118,9 +119,9 @@ class IntentServer(tornado.web.Application):
             if ret[0] == 204:
                 return uuid
         except ConnectionRefusedError:
-            LOG.warning("Intent interface not found")
+            self.log.warning("Intent interface not found")
         except Exception as ex:
-            LOG.exception(ex)
+            self.log.exception(ex)
 
         return None
 
@@ -152,9 +153,9 @@ class IntentServer(tornado.web.Application):
         try:
             self.__get_response("DELETE", url, uuid)
         except ConnectionRefusedError:
-            LOG.error("Intent interface not found")
+            self.log.error("Intent interface not found")
         except Exception as ex:
-            LOG.exception(ex)
+            Self.log.exception(ex)
 
     def remove_rule(self, uuid=None):
         self.__remove_intent(self.intent_url_rules, uuid)
@@ -163,16 +164,19 @@ class IntentServer(tornado.web.Application):
         self.__remove_intent(self.intent_url_poa, uuid)
 
     def to_dict(self):
-        """ Return a dict representation of the object. """
+        """Return a dict representation of the object."""
 
-        return {'port': self.port,
-                'intent_host': self.intent_host,
-                'intent_port': self.intent_port}
+        out = Service.to_dict(self)
+        out['port'] = self.port
+        out['intent_host'] = self.intent_host
+        out['intent_port'] = self.intent_port
+
+        return out
 
 
 def launch(port=DEFAULT_PORT):
     """Start the Intent Server Module."""
 
     server = IntentServer(port)
-    LOG.info("Intent Server available at %u", server.port)
+    server.log.info("Intent Server available at %u", server.port)
     return server

@@ -23,6 +23,7 @@ import tornado.httpserver
 from tornado.web import MissingArgumentError
 from uuid import UUID
 from empower import settings
+from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
@@ -32,11 +33,9 @@ from empower.main import RUNTIME
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
+from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
 
-
-import empower.logger
-LOG = empower.logger.get_logger()
 
 DEFAULT_PORT = 8888
 
@@ -649,7 +648,7 @@ class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
     HANDLERS = [r"/api/v1/components/?",
-                r"/api/v1/components/([a-zA-Z0-9:\-.]*)/?"]
+                r"/api/v1/components/([a-zA-Z0-9:_\-.]*)/?"]
 
     def get(self, *args):
         """ Lists either all the components running in this controller or just
@@ -895,12 +894,10 @@ class PendingTenantHandler(EmpowerAPIHandler):
             if "bssid_type" in request:
                 bssid_type = request['bssid_type']
 
-            # If PLMN ID is not given, default it to 000000 value
-            plmn_id = 000000
-
-            if "plmn_id" in request and request['plmn_id'] != None and \
-                (len(request['plmn_id']) == 5 or len(request['plmn_id']) == 6):
-                plmn_id = int(request['plmn_id'])
+            if "plmn_id" in request:
+                plmn_id = PLMNID(request['plmn_id'])
+            else:
+                plmn_id = None
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
@@ -1041,19 +1038,17 @@ class TenantHandler(EmpowerAPIHandler):
             if "tenant_name" not in request:
                 raise ValueError("missing tenant_name element")
 
-            if "bssid_type" not in request:
-                bssid_type = T_TYPE_UNIQUE
-            else:
+            bssid_type = T_TYPE_UNIQUE
+            if "bssid_type" in request:
                 bssid_type = request['bssid_type']
 
             if bssid_type not in T_TYPES:
                 raise ValueError("invalid bssid_type %s" % bssid_type)
 
-            # If PLMN ID is not given, default it to 000000 value
-            plmn_id = 000000
-
-            if "plmn_id" in request and request['plmn_id'] != None:
-                plmn_id = request['plmn_id']
+            if "plmn_id" in request:
+                plmn_id = PLMNID(request['plmn_id'])
+            else:
+                plmn_id = None
 
             if len(args) == 1:
                 tenant_id = UUID(args[0])
@@ -1289,7 +1284,7 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
 
-class RESTServer(tornado.web.Application):
+class RESTServer(Service, tornado.web.Application):
     """Exposes the REST API."""
 
     parms = {
@@ -1301,6 +1296,8 @@ class RESTServer(tornado.web.Application):
     }
 
     def __init__(self, port, cert, key):
+
+        Service.__init__(self, every=-1)
 
         self.port = int(port)
         self.cert = cert
@@ -1343,14 +1340,17 @@ class RESTServer(tornado.web.Application):
     def to_dict(self):
         """Return a dict representation of the object."""
 
-        return {'port': self.port,
-                'certfile': self.cert,
-                'keyfile': self.key}
+        out = Service.to_dict(self)
+        out['port'] = self.port
+        out['certfile'] = self.cert
+        out['keyfile'] = self.key
+
+        return out
 
 
 def launch(port=DEFAULT_PORT, cert=None, key=None):
     """ Start REST Server module. """
 
     server = RESTServer(int(port), cert, key)
-    LOG.info("REST Server available at %u", server.port)
+    server.log.info("REST Server available at %u", server.port)
     return server

@@ -28,7 +28,7 @@ from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.app import EmpowerApp
 from empower.core.resourcepool import ResourceBlock
 from empower.lvapp import PT_VERSION
@@ -65,7 +65,7 @@ TXP_BIN_COUNTER_RESPONSE = \
            Array(lambda ctx: ctx.nb_tx, STATS))
 
 
-class TXPBinCounter(Module):
+class TXPBinCounter(ModulePeriodic):
     """ PacketsCounter object. """
 
     MODULE_NAME = "txp_bin_counter"
@@ -73,7 +73,7 @@ class TXPBinCounter(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self._mcast = None

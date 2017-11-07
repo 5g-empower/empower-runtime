@@ -23,6 +23,7 @@ import tornado.ioloop
 from construct import Container
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
@@ -59,7 +60,7 @@ import empower.logger
 LOG = empower.logger.get_logger()
 
 
-class VBSPConnection(object):
+class VBSPConnection:
     """VBSP Connection.
 
     Represents a connection to a ENB (EUTRAN Base Station) using
@@ -171,7 +172,7 @@ class VBSPConnection(object):
 
             if msg_type in self.server.pt_types_handlers:
                 for handler in self.server.pt_types_handlers[msg_type]:
-                    handler(msg)
+                    handler(vbs, hdr, event, msg)
 
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
@@ -186,6 +187,11 @@ class VBSPConnection(object):
             return
 
         LOG.info("VBS disconnected: %s", self.vbs.addr)
+
+        # remove hosted UEs
+        for imsi in list(RUNTIME.ues.keys()):
+            ue = RUNTIME.ues[imsi]
+            RUNTIME.remove_ue(ue.imsi)
 
         # reset state
         self.vbs.set_disconnected()
@@ -277,12 +283,13 @@ class VBSPConnection(object):
                  hdr.seq)
 
         # clear cells
-        vbs.cells = {}
+        vbs.cells = set()
 
         # add new cells
         for c in caps.cells:
-            vbs.cells[c.pci] = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
-                                    c.UL_earfcn, c.UL_prbs)
+            cell = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
+                        c.UL_earfcn, c.UL_prbs)
+            vbs.cells.add(cell)
 
         # transition to the online state
         vbs.set_online()
@@ -333,24 +340,39 @@ class VBSPConnection(object):
 
         for u in ues.values():
 
-            tenant = RUNTIME.load_tenant_by_plmn_id(u.plmn_id)
+            plmn_id = PLMNID(u.plmn_id[1:].hex())
+            tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:
-                LOG.info("Unable to find PLMN id %u", u.plmn_id)
+                LOG.info("Unable to find PLMN id %s", plmn_id)
                 continue
 
             if vbs.addr not in tenant.vbses:
-                LOG.info("VBS %s does not belong to PLMN id %u", vbs.addr,
-                         u.plmn_id)
+                LOG.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            ue = UE(u.pci, u.plmn_id, u.rnti, u.imsi, tenant, vbs)
+            cell = None
+
+            for c in vbs.cells:
+                if c.pci == u.pci:
+                    cell = c
+
+            if not cell:
+                LOG.info("PCI %u not found", u.pci)
+                continue
+
+            ue = UE(u.imsi, u.rnti, cell, plmn_id, tenant)
+
+            new_ue = False
 
             if u.imsi not in RUNTIME.ues:
-                self.server.send_ue_join_message_to_self(ue)
+                new_ue = True
 
             RUNTIME.ues[u.imsi] = ue
             tenant.ues[u.imsi] = ue
+
+            if new_ue:
+                self.server.send_ue_join_message_to_self(ue)
 
         for ue in RUNTIME.ues.values():
             if ue.imsi not in ues:

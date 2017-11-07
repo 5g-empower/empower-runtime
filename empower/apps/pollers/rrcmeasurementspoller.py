@@ -15,16 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Application tracking pool-wide power consumption."""
-
-import time
+"""RRC Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class PowerTracker(EmpowerApp):
-    """Application tracking pool-wide power consumption.
+class RRCMeasurementsPoller(EmpowerApp):
+    """RRC Measurements Poller Apps.
 
     Command Line Parameters:
 
@@ -33,33 +31,32 @@ class PowerTracker(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.powertracker.powertracker \
+        ./empower-runtime.py apps.pollers.rrcpoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):
-        self.filename = "./powertracker.csv"
         super().__init__(**kwargs)
+        self.uejoin(callback=self.ue_join_callback)
 
-    def loop(self):
-        """ Periodic job. """
+    def ue_join_callback(self, ue):
+        """ New UE. """
 
-        power = 0.0
+        measurements = \
+            [{"earfcn": 1750, "interval": 2000, "max_cells": 2, "max_meas": 2},
+             {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
 
-        for wtp in self.wtps():
-            if not wtp.feed:
-                continue
-            for datastream in wtp.feed.datastreams.values():
-                if datastream['id'] == 'power':
-                    power += datastream['current_value']
+        self.rrc_measurements(imsi=ue.imsi,
+                              measurements=measurements,
+                              callback=self.rrc_measurements_callback)
 
-        line = "%u %f\n" % (time.time(), power)
+    def rrc_measurements_callback(self, rrc):
+        """ New measurements available. """
 
-        with open(self.filename, 'a') as file_d:
-            file_d.write(line)
+        self.log.info("New rrc measurements received from %s" % rrc.imsi)
 
 
-def launch(tenant_id, filename="./powertracker.csv", every=DEFAULT_PERIOD):
+def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return PowerTracker(tenant_id=tenant_id, filename=filename, every=every)
+    return RRCMeasurementsPoller(tenant_id=tenant_id, every=every)

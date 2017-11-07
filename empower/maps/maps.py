@@ -28,7 +28,7 @@ from construct import Struct
 from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
 from empower.lvapp import PT_VERSION
@@ -63,7 +63,7 @@ POLLER_RESPONSE = Struct("poller_response", UBInt8("version"),
                          Array(lambda ctx: ctx.nb_entries, POLLER_ENTRY_TYPE))
 
 
-class Maps(Module):
+class Maps(ModulePeriodic):
     """ A maps poller. """
 
     MODULE_NAME = None
@@ -72,7 +72,7 @@ class Maps(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self._block = None

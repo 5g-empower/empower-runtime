@@ -21,9 +21,6 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class UEHandler(EmpowerAPIHandlerAdminUsers):
     """UE handler. Used to view UEs (controller-wide)."""

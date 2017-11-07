@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Cqm links poller Apps."""
+"""PRB uitlization Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class CQMLinksPoller(EmpowerApp):
-    """CQM Links Poller Apps.
+class PRBUtilizationPoller(EmpowerApp):
+    """PRB Utilization Poller Apps.
 
     Command Line Parameters:
 
@@ -31,28 +31,30 @@ class CQMLinksPoller(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.pollers.cqmlinkspoller \
+        ./empower-runtime.py apps.pollers.prbutilizationpoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
-        self.wtpup(callback=self.wtp_up_callback)
+        super().__init__(**kwargs)
+        self.vbsup(callback=self.vbs_up_callback)
 
-    def wtp_up_callback(self, wtp):
-        """ New LVAP. """
+    def vbs_up_callback(self, vbs):
+        """ New VBS. """
 
-        self.cqm_links(every=self.every,
-                       wtp=wtp.addr,
-                       callback=self.cqm_links_callback)
+        for cell in vbs.cells:
 
-    def cqm_links_callback(self, stats):
-        """ New stats available. """
+            self.prb_utilization(cell=cell,
+                                 interval=self.every,
+                                 callback=self.prb_utilization_callback)
 
-        self.log.info("New counters received from %s" % stats.wtp)
+    def prb_utilization_callback(self, prb_util):
+        """ New measurements available. """
+
+        self.log.info("New prb utilization received from %s" % prb_util.cell)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return CQMLinksPoller(tenant_id=tenant_id, every=every)
+    return PRBUtilizationPoller(tenant_id=tenant_id, every=every)

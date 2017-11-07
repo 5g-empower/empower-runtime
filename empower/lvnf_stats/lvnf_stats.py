@@ -20,7 +20,7 @@
 from uuid import UUID
 
 from empower.core.lvnf import LVNF
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
 from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
 from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
@@ -28,29 +28,29 @@ from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 from empower.main import RUNTIME
 
 
-class LVNFStats(Module):
+class LVNFStats(ModulePeriodic):
     """LVNFStats object."""
 
     MODULE_NAME = "lvnf_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf']
 
-    # parameters
-    _lvnf = None
+    def __init__(self):
 
-    # data structure
-    stats = {}
+        super().__init__()
+
+        # parameters
+        self.__lvnf = None
+
+        # data structures
+        self.stats = {}
 
     @property
     def lvnf(self):
-        """Return lvnf."""
-
-        return self._lvnf
+        return self.__lvnf
 
     @lvnf.setter
     def lvnf(self, value):
-        """Set lvnf."""
-
-        self._lvnf = UUID(value)
+        self.__lvnf = UUID(str(value))
 
     def __eq__(self, other):
 

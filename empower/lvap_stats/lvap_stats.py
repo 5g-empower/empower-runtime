@@ -33,7 +33,7 @@ from empower.core.resourcepool import BT_L20
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.lvapp import PT_VERSION
 
 from empower.main import RUNTIME
@@ -68,7 +68,7 @@ RATES_RESPONSE = Struct("rates_response", UBInt8("version"),
                         Array(lambda ctx: ctx.nb_entries, RATES_ENTRY))
 
 
-class LVAPStats(Module):
+class LVAPStats(ModulePeriodic):
     """ LVAPStats object. """
 
     MODULE_NAME = "lvap_stats"
@@ -76,13 +76,14 @@ class LVAPStats(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self._lvap = None
 
         # data structures
         self.rates = {}
+        self.best_prob = None
 
     def __eq__(self, other):
 
@@ -106,6 +107,7 @@ class LVAPStats(Module):
         out = super().to_dict()
 
         out['lvap'] = self.lvap
+        out['best_prob'] = self.best_prob
         out['rates'] = {str(k): v for k, v in self.rates.items()}
 
         return out
@@ -166,6 +168,13 @@ class LVAPStats(Module):
             value = {'prob': entry[2] / 180.0,
                      'cur_prob': entry[3] / 180.0, }
             self.rates[rate] = value
+
+        max_idx = max(self.rates.keys(),
+                      key=(lambda key: self.rates[key]['prob']))
+        max_val = self.rates[max_idx]['prob']
+
+        self.best_prob = \
+            max([k for k, v in self.rates.items() if v['prob'] == max_val])
 
         # call callback
         self.handle_callback(self)

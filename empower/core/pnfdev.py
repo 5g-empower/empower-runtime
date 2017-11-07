@@ -22,14 +22,13 @@ from datetime import datetime
 from empower.main import RUNTIME
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 P_STATE_DISCONNECTED = "disconnected"
 P_STATE_CONNECTED = "connected"
 P_STATE_ONLINE = "online"
 
 
-class BasePNFDev(object):
+class BasePNFDev:
     """A Programmable Network Fabric Device (PNFDev).
 
     The PNFDev State machine is the following:
@@ -64,6 +63,7 @@ class BasePNFDev(object):
         self.period = 0
         self.ports = {}
         self.__state = P_STATE_DISCONNECTED
+        self.log = empower.logger.get_logger()
 
     @property
     def state(self):
@@ -75,7 +75,7 @@ class BasePNFDev(object):
     def state(self, state):
         """Set the PNFDev state."""
 
-        LOG.info("PNFDev %s transition %s->%s", self.addr, self.state, state)
+        self.log.info("PNFDev %s mode %s->%s", self.addr, self.state, state)
 
         method = "_%s_%s" % (self.state, state)
 
@@ -104,7 +104,7 @@ class BasePNFDev(object):
     def is_online(self):
         """Return if pnfdev is online"""
 
-        return self.state == P_STATE_CONNECTED
+        return self.state == P_STATE_ONLINE
 
     def _online_online(self):
 

@@ -27,9 +27,6 @@ from empower.core.resourcepool import ResourceBlock
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantLVAPHandler(EmpowerAPIHandlerUsers):
     """TenantLVAP handler. Used to view and manipulate LVAPs in tenants."""

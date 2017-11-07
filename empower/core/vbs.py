@@ -21,7 +21,7 @@ from empower.core.pnfdev import BasePNFDev
 from empower.core.utils import ether_to_hex
 
 
-class Cell(object):
+class Cell:
     """An eNB cell, this track the parameters of one cell.
 
     Attributes:
@@ -41,6 +41,7 @@ class Cell(object):
 
         out = {}
         out['enb_id'] = self.vbs.enb_id
+        out['addr'] = self.vbs.addr
         out['pci'] = self.pci
         out['cap'] = self.cap
         out['DL_earfcn'] = self.DL_earfcn

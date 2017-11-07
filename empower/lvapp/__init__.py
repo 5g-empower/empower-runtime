@@ -55,6 +55,9 @@ PT_DEL_VAP = 0x33
 PT_STATUS_VAP = 0x34
 PT_ADD_LVAP_RESPONSE = 0x51
 PT_DEL_LVAP_RESPONSE = 0x52
+PT_LVAP_STATUS_REQ = 0x53
+PT_VAP_STATUS_REQ = 0x54
+PT_PORT_STATUS_REQ = 0x55
 PT_ADD_TRAFFIC_RULE = 0x56
 PT_TRAFFIC_RULE_STATUS_REQUEST = 0x57
 PT_STATUS_TRAFFIC_RULE = 0x58
@@ -202,6 +205,21 @@ CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
                       UBInt8("type"),
                       UBInt32("length"),
                       UBInt32("seq"))
+
+LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
+                             UBInt8("type"),
+                             UBInt32("length"),
+                             UBInt32("seq"))
+
+VAP_STATUS_REQUEST = Struct("vap_status_request", UBInt8("version"),
+                            UBInt8("type"),
+                            UBInt32("length"),
+                            UBInt32("seq"))
+
+PORT_STATUS_REQUEST = Struct("port_status_request", UBInt8("version"),
+                             UBInt8("type"),
+                             UBInt32("length"),
+                             UBInt32("seq"))
 
 SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("type"),

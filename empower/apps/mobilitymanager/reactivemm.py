@@ -41,9 +41,9 @@ class ReactiveMobilityManager(EmpowerApp):
 
     def __init__(self, **kwargs):
 
-        EmpowerApp.__init__(self, **kwargs)
-
         self.__limit = DEFAULT_LIMIT
+
+        super().__init__(**kwargs)
 
         # Register an wtp up event
         self.wtpup(callback=self.wtp_up_callback)

@@ -49,7 +49,13 @@ from empower.lvapp import PROBE_RESPONSE
 from empower.lvapp import PT_ADD_LVAP_RESPONSE
 from empower.lvapp import PT_DEL_LVAP_RESPONSE
 from empower.lvapp import CAPS_REQUEST
+from empower.lvapp import LVAP_STATUS_REQUEST
+from empower.lvapp import VAP_STATUS_REQUEST
+from empower.lvapp import PORT_STATUS_REQUEST
 from empower.lvapp import PT_CAPS_REQUEST
+from empower.lvapp import PT_LVAP_STATUS_REQ
+from empower.lvapp import PT_VAP_STATUS_REQ
+from empower.lvapp import PT_PORT_STATUS_REQ
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -70,7 +76,7 @@ LOG = empower.logger.get_logger()
 BASE_MAC = EtherAddress("02:ca:fe:00:00:00")
 
 
-class LVAPPConnection(object):
+class LVAPPConnection:
     """LVAPP Connection.
 
     Represents a connection to a WTP (Wireless Termination Point) using
@@ -193,7 +199,7 @@ class LVAPPConnection(object):
 
             if msg_type in self.server.pt_types_handlers:
                 for handler in self.server.pt_types_handlers[msg_type]:
-                    handler(msg)
+                    handler(wtp, msg)
 
     def _handle_add_del_lvap(self, wtp, status):
         """Handle an incoming ADD_DEL_LVAP message.
@@ -257,7 +263,6 @@ class LVAPPConnection(object):
             wtp.set_connected()
 
             # send caps request
-            LOG.info("Sending caps request to %s", wtp.addr)
             self.send_caps_request()
 
         # Update WTP params
@@ -267,8 +272,10 @@ class LVAPPConnection(object):
 
     def send_vaps(self):
         """Send VAPs configurations.
+
         Upon connection to the controller, the WTP must be provided
         with the list of shared VAPs
+
         Args:
             None
         Returns:
@@ -282,14 +289,14 @@ class LVAPPConnection(object):
                 continue
 
             # wtp not in this tenant
-            if wtp.addr not in tenant.wtps:
+            if self.wtp.addr not in tenant.wtps:
                 continue
 
             tenant_id = tenant.tenant_id
             tokens = [tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
             base_bssid = EtherAddress(':'.join(tokens))
 
-            for block in wtp.supports:
+            for block in self.wtp.supports:
 
                 net_bssid = generate_bssid(base_bssid, block.hwaddr)
 
@@ -297,7 +304,7 @@ class LVAPPConnection(object):
                 if net_bssid in RUNTIME.tenants[tenant_id].vaps:
                     continue
 
-                vap = VAP(net_bssid, block, wtp, tenant)
+                vap = VAP(net_bssid, block, self.wtp, tenant)
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
@@ -774,14 +781,14 @@ class LVAPPConnection(object):
         # set state to online
         wtp.set_online()
 
-        #  # fetch active lvaps
-        # self.send_lvap_status_request()
+        # fetch active lvaps
+        self.send_lvap_status_request()
 
-        # # fetch active vaps
-        # self.send_vap_status_request()
+        # fetch active vaps
+        self.send_vap_status_request()
 
-        # # fetch active ports
-        # self.send_port_status_request()
+        # fetch active ports
+        self.send_port_status_request()
 
         # fetch active traffic rules
         self.send_traffic_rule_status_request()
@@ -816,10 +823,7 @@ class LVAPPConnection(object):
         """Send Traffic Rules configurations.
         Upon connection to the controller, the WTP must be provided
         with the list of traffic rlules
-        Args:
-            None
-        Returns:
-            None
+
         """
 
         for tenant in RUNTIME.tenants.values():
@@ -868,11 +872,11 @@ class LVAPPConnection(object):
         msg = SET_PORT.build(add_traffic_rule)
         self.stream.write(msg)
 
-    def handle_status_traffic_rule(self, wtp, status):
+
+    def handle_status_traffic_rule(self, status):
         """Handle an incoming STATUS_TRAFFIC_RULE message.
         Args:
-            wtp: the wtp that the status belongs to
-            status: a STATUS_TRAFFIC_RULE message
+            status, a STATUS_TRAFFIC_RULE message
         Returns:
             None
         """
@@ -918,6 +922,66 @@ class LVAPPConnection(object):
         LOG.info("Sending caps request to %s", self.wtp.addr)
 
         msg = CAPS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_lvap_status_request(self):
+        """Send a LVAP_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_LVAP_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending lvap status request to %s", self.wtp.addr)
+
+        msg = LVAP_STATUS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_vap_status_request(self):
+        """Send a VAP_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_VAP_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending vap status request to %s", self.wtp.addr)
+
+        msg = VAP_STATUS_REQUEST.build(caps_request)
+        self.stream.write(msg)
+
+    def send_port_status_request(self):
+        """Send a PORT_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        caps_request = Container(version=PT_VERSION,
+                                 type=PT_PORT_STATUS_REQ,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending port status request to %s", self.wtp.addr)
+
+        msg = PORT_STATUS_REQUEST.build(caps_request)
         self.stream.write(msg)
 
     @classmethod

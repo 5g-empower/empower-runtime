@@ -26,7 +26,7 @@ from empower.core.app import DEFAULT_PERIOD
 class LvnfDeploy(EmpowerApp):
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.cppup(callback=self.cpp_up_callback)
         self.lvnfjoin(callback=self.lvnf_join_callback)
         self.lvnfleave(callback=self.lvnf_leave_callback)

@@ -29,6 +29,7 @@ from empower.vbsp.vbspconnection import VBSPConnection
 from empower.persistence.persistence import TblVBS
 from empower.core.vbs import VBS
 
+from empower.vbsp import PT_BYE
 from empower.vbsp import PT_UE_LEAVE
 from empower.vbsp import PT_UE_JOIN
 from empower.vbsp import PT_TYPES
@@ -67,6 +68,7 @@ class ModuleVBSPEventWorker(ModuleEventWorker):
     """
 
     def __init__(self, module, pt_type, pt_packet=None):
+
         ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
                                    pt_type, pt_packet)
 
@@ -85,18 +87,29 @@ class ModuleVBSPWorker(ModuleWorker):
         ModuleWorker.__init__(self, VBSPServer.__module__, module, pt_type,
                               pt_packet)
 
-    def handle_packet(self, response):
+        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+
+    def handle_bye(self, vbs):
+        """VBS left."""
+
+        for module_id in list(self.modules.keys()):
+            module = self.modules[module_id]
+            if hasattr(module, "vbs") and module.vbs == vbs:
+                self.modules[module_id].unload()
+
+    def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""
 
-        if response.head.t_id not in self.modules:
+        if hdr.modid not in self.modules:
             return
 
-        module = self.modules[response.head.t_id]
+        module = self.modules[hdr.modid]
 
-        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      response.head.t_id)
+        self.log.info("Received %s response (id=%u, op=%u)",
+                      self.module.MODULE_NAME, hdr.modid, event.op)
 
-        module.handle_response(response)
+        if event.op == 1:
+            module.handle_response(msg)
 
 
 class VBSPServer(PNFPServer, TCPServer):
@@ -107,10 +120,9 @@ class VBSPServer(PNFPServer, TCPServer):
 
     def __init__(self, port, prt_types, prt_types_handlers):
 
-        PNFPServer.__init__(self, prt_types, prt_types_handlers)
+        PNFPServer.__init__(self, port, prt_types, prt_types_handlers)
         TCPServer.__init__(self)
 
-        self.port = int(port)
         self.connection = None
 
         self.listen(self.port)
@@ -122,12 +134,14 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_leave_message_to_self(self, ue):
         """Send an UE_LEAVE message to self."""
 
+        self.log.info("UE LEAVE %u (%u)", ue.imsi, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_LEAVE]:
             handler(ue)
 
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
+        self.log.info("UE JOIN %u (%s)", ue.imsi, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 

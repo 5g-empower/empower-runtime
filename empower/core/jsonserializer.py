@@ -50,10 +50,16 @@ class EmpowerEncoder(IterEncoder):
         if isinstance(obj, empower.datatypes.ssid.SSID):
             return str(obj)
 
+        if isinstance(obj, empower.datatypes.plmnid.PLMNID):
+            return str(obj)
+
         if isinstance(obj, empower.datatypes.etheraddress.EtherAddress):
             return str(obj)
 
         if hasattr(obj, 'to_dict'):
             return obj.to_dict()
+
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
 
         return super().default(obj)

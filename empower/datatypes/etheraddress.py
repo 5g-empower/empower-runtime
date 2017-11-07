@@ -18,7 +18,7 @@
 """EmPOWER EtherAddress Class."""
 
 
-class EtherAddress(object):
+class EtherAddress:
     """An Ethernet (MAC) address type."""
 
     def __init__(self, addr):
@@ -57,7 +57,7 @@ class EtherAddress(object):
         elif isinstance(addr, EtherAddress):
             self._value = addr.to_raw()
         elif addr is None:
-            self._value = '\x00' * 6
+            self._value = b'\x00' * 6
         else:
             raise ValueError("EtherAddress must be a string of 6 raw bytes")
 

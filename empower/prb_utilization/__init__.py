@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""CQM links module."""
+"""PRB utilization module."""

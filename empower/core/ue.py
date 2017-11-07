@@ -17,32 +17,47 @@
 
 """User Equipment class."""
 
-from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
-
-
-class UE(object):
+class UE:
     """User Equipment."""
 
-    def __init__(self, pci, plmn_id, rnti, imsi, tenant, vbs):
+    def __init__(self, imsi, rnti, cell, plmn_id, tenant):
 
-        self.pci = pci
-        self.plmn_id = plmn_id
-        self.rnti = rnti
         self.imsi = imsi
-        self.vbs = vbs
+        self.rnti = rnti
+        self.plmn_id = plmn_id
+        self._cell = cell
         self.tenant = tenant
+
+    @property
+    def cell(self):
+        """Get the cell."""
+
+        return self._cell
+
+    @cell.setter
+    def cell(self, cell):
+        """ Set the cell. """
+
+        if self._cell == cell:
+            return
+
+        # perform handover
+
+    @property
+    def vbs(self):
+        """Get the VBS."""
+
+        return self.cell.vbs
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        return {'rnti': self.rnti,
+        return {'imsi': self.imsi,
+                'rnti': self.rnti,
                 'plmn_id': self.plmn_id,
-                'imsi': self.imsi,
-                'vbs': self.vbs,
-                'pci': self.pci}
+                'cell': self.cell,
+                'vbs': self.vbs}
 
     def __hash__(self):
         return hash(self.addr)

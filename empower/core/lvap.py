@@ -29,11 +29,8 @@ from empower.intentserver.intentserver import IntentServer
 
 from empower.main import RUNTIME
 
-import empower.logger
-LOG = empower.logger.get_logger()
 
-
-class LVAP(object):
+class LVAP:
     """ The EmPOWER Light Virtual Access Point
 
     One LVAP is created for every station probing the network (unless the MAC
@@ -361,7 +358,6 @@ class LVAP(object):
             raise ValueError("Handover alredy in progress")
 
         if not blocks:
-            LOG.info("Empty resource blocks list, ignoring.")
             return
 
         if isinstance(blocks, list):
@@ -406,8 +402,6 @@ class LVAP(object):
 
             # if not ignore request
             if net_bssid not in self._tenant.vaps:
-                LOG.error("VAP %s not found on tenant %s", net_bssid,
-                          self._tenant.tenant_name)
                 return
 
             # otherwise reset lvap
@@ -480,7 +474,7 @@ class LVAP(object):
 
         self.block = []
 
-    def clear_lvaps(self):
+    def clear_lvap(self):
         """Clear all downlink blocks."""
 
         # remove downlink

@@ -18,7 +18,7 @@
 """EmPOWER ACL."""
 
 
-class ACL(object):
+class ACL:
     """An user ACL."""
 
     def __init__(self, addr, label=""):

@@ -39,8 +39,8 @@ class Thor(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.__idle_cycles = {}
-        EmpowerApp.__init__(self, **kwargs)
 
     def loop(self):
         """ Periodic job. """

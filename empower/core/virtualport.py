@@ -65,7 +65,7 @@ def ofmatch_s2d(match):
     return key
 
 
-class VirtualPort(object):
+class VirtualPort:
     """Virtual port."""
 
     def __init__(self, virtual_port_id, phy_port):

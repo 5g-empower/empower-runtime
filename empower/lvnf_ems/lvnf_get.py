@@ -20,7 +20,7 @@
 from uuid import UUID
 
 from empower.core.lvnf import LVNF
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.lvnf_ems import PT_LVNF_GET_REQUEST
 from empower.lvnf_ems import PT_LVNF_GET_RESPONSE
 from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
@@ -28,7 +28,7 @@ from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 from empower.main import RUNTIME
 
 
-class LVNFGet(Module):
+class LVNFGet(ModulePeriodic):
     """LVNF Get object."""
 
     MODULE_NAME = "lvnf_get"
@@ -36,7 +36,7 @@ class LVNFGet(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self.__lvnf = None

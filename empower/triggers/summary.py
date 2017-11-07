@@ -97,7 +97,7 @@ class Summary(ModuleTrigger):
 
     def __init__(self):
 
-        ModuleTrigger.__init__(self)
+        super().__init__()
 
         # parameters
         self._addr = EtherAddress("FF:FF:FF:FF:FF:FF")
@@ -123,6 +123,7 @@ class Summary(ModuleTrigger):
     @addr.setter
     def addr(self, addr):
         """ Set the address. """
+
         self._addr = EtherAddress(addr)
 
     @property

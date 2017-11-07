@@ -30,7 +30,7 @@ from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.app import EmpowerApp
 from empower.lvapp import PT_VERSION
 
@@ -62,7 +62,7 @@ STATS_RESPONSE = \
            Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, STATS))
 
 
-class BinCounter(Module):
+class BinCounter(ModulePeriodic):
     """ PacketsCounter object.
 
     This primitive tracks the packets/bytes sent and received by a LVAP (which
@@ -88,7 +88,7 @@ class BinCounter(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self._lvap = None

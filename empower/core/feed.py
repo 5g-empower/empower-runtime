@@ -27,7 +27,7 @@ FEED_STATUS_ON = "on"
 FEED_STATUS_OFF = "off"
 
 
-class Feed(object):
+class Feed:
     """Power consumption feed originating from an Energino."""
 
     def __init__(self, feed_id):

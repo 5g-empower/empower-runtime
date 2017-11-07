@@ -36,7 +36,7 @@ class EventsApp(EmpowerApp):
     """
 
     def __init__(self, **kwargs):
-        EmpowerApp.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.cppup(callback=self.cpp_up_callback)
         self.cppdown(callback=self.cpp_down_callback)
         self.wtpup(callback=self.wtp_up_callback)

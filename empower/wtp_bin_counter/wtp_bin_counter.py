@@ -33,7 +33,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.core.module import Module
+from empower.core.module import ModulePeriodic
 from empower.core.app import EmpowerApp
 
 from empower.main import RUNTIME
@@ -65,7 +65,7 @@ WTP_STATS_RESPONSE = \
            Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, WTP_STATS))
 
 
-class WTPBinCounter(Module):
+class WTPBinCounter(ModulePeriodic):
     """ WTPBinCounter object.
 
     This primitive tracks the packets/bytes sent and received by a LVAP (which
@@ -92,7 +92,7 @@ class WTPBinCounter(Module):
 
     def __init__(self):
 
-        Module.__init__(self)
+        super().__init__()
 
         # parameters
         self._wtp = None

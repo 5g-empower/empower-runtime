@@ -27,7 +27,7 @@ T_TYPE_UNIQUE = "unique"
 T_TYPES = [T_TYPE_SHARED, T_TYPE_UNIQUE]
 
 
-class Tenant(object):
+class Tenant:
     """Tenant object representing a network slice.
 
     This represents basically a virtual network or slice requested and managed
@@ -40,7 +40,7 @@ class Tenant(object):
         desc: Human readable description
         bssid_type: shared (VAP) or unique (LVAP)
         traffic_rules: dictionary mapping dscp values to traffic rules. 0 is
-          the default traffic rule created when the WTP connects.
+            the default traffic rule created when the WTP connects.
     """
 
     TO_DICT = ['tenant_id',

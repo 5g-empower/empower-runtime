@@ -20,6 +20,7 @@
 import uuid
 import empower.datatypes.etheraddress as etheraddress
 import empower.datatypes.ssid as ssid
+import empower.datatypes.plmnid as plmnid
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey
@@ -36,8 +37,7 @@ class UUID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 36
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=36)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -65,8 +65,7 @@ class EtherAddress(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 6
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=6)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -94,8 +93,7 @@ class SSID(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        self.impl.length = 30
-        TypeDecorator.__init__(self, length=self.impl.length)
+        super().__init__(length=30)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -110,6 +108,34 @@ class SSID(TypeDecorator):
 
         if value:
             return ssid.SSID(value)
+        else:
+            return None
+
+    def is_mutable(self):
+        return False
+
+
+class PLMNID(TypeDecorator):
+    """PLMNID type."""
+
+    impl = Unicode
+
+    def __init__(self):
+        super().__init__(length=5)
+
+    def process_bind_param(self, value, dialect=None):
+
+        if value and isinstance(value, plmnid.PLMNID):
+            return value.to_str()
+        elif value and not isinstance(value, plmnid.PLMNID):
+            raise ValueError('value %s is not a valid PLMNID' % value)
+        else:
+            return None
+
+    def process_result_value(self, value, dialect=None):
+
+        if value:
+            return plmnid.PLMNID(value)
         else:
             return None
 
@@ -151,9 +177,7 @@ class TblPendingTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    plmn_id = Column("plmn_id",
-                     Integer,
-                     default=True)
+    plmn_id = Column("plmn_id", PLMNID, unique=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)
@@ -179,9 +203,7 @@ class TblTenant(Base):
                        UUID(),
                        primary_key=True,
                        default=uuid.uuid4)
-    plmn_id = Column("plmn_id",
-                     Integer,
-                     default=True)
+    plmn_id = Column("plmn_id", PLMNID, unique=True)
     tenant_name = Column(SSID, unique=True)
     desc = Column(String)
     owner = Column(String)

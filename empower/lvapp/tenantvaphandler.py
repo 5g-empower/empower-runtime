@@ -22,11 +22,6 @@ import uuid
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
-
 
 class TenantVAPHandler(EmpowerAPIHandlerUsers):
     """TenantVAP handler. Used to view and manipulate VAPs in tenants."""

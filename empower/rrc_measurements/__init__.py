@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Channel Quality and Conflict Maps visulization app."""
+"""RRC measurements module."""

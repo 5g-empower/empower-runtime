@@ -64,6 +64,8 @@ class Joule(EmpowerApp):
 
     def __init__(self, **kwargs):
 
+        super().__init__(**kwargs)
+
         self.stats = {}
         self.prev_bins_tx = {}
         self.prev_bins_rx = {}
@@ -71,8 +73,6 @@ class Joule(EmpowerApp):
         self.created = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.updated = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.profile = None
-
-        EmpowerApp.__init__(self, **kwargs)
 
         # load joule profile
         with open(os.path.expanduser(self.profile)) as json_data:
