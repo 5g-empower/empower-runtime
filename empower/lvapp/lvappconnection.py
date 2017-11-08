@@ -855,7 +855,8 @@ class LVAPPConnection:
         """
 
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation,
-                          ampdu_aggregation=traffic_rule.ampdu_aggregation)
+                          ampdu_aggregation=traffic_rule.ampdu_aggregation,
+                          deadline_discard=traffic_rule.deadline_discard)
 
         add_traffic_rule = Container(version=PT_VERSION,
                              type=ADD_TRAFFIC_RULE,

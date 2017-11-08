@@ -37,11 +37,12 @@ class TrafficRule(object):
         parent_priority: the overal tenant priority
     """
     def __init__(self, tenant, dscp=0, priority=100, parent_priority=100,
-                 amsdu_aggregation=False, ampdu_aggregation=False):
+                 amsdu_aggregation=False, ampdu_aggregation=False, deadline_discard=False):
 
         self._tenant = tenant
         self._amsdu_aggregation = amsdu_aggregation
         self._ampdu_aggregation = ampdu_aggregation
+        self._deadline_discard = deadline_discard
         self._priority = priority
         self._parent_priority = parent_priority
         self._dscp = dscp
@@ -53,6 +54,7 @@ class TrafficRule(object):
                 'tenant': self.tenant,
                 'amsdu_aggregation': self.amsdu_aggregation,
                 'ampdu_aggregation': self.ampdu_aggregation,
+                'deadline_discard': self.deadline_discard,
                 'priority': self.priority,
                 'parent_priority': self.parent_priority}
 
@@ -82,6 +84,21 @@ class TrafficRule(object):
         """ Set ampdu_aggregation . """
 
         self._ampdu_aggregation = bool(ampdu_aggregation)
+
+        # Loop over the wtps of this tenant and send the message
+        # self.block.radio.connection.send_set_port(self)
+
+    @property
+    def deadline_discard(self):
+        """ Get deadline_discard . """
+
+        return self._deadline_discard
+
+    @deadline_discard.setter
+    def deadline_discard(self, deadline_discard):
+        """ Set deadline_discard . """
+
+        self._deadline_discard = bool(deadline_discard)
 
         # Loop over the wtps of this tenant and send the message
         # self.block.radio.connection.send_set_port(self)
