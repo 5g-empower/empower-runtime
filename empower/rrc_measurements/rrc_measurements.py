@@ -17,6 +17,7 @@
 
 """RRC measurements module."""
 
+from construct import SBInt16
 from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
@@ -44,12 +45,12 @@ from empower.main import RUNTIME
 EP_ACT_RRC_MEASUREMENT = 0x05
 
 RRC_REQUEST = Struct("rrc_request",
-                     UBInt32("length"),
                      UBInt8("type"),
                      UBInt8("version"),
                      UBInt32("enbid"),
                      UBInt16("cellid"),
                      UBInt32("modid"),
+                     UBInt16("length"),
                      UBInt32("seq"),
                      UBInt8("action"),
                      UBInt8("dir"),
@@ -61,11 +62,11 @@ RRC_REQUEST = Struct("rrc_request",
                      UBInt16("max_cells"),
                      UBInt16("max_meas"))
 
-RRC_ENTRY = Sequence("rrc_entries",
-                     UBInt8("meas_id"),
-                     UBInt16("pci"),
-                     UBInt16("rsrp"),
-                     UBInt16("rsrq"))
+RRC_ENTRY = Struct("rrc_entries",
+                   UBInt8("meas_id"),
+                   UBInt16("pci"),
+                   SBInt16("rsrp"),
+                   SBInt16("rsrq"))
 
 RRC_RESPONSE = Struct("rrc_response",
                       UBInt32("nof_meas"),
@@ -84,10 +85,10 @@ class RRCMeasurements(ModuleTrigger):
 
         # parameters
         self._imsi = None
-        self._measurements = []
+        self._measurements = {}
 
         # stats
-        self.results = []
+        self.results = {}
 
         # set this for auto-cleanup
         self.vbs = None
@@ -107,16 +108,19 @@ class RRCMeasurements(ModuleTrigger):
     def measurements(self, value):
         """Set measurements."""
 
-        for meas in value:
+        self._measurements = {}
 
-            measurement = {
+        for i in range(0, len(value)):
+
+            meas = value[i]
+
+            self._measurements[i] = {
+                "meas_id": i,
                 "earfcn": int(meas["earfcn"]),
                 "interval": int(meas["interval"]),
                 "max_cells": int(meas["max_cells"]),
                 "max_meas": int(meas["max_meas"])
             }
-
-            self._measurements.append(measurement)
 
     @property
     def imsi(self):
@@ -165,16 +169,16 @@ class RRCMeasurements(ModuleTrigger):
 
         self.vbs = ue.vbs
 
-        for i in range(0, len(self.measurements)):
+        for i in self.measurements:
 
             measurement = self.measurements[i]
 
-            rrc_request = Container(length=34,
-                                    type=E_TYPE_TRIG,
+            rrc_request = Container(type=E_TYPE_TRIG,
                                     version=PT_VERSION,
                                     enbid=self.vbs.enb_id,
                                     cellid=ue.cell.pci,
                                     modid=self.module_id,
+                                    length=RRC_REQUEST.sizeof(),
                                     seq=self.vbs.seq,
                                     action=EP_ACT_RRC_MEASUREMENT,
                                     dir=EP_DIR_REQUEST,
@@ -201,6 +205,14 @@ class RRCMeasurements(ModuleTrigger):
         """
 
         print(meas)
+        for entry in meas.rrc_entries:
+
+            self.results[entry.meas_id] = {
+                "meas_id": entry.meas_id,
+                "pci": entry.pci,
+                "rsrp": entry.rsrp,
+                "rsrp": entry.rsrp
+            }
 
         # call callback
         self.handle_callback(self)
