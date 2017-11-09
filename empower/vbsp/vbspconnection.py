@@ -110,7 +110,6 @@ class VBSPConnection:
 
         self.__buffer = self.__buffer + line
         hdr = HEADER.parse(self.__buffer)
-        print(hdr)
 
         if len(self.__buffer) < hdr.length:
             remaining = hdr.length - len(self.__buffer)
@@ -252,12 +251,12 @@ class VBSPConnection:
             TypeError: if vap is not an VAP object
         """
 
-        caps_request = Container(length=23,
-                                 type=E_TYPE_SINGLE,
+        caps_request = Container(type=E_TYPE_SINGLE,
                                  version=PT_VERSION,
                                  enbid=vbs.enb_id,
                                  cellid=0,
                                  modid=0,
+                                 length=CAPS_REQUEST.sizeof(),
                                  seq=self.vbs.seq,
                                  action=EP_ACT_ECAP,
                                  dir=EP_DIR_REQUEST,
@@ -306,12 +305,12 @@ class VBSPConnection:
             TypeError: if vap is not an VAP object
         """
 
-        ue_report = Container(length=23,
-                              type=E_TYPE_TRIG,
+        ue_report = Container(type=E_TYPE_TRIG,
                               version=PT_VERSION,
                               enbid=vbs.enb_id,
                               cellid=0,
                               modid=0,
+                              length=UE_REPORT_REQUEST.sizeof(),
                               seq=self.vbs.seq,
                               action=EP_ACT_UE_REPORT,
                               dir=EP_DIR_REQUEST,
