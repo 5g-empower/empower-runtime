@@ -44,9 +44,11 @@ from empower.vbsp import EP_ACT_ECAP
 from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
+from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
+from empower.vbsp import EP_ACT_HANDOVER
 from empower.core.utils import hex_to_ether
 from empower.core.utils import ether_to_hex
 from empower.core.utils import rnti_to_ue_id
@@ -234,14 +236,14 @@ class VBSPConnection:
             vbs.set_connected()
 
             # send caps request
-            self.send_caps_request(vbs)
+            self.send_caps_request()
 
         # Update WTP params
         vbs.period = event.interval
         vbs.last_seen = hdr.seq
         vbs.last_seen_ts = time.time()
 
-    def send_caps_request(self, vbs):
+    def send_caps_request(self):
         """Send a CAPS_REQUEST message.
         Args:
             vbs: an VBS object
@@ -253,7 +255,7 @@ class VBSPConnection:
 
         caps_request = Container(type=E_TYPE_SINGLE,
                                  version=PT_VERSION,
-                                 enbid=vbs.enb_id,
+                                 enbid=self.vbs.enb_id,
                                  cellid=0,
                                  modid=0,
                                  length=CAPS_REQUEST.sizeof(),
@@ -263,7 +265,7 @@ class VBSPConnection:
                                  op=EP_OPERATION_UNSPECIFIED,
                                  dummy=0)
 
-        LOG.info("Sending caps request to %s", vbs)
+        LOG.info("Sending caps request to %s", self.vbs)
 
         msg = CAPS_REQUEST.build(caps_request)
         self.stream.write(msg)
@@ -293,12 +295,12 @@ class VBSPConnection:
 
         # if UE reports are supported then activate them
         if bool(caps.flags.ue_report):
-            self.send_ue_reports_request(vbs)
+            self.send_ue_reports_request()
 
-    def send_ue_reports_request(self, vbs):
+    def send_ue_reports_request(self):
         """Send a UE Reports message.
         Args:
-            vbs: an VAP object
+            None
         Returns:
             None
         Raises:
@@ -307,7 +309,7 @@ class VBSPConnection:
 
         ue_report = Container(type=E_TYPE_TRIG,
                               version=PT_VERSION,
-                              enbid=vbs.enb_id,
+                              enbid=self.vbs.enb_id,
                               cellid=0,
                               modid=0,
                               length=UE_REPORT_REQUEST.sizeof(),
@@ -317,7 +319,7 @@ class VBSPConnection:
                               op=EP_OPERATION_ADD,
                               dummy=0)
 
-        LOG.info("Sending ue reports request to %s", vbs)
+        LOG.info("Sending ue reports request to %s", self.vbs)
 
         msg = UE_REPORT_REQUEST.build(ue_report)
         self.stream.write(msg)
@@ -374,3 +376,48 @@ class VBSPConnection:
         for ue in RUNTIME.ues.values():
             if ue.imsi not in ues:
                 self.server.send_ue_leave_message_to_self(ue)
+
+    def send_ue_ho_request(self, ue, cell):
+        """Send a UE_HO_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        ue_ho_request = Container(type=E_TYPE_SINGLE,
+                                  version=PT_VERSION,
+                                  enbid=self.vbs.enb_id,
+                                  cellid=ue.cell.pci,
+                                  modid=0,
+                                  length=UE_HO_REQUEST.sizeof(),
+                                  seq=self.vbs.seq,
+                                  action=EP_ACT_HANDOVER,
+                                  dir=EP_DIR_REQUEST,
+                                  op=EP_OPERATION_UNSPECIFIED,
+                                  rnti=ue.rnti,
+                                  target_enb=cell.vbs.enb_id,
+                                  target_pci=cell.pci,
+                                  cause=1)
+
+        print(ue_ho_request)
+
+        LOG.info("Sending ue ho request %s -> %s", ue.cell, cell)
+
+        msg = UE_HO_REQUEST.build(ue_ho_request)
+        self.stream.write(msg)
+
+    def _handle_ue_ho_response(self, vbs, hdr, event, ho):
+        """Handle an incoming UE_HO_RESPONSE message.
+        Args:
+            ho, a UE_HO_RESPONSE message
+        Returns:
+            None
+        """
+
+        LOG.info("UE ho response from %s VBS %s seq %u", self.addr[0],
+                 vbs.addr, hdr.seq)
+
+        print(ho)

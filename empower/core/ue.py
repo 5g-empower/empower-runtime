@@ -39,10 +39,11 @@ class UE:
     def cell(self, cell):
         """ Set the cell. """
 
-        if self._cell == cell:
-            return
+        #if self._cell == cell:
+        #    return
 
         # perform handover
+        self.cell.vbs.connection.send_ue_ho_request(self, cell)
 
     @property
     def vbs(self):
