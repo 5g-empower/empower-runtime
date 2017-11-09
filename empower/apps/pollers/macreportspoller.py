@@ -51,7 +51,7 @@ class MACReportsPoller(EmpowerApp):
     def mac_reports_callback(self, report):
         """ New measurements available. """
 
-        self.log.info("New mac report received from %s" % reporl.cell)
+        self.log.info("New mac report received from %s" % report.cell)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
