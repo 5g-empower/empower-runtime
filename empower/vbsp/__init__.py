@@ -59,14 +59,13 @@ E_TYPE_SINGLE = 0x01
 E_TYPE_SCHED = 0x02
 E_TYPE_TRIG = 0x03
 
-LENGTH = Struct("length", UBInt32("length"))
-
 HEADER = Struct("header",
                 UBInt8("type"),
                 UBInt8("version"),
                 UBInt32("enbid"),
                 UBInt16("cellid"),
                 UBInt32("modid"),
+                UBInt16("length"),
                 UBInt32("seq"))
 
 E_SCHED = Struct("e_sched",

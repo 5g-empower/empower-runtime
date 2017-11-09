@@ -28,7 +28,6 @@ from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
 from empower.core.radioport import RadioPort
-from empower.vbsp import LENGTH
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
 from empower.vbsp import PT_BYE
@@ -109,15 +108,14 @@ class VBSPConnection:
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        # if buffer is empty then read message length
-        if len(self.__buffer) == 0:
-            self.__buffer = line
-            hdr = LENGTH.parse(self.__buffer)
-            self.stream.read_bytes(hdr.length, self._on_read)
-            return
-
-        self.__buffer = line
+        self.__buffer = self.__buffer + line
         hdr = HEADER.parse(self.__buffer)
+        print(hdr)
+
+        if len(self.__buffer) < hdr.length:
+            remaining = hdr.length - len(self.__buffer)
+            self.stream.read_bytes(remaining, self._on_read)
+            return
 
         try:
             self._trigger_message(hdr)
@@ -178,7 +176,7 @@ class VBSPConnection:
         """ Wait for incoming packets on signalling channel """
 
         self.__buffer = b''
-        self.stream.read_bytes(4, self._on_read)
+        self.stream.read_bytes(HEADER.sizeof(), self._on_read)
 
     def _on_disconnect(self):
         """ Handle VBS disconnection """
