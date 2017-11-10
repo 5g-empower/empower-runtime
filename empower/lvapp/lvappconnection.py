@@ -63,6 +63,7 @@ from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
 from empower.lvapp import PT_ADD_TRAFFIC_RULE
 from empower.lvapp import ADD_TRAFFIC_RULE
+from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQUEST
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
@@ -829,18 +830,18 @@ class LVAPPConnection:
         for tenant in RUNTIME.tenants.values():
 
             # wtp not in this tenant
-            if wtp.addr not in tenant.wtps:
+            if self.wtp.addr not in tenant.wtps:
                 continue
 
             tenant_id = tenant.tenant_id
 
-            for dscp in DSCPS.values():
+            for dscp in DSCPS:
 
                 # the traffic rule is already defined
                 if dscp in RUNTIME.tenants[tenant_id].traffic_rules:
                     continue
 
-                traffic_rule = TrafficRule(tenant.tenant_name, dscp)
+                traffic_rule = TrafficRule(tenant, dscp)
 
                 self.send_add_traffic_rule(traffic_rule)
 
@@ -858,23 +859,27 @@ class LVAPPConnection:
                           ampdu_aggregation=traffic_rule.ampdu_aggregation,
                           deadline_discard=traffic_rule.deadline_discard)
 
-        add_traffic_rule = Container(version=PT_VERSION,
-                             type=ADD_TRAFFIC_RULE,
-                             length=15,
+        tenant_t = 0x0 if traffic_rule.tenant.bssid_type == T_TYPE_SHARED else 0x1
+
+        add_tr = Container(version=PT_VERSION,
+                             type=PT_ADD_TRAFFIC_RULE,
+                             length=16,
                              seq=self.wtp.seq,
-                             flags=flags,
+                             aggregation_flags=flags,
                              priority=traffic_rule.priority,
                              parent_priority=traffic_rule.parent_priority,
                              dscp=traffic_rule.dscp,
-                             ssid=traffic_rule.ssid.to_raw())
+                             tenant_type=tenant_t,
+                             ssid=traffic_rule.tenant.tenant_name.to_raw())
 
-        LOG.info("Added traffic rule: %s", traffic_rule)
+        add_tr.length = add_tr.length + len(traffic_rule.tenant.tenant_name)
 
-        msg = SET_PORT.build(add_traffic_rule)
+        LOG.info("Added traffic rule: %s", add_tr)
+
+        msg = ADD_TRAFFIC_RULE.build(add_tr)
         self.stream.write(msg)
 
-
-    def handle_status_traffic_rule(self, status):
+    def handle_status_traffic_rule(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE message.
         Args:
             status, a STATUS_TRAFFIC_RULE message
@@ -888,7 +893,6 @@ class LVAPPConnection:
 
         ssid = SSID(status.ssid)
         tenant = RUNTIME.load_tenant(ssid)
-        dscp = status.dscp
 
         if not tenant:
             LOG.info("Traffic Rule from unknown tenant %s", ssid)
@@ -898,7 +902,8 @@ class LVAPPConnection:
 
         # If the Traffic Rule does not exist, then create a new one
         if dscp not in tenant.traffic_rules:
-            traffic_rule = TrafficRule(tenant.tenant_name, dscp)
+            traffic_rule = TrafficRule(tenant, status.dscp, status.priority, status.parent_priority,
+                status.amsdu_aggregation, status.ampdu_aggregation, status.deadline_discard)
             tenant.traffic_rule[dscp] = traffic_rule
 
         traffic_rule = tenant.traffic_rules[dscp]

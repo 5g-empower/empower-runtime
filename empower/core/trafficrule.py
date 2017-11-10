@@ -18,7 +18,8 @@
 """EmPOWER Traffic Rule."""
 
 
-DSCPS = [0x08, 0x16, 0x00, 0x24, 0x32, 0x40, 0x48, 0x56]
+# DSCPS = [0x08, 0x16, 0x00, 0x24, 0x32, 0x40, 0x48, 0x56]
+DSCPS = [0x00]
 
 class TrafficRule(object):
     """ EmPOWER traffic rule.
@@ -144,6 +145,21 @@ class TrafficRule(object):
         """ Set dscp . """
 
         self._dscp = int(dscp)
+
+        # Loop over the wtps of this tenant and send the message
+        # self.block.radio.connection.send_set_port(self)
+
+    @property
+    def tenant(self):
+        """ Get tenant name . """
+
+        return self._tenant
+
+    @tenant.setter
+    def tenant(self, tenant):
+        """ Set tenant name . """
+
+        self._tenant = tenant
 
         # Loop over the wtps of this tenant and send the message
         # self.block.radio.connection.send_set_port(self)
