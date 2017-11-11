@@ -88,6 +88,16 @@ class ModuleVBSPWorker(ModuleWorker):
                               pt_packet)
 
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+        self.pnfp_server.register_message(PT_UE_LEAVE, None, self.
+                                          handle_ue_leave)
+
+    def handle_ue_leave(self, ue):
+        """UE left."""
+
+        for module_id in list(self.modules.keys()):
+            module = self.modules[module_id]
+            if hasattr(module, "ue") and module.ue == ue:
+                self.modules[module_id].unload()
 
     def handle_bye(self, vbs):
         """VBS left."""
@@ -126,6 +136,8 @@ class VBSPServer(PNFPServer, TCPServer):
         self.connection = None
 
         self.listen(self.port)
+
+        self.pending = {}
 
     def handle_stream(self, stream, address):
         self.log.info('Incoming connection from %r', address)

@@ -93,6 +93,9 @@ class RRCMeasurements(ModuleTrigger):
         # set this for auto-cleanup
         self.vbs = None
 
+        # set this for auto-cleanup
+        self.ue = None
+
     def __eq__(self, other):
 
         return super().__eq__(other) and self.imsi == other.imsi and \
@@ -160,41 +163,34 @@ class RRCMeasurements(ModuleTrigger):
             self.unload()
             return
 
-        ue = tenant.ues[self.imsi]
+        self.ue = tenant.ues[self.imsi]
 
-        if not ue.vbs or not ue.vbs.is_online():
-            self.log.info("VBS %s not connected", ue.vbs.addr)
+        if not self.ue.vbs or not self.ue.vbs.is_online():
+            self.log.info("VBS %s not connected", self.ue.vbs.addr)
             self.unload()
             return
 
-        self.vbs = ue.vbs
+        self.vbs = self.ue.vbs
 
         for i in self.measurements:
 
             measurement = self.measurements[i]
 
             rrc_request = Container(type=E_TYPE_TRIG,
-                                    version=PT_VERSION,
-                                    enbid=self.vbs.enb_id,
-                                    cellid=ue.cell.pci,
+                                    cellid=self.ue.cell.pci,
                                     modid=self.module_id,
                                     length=RRC_REQUEST.sizeof(),
-                                    seq=self.vbs.seq,
                                     action=EP_ACT_RRC_MEASUREMENT,
                                     dir=EP_DIR_REQUEST,
                                     op=EP_OPERATION_ADD,
                                     meas_id=i,
-                                    rnti=ue.rnti,
+                                    rnti=self.ue.rnti,
                                     earfcn=measurement["earfcn"],
                                     interval=measurement["interval"],
                                     max_cells=measurement["max_cells"],
                                     max_meas=measurement["max_meas"])
 
-            self.log.info("Sending rrc request to %s @ %s (id=%u, meas_id=%u)",
-                          ue.rnti, self.vbs.enb_id, self.module_id, i)
-
-            msg = RRC_REQUEST.build(rrc_request)
-            self.vbs.connection.stream.write(msg)
+            self.vbs.connection.send_message(rrc_request, RRC_REQUEST)
 
     def handle_response(self, meas):
         """Handle an incoming RRC_MEASUREMENTS message.
@@ -204,7 +200,6 @@ class RRCMeasurements(ModuleTrigger):
             None
         """
 
-        print(meas)
         for entry in meas.rrc_entries:
 
             self.results[entry.meas_id] = {

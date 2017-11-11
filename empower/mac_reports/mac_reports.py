@@ -164,22 +164,15 @@ class MACReports(ModuleTrigger):
         self.vbs = self.cell.vbs
 
         mac_reports_req = Container(type=E_TYPE_TRIG,
-                                    version=PT_VERSION,
-                                    enbid=self.vbs.enb_id,
                                     cellid=self.cell.pci,
                                     modid=self.module_id,
                                     length=MAC_REPORTS_REQ.sizeof(),
-                                    seq=self.vbs.seq,
                                     action=EP_ACT_MAC_REPORTS,
                                     dir=EP_DIR_REQUEST,
                                     op=EP_OPERATION_ADD,
                                     deadline=self.deadline)
 
-        self.log.info("Sending mac_reports request for %s @ %s (id=%u)",
-                      self.cell.pci, self.vbs.addr, self.module_id)
-
-        msg = MAC_REPORTS_REQ.build(mac_reports_req)
-        self.vbs.connection.stream.write(msg)
+        self.vbs.connection.send_message(mac_reports_req, MAC_REPORTS_REQ)
 
     def handle_response(self, meas):
         """Handle an incoming MAC_REPORTS_RESP message.

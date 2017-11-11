@@ -355,7 +355,7 @@ class LVAP:
         """
 
         if self.pending:
-            raise ValueError("Handover alredy in progress")
+            raise ValueError("Handover in progress")
 
         if not blocks:
             return
