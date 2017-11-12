@@ -424,7 +424,7 @@ class VBSPConnection:
                     break
 
         if not modid:
-            self.log.error("Invalid modid %u", hdr.modid)
+            self.log.error("Invalid modid %u", modid)
             return
 
         ue = self.server.pending[modid]
@@ -441,11 +441,6 @@ class VBSPConnection:
                 ue.set_active()
                 return
 
-            self.log.error("Invalid state, resetting.")
-            del self.server.pending[hdr.modid]
-            ue.set_active()
-
-            return
-
-        self.log.error("Error while performing handover %u", event.op)
-        del self.server.pending[hdr.modid]
+        self.log.error("Error while performing handover")
+        del self.server.pending[modid]
+        RUNTIME.remove_ue(ue.imsi)
