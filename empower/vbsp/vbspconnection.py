@@ -48,6 +48,7 @@ from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
+from empower.vbsp import EP_OPERATION_SUCCESS
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.core.utils import hex_to_ether
 from empower.core.utils import ether_to_hex
@@ -332,7 +333,12 @@ class VBSPConnection:
 
         ues = {u.imsi: u for u in ue_report.ues}
 
+        # check for new UEs
         for u in ues.values():
+
+            # UE already known
+            if u.imsi in RUNTIME.ues:
+                continue
 
             plmn_id = PLMNID(u.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
@@ -350,6 +356,7 @@ class VBSPConnection:
             for c in vbs.cells:
                 if c.pci == u.pci:
                     cell = c
+                    break
 
             if not cell:
                 self.log.info("PCI %u not found", u.pci)
@@ -358,18 +365,15 @@ class VBSPConnection:
             ue = UE(u.imsi, u.rnti, cell, plmn_id, tenant)
             ue.set_active()
 
-            new_ue = False
-
-            if u.imsi not in RUNTIME.ues:
-                new_ue = True
-
             RUNTIME.ues[u.imsi] = ue
             tenant.ues[u.imsi] = ue
 
-            if new_ue:
-                self.server.send_ue_join_message_to_self(ue)
+            self.server.send_ue_join_message_to_self(ue)
 
+        # check for leaving UEs
         for imsi in list(RUNTIME.ues.keys()):
+            if RUNTIME.ues[imsi].vbs != vbs:
+                continue
             if imsi not in ues:
                 RUNTIME.remove_ue(imsi)
 
@@ -407,6 +411,41 @@ class VBSPConnection:
             None
         """
 
-        print(hdr)
-        print(event)
-        print(ho)
+        modid = None
+
+        if hdr.modid in self.server.pending:
+            # modid found
+            modid = hdr.modid
+        else:
+            # if modid is not present then try to look up by rnti
+            for i in self.server.pending:
+                if self.server.pending[i].rnti == ho.rnti:
+                    modid = i
+                    break
+
+        if not modid:
+            self.log.error("Invalid modid %u", hdr.modid)
+            return
+
+        ue = self.server.pending[modid]
+
+        if event.op == EP_OPERATION_SUCCESS:
+
+            # UE was removed from source eNB
+            if ue.is_ho_in_progress_removing():
+                ue.set_ho_in_progress_adding()
+                return
+
+            # UE was added to target eNB
+            if ue.is_ho_in_progress_adding():
+                ue.set_active()
+                return
+
+            self.log.error("Invalid state, resetting.")
+            del self.server.pending[hdr.modid]
+            ue.set_active()
+
+            return
+
+        self.log.error("Error while performing handover %u", event.op)
+        del self.server.pending[hdr.modid]

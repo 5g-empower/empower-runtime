@@ -91,6 +91,26 @@ class UE:
 
         self.state = UE_ACTIVE
 
+    def set_ho_in_progress_removing(self):
+
+        self.state = UE_HO_IN_PROGRESS_REMOVING
+
+    def set_ho_in_progress_adding(self):
+
+        self.state = UE_HO_IN_PROGRESS_ADDING
+
+    def is_ative(self):
+
+        return self.state == UE_ACTIVE
+
+    def is_ho_in_progress_removing(self):
+
+        return self.state == UE_HO_IN_PROGRESS_REMOVING
+
+    def is_ho_in_progress_adding(self):
+
+        return self.state == UE_HO_IN_PROGRESS_ADDING
+
     @property
     def cell(self):
         """Get the cell."""
@@ -111,7 +131,7 @@ class UE:
             raise ValueError("An handover is already in progress")
 
         # change state
-        self.state = UE_HO_IN_PROGRESS
+        self.set_ho_in_progress_removing()
 
         # perform handover
         self.cell.vbs.connection.send_ue_ho_request(self, cell)
