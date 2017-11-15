@@ -206,7 +206,7 @@ class RRCMeasurements(ModuleTrigger):
                 "meas_id": entry.meas_id,
                 "pci": entry.pci,
                 "rsrp": entry.rsrp,
-                "rsrp": entry.rsrp
+                "rsrq": entry.rsrq
             }
 
         # call callback
