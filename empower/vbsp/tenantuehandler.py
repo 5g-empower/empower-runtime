@@ -65,3 +65,61 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
         except ValueError as ex:
             self.send_error(400, message=ex)
         self.set_status(200, None)
+
+    def put(self, *args, **kwargs):
+        """ Set the cell for a given UE.
+
+        Args:
+            tenant_id: the tenant id
+            imsi: the ue IMSI
+
+        Request:
+            version: the protocol version (1.0)
+
+        Example URLs:
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/ues/111
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid URL")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "vbs" not in request:
+                raise ValueError("missing vbs element")
+
+            if "pci" not in request:
+                raise ValueError("missing pci element")
+
+            tenant_id = uuid.UUID(args[0])
+            imsi = int(args[1])
+
+            tenant = RUNTIME.tenants[tenant_id]
+            ue = tenant.ues[imsi]
+
+            vbs_addr = EtherAddress(request['vbs'])
+            pci = int(request['pci'])
+
+            vbs = tenant.vbses[vbs_addr]
+
+            target = None
+            for cell in vbs.cells:
+                if cell.pci == pci:
+                    target = cell
+
+            if not target:
+                raise KeyError("Cell %s/%u not found", vbs_addr, pci)
+
+            ue.cell = target
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(204, None)

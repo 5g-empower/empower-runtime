@@ -49,6 +49,7 @@ EP_ACT_ECAP = 2
 EP_ACT_CCAP = 3
 EP_ACT_UE_REPORT = 4
 EP_ACT_UE_MEASURE = 5
+EP_ACT_HANDOVER = 7
 
 PT_BYE = 0xFF00
 PT_REGISTER = 0xFF01
@@ -59,14 +60,13 @@ E_TYPE_SINGLE = 0x01
 E_TYPE_SCHED = 0x02
 E_TYPE_TRIG = 0x03
 
-LENGTH = Struct("length", UBInt32("length"))
-
 HEADER = Struct("header",
                 UBInt8("type"),
                 UBInt8("version"),
                 UBInt32("enbid"),
                 UBInt16("cellid"),
                 UBInt32("modid"),
+                UBInt16("length"),
                 UBInt32("seq"))
 
 E_SCHED = Struct("e_sched",
@@ -114,12 +114,12 @@ UE_REPORT_RESPONSE = Struct("ue_report_response",
                             Array(lambda ctx: ctx.nof_ues, UE_R))
 
 CAPS_REQUEST = Struct("caps_request",
-                      UBInt32("length"),
                       UBInt8("type"),
                       UBInt8("version"),
                       UBInt32("enbid"),
                       UBInt16("cellid"),
                       UBInt32("modid"),
+                      UBInt16("length"),
                       UBInt32("seq"),
                       UBInt8("action"),
                       UBInt8("dir"),
@@ -127,17 +127,37 @@ CAPS_REQUEST = Struct("caps_request",
                       UBInt32("dummy"))
 
 UE_REPORT_REQUEST = Struct("ue_report_request",
-                           UBInt32("length"),
                            UBInt8("type"),
                            UBInt8("version"),
                            UBInt32("enbid"),
                            UBInt16("cellid"),
                            UBInt32("modid"),
+                           UBInt16("length"),
                            UBInt32("seq"),
                            UBInt8("action"),
                            UBInt8("dir"),
                            UBInt8("op"),
                            UBInt32("dummy"))
+
+UE_HO_REQUEST = Struct("ue_ho_request",
+                       UBInt8("type"),
+                       UBInt8("version"),
+                       UBInt32("enbid"),
+                       UBInt16("cellid"),
+                       UBInt32("modid"),
+                       UBInt16("length"),
+                       UBInt32("seq"),
+                       UBInt8("action"),
+                       UBInt8("dir"),
+                       UBInt8("op"),
+                       UBInt16("rnti"),
+                       UBInt32("target_enb"),
+                       UBInt16("target_pci"),
+                       UBInt8("cause"))
+
+UE_HO_RESPONSE = Struct("ue_ho_response",
+                        UBInt8("dummy"))
+
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -145,7 +165,8 @@ PT_TYPES = {PT_BYE: None,
             PT_UE_LEAVE: None,
             EP_ACT_HELLO: HELLO,
             EP_ACT_ECAP: CAPS_RESPONSE,
-            EP_ACT_UE_REPORT: UE_REPORT_RESPONSE}
+            EP_ACT_UE_REPORT: UE_REPORT_RESPONSE,
+            EP_ACT_HANDOVER: UE_HO_RESPONSE}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -153,4 +174,5 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_UE_LEAVE: [],
                      EP_ACT_HELLO: [],
                      EP_ACT_ECAP: [],
-                     EP_ACT_UE_REPORT: []}
+                     EP_ACT_UE_REPORT: [],
+                     EP_ACT_HANDOVER: []}

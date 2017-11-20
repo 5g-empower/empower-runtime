@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""PRB utilization module."""
+"""MAC Reports module."""
 
 from construct import UBInt8
 from construct import UBInt16
@@ -33,44 +33,44 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.vbs import Cell
 from empower.vbsp.vbspserver import ModuleVBSPWorker
-from empower.core.module import ModuleScheduled
+from empower.core.module import ModuleTrigger
 from empower.vbsp import PT_VERSION
-from empower.vbsp import E_TYPE_SCHED
+from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_ADD
 
 from empower.main import RUNTIME
 
 
-EP_ACT_PRB_UTIL = 0x06
+EP_ACT_MAC_REPORTS = 0x06
 
-PRB_UTIL_REQ = Struct("prb_util_req",
-                      UBInt32("length"),
-                      UBInt8("type"),
-                      UBInt8("version"),
-                      UBInt32("enbid"),
-                      UBInt16("cellid"),
-                      UBInt32("modid"),
-                      UBInt32("seq"),
-                      UBInt8("action"),
-                      UBInt8("dir"),
-                      UBInt8("op"),
-                      UBInt16("interval"))
+MAC_REPORTS_REQ = Struct("mac_reports_req",
+                         UBInt8("type"),
+                         UBInt8("version"),
+                         UBInt32("enbid"),
+                         UBInt16("cellid"),
+                         UBInt32("modid"),
+                         UBInt16("length"),
+                         UBInt32("seq"),
+                         UBInt8("action"),
+                         UBInt8("dir"),
+                         UBInt8("op"),
+                         UBInt16("deadline"))
 
-PRB_UTIL_RESP = Struct("prb_util_resp",
-                       UBInt8("DL_prbs_total"),
-                       UBInt8("DL_prbs_in_use"),
-                       UBInt16("DL_prbs_avg"),
-                       UBInt8("UL_prbs_total"),
-                       UBInt8("UL_prbs_in_use"),
-                       UBInt16("UL_prbs_avg"))
+MAC_REPORTS_RESP = Struct("mac_reports_resp",
+                          UBInt8("DL_prbs_total"),
+                          UBInt8("DL_prbs_in_use"),
+                          UBInt16("DL_prbs_avg"),
+                          UBInt8("UL_prbs_total"),
+                          UBInt8("UL_prbs_in_use"),
+                          UBInt16("UL_prbs_avg"))
 
 
-class PRBUtilization(ModuleScheduled):
+class MACReports(ModuleTrigger):
     """ LVAPStats object. """
 
-    MODULE_NAME = "prb_utilization"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'cell', 'interval']
+    MODULE_NAME = "mac_reports"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'cell', 'deadline']
 
     def __init__(self):
 
@@ -78,10 +78,10 @@ class PRBUtilization(ModuleScheduled):
 
         # parameters
         self._cell = None
-        self._interval = None
+        self._deadline = None
 
         # stats
-        self.results = []
+        self.results = {}
 
         # set this for auto-cleanup
         self.vbs = None
@@ -89,7 +89,7 @@ class PRBUtilization(ModuleScheduled):
     def __eq__(self, other):
 
         return super().__eq__(other) and self.cell == other.cell and \
-            self.cell == other.cell and self.interval == other.interval
+            self.cell == other.cell and self.deadline == other.deadline
 
     @property
     def cell(self):
@@ -124,16 +124,16 @@ class PRBUtilization(ModuleScheduled):
                 raise ValueError("Invalid pci %u", pci)
 
     @property
-    def interval(self):
-        """Return the interval."""
+    def deadline(self):
+        """Return the deadline."""
 
-        return self._interval
+        return self._deadline
 
-    @interval.setter
-    def interval(self, value):
-        """Set the interval."""
+    @deadline.setter
+    def deadline(self, value):
+        """Set the deadline."""
 
-        self._interval = int(value)
+        self._deadline = int(value)
 
     def to_dict(self):
         """ Return a JSON-serializable."""
@@ -141,7 +141,7 @@ class PRBUtilization(ModuleScheduled):
         out = super().to_dict()
 
         out['cell'] = self.cell
-        out['interval'] = self.interval
+        out['deadline'] = self.deadline
         out['results'] = self.results
 
         return out
@@ -163,63 +163,59 @@ class PRBUtilization(ModuleScheduled):
 
         self.vbs = self.cell.vbs
 
-        prb_util_req = Container(length=25,
-                                 type=E_TYPE_SCHED,
-                                 version=PT_VERSION,
-                                 enbid=self.vbs.enb_id,
-                                 cellid=self.cell.pci,
-                                 modid=self.module_id,
-                                 seq=self.vbs.seq,
-                                 action=EP_ACT_PRB_UTIL,
-                                 dir=EP_DIR_REQUEST,
-                                 op=EP_OPERATION_ADD,
-                                 interval=self.interval)
+        mac_reports_req = Container(type=E_TYPE_TRIG,
+                                    cellid=self.cell.pci,
+                                    modid=self.module_id,
+                                    length=MAC_REPORTS_REQ.sizeof(),
+                                    action=EP_ACT_MAC_REPORTS,
+                                    dir=EP_DIR_REQUEST,
+                                    op=EP_OPERATION_ADD,
+                                    deadline=self.deadline)
 
-        self.log.info("Sending prb util request for %s @ %s (id=%u)",
-                      self.cell.pci, self.vbs.addr, self.module_id)
-
-        msg = PRB_UTIL_REQ.build(prb_util_req)
-        self.vbs.connection.stream.write(msg)
+        self.vbs.connection.send_message(mac_reports_req, MAC_REPORTS_REQ)
 
     def handle_response(self, meas):
-        """Handle an incoming PRB_UTILIZATION message.
+        """Handle an incoming MAC_REPORTS_RESP message.
         Args:
-            meas, a PRB_UTILIZATION message
+            meas, a MAC_REPORTS_RESP message
         Returns:
             None
         """
 
-        print(meas)
+        self.results['DL_prbs_total'] = meas.DL_prbs_total
+        self.results['DL_prbs_in_use'] = meas.DL_prbs_in_use
+        self.results['DL_prbs_avg'] = meas.DL_prbs_avg
+        self.results['UL_prbs_total'] = meas.UL_prbs_total
+        self.results['UL_prbs_in_use'] = meas.UL_prbs_in_use
+        self.results['UL_prbs_avg'] = meas.UL_prbs_avg
 
         # call callback
         self.handle_callback(self)
 
 
-class PRBUtilizationWorker(ModuleVBSPWorker):
+class MACReportsWorker(ModuleVBSPWorker):
     """ Counter worker. """
 
     pass
 
 
-def prb_utilization(**kwargs):
+def mac_reports(**kwargs):
     """Create a new module."""
 
-    module = PRBUtilizationWorker.__module__
+    module = MACReportsWorker.__module__
     return RUNTIME.components[module].add_module(**kwargs)
 
 
-def bound_prb_utilization(self, **kwargs):
+def bound_mac_reports(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return prb_utilization(**kwargs)
+    return mac_reports(**kwargs)
 
-setattr(EmpowerApp, PRBUtilization.MODULE_NAME, bound_prb_utilization)
+setattr(EmpowerApp, MACReports.MODULE_NAME, bound_mac_reports)
 
 
 def launch():
     """ Initialize the module. """
 
-    return PRBUtilizationWorker(PRBUtilization,
-                                EP_ACT_PRB_UTIL,
-                                PRB_UTIL_RESP)
+    return MACReportsWorker(MACReports, EP_ACT_MAC_REPORTS, MAC_REPORTS_RESP)

@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""PRB uitlization Poller Apps."""
+"""MAC Reports Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class PRBUtilizationPoller(EmpowerApp):
-    """PRB Utilization Poller Apps.
+class MACReportsPoller(EmpowerApp):
+    """MAC Reports Poller Apps.
 
     Command Line Parameters:
 
@@ -31,7 +31,7 @@ class PRBUtilizationPoller(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.pollers.prbutilizationpoller \
+        ./empower-runtime.py apps.pollers.macreportpoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
@@ -44,17 +44,17 @@ class PRBUtilizationPoller(EmpowerApp):
 
         for cell in vbs.cells:
 
-            self.prb_utilization(cell=cell,
-                                 interval=self.every,
-                                 callback=self.prb_utilization_callback)
+            self.mac_reports(cell=cell,
+                             deadline=self.every,
+                             callback=self.mac_reports_callback)
 
-    def prb_utilization_callback(self, prb_util):
+    def mac_reports_callback(self, report):
         """ New measurements available. """
 
-        self.log.info("New prb utilization received from %s" % prb_util.cell)
+        self.log.info("New mac report received from %s" % report.cell)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return PRBUtilizationPoller(tenant_id=tenant_id, every=every)
+    return MACReportsPoller(tenant_id=tenant_id, every=every)

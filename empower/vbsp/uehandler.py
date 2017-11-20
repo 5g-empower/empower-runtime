@@ -17,6 +17,9 @@
 
 """UEs Handerler."""
 
+import tornado.web
+import tornado.httpserver
+
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.main import RUNTIME
@@ -52,3 +55,57 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
         except ValueError as ex:
             self.send_error(400, message=ex)
         self.set_status(200, None)
+
+    def put(self, *args, **kwargs):
+        """ Set the cell for a given UE.
+
+        Args:
+            imsi: the ue IMSI
+
+        Request:
+            version: the protocol version (1.0)
+
+        Example URLs:
+            PUT /api/v1/ues/111
+        """
+
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid URL")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "vbs" not in request:
+                raise ValueError("missing vbs element")
+
+            if "pci" not in request:
+                raise ValueError("missing pci element")
+
+            imsi = int(args[0])
+            ue = RUNTIME.ues[imsi]
+
+            vbs_addr = EtherAddress(request['vbs'])
+            pci = int(request['pci'])
+
+            vbs = RUNTIME.vbses[vbs_addr]
+
+            target = None
+            for cell in vbs.cells:
+                if cell.pci == pci:
+                    target = cell
+
+            if not target:
+                raise KeyError("Cell %s/%u not found", vbs_addr, pci)
+
+            ue.cell = target
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(204, None)

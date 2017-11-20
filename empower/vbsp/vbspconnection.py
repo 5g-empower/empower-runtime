@@ -28,7 +28,6 @@ from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
 from empower.core.radioport import RadioPort
-from empower.vbsp import LENGTH
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
 from empower.vbsp import PT_BYE
@@ -45,19 +44,21 @@ from empower.vbsp import EP_ACT_ECAP
 from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
+from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
+from empower.vbsp import EP_OPERATION_SUCCESS
+from empower.vbsp import EP_ACT_HANDOVER
 from empower.core.utils import hex_to_ether
 from empower.core.utils import ether_to_hex
-from empower.core.utils import rnti_to_ue_id
+from empower.core.utils import get_xid
 from empower.core.vbs import Cell
 from empower.core.ue import UE
 
 from empower.main import RUNTIME
 
 import empower.logger
-LOG = empower.logger.get_logger()
 
 
 class VBSPConnection:
@@ -88,6 +89,7 @@ class VBSPConnection:
                                                           self._hb_interval_ms)
         self._hb_worker.start()
         self._wait()
+        self.log = empower.logger.get_logger()
 
     def to_dict(self):
         """Return dict representation of object."""
@@ -100,7 +102,8 @@ class VBSPConnection:
         if self.vbs and not self.stream.closed():
             timeout = (self.vbs.period / 1000) * 3
             if (self.vbs.last_seen_ts + timeout) < time.time():
-                LOG.info('Client inactive %s at %r', self.vbs.addr, self.addr)
+                self.log.info('Client inactive %s at %r', self.vbs.addr,
+                              self.addr)
                 self.stream.close()
 
     def _on_read(self, line):
@@ -109,20 +112,18 @@ class VBSPConnection:
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        # if buffer is empty then read message length
-        if len(self.__buffer) == 0:
-            self.__buffer = line
-            hdr = LENGTH.parse(self.__buffer)
-            self.stream.read_bytes(hdr.length, self._on_read)
-            return
-
-        self.__buffer = line
+        self.__buffer = self.__buffer + line
         hdr = HEADER.parse(self.__buffer)
+
+        if len(self.__buffer) < hdr.length:
+            remaining = hdr.length - len(self.__buffer)
+            self.stream.read_bytes(remaining, self._on_read)
+            return
 
         try:
             self._trigger_message(hdr)
         except Exception as ex:
-            LOG.exception(ex)
+            self.log.exception(ex)
             self.stream.close()
 
         if not self.stream.closed():
@@ -140,19 +141,19 @@ class VBSPConnection:
             event = E_TRIG.parse(self.__buffer[HEADER.sizeof():])
             offset = HEADER.sizeof() + E_TRIG.sizeof()
         else:
-            LOG.error("Unknown message event %u", hdr.type)
+            self.log.error("Unknown event %u", hdr.type)
             return
 
         msg_type = event.action
 
         if msg_type not in self.server.pt_types:
-            LOG.error("Unknown message type %u", msg_type)
+            self.log.error("Unknown message type %u", msg_type)
             return
 
         if self.server.pt_types[msg_type]:
 
-            LOG.info("Got message type %u (%s)", msg_type,
-                     self.server.pt_types[msg_type].name)
+            self.log.info("Got message type %u (%s)", msg_type,
+                          self.server.pt_types[msg_type].name)
 
             msg = self.server.pt_types[msg_type].parse(self.__buffer[offset:])
             addr = hex_to_ether(hdr.enbid)
@@ -160,13 +161,16 @@ class VBSPConnection:
             try:
                 vbs = RUNTIME.vbses[addr]
             except KeyError:
-                LOG.error("Unknown VBS (%s), closing connection", addr)
+                self.log.error("Unknown VBS %s, closing connection", addr)
                 self.stream.close()
                 return
 
-            handler_name = "_handle_%s" % self.server.pt_types[msg_type].name
+            name = self.server.pt_types[msg_type].name
+            handler_name = "_handle_%s" % name
 
             if hasattr(self, handler_name):
+                self.log.info("%s from %s VBS %s seq %u",
+                              name, self.addr[0], vbs.addr, hdr.seq)
                 handler = getattr(self, handler_name)
                 handler(vbs, hdr, event, msg)
 
@@ -178,7 +182,7 @@ class VBSPConnection:
         """ Wait for incoming packets on signalling channel """
 
         self.__buffer = b''
-        self.stream.read_bytes(4, self._on_read)
+        self.stream.read_bytes(HEADER.sizeof(), self._on_read)
 
     def _on_disconnect(self):
         """ Handle VBS disconnection """
@@ -186,12 +190,11 @@ class VBSPConnection:
         if not self.vbs:
             return
 
-        LOG.info("VBS disconnected: %s", self.vbs.addr)
+        self.log.info("VBS disconnected: %s", self.vbs.addr)
 
         # remove hosted UEs
         for imsi in list(RUNTIME.ues.keys()):
-            ue = RUNTIME.ues[imsi]
-            RUNTIME.remove_ue(ue.imsi)
+            RUNTIME.remove_ue(imsi)
 
         # reset state
         self.vbs.set_disconnected()
@@ -213,6 +216,19 @@ class VBSPConnection:
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.vbs)
 
+    def send_message(self, msg, parser):
+        """Send message and set common parameters."""
+
+        msg.version = PT_VERSION
+        msg.enbid = self.vbs.enb_id
+        msg.seq = self.vbs.seq
+
+        self.log.info("Sending %s to %s", parser.name, self.vbs)
+
+        self.stream.write(parser.build(msg))
+
+        return msg.modid
+
     def _handle_hello(self, vbs, hdr, event, hello):
         """Handle an incoming HELLO message.
         Args:
@@ -220,9 +236,6 @@ class VBSPConnection:
         Returns:
             None
         """
-
-        LOG.info("Hello from %s VBS %s seq %u", self.addr[0], vbs.addr,
-                 hdr.seq)
 
         # New connection
         if not vbs.connection:
@@ -237,14 +250,14 @@ class VBSPConnection:
             vbs.set_connected()
 
             # send caps request
-            self.send_caps_request(vbs)
+            self.send_caps_request()
 
         # Update WTP params
         vbs.period = event.interval
         vbs.last_seen = hdr.seq
         vbs.last_seen_ts = time.time()
 
-    def send_caps_request(self, vbs):
+    def send_caps_request(self):
         """Send a CAPS_REQUEST message.
         Args:
             vbs: an VBS object
@@ -254,22 +267,16 @@ class VBSPConnection:
             TypeError: if vap is not an VAP object
         """
 
-        caps_request = Container(length=23,
-                                 type=E_TYPE_SINGLE,
-                                 version=PT_VERSION,
-                                 enbid=vbs.enb_id,
+        caps_request = Container(type=E_TYPE_SINGLE,
                                  cellid=0,
-                                 modid=0,
-                                 seq=self.vbs.seq,
+                                 modid=get_xid(),
+                                 length=CAPS_REQUEST.sizeof(),
                                  action=EP_ACT_ECAP,
                                  dir=EP_DIR_REQUEST,
                                  op=EP_OPERATION_UNSPECIFIED,
                                  dummy=0)
 
-        LOG.info("Sending caps request to %s", vbs)
-
-        msg = CAPS_REQUEST.build(caps_request)
-        self.stream.write(msg)
+        self.send_message(caps_request, CAPS_REQUEST)
 
     def _handle_caps_response(self, vbs, hdr, event, caps):
         """Handle an incoming HELLO message.
@@ -278,9 +285,6 @@ class VBSPConnection:
         Returns:
             None
         """
-
-        LOG.info("Caps from %s VBS %s seq %u", self.addr[0], vbs.addr,
-                 hdr.seq)
 
         # clear cells
         vbs.cells = set()
@@ -296,34 +300,28 @@ class VBSPConnection:
 
         # if UE reports are supported then activate them
         if bool(caps.flags.ue_report):
-            self.send_ue_reports_request(vbs)
+            self.send_ue_reports_request()
 
-    def send_ue_reports_request(self, vbs):
+    def send_ue_reports_request(self):
         """Send a UE Reports message.
         Args:
-            vbs: an VAP object
+            None
         Returns:
             None
         Raises:
             TypeError: if vap is not an VAP object
         """
 
-        ue_report = Container(length=23,
-                              type=E_TYPE_TRIG,
-                              version=PT_VERSION,
-                              enbid=vbs.enb_id,
+        ue_report = Container(type=E_TYPE_TRIG,
                               cellid=0,
-                              modid=0,
-                              seq=self.vbs.seq,
+                              modid=get_xid(),
+                              length=UE_REPORT_REQUEST.sizeof(),
                               action=EP_ACT_UE_REPORT,
                               dir=EP_DIR_REQUEST,
                               op=EP_OPERATION_ADD,
                               dummy=0)
 
-        LOG.info("Sending ue reports request to %s", vbs)
-
-        msg = UE_REPORT_REQUEST.build(ue_report)
-        self.stream.write(msg)
+        self.send_message(ue_report, UE_REPORT_REQUEST)
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -333,22 +331,24 @@ class VBSPConnection:
             None
         """
 
-        LOG.info("UE report from %s VBS %s seq %u", self.addr[0], vbs.addr,
-                 hdr.seq)
-
         ues = {u.imsi: u for u in ue_report.ues}
 
+        # check for new UEs
         for u in ues.values():
+
+            # UE already known
+            if u.imsi in RUNTIME.ues:
+                continue
 
             plmn_id = PLMNID(u.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:
-                LOG.info("Unable to find PLMN id %s", plmn_id)
+                self.log.info("Unable to find PLMN id %s", plmn_id)
                 continue
 
             if vbs.addr not in tenant.vbses:
-                LOG.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
+                self.log.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
             cell = None
@@ -356,24 +356,91 @@ class VBSPConnection:
             for c in vbs.cells:
                 if c.pci == u.pci:
                     cell = c
+                    break
 
             if not cell:
-                LOG.info("PCI %u not found", u.pci)
+                self.log.info("PCI %u not found", u.pci)
                 continue
 
             ue = UE(u.imsi, u.rnti, cell, plmn_id, tenant)
-
-            new_ue = False
-
-            if u.imsi not in RUNTIME.ues:
-                new_ue = True
+            ue.set_active()
 
             RUNTIME.ues[u.imsi] = ue
             tenant.ues[u.imsi] = ue
 
-            if new_ue:
-                self.server.send_ue_join_message_to_self(ue)
+            self.server.send_ue_join_message_to_self(ue)
 
-        for ue in RUNTIME.ues.values():
-            if ue.imsi not in ues:
-                self.server.send_ue_leave_message_to_self(ue)
+        # check for leaving UEs
+        for imsi in list(RUNTIME.ues.keys()):
+            if RUNTIME.ues[imsi].vbs != vbs:
+                continue
+            if imsi not in ues:
+                RUNTIME.remove_ue(imsi)
+
+    def send_ue_ho_request(self, ue, cell):
+        """Send a UE_HO_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        ue_ho_request = Container(type=E_TYPE_SINGLE,
+                                  cellid=ue.cell.pci,
+                                  modid=get_xid(),
+                                  length=UE_HO_REQUEST.sizeof(),
+                                  action=EP_ACT_HANDOVER,
+                                  dir=EP_DIR_REQUEST,
+                                  op=EP_OPERATION_UNSPECIFIED,
+                                  rnti=ue.rnti,
+                                  target_enb=cell.vbs.enb_id,
+                                  target_pci=cell.pci,
+                                  cause=1)
+
+        modid = self.send_message(ue_ho_request, UE_HO_REQUEST)
+
+        self.server.pending[ue_ho_request.modid] = ue
+
+    def _handle_ue_ho_response(self, vbs, hdr, event, ho):
+        """Handle an incoming UE_HO_RESPONSE message.
+        Args:
+            ho, a UE_HO_RESPONSE message
+        Returns:
+            None
+        """
+
+        modid = None
+
+        if hdr.modid in self.server.pending:
+            # modid found
+            modid = hdr.modid
+        else:
+            # if modid is not present then try to look up by rnti
+            for i in self.server.pending:
+                if self.server.pending[i].rnti == ho.rnti:
+                    modid = i
+                    break
+
+        if not modid:
+            self.log.error("Invalid modid %u", modid)
+            return
+
+        ue = self.server.pending[modid]
+
+        if event.op == EP_OPERATION_SUCCESS:
+
+            # UE was removed from source eNB
+            if ue.is_ho_in_progress_removing():
+                ue.set_ho_in_progress_adding()
+                return
+
+            # UE was added to target eNB
+            if ue.is_ho_in_progress_adding():
+                ue.set_active()
+                return
+
+        self.log.error("Error while performing handover")
+        del self.server.pending[modid]
+        RUNTIME.remove_ue(ue.imsi)

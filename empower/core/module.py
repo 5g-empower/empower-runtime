@@ -503,12 +503,6 @@ class ModuleWorker(Service):
         self.__module_id += 1
         return self.__module_id
 
-    @module_id.setter
-    def module_id(self, value):
-        """Set the module id."""
-
-        self.__module_id = value
-
     def add_module(self, **kwargs):
         """Add a new module."""
 

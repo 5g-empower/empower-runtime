@@ -36,6 +36,12 @@ class Cell:
         self.UL_earfcn = UL_earfcn
         self.UL_prbs = UL_prbs
 
+    def __str__(self):
+        """Return string representation."""
+
+        return "vbs %s eND id %u cell %u" % (self.vbs.addr, self.vbs.enb_id,
+                                             self.pci)
+
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 

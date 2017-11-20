@@ -17,23 +17,15 @@
 
 """EmPOWER utils."""
 
+import random
+
 from empower.datatypes.etheraddress import EtherAddress
 
 
-def rnti_to_ue_id(rnti, enb_id):
-    """Create an UE id starting from tne eNB id
+def get_xid():
+    """Return randon 32bits integers to be used as mod_id."""
 
-    The UE id is represented as an ethernet address with the first two bytes
-    set to null, the third and the fourth bytes are the enb_id while the last
-    two bytes are the rnti
-    """
-
-    rnti_tuple = hex_to_ether(rnti).to_str().split(":")
-    enb_id_tuple = hex_to_ether(enb_id).to_str().split(":")
-    x = ("0", "0", rnti_tuple[4], rnti_tuple[5],
-         enb_id_tuple[4], enb_id_tuple[5])
-
-    return EtherAddress(":".join(x))
+    return random.getrandbits(32)
 
 
 def hex_to_ether(in_hex):

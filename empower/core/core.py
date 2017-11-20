@@ -17,6 +17,7 @@
 
 """EmPOWER Runtime."""
 
+import random
 import socket
 import fcntl
 import struct
