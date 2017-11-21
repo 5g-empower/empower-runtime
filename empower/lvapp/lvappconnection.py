@@ -54,6 +54,7 @@ from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQ
 from empower.lvapp import PT_VAP_STATUS_REQ
 from empower.lvapp import PT_PORT_STATUS_REQ
+from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQ
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -804,7 +805,15 @@ class LVAPPConnection:
             None
         """
 
-        pass
+        traffic_rule_request = Container(version=PT_VERSION,
+                                         type=PT_TRAFFIC_RULE_STATUS_REQ,
+                                         length=10,
+                                         seq=self.wtp.seq)
+
+        LOG.info("Sending traffic rule status request to %s", self.wtp.addr)
+
+        msg = VAP_STATUS_REQUEST.build(traffic_rule_request)
+        self.stream.write(msg)
 
     def send_traffic_rules(self):
         """Send a ADD_TRAFFIC_RULE message.
@@ -818,7 +827,7 @@ class LVAPPConnection:
 
         pass
 
-    def handle_status_traffic_rule(self, status):
+    def _handle_status_traffic_rule(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE message.
         Args:
             status, a STATUS_TRAFFIC_RULE message
@@ -826,7 +835,33 @@ class LVAPPConnection:
             None
         """
 
-        pass
+        if not wtp.connection:
+            LOG.info("Traffic rule status from disconnected WTP %s", wtp.addr)
+            return
+
+        priority = status.priority
+        parent_priority = status.parent_priority
+        aggregation_flags = status.aggregation_flags
+        dscp = status.dscp
+        ssid = SSID(status.ssid)
+
+        tenant = RUNTIME.load_tenant(ssid)
+
+        if not tenant:
+            LOG.info("Traffic rule %s from unknown tenant %s",
+                     net_bssid_addr, ssid)
+            return
+
+        incoming = ResourceBlock(wtp,
+                                 EtherAddress(status.hwaddr),
+                                 status.channel,
+                                 status.band)
+
+        LOG.info("Traffic status update from %s (%s:%u)", incoming, ssid, dscp)
+
+        tr = None
+
+        LOG.info("Traffic rule status %s", tr)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.

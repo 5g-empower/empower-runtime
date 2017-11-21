@@ -1284,6 +1284,48 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
 
+class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
+    """Tenat traffic rule handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9-]*)/?"]
+
+    def get(self, *args, **kwargs):
+        """List traffic rules.
+
+        Args:
+            tenant_id: network name of a tenant
+            traffic_rule: the traffic rule
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
+              EmPOWER:0
+
+        """
+
+        try:
+
+            if len(args) < 1 or len(args) > 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = uuid.UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+            lvaps = tenant.lvaps
+
+            if len(args) == 1:
+                self.write_as_json(lvaps.values())
+            else:
+                traffic_rule = args[1]
+                self.write_as_json(lvaps[lvap])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+
 class RESTServer(Service, tornado.web.Application):
     """Exposes the REST API."""
 
