@@ -298,12 +298,11 @@ ADD_TRAFFIC_RULE = Struct("add_traffic_rule", UBInt8("version"),
                           UBInt8("type"),
                           UBInt32("length"),
                           UBInt32("seq"),
-                          BitStruct("aggregation_flags", Padding(15),
+                          BitStruct("flags", Padding(15),
                                     Bit("amsdu_aggregation")),
-                          UBInt16("priority"),
-                          UBInt16("parent_priority"),
+                          UBInt16("quantum"),
                           UBInt8("dscp"),
-                          Bytes("ssid", lambda ctx: ctx.length - 17))
+                          Bytes("ssid", lambda ctx: ctx.length - 15))
 
 STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
                              UBInt8("type"),
@@ -313,12 +312,11 @@ STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
                              Bytes("hwaddr", 6),
                              UBInt8("channel"),
                              UBInt8("band"),
-                             BitStruct("aggregation_flags", Padding(15),
+                             BitStruct("flags", Padding(15),
                                        Bit("amsdu_aggregation")),
-                             UBInt16("priority"),
-                             UBInt16("parent_priority"),
+                             UBInt16("quantum"),
                              UBInt8("dscp"),
-                             Bytes("ssid", lambda ctx: ctx.length - 31))
+                             Bytes("ssid", lambda ctx: ctx.length - 30))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,

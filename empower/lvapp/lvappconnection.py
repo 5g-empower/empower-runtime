@@ -815,18 +815,6 @@ class LVAPPConnection:
         msg = VAP_STATUS_REQUEST.build(traffic_rule_request)
         self.stream.write(msg)
 
-    def send_traffic_rules(self):
-        """Send a ADD_TRAFFIC_RULE message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
-
-        pass
-
     def _handle_status_traffic_rule(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE message.
         Args:

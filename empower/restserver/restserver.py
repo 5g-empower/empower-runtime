@@ -30,6 +30,7 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
+from empower.core.trafficrule import TrafficRule
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
@@ -1287,8 +1288,8 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9-]*)/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/([a-zA-Z0-9_=,]*)/?"]
 
     def get(self, *args, **kwargs):
         """List traffic rules.
@@ -1299,9 +1300,9 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
         Example URLs:
 
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
-              EmPOWER:0
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
+              tp_dst=8080,nw_proto=0x0800
 
         """
 
@@ -1310,7 +1311,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             if len(args) < 1 or len(args) > 2:
                 raise ValueError("Invalid url")
 
-            tenant_id = uuid.UUID(args[0])
+            tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
             traffic_rules = tenant.traffic_rules
 
@@ -1318,12 +1319,99 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
                 self.write_as_json(traffic_rules.values())
             else:
                 traffic_rule = args[1]
-                self.write_as_json(lvaps[lvap])
+                self.write_as_json(traffic_rules[args[1]])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
+
+    def post(self, *args, **kwargs):
+        """Add traffic rule.
+
+        Args:
+            tenant_id: network name of a tenant
+            traffic_rule: the traffic rule
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            {
+                "version" : 1.0,
+                "match" : "tp_dst=8080,nw_proto=0x0800"
+                "trq" : {
+                    "aggregation" : true,
+                    "quantum" : 1500
+                }
+            }
+
+        """
+
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "match" not in request:
+                raise ValueError("missing match element")
+
+            if "trq" not in request:
+                raise ValueError("missing trq element")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            match = request["match"]
+            trq = request["trq"]
+
+            if match in tenant.traffic_rules:
+                raise ValueError("entry %s already defined", match)
+
+            tenant.traffic_rules[match] = TrafficRule(tenant, match, **trq)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """Delete traffic rules.
+
+        Args:
+            tenant_id: network name of a tenant
+            traffic_rule: the traffic rule
+
+        Example URLs:
+
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
+              tp_dst=8080,nw_proto=0x0800
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+            match = args[1]
+
+            del tenant.traffic_rules[match]
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
 
 
 class RESTServer(Service, tornado.web.Application):
@@ -1363,7 +1451,8 @@ class RESTServer(Service, tornado.web.Application):
                            ManageTenantHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
                            PendingTenantHandler, TenantHandler,
-                           AllowHandler, DenyHandler, IMSI2MACHandler]
+                           AllowHandler, DenyHandler, IMSI2MACHandler,
+                           TenantTrafficRuleHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

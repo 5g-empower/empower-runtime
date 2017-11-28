@@ -207,4 +207,4 @@ def launch():
     """ Initialize the module. """
 
     return WiFiStatsWorker(WiFiStats, PT_WIFI_STATS_RESPONSE,
-                           WIFI_STSTS_RESPONSE)
+                           WIFI_STATS_RESPONSE)
