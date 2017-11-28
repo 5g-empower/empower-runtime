@@ -1312,10 +1312,10 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
-            lvaps = tenant.lvaps
+            traffic_rules = tenant.traffic_rules
 
             if len(args) == 1:
-                self.write_as_json(lvaps.values())
+                self.write_as_json(traffic_rules.values())
             else:
                 traffic_rule = args[1]
                 self.write_as_json(lvaps[lvap])
