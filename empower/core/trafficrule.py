@@ -114,7 +114,7 @@ class TrafficRule(object):
         return self._quantum
 
     @quantum.setter
-    def priority(self, quantum):
+    def quantum(self, quantum):
         """ Set quantum . """
 
         self._quantum = int(quantum)

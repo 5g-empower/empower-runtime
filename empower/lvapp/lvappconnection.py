@@ -57,6 +57,8 @@ from empower.lvapp import PT_LVAP_STATUS_REQ
 from empower.lvapp import PT_VAP_STATUS_REQ
 from empower.lvapp import PT_PORT_STATUS_REQ
 from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQ
+from empower.lvapp import PT_ADD_TRAFFIC_RULE
+from empower.lvapp import ADD_TRAFFIC_RULE
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -794,9 +796,6 @@ class LVAPPConnection:
         # send vaps
         self.send_vaps()
 
-        # send vaps
-        #self.send_traffic_rules()
-
     def send_add_traffic_rule(self, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
@@ -811,7 +810,7 @@ class LVAPPConnection:
                            type=PT_ADD_TRAFFIC_RULE,
                            length=17,
                            seq=self.wtp.seq,
-                           aggregation_flags=flags,
+                           flags=flags,
                            quantum=traffic_rule.quantum,
                            dscp=traffic_rule.dscp,
                            ssid=traffic_rule.tenant.tenant_name.to_raw())
@@ -887,10 +886,13 @@ class LVAPPConnection:
 
         if dscp != 0:
             LOG.error("Invalid dscp received: %u", dscp)
+            return
 
         # creating the default traffic rule
+        match = ""
+
         tr = TrafficRule(tenant=tenant,
-                         match="",
+                         match=match,
                          dscp=dscp,
                          quantum=quantum,
                          amsdu_aggregation=aggregation_flags)
