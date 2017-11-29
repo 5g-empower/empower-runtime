@@ -26,9 +26,8 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
-from empower.core.trafficrule import TrafficRule
-from empower.core.trafficrule import DSCPS
 from empower.core.radioport import RadioPort
+from empower.core.trafficrule import TrafficRule
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -63,9 +62,6 @@ from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
 from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
-from empower.lvapp import PT_ADD_TRAFFIC_RULE
-from empower.lvapp import ADD_TRAFFIC_RULE
-from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQUEST
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
@@ -626,7 +622,7 @@ class LVAPPConnection:
 
         LOG.info("LVAP status %s", ''.join(accum))
 
-        # If the LVAP does not exist, then create a new one
+        # If the LVAP does not exists, then create a new one
         if sta not in RUNTIME.lvaps:
 
             net_bssid_addr = EtherAddress(status.net_bssid)
@@ -754,7 +750,6 @@ class LVAPPConnection:
 
         LOG.info("Port status %s", tx_policy)
 
-
     def _handle_caps(self, wtp, caps):
         """Handle an incoming CAPS message.
         Args:
@@ -800,7 +795,7 @@ class LVAPPConnection:
         self.send_vaps()
 
         # send vaps
-        self.send_traffic_rules()
+        #self.send_traffic_rules()
 
     def send_add_traffic_rule(self, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
@@ -831,8 +826,10 @@ class LVAPPConnection:
     def send_traffic_rule_status_request(self):
         """Send a TRAFFIC_RULE_REQUEST message.
         Args:
-            traffic_rule: a Traffic Rule object
+            None
         Returns:
+            None
+        Raises:
             None
         """
 
@@ -859,7 +856,7 @@ class LVAPPConnection:
             return
 
         quantum = status.quantum
-        aggregation_flags = status.aggregation_flags
+        aggregation_flags = status.flags
         dscp = status.dscp
         ssid = SSID(status.ssid)
 
@@ -1008,7 +1005,7 @@ class LVAPPConnection:
 
         LOG.info("VAP status update from %s", net_bssid_addr)
 
-        # If the VAP does not exist, then create a new one
+        # If the VAP does not exists, then create a new one
         if net_bssid_addr not in tenant.vaps:
             vap = VAP(net_bssid_addr, incoming, wtp, tenant)
             tenant.vaps[net_bssid_addr] = vap
