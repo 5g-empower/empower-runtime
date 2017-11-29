@@ -47,7 +47,6 @@ REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
                     TX_MCAST_DMS_H: TX_MCAST_DMS,
                     TX_MCAST_UR_H: TX_MCAST_UR}
 
-
 class TxPolicyProp(dict):
     """Override getitem behaviour by a default TxPolicy."""
 
@@ -71,7 +70,7 @@ class TxPolicy:
     control algorithm to select the actual transmission rate.
 
     Attributes:
-        block: the actuall block to which this tx policy refers to
+        block: the actual block to which this tx policy refers to
         hwaddr: the mac address of the wireless interface
         channel: The channel id
         band: The band type (0=L20, 1=HT20)
