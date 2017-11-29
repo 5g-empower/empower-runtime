@@ -78,7 +78,7 @@ class TrafficRule(object):
         quantum: the quantum to be assigned to this queue at each round
     """
     def __init__(self, tenant, match, dscp=0, quantum=1500,
-                 amsdu_aggregation=True):
+                 amsdu_aggregation=False):
 
         self.tenant = tenant
         self.dscp = dscp
@@ -125,7 +125,8 @@ class TrafficRule(object):
 
     def __repr__(self):
 
-        return "tenant_id %s dscp %u" % (self.tenant.tenant_id, self.dscp)
+        return "%s -> (dscp %u, quantum %u)" % \
+            (self.match, self.dscp, self.quantum)
 
 
 class TrafficRuleProp(dict):

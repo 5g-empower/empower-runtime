@@ -206,6 +206,12 @@ CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
                       UBInt32("length"),
                       UBInt32("seq"))
 
+TRAFFIC_RULE_STATUS_REQUEST = Struct("traffic_rule_status_request",
+                                     UBInt8("version"),
+                                     UBInt8("type"),
+                                     UBInt32("length"),
+                                     UBInt32("seq"))
+
 LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt8("type"),
                              UBInt32("length"),
