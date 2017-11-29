@@ -796,6 +796,32 @@ class LVAPPConnection:
         # send vaps
         self.send_traffic_rules()
 
+    def send_add_traffic_rule(self, traffic_rule):
+        """Send an ADD_TRAFFIC_RULE message.
+        Args:
+            traffic_rule: a Traffic Rule object
+        Returns:
+            None
+        """
+
+        flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
+
+        add_tr = Container(version=PT_VERSION,
+                           type=PT_ADD_TRAFFIC_RULE,
+                           length=17,
+                           seq=self.wtp.seq,
+                           aggregation_flags=flags,
+                           quantum=traffic_rule.quantum,
+                           dscp=traffic_rule.dscp,
+                           ssid=traffic_rule.tenant.tenant_name.to_raw())
+
+        add_tr.length = add_tr.length + len(traffic_rule.tenant.tenant_name)
+
+        LOG.info("Added traffic rule: %s", traffic_rule)
+
+        msg = ADD_TRAFFIC_RULE.build(add_tr)
+        self.stream.write(msg)
+
     def send_traffic_rule_status_request(self):
         """Send a TRAFFIC_RULE_REQUEST message.
         Args:

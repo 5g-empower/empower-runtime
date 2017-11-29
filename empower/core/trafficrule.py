@@ -81,8 +81,8 @@ class TrafficRule(object):
                  amsdu_aggregation=False):
 
         self.tenant = tenant
-        self.dscp = dscp
         self.match = match
+        self.dscp = dscp
         self._quantum = quantum
         self._amsdu_aggregation = amsdu_aggregation
 
