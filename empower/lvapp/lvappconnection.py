@@ -793,9 +793,6 @@ class LVAPPConnection:
         # send vaps
         self.send_vaps()
 
-        # send vaps
-        self.send_traffic_rules()
-
     def send_add_traffic_rule(self, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
@@ -886,10 +883,13 @@ class LVAPPConnection:
 
         if dscp != 0:
             LOG.error("Invalid dscp received: %u", dscp)
+            return
 
         # creating the default traffic rule
+        match = ""
+
         tr = TrafficRule(tenant=tenant,
-                         match="",
+                         match=match,
                          dscp=dscp,
                          quantum=quantum,
                          amsdu_aggregation=aggregation_flags)
