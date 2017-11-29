@@ -18,6 +18,7 @@
 
 """EmPOWER Runtime Tenant Class."""
 
+from empower.core.trafficrule import TrafficRuleProp
 from empower.persistence.persistence import TblBelongs
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
@@ -74,7 +75,7 @@ class Tenant:
         self.lvnfs = {}
         self.vaps = {}
         self.components = {}
-        self.traffic_rules = {}
+        self.traffic_rules = TrafficRuleProp()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """

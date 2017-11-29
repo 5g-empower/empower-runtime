@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio, Estefania Coronado
+# Copyright (c) 2017 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,151 +15,195 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""EmPOWER Traffic Rule."""
+"""Traffic rule."""
 
 
-# DSCPS = [0x08, 0x16, 0x00, 0x24, 0x32, 0x40, 0x48, 0x56]
-DSCPS = [0x00]
+from empower.datatypes.etheraddress import EtherAddress
+
+
+def ofmatch_d2s(key):
+    """Convert an OFMatch from dictionary to string."""
+
+    match = ",".join(["%s=%s" % x for x in sorted(key.items())])
+    return match
+
+
+def ofmatch_s2d(match):
+    """Convert an OFMatch from string to dictionary."""
+
+    key = {}
+
+    if match == "":
+        return key
+
+    for token in match.split(","):
+        key_t, value_t = token.split("=")
+
+        if key_t == 'dl_vlan':
+            value_t = int(value_t)
+
+        if key_t == 'dl_type':
+            value_t = int(value_t, 16)
+
+        if key_t == 'in_port':
+            value_t = int(value_t)
+
+        if key_t == 'nw_proto':
+            value_t = int(value_t)
+
+        if key_t == 'tp_dst':
+            value_t = int(value_t)
+
+        if key_t == 'tp_src':
+            value_t = int(value_t)
+
+        key[key_t] = value_t
+
+    return key
+
 
 class TrafficRule(object):
-    """ EmPOWER traffic rule.
+    """EmPOWER traffic rule.
 
-    It defines the management rules for a traffyc type to be considered for
-    the queues management in the WTPs
+    A traffic rule is essentially a queue that is dynamically created at a
+    certain WTP in order to collect a portion of the flowspace belonging to a
+    given tenant. For example, a tenant can decide to create a default traffic
+    rule plus a traffic rule for all the HTTP packets (tp_dst=80)
 
     Attributes:
         dscp: the traffic label
         tenant: the tenant
         amsdu_aggregation: indicates if the traffic of this queue is going to
           be aggregated in A-MSDUs according to 802.11n settings
-        ampdu_aggregation: indicates if the traffic of this queue is going to
-          be aggregated in A-MPDUs according to 802.11n settings
-        priority: the priority of the traffic rule
-        parent_priority: the overal tenant priority
+        quantum: the quantum to be assigned to this queue at each round
     """
-    def __init__(self, tenant, dscp=0, priority=100, parent_priority=100,
-                 amsdu_aggregation=False, ampdu_aggregation=False, deadline_discard=False):
+    def __init__(self, tenant, match, dscp=0, quantum=1500,
+                 amsdu_aggregation=False):
 
-        self._tenant = tenant
+        self.tenant = tenant
+        self.match = match
+        self.dscp = dscp
+        self._quantum = quantum
         self._amsdu_aggregation = amsdu_aggregation
-        self._ampdu_aggregation = ampdu_aggregation
-        self._deadline_discard = deadline_discard
-        self._priority = priority
-        self._parent_priority = parent_priority
-        self._dscp = dscp
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
 
         return {'dscp': self.dscp,
+                'match': self.match,
                 'tenant': self.tenant,
                 'amsdu_aggregation': self.amsdu_aggregation,
-                'ampdu_aggregation': self.ampdu_aggregation,
-                'deadline_discard': self.deadline_discard,
-                'priority': self.priority,
-                'parent_priority': self.parent_priority}
+                'quantum': self.quantum}
 
     @property
     def amsdu_aggregation(self):
-        """ Get amsdu_aggregation . """
+        """ Get amsdu_aggregation. """
 
         return self._amsdu_aggregation
 
     @amsdu_aggregation.setter
     def amsdu_aggregation(self, amsdu_aggregation):
-        """ Set amsdu_aggregation . """
+        """ Set amsdu_aggregation. """
 
         self._amsdu_aggregation = bool(amsdu_aggregation)
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
-
     @property
-    def ampdu_aggregation(self):
-        """ Get ampdu_aggregation . """
+    def quantum(self):
+        """ Get quantum . """
 
-        return self._ampdu_aggregation
+        return self._quantum
 
-    @ampdu_aggregation.setter
-    def ampdu_aggregation(self, ampdu_aggregation):
-        """ Set ampdu_aggregation . """
+    @quantum.setter
+    def priority(self, quantum):
+        """ Set quantum . """
 
-        self._ampdu_aggregation = bool(ampdu_aggregation)
+        self._quantum = int(quantum)
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+    def __eq__(self, other):
 
-    @property
-    def deadline_discard(self):
-        """ Get deadline_discard . """
+        return (other.tenant == self.tenant and other.dscp == self.dscp)
 
-        return self._deadline_discard
+    def __repr__(self):
 
-    @deadline_discard.setter
-    def deadline_discard(self, deadline_discard):
-        """ Set deadline_discard . """
+        return "%s -> (dscp %u, quantum %u)" % \
+            (self.match, self.dscp, self.quantum)
 
-        self._deadline_discard = bool(deadline_discard)
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+class TrafficRuleProp(dict):
+    """Maps Flows to TrafficRules."""
 
-    @property
-    def priority(self):
-        """ Get priority . """
+    def __init__(self):
+        super(TrafficRuleProp, self).__init__()
+        self.__uuids__ = {}
 
-        return self._priority
+    def __delitem__(self, key):
+        """Clear traffic rule configuration."""
 
-    @priority.setter
-    def priority(self, priority):
-        """ Set priority . """
+        value = self.__getitem__(key)
 
-        self._priority = int(priority)
+        # remove queues
+        from empower.main import RUNTIME
+        from empower.intentserver.intentserver import IntentServer
+        intent_server = RUNTIME.components[IntentServer.__module__]
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
 
-    @property
-    def parent_priority(self):
-        """ Get parent_priority . """
+        for wtp in wtps:
 
-        return self._parent_priority
+            if not wtp.is_online():
+                continue
 
-    @parent_priority.setter
-    def parent_priority(self, parent_priority):
-        """ Set parent_priority . """
+            # delete queue on wtp
+            wtp.connection.send_del_traffic_rule(value)
 
-        self._parent_priority = int(parent_priority)
+        # remove traffic rules
+        if key in self.__uuids__:
+            for uuid in self.__uuids__[key]:
+                intent_server.remove_traffic_rule(uuid)
+            del self.__uuids__[key]
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+        # remove old entry
+        dict.__delitem__(self, key)
 
-    @property
-    def dscp(self):
-        """ Get dscp . """
+    def __setitem__(self, key, value):
+        """Set traffic rule configuration."""
 
-        return self._dscp
+        if value and not isinstance(value, TrafficRule):
+            raise KeyError("Expected TrafficRule, got %s" % type(key))
 
-    @dscp.setter
-    def dscp(self, dscp):
-        """ Set dscp . """
+        # remove traffic rule
+        if self.__contains__(key):
+            self.__delitem__(key)
 
-        self._dscp = int(dscp)
+        self.__uuids__[key] = []
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+        from empower.main import RUNTIME
+        from empower.intentserver.intentserver import IntentServer
+        intent_server = RUNTIME.components[IntentServer.__module__]
 
-    @property
-    def tenant(self):
-        """ Get tenant name . """
+        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
 
-        return self._tenant
+        for wtp in wtps:
 
-    @tenant.setter
-    def tenant(self, tenant):
-        """ Set tenant name . """
+            if not wtp.is_online():
+                continue
 
-        self._tenant = tenant
+            # get network port
+            port = wtp.port()
 
-        # Loop over the wtps of this tenant and send the message
-        # self.block.radio.connection.send_set_port(self)
+            # set/update traffic rule
+            intent = {'version': '1.0',
+                      'dpid': port.dpid,
+                      'port': port.port_id,
+                      'dscp': value.dscp,
+                      'match': ofmatch_s2d(key)}
+
+            # add new virtual link
+            uuid = intent_server.add_traffic_rule(intent)
+            self.__uuids__[key].append(uuid)
+
+            # create queue on wtp
+            wtp.connection.send_add_traffic_rule(value)
+
+        # add entry
+        dict.__setitem__(self, key, value)

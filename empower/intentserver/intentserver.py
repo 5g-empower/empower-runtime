@@ -51,6 +51,7 @@ class IntentServer(Service, tornado.web.Application):
         self.intent_port = 8080
         self.intent_url_rules = "/intent/rules"
         self.intent_url_poa = "/intent/poa"
+        self.intent_url_traffic_rules = "/intent/trs"
 
         handlers = []
         for handler in self.handlers:
@@ -125,6 +126,11 @@ class IntentServer(Service, tornado.web.Application):
 
         return None
 
+    def add_traffic_rule(self, intent):
+        return self.__send_intent(method="POST",
+                                  url=self.intent_url_traffic_rules,
+                                  intent=intent)
+
     def add_rule(self, intent):
         return self.__send_intent(method="POST",
                                   url=self.intent_url_rules,
@@ -162,6 +168,9 @@ class IntentServer(Service, tornado.web.Application):
 
     def remove_poa(self, uuid=None):
         self.__remove_intent(self.intent_url_poa, uuid)
+
+    def remove_traffic_rule(self, uuid=None):
+        self.__remove_intent(self.intent_url_traffic_rule, uuid)
 
     def to_dict(self):
         """Return a dict representation of the object."""

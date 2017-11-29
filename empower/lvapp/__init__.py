@@ -58,8 +58,8 @@ PT_DEL_LVAP_RESPONSE = 0x52
 PT_LVAP_STATUS_REQ = 0x53
 PT_VAP_STATUS_REQ = 0x54
 PT_PORT_STATUS_REQ = 0x55
-PT_ADD_TRAFFIC_RULE = 0x56
-PT_TRAFFIC_RULE_STATUS_REQUEST = 0x57
+PT_TRAFFIC_RULE_STATUS_REQ = 0x56
+PT_ADD_TRAFFIC_RULE = 0x57
 PT_STATUS_TRAFFIC_RULE = 0x58
 
 
@@ -206,6 +206,12 @@ CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
                       UBInt32("length"),
                       UBInt32("seq"))
 
+TRAFFIC_RULE_STATUS_REQUEST = Struct("traffic_rule_status_request",
+                                     UBInt8("version"),
+                                     UBInt8("type"),
+                                     UBInt32("length"),
+                                     UBInt32("seq"))
+
 LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt8("type"),
                              UBInt32("length"),
@@ -295,33 +301,28 @@ ADD_DEL_LVAP_RESPONSE = Struct("add_del_lvap", UBInt8("version"),
                                UBInt32("status"))
 
 ADD_TRAFFIC_RULE = Struct("add_traffic_rule", UBInt8("version"),
-                  UBInt8("type"),
-                  UBInt32("length"),
-                  UBInt32("seq"),
-                  BitStruct("aggregation_flags", Padding(13),
-                            Bit("amsdu_aggregation"),
-                            Bit("ampdu_aggregation"),
-                            Bit("deadline_discard")),
-                  UBInt8("priority"),
-                  UBInt8("parent_priority"),
-                  UBInt8("dscp"),
-                  UBInt8("tenant_type"),
-                  Bytes("ssid", lambda ctx: ctx.length - 16))
+                          UBInt8("type"),
+                          UBInt32("length"),
+                          UBInt32("seq"),
+                          BitStruct("flags", Padding(15),
+                                    Bit("amsdu_aggregation")),
+                          UBInt16("quantum"),
+                          UBInt8("dscp"),
+                          Bytes("ssid", lambda ctx: ctx.length - 15))
 
 STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
-                    UBInt8("type"),
-                    UBInt32("length"),
-                    UBInt32("seq"),
-                    Bytes("wtp", 6),
-                    BitStruct("aggregation_flags", Padding(13),
-                            Bit("amsdu_aggregation"),
-                            Bit("ampdu_aggregation"),
-                            Bit("deadline_discard")),
-                    UBInt8("priority"),
-                    UBInt8("parent_priority"),
-                    UBInt8("dscp"),
-                    UBInt8("tenant_type"),
-                    Bytes("ssid", lambda ctx: ctx.length - 22))
+                             UBInt8("type"),
+                             UBInt32("length"),
+                             UBInt32("seq"),
+                             Bytes("wtp", 6),
+                             Bytes("hwaddr", 6),
+                             UBInt8("channel"),
+                             UBInt8("band"),
+                             BitStruct("flags", Padding(15),
+                                       Bit("amsdu_aggregation")),
+                             UBInt16("quantum"),
+                             UBInt8("dscp"),
+                             Bytes("ssid", lambda ctx: ctx.length - 30))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -342,6 +343,7 @@ PT_TYPES = {PT_BYE: None,
             PT_SET_PORT: SET_PORT,
             PT_STATUS_PORT: STATUS_PORT,
             PT_STATUS_VAP: STATUS_VAP,
+            PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE,
@@ -366,6 +368,7 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_SET_PORT: [],
                      PT_STATUS_PORT: [],
                      PT_STATUS_VAP: [],
+                     PT_STATUS_TRAFFIC_RULE: [],
                      PT_ADD_LVAP_RESPONSE: [],
                      PT_DEL_LVAP_RESPONSE: [],
                      PT_ADD_TRAFFIC_RULE: [],
