@@ -71,7 +71,7 @@ class TxPolicy:
     control algorithm to select the actual transmission rate.
 
     Attributes:
-        block: the actuall block to which this tx policy refers to
+        block: the actual block to which this tx policy refers to
         hwaddr: the mac address of the wireless interface
         channel: The channel id
         band: The band type (0=L20, 1=HT20)

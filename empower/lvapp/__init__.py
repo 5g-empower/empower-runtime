@@ -320,9 +320,13 @@ STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
                              UBInt8("band"),
                              BitStruct("flags", Padding(15),
                                        Bit("amsdu_aggregation")),
-                             UBInt16("quantum"),
+                             UBInt32("quantum"),
                              UBInt8("dscp"),
-                             Bytes("ssid", lambda ctx: ctx.length - 30))
+                             UBInt32("deficit_used"),
+                             UBInt32("transm_pkts"),
+                             UBInt32("transm_bytes"),
+                             UBInt32("max_queue_length"),
+                             Bytes("ssid", lambda ctx: ctx.length - 47))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -345,7 +349,8 @@ PT_TYPES = {PT_BYE: None,
             PT_STATUS_VAP: STATUS_VAP,
             PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE}
+            PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
+            PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -368,4 +373,5 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_STATUS_VAP: [],
                      PT_STATUS_TRAFFIC_RULE: [],
                      PT_ADD_LVAP_RESPONSE: [],
-                     PT_DEL_LVAP_RESPONSE: []}
+                     PT_DEL_LVAP_RESPONSE: [],
+                     PT_ADD_TRAFFIC_RULE: []}
