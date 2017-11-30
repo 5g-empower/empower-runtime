@@ -855,7 +855,7 @@ class LVAPPConnection:
             return
 
         quantum = status.quantum
-        aggregation_flags = status.flags
+        amsdu_aggregation = bool(status.flags.amsdu_aggregation)
         dscp = status.dscp
         ssid = SSID(status.ssid)
 
@@ -895,7 +895,7 @@ class LVAPPConnection:
                          match=match,
                          dscp=dscp,
                          quantum=quantum,
-                         amsdu_aggregation=aggregation_flags)
+                         amsdu_aggregation=amsdu_aggregation)
 
         tenant.traffic_rules[match] = tr
 

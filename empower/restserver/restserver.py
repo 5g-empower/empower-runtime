@@ -1321,8 +1321,8 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
                 traffic_rule = args[1]
                 self.write_as_json(traffic_rules[args[1]])
 
-        except ValueError as ex:
-            self.send_error(400, message=ex)
+        #except ValueError as ex:
+        #    self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
 

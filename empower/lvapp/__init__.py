@@ -350,8 +350,7 @@ PT_TYPES = {PT_BYE: None,
             PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE,
-            PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE}
+            PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE}
 
 PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_REGISTER: [],
@@ -375,5 +374,4 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_STATUS_TRAFFIC_RULE: [],
                      PT_ADD_LVAP_RESPONSE: [],
                      PT_DEL_LVAP_RESPONSE: [],
-                     PT_ADD_TRAFFIC_RULE: [],
-                     PT_STATUS_TRAFFIC_RULE: []}
+                     PT_ADD_TRAFFIC_RULE: []}

@@ -91,7 +91,7 @@ class TrafficRule(object):
 
         return {'dscp': self.dscp,
                 'match': self.match,
-                'tenant': self.tenant,
+                'tenant_id': self.tenant.tenant_id,
                 'amsdu_aggregation': self.amsdu_aggregation,
                 'quantum': self.quantum}
 
