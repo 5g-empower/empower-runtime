@@ -878,8 +878,9 @@ class LVAPPConnection:
         # traffic rule must be created by the controller and has a unique dscp.
         # For example a traffic rule status for dscp 0 can only belong to the
         # default match rule (""). Similarly if a dscp different from 0 is
-        # received this DSCP must belong to one and only one trffic rule.
-        for tr in tenant.traffic_rules:
+        # received this DSCP must belong to one and only one traffic rule.
+
+        for tr in tenant.traffic_rules.values():
             if tr.dscp == dscp:
                 LOG.info("Traffic rule status for ssid %s: %s", ssid, tr)
                 return
