@@ -42,8 +42,9 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
             lvap_id: the lvap address
 
         Example URLs:
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps/11:22:33:44:55:66
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              lvaps/11:22:33:44:55:66
         """
 
         try:
@@ -79,7 +80,8 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
             version: the protocol version (1.0)
 
         Example URLs:
-            PUT /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps/11:22:33:44:55:66
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              lvaps/11:22:33:44:55:66
         """
 
         try:

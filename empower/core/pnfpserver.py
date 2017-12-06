@@ -40,24 +40,21 @@ from empower.main import RUNTIME
 class BasePNFDevHandler(EmpowerAPIHandler):
     """PNFDev handler. Used to view and manipulate PNFDevs."""
 
-    HANDLERS = [(r"/api/v1/pnfdevs/?"),
-                (r"/api/v1/pnfdevs/([a-zA-Z0-9:]*)/?")]
+    HANDLERS = []
 
     def initialize(self, server):
         self.server = server
 
     def get(self, *args, **kwargs):
-        """ List all PNFDevs or a single PNFDev if the pnfdev_addr is
-        specified. Returns 404 if pnfdev not exists.
+        """List all PNFDevs or a single PNFDev.
 
         Args:
-            pnfdev_addr: the address of the pnfdev
+            [0]: the address of the pnfdev
 
         Example URLs:
 
-            GET /api/v1/pnfdev
-            GET /api/v1/pnfdev/11:22:33:44:55:66
-
+            GET /api/v1/<wtps|cpps|vbses>
+            GET /api/v1/<wtps|cpps|vbses>/11:22:33:44:55:66
         """
 
         try:
@@ -77,19 +74,19 @@ class BasePNFDevHandler(EmpowerAPIHandler):
             self.send_error(404, message=ex)
 
     def post(self, *args):
-        """ Add a new PNFDev.
+        """Add a new PNFDev.
 
         Args:
             None
 
         Request:
             version: protocol version (1.0)
-            pnfdev: the pnfdev address
+            addr: the pnfdev address
             label: a description for this pnfdev
 
         Example URLs:
 
-            POST /api/v1/pnfdev
+            POST /api/v1/<wtps|cpps|vbses>
         """
 
         try:
@@ -131,11 +128,11 @@ class BasePNFDevHandler(EmpowerAPIHandler):
         """ Delete a PNFDev.
 
         Args:
-            pnfdev_addr: the pnfdev address
+            [0]]: the pnfdev address
 
         Example URLs:
 
-            DELETE /api/v1/pnfdev/11:22:33:44:55:66
+            DELETE /api/v1/<wtps|cpps|vbses>/11:22:33:44:55:66
         """
 
         try:
@@ -152,26 +149,24 @@ class BasePNFDevHandler(EmpowerAPIHandler):
 class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
     """TenantPNFDevHandler Handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/pnfdevs/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/pnfdevs/([a-zA-Z0-9:]*)/?"]
+    HANDLERS = []
 
     def initialize(self, server):
         self.server = server
 
     def get(self, *args, **kwargs):
-        """ List all PNFDevs in a certain Tenant or a single ONFDev if the addr
-        is specified. Returns 404 if either the tenant or the PNFDev do not
-        exists.
+        """List all PNFDevs in a certain Tenant or a single PNFDev.
 
         Args:
-            tenant_id: the network names of the tenant
-            addr: the address of the pnfdev
+            [0]: the network names of the tenant
+            [1]: the address of the pnfdev
 
         Example URLs:
 
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/pnfdev
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                pnfdev/11:22:33:44:55:66
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              <wtps|cpps|vbses>
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              <wtps|cpps|vbses>/11:22:33:44:55:66
 
         """
 
@@ -202,13 +197,13 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
         """ Add a pnfdev to a tenant.
 
         Args:
-            tenant_id: network name of a tenant
-            addr: the address of a pnfdev
+            [0]: the network names of the tenant
+            [1]: the address of the pnfdev
 
         Example URLs:
 
-            POST /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                 pnfdev/11:22:33:44:55:66
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              <wtps|cpps|vbses>
 
         """
 
@@ -236,13 +231,13 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
         """ Remove a pnfdev from a Tenant.
 
         Args:
-            tenant_id: network name of a tenant
-            addr: the address of a pnfdev
+            [0]: the network names of the tenant
+            [1]: the address of the pnfdev
 
         Example URLs:
 
-            DELETE /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                   pnfdev/11:22:33:44:55:66
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              <wtps|cpps|vbses>/11:22:33:44:55:66
 
         """
 

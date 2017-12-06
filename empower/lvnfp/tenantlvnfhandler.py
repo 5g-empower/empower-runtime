@@ -47,8 +47,8 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvnfs
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvnfs
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34
 
         """
@@ -84,8 +84,8 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            POST /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvnfs
-            POST /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvnfs
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34
 
         """
@@ -169,7 +169,7 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            PUT /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34
 
         """
@@ -217,7 +217,7 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
 
         Example URLs:
 
-            GET /api/v1/pools/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34
 
         """

@@ -73,7 +73,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: tenant_id
-            [1]: module_id
+            [1]: module
 
         Example URLs:
 
@@ -152,7 +152,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: tenant_id
-            [1]: module_id
+            [1]: module
 
         Example URLs:
 

@@ -37,8 +37,8 @@ class TenantVAPHandler(EmpowerAPIHandlerUsers):
             vap_id: the vap address
 
         Example URLs:
-            GET /api/v1/pools/EmPOWER/vaps
-            GET /api/v1/pools/EmPOWER/vaps/11:22:33:44:55:66
+            GET /api/v1/tenants/EmPOWER/vaps
+            GET /api/v1/tenants/EmPOWER/vaps/11:22:33:44:55:66
         """
 
         try:
