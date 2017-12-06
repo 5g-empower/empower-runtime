@@ -306,9 +306,9 @@ ADD_TRAFFIC_RULE = Struct("add_traffic_rule", UBInt8("version"),
                           UBInt32("seq"),
                           BitStruct("flags", Padding(15),
                                     Bit("amsdu_aggregation")),
-                          UBInt16("quantum"),
+                          UBInt32("quantum"),
                           UBInt8("dscp"),
-                          Bytes("ssid", lambda ctx: ctx.length - 15))
+                          Bytes("ssid", lambda ctx: ctx.length - 17))
 
 STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
                              UBInt8("type"),

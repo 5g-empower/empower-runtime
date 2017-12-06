@@ -49,7 +49,7 @@ def ofmatch_s2d(match):
             value_t = int(value_t)
 
         if key_t == 'nw_proto':
-            value_t = int(value_t)
+            value_t = int(value_t, 16)
 
         if key_t == 'tp_dst':
             value_t = int(value_t)
@@ -83,8 +83,8 @@ class TrafficRule(object):
         self.tenant = tenant
         self.match = match
         self.dscp = dscp
-        self._quantum = quantum
-        self._amsdu_aggregation = amsdu_aggregation
+        self.quantum = quantum
+        self.amsdu_aggregation = amsdu_aggregation
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
@@ -117,7 +117,25 @@ class TrafficRule(object):
     def quantum(self, quantum):
         """ Set quantum . """
 
+        if isinstance(quantum, str):
+            quantum = int(quantum)
+
         self._quantum = int(quantum)
+
+    @property
+    def dscp(self):
+        """ Get dscp . """
+
+        return self._dscp
+
+    @dscp.setter
+    def dscp(self, dscp):
+        """ Set dscp . """
+
+        if isinstance(dscp, str):
+            dscp = int(dscp, 16)
+
+        self._dscp = dscp
 
     def __eq__(self, other):
 
