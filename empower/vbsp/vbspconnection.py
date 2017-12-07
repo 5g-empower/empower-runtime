@@ -374,6 +374,9 @@ class VBSPConnection:
         for imsi in list(RUNTIME.ues.keys()):
             if RUNTIME.ues[imsi].vbs != vbs:
                 continue
+            if not RUNTIME.ues[imsi].is_active():
+                self.log.info("Handover in progress for %u, ignoring", imsi)
+                continue
             if imsi not in ues:
                 RUNTIME.remove_ue(imsi)
 
@@ -419,7 +422,7 @@ class VBSPConnection:
         else:
             # if modid is not present then try to look up by rnti
             for i in self.server.pending:
-                if self.server.pending[i].rnti == ho.rnti:
+                if self.server.pending[i].rnti == ho.origin_rnti:
                     modid = i
                     break
 
@@ -439,6 +442,7 @@ class VBSPConnection:
             # UE was added to target eNB
             if ue.is_ho_in_progress_adding():
                 ue.set_active()
+                del self.server.pending[modid]
                 return
 
         self.log.error("Error while performing handover")

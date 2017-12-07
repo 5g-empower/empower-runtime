@@ -156,8 +156,10 @@ UE_HO_REQUEST = Struct("ue_ho_request",
                        UBInt8("cause"))
 
 UE_HO_RESPONSE = Struct("ue_ho_response",
-                        UBInt8("dummy"))
-
+                        UBInt16("origin_eNB"),
+                        UBInt16("origin_pci"),
+                        UBInt16("origin_rnti"),
+                        UBInt16("target_rnti"))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,

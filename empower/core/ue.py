@@ -99,7 +99,7 @@ class UE:
 
         self.state = UE_HO_IN_PROGRESS_ADDING
 
-    def is_ative(self):
+    def is_active(self):
 
         return self.state == UE_ACTIVE
 
