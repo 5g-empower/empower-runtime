@@ -194,7 +194,7 @@ class WTPBinCounter(ModulePeriodic):
         wtp = tenant.wtps[self.wtp]
 
         if not wtp.connection or wtp.connection.stream.closed():
-            self.log.info("WTP %s not connected", lvap.wtp.addr)
+            self.log.info("WTP %s not connected", wtp.addr)
             self.unload()
             return
 
