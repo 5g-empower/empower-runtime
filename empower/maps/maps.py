@@ -44,7 +44,8 @@ POLLER_ENTRY_TYPE = Sequence("img_entries",
                              UBInt32("hist_packets"),
                              SBInt8("mov_rssi"))
 
-POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
+POLLER_REQUEST = Struct("poller_request",
+                        UBInt8("version"),
                         UBInt8("type"),
                         UBInt32("length"),
                         UBInt32("seq"),
@@ -53,7 +54,8 @@ POLLER_REQUEST = Struct("poller_request", UBInt8("version"),
                         UBInt8("channel"),
                         UBInt8("band"))
 
-POLLER_RESPONSE = Struct("poller_response", UBInt8("version"),
+POLLER_RESPONSE = Struct("poller_response",
+                         UBInt8("version"),
                          UBInt8("type"),
                          UBInt32("length"),
                          UBInt32("seq"),
@@ -161,7 +163,6 @@ class Maps(ModulePeriodic):
                         length=22,
                         seq=wtp.seq,
                         module_id=self.module_id,
-                        wtp=wtp.addr.to_raw(),
                         hwaddr=self.block.hwaddr.to_raw(),
                         channel=self.block.channel,
                         band=self.block.band)
