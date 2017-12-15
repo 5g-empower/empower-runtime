@@ -47,6 +47,7 @@ REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
                     TX_MCAST_DMS_H: TX_MCAST_DMS,
                     TX_MCAST_UR_H: TX_MCAST_UR}
 
+
 class TxPolicyProp(dict):
     """Override getitem behaviour by a default TxPolicy."""
 
