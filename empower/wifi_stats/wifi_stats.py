@@ -40,6 +40,11 @@ from empower.main import RUNTIME
 PT_WIFI_STATS_REQUEST = 0x37
 PT_WIFI_STATS_RESPONSE = 0x38
 
+ENTRY_TYPE = Sequence("entries",
+                      UBInt8("type"),
+                      UBInt32("timestamp"),
+                      UBInt32("sample"))
+
 WIFI_STATS_REQUEST = Struct("wifi_stats_request", UBInt8("version"),
                             UBInt8("type"),
                             UBInt32("length"),
@@ -54,13 +59,15 @@ WIFI_STATS_RESPONSE = Struct("wifi_stats_response", UBInt8("version"),
                              UBInt32("length"),
                              UBInt32("seq"),
                              UBInt32("module_id"),
-                             Bytes("wtp", 6))
+                             Bytes("wtp", 6),
+                             UBInt16("nb_entries"),
+                             Array(lambda ctx: ctx.nb_entries, ENTRY_TYPE))
 
 
 class WiFiStats(ModulePeriodic):
     """ A maps poller. """
 
-    MODULE_NAME = "wifi_stats"
+    MODULE_NAME = "wifistats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
@@ -176,7 +183,36 @@ class WiFiStats(ModulePeriodic):
             None
         """
 
-        # TODO: handle response
+        # update this object
+        self.wifi_stats = {}
+
+        tx = response.entries[0:100]
+        rx = response.entries[100:200]
+        ed = response.entries[200:300]
+
+        self.wifi_stats['tx'] = []
+
+        for entry in tx:
+            value = {'type': entry[0],
+                     'timestamp': entry[1],
+                     'sample': entry[2] / 180.0, }
+            self.wifi_stats['tx'].append(value)
+
+        self.wifi_stats['rx'] = []
+
+        for entry in rx:
+            value = {'type': entry[0],
+                     'timestamp': entry[1],
+                     'sample': entry[2] / 180.0, }
+            self.wifi_stats['rx'].append(value)
+
+        self.wifi_stats['ed'] = []
+
+        for entry in ed:
+            value = {'type': entry[0],
+                     'timestamp': entry[1],
+                     'sample': entry[2] / 180.0, }
+            self.wifi_stats['ed'].append(value)
 
         # call callback
         self.handle_callback(self)
