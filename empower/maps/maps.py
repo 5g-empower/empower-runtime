@@ -189,7 +189,6 @@ class Maps(ModulePeriodic):
         keys = [entry for entry in map_entry_block.keys()]
 
         for key in keys:
-
             if key not in lvap_addrs:
                 del map_entry_block[key]
 

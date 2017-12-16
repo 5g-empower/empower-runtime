@@ -32,10 +32,11 @@ from construct import Padding
 
 PT_VERSION = 0x00
 
-PT_BYE = 0x00
-PT_REGISTER = 0x01
-PT_LVAP_JOIN = 0x02
-PT_LVAP_LEAVE = 0x03
+PT_BYE = 0xFF00
+PT_REGISTER = 0xFF01
+PT_LVAP_JOIN = 0xFF02
+PT_LVAP_LEAVE = 0xFF03
+
 PT_HELLO = 0x04
 PT_PROBE_REQUEST = 0x05
 PT_PROBE_RESPONSE = 0x06
@@ -47,6 +48,7 @@ PT_ADD_LVAP = 0x11
 PT_DEL_LVAP = 0x12
 PT_STATUS_LVAP = 0x13
 PT_SET_PORT = 0x14
+PT_DEL_PORT = 0x80
 PT_STATUS_PORT = 0x15
 PT_CAPS_REQUEST = 0x16
 PT_CAPS_RESPONSE = 0x17
@@ -55,11 +57,10 @@ PT_DEL_VAP = 0x33
 PT_STATUS_VAP = 0x34
 PT_ADD_LVAP_RESPONSE = 0x51
 PT_DEL_LVAP_RESPONSE = 0x52
-PT_LVAP_STATUS_REQ = 0x53
-PT_VAP_STATUS_REQ = 0x54
-PT_PORT_STATUS_REQ = 0x55
-PT_TRAFFIC_RULE_STATUS_REQ = 0x56
-PT_ADD_TRAFFIC_RULE = 0x57
+PT_LVAP_STATUS_REQUEST = 0x53
+PT_VAP_STATUS_REQUEST = 0x54
+PT_SET_TRAFFIC_RULE = 0x56
+PT_DEL_TRAFFIC_RULE = 0x57
 PT_STATUS_TRAFFIC_RULE = 0x58
 
 
@@ -206,12 +207,6 @@ CAPS_REQUEST = Struct("caps_request", UBInt8("version"),
                       UBInt32("length"),
                       UBInt32("seq"))
 
-TRAFFIC_RULE_STATUS_REQUEST = Struct("traffic_rule_status_request",
-                                     UBInt8("version"),
-                                     UBInt8("type"),
-                                     UBInt32("length"),
-                                     UBInt32("seq"))
-
 LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt8("type"),
                              UBInt32("length"),
@@ -221,11 +216,6 @@ VAP_STATUS_REQUEST = Struct("vap_status_request", UBInt8("version"),
                             UBInt8("type"),
                             UBInt32("length"),
                             UBInt32("seq"))
-
-PORT_STATUS_REQUEST = Struct("port_status_request", UBInt8("version"),
-                             UBInt8("type"),
-                             UBInt32("length"),
-                             UBInt32("seq"))
 
 SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("type"),
@@ -244,6 +234,15 @@ SET_PORT = Struct("set_port", UBInt8("version"),
                   UBInt8("nb_ht_mcses"),
                   Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
                   Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
+
+DEL_PORT = Struct("del_port", UBInt8("version"),
+                  UBInt8("type"),
+                  UBInt32("length"),
+                  UBInt32("seq"),
+                  Bytes("hwaddr", 6),
+                  UBInt8("channel"),
+                  UBInt8("band"),
+                  Bytes("sta", 6))
 
 STATUS_PORT = Struct("status_port", UBInt8("version"),
                      UBInt8("type"),
@@ -300,33 +299,34 @@ ADD_DEL_LVAP_RESPONSE = Struct("add_del_lvap", UBInt8("version"),
                                UBInt32("module_id"),
                                UBInt32("status"))
 
-ADD_TRAFFIC_RULE = Struct("add_traffic_rule", UBInt8("version"),
+SET_TRAFFIC_RULE = Struct("set_traffic_rule",
+                          UBInt8("version"),
                           UBInt8("type"),
                           UBInt32("length"),
                           UBInt32("seq"),
                           BitStruct("flags", Padding(15),
                                     Bit("amsdu_aggregation")),
+                          Bytes("hwaddr", 6),
+                          UBInt8("channel"),
+                          UBInt8("band"),
                           UBInt32("quantum"),
                           UBInt8("dscp"),
-                          Bytes("ssid", lambda ctx: ctx.length - 17))
+                          Bytes("ssid", lambda ctx: ctx.length - 25))
 
-STATUS_TRAFFIC_RULE = Struct("status_traffic_rule", UBInt8("version"),
+STATUS_TRAFFIC_RULE = Struct("status_traffic_rule",
+                             UBInt8("version"),
                              UBInt8("type"),
                              UBInt32("length"),
                              UBInt32("seq"),
                              Bytes("wtp", 6),
+                             BitStruct("flags", Padding(15),
+                                       Bit("amsdu_aggregation")),
                              Bytes("hwaddr", 6),
                              UBInt8("channel"),
                              UBInt8("band"),
-                             BitStruct("flags", Padding(15),
-                                       Bit("amsdu_aggregation")),
                              UBInt32("quantum"),
                              UBInt8("dscp"),
-                             UBInt32("deficit_used"),
-                             UBInt32("transm_pkts"),
-                             UBInt32("transm_bytes"),
-                             UBInt32("max_queue_length"),
-                             Bytes("ssid", lambda ctx: ctx.length - 47))
+                             Bytes("ssid", lambda ctx: ctx.length - 31))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -341,37 +341,22 @@ PT_TYPES = {PT_BYE: None,
             PT_ASSOC_RESPONSE: ASSOC_RESPONSE,
             PT_ADD_LVAP: ADD_LVAP,
             PT_DEL_LVAP: DEL_LVAP,
+            PT_ADD_VAP: ADD_VAP,
+            PT_DEL_VAP: DEL_VAP,
             PT_STATUS_LVAP: STATUS_LVAP,
             PT_CAPS_RESPONSE: CAPS_RESPONSE,
             PT_CAPS_REQUEST: CAPS_REQUEST,
             PT_SET_PORT: SET_PORT,
             PT_STATUS_PORT: STATUS_PORT,
             PT_STATUS_VAP: STATUS_VAP,
+            PT_LVAP_STATUS_REQUEST: LVAP_STATUS_REQUEST,
+            PT_VAP_STATUS_REQUEST: VAP_STATUS_REQUEST,
             PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_ADD_TRAFFIC_RULE: ADD_TRAFFIC_RULE}
+            PT_SET_TRAFFIC_RULE: SET_TRAFFIC_RULE}
 
-PT_TYPES_HANDLERS = {PT_BYE: [],
-                     PT_REGISTER: [],
-                     PT_LVAP_JOIN: [],
-                     PT_LVAP_LEAVE: [],
-                     PT_HELLO: [],
-                     PT_PROBE_REQUEST: [],
-                     PT_PROBE_RESPONSE: [],
-                     PT_AUTH_REQUEST: [],
-                     PT_AUTH_RESPONSE: [],
-                     PT_ASSOC_REQUEST: [],
-                     PT_ASSOC_RESPONSE: [],
-                     PT_ADD_LVAP: [],
-                     PT_DEL_LVAP: [],
-                     PT_STATUS_LVAP: [],
-                     PT_CAPS_REQUEST: [],
-                     PT_CAPS_RESPONSE: [],
-                     PT_SET_PORT: [],
-                     PT_STATUS_PORT: [],
-                     PT_STATUS_VAP: [],
-                     PT_STATUS_TRAFFIC_RULE: [],
-                     PT_ADD_LVAP_RESPONSE: [],
-                     PT_DEL_LVAP_RESPONSE: [],
-                     PT_ADD_TRAFFIC_RULE: []}
+
+PT_TYPES_HANDLERS = {}
+for k in PT_TYPES:
+    PT_TYPES_HANDLERS[k] = []

@@ -1321,12 +1321,12 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
                 traffic_rule = args[1]
                 self.write_as_json(traffic_rules[args[1]])
 
-        #except ValueError as ex:
-        #    self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def post(self, *args, **kwargs):
+    def put(self, *args, **kwargs):
         """Add traffic rule.
 
         Args:
@@ -1369,10 +1369,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             match = request["match"]
             trq = request["trq"]
 
-            if match in tenant.traffic_rules:
-                raise ValueError("entry %s already defined", match)
-
-            tenant.traffic_rules[match] = TrafficRule(tenant, match, **trq)
+            tenant.traffic_rules[match] = TrafficRule(tenant, **trq)
 
         except ValueError as ex:
             self.send_error(400, message=ex)

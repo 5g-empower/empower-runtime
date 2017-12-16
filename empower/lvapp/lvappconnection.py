@@ -49,16 +49,12 @@ from empower.lvapp import PT_ADD_LVAP_RESPONSE
 from empower.lvapp import PT_DEL_LVAP_RESPONSE
 from empower.lvapp import CAPS_REQUEST
 from empower.lvapp import LVAP_STATUS_REQUEST
-from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
 from empower.lvapp import VAP_STATUS_REQUEST
-from empower.lvapp import PORT_STATUS_REQUEST
 from empower.lvapp import PT_CAPS_REQUEST
-from empower.lvapp import PT_LVAP_STATUS_REQ
-from empower.lvapp import PT_VAP_STATUS_REQ
-from empower.lvapp import PT_PORT_STATUS_REQ
-from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQ
-from empower.lvapp import PT_ADD_TRAFFIC_RULE
-from empower.lvapp import ADD_TRAFFIC_RULE
+from empower.lvapp import PT_LVAP_STATUS_REQUEST
+from empower.lvapp import PT_VAP_STATUS_REQUEST
+from empower.lvapp import PT_SET_TRAFFIC_RULE
+from empower.lvapp import SET_TRAFFIC_RULE
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -202,6 +198,13 @@ class LVAPPConnection:
                 for handler in self.server.pt_types_handlers[msg_type]:
                     handler(wtp, msg)
 
+    def send_message(self, msg, parser):
+        """Send message and set common parameters."""
+
+        msg.version = PT_VERSION
+        LOG.info("Sending %s to %s", parser.name, self.wtp)
+        self.stream.write(parser.build(msg))
+
     def _handle_add_del_lvap(self, wtp, status):
         """Handle an incoming ADD_DEL_LVAP message.
         Args:
@@ -309,6 +312,27 @@ class LVAPPConnection:
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
+
+    def send_trqs(self):
+        """Send default traffic rules configurations.
+
+        Args:
+            None
+        Returns:
+            None
+        """
+
+        for block in self.wtp.supports:
+
+            for tenant in RUNTIME.tenants.values():
+
+                # wtp not in this tenant
+                if self.wtp.addr not in tenant.wtps:
+                    continue
+
+                tr = TrafficRule(tenant, 0, 1500, False)
+
+                self.send_add_traffic_rule(block, tr)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -787,16 +811,13 @@ class LVAPPConnection:
         # fetch active vaps
         self.send_vap_status_request()
 
-        # fetch active ports
-        self.send_port_status_request()
-
-        # fetch active traffic rules
-        self.send_traffic_rule_status_request()
-
         # send vaps
         self.send_vaps()
 
-    def send_add_traffic_rule(self, traffic_rule):
+        # send default traffic rules
+        self.send_trqs()
+
+    def send_add_traffic_rule(self, block, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -804,43 +825,44 @@ class LVAPPConnection:
             None
         """
 
+        ssid = traffic_rule.tenant.tenant_name
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
 
         add_tr = Container(version=PT_VERSION,
-                           type=PT_ADD_TRAFFIC_RULE,
-                           length=17,
+                           type=PT_SET_TRAFFIC_RULE,
+                           length=25 + len(ssid),
                            seq=self.wtp.seq,
                            flags=flags,
+                           hwaddr=block.hwaddr.to_raw(),
+                           channel=block.channel,
+                           band=block.band,
                            quantum=traffic_rule.quantum,
                            dscp=traffic_rule.dscp,
-                           ssid=traffic_rule.tenant.tenant_name.to_raw())
+                           ssid=ssid.to_raw())
 
-        add_tr.length = add_tr.length + len(traffic_rule.tenant.tenant_name)
+        self.send_message(add_tr, SET_TRAFFIC_RULE)
 
-        LOG.info("Added traffic rule: %s", traffic_rule)
-
-        msg = ADD_TRAFFIC_RULE.build(add_tr)
-        self.stream.write(msg)
-
-    def send_traffic_rule_status_request(self):
-        """Send a TRAFFIC_RULE_REQUEST message.
+    def send_del_traffic_rule(self, block, traffic_rule):
+        """Send an DEL_TRAFFIC_RULE message.
         Args:
-            None
+            traffic_rule: a Traffic Rule object
         Returns:
-            None
-        Raises:
             None
         """
 
-        traffic_rule_request = Container(version=PT_VERSION,
-                                         type=PT_TRAFFIC_RULE_STATUS_REQ,
-                                         length=10,
-                                         seq=self.wtp.seq)
+        ssid = traffic_rule.tenant.tenant_name
 
-        LOG.info("Sending traffic rule status request to %s", self.wtp.addr)
+        del_tr = Container(version=PT_VERSION,
+                           type=PT_DEL_TRAFFIC_RULE,
+                           length=19 + len(ssid),
+                           seq=self.wtp.seq,
+                           hwaddr=block.hwaddr.to_raw(),
+                           channel=block.channel,
+                           band=block.band,
+                           dscp=traffic_rule.dscp,
+                           ssid=ssid.to_raw())
 
-        msg = TRAFFIC_RULE_STATUS_REQUEST.build(traffic_rule_request)
-        self.stream.write(msg)
+        self.send_message(del_tr, DEL_TRAFFIC_RULE)
 
     def _handle_status_traffic_rule(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE message.
@@ -865,42 +887,23 @@ class LVAPPConnection:
             LOG.info("Traffic rule status from unknown tenant %s", ssid)
             return
 
-        incoming = ResourceBlock(wtp,
-                                 EtherAddress(status.hwaddr),
-                                 status.channel,
-                                 status.band)
+        key = (ssid, dscp)
 
-        LOG.info("Traffic status update for %s:%u", ssid, dscp)
+        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
+                                 status.channel, status.band)
 
-        # If the Traffic rule does not exist, then create a new one. Notice how
-        # in this case this can be only the traffic rule flow rule for the d
-        # default match ("") and default dscp (0). This is because any other
-        # traffic rule must be created by the controller and has a unique dscp.
-        # For example a traffic rule status for dscp 0 can only belong to the
-        # default match rule (""). Similarly if a dscp different from 0 is
-        # received this DSCP must belong to one and only one traffic rule.
+        valid = [block for block in self.wtp.supports if block == incoming]
 
-        for tr in tenant.traffic_rules.values():
-            if tr.dscp == dscp:
-                LOG.info("Traffic rule status for ssid %s: %s", ssid, tr)
-                return
-
-        if dscp != 0:
-            LOG.error("Invalid dscp received: %u", dscp)
+        if not valid:
+            LOG.warning("No valid intersection found. Ignoring request.")
             return
 
-        # creating the default traffic rule
-        match = ""
-
-        tr = TrafficRule(tenant=tenant,
-                         match=match,
-                         dscp=dscp,
-                         quantum=quantum,
+        tr = TrafficRule(tenant=tenant, dscp=dscp, quantum=quantum,
                          amsdu_aggregation=amsdu_aggregation)
 
-        tenant.traffic_rules[match] = tr
+        valid[0].traffic_rules[(ssid, dscp)] = tr
 
-        LOG.info("Traffic rule status for ssid %s: %s", ssid, tr)
+        LOG.info("Traffic status update for %s", tr)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
@@ -933,7 +936,7 @@ class LVAPPConnection:
         """
 
         lvap_request = Container(version=PT_VERSION,
-                                 type=PT_LVAP_STATUS_REQ,
+                                 type=PT_LVAP_STATUS_REQUEST,
                                  length=10,
                                  seq=self.wtp.seq)
 
@@ -953,7 +956,7 @@ class LVAPPConnection:
         """
 
         vap_request = Container(version=PT_VERSION,
-                                type=PT_VAP_STATUS_REQ,
+                                type=PT_VAP_STATUS_REQUEST,
                                 length=10,
                                 seq=self.wtp.seq)
 
@@ -1195,6 +1198,30 @@ class LVAPPConnection:
         LOG.info("Set tx policy %s", tx_policy)
 
         msg = SET_PORT.build(set_port)
+        self.stream.write(msg)
+
+    def send_del_port(self, tx_policy):
+        """Send a DEL_PORT message.
+        Args:
+            port: a Port object
+        Returns:
+            None
+        Raises:
+            TypeError: if lvap is not an LVAP object.
+        """
+
+        del_port = Container(version=PT_VERSION,
+                             type=PT_DEL_PORT,
+                             length=24,
+                             seq=self.wtp.seq,
+                             sta=tx_policy.addr.to_raw(),
+                             hwaddr=tx_policy.block.hwaddr.to_raw(),
+                             channel=tx_policy.block.channel,
+                             band=tx_policy.block.band)
+
+        LOG.info("Del tx policy %s", tx_policy)
+
+        msg = DEL_PORT.build(del_port)
         self.stream.write(msg)
 
     def send_add_lvap(self, lvap, block, set_mask):

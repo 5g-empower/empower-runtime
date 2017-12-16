@@ -77,20 +77,17 @@ class TrafficRule(object):
           be aggregated in A-MSDUs according to 802.11n settings
         quantum: the quantum to be assigned to this queue at each round
     """
-    def __init__(self, tenant, match, dscp=0, quantum=1500,
-                 amsdu_aggregation=False):
+    def __init__(self, tenant, dscp=0, quantum=1500, amsdu_aggregation=False):
 
         self.tenant = tenant
-        self.match = match
-        self.dscp = dscp
-        self.quantum = quantum
-        self.amsdu_aggregation = amsdu_aggregation
+        self.dscp = int(dscp)
+        self.quantum = int(quantum)
+        self.amsdu_aggregation = bool(amsdu_aggregation)
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
 
         return {'dscp': self.dscp,
-                'match': self.match,
                 'tenant_id': self.tenant.tenant_id,
                 'amsdu_aggregation': self.amsdu_aggregation,
                 'quantum': self.quantum}
@@ -139,23 +136,40 @@ class TrafficRule(object):
 
     def __eq__(self, other):
 
-        return (other.tenant == self.tenant and other.dscp == self.dscp)
+        return other.tenant == self.tenant and \
+               other.match == self.match and \
+               other.dscp == self.dscp and \
+               other.quatum == self.quamtum and \
+               other.amsdu_aggregation == self.amsdu_aggregation
 
     def __repr__(self):
 
-        return "%s -> (dscp %u, quantum %u)" % \
-            (self.match, self.dscp, self.quantum)
+        return "(dscp %u, quantum %u)" % (self.dscp, self.quantum)
 
 
 class TrafficRuleProp(dict):
     """Maps Flows to TrafficRules."""
 
-    def __init__(self):
-        super(TrafficRuleProp, self).__init__()
+    def __init__(self, tenant, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__uuids__ = {}
+        self.tenant = tenant
+
+    def __getitem__(self, key):
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
+
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            value = TrafficRule(self.tenant, 0, 1500, False)
+            dict.__setitem__(self, key, value)
+            return dict.__getitem__(self, key)
 
     def __delitem__(self, key):
         """Clear traffic rule configuration."""
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
 
         value = self.__getitem__(key)
 
@@ -172,12 +186,14 @@ class TrafficRuleProp(dict):
                 continue
 
             # delete queue on wtp
-            wtp.connection.send_del_traffic_rule(value)
+            for block in wtp.supports:
+                wtp.connection.send_del_traffic_rule(block, value)
+                del block.queues[(value.tenant.tenant_name, value.dscp)]
 
         # remove traffic rules
         if key in self.__uuids__:
             for uuid in self.__uuids__[key]:
-                intent_server.remove_traffic_rule(uuid)
+                intent_server.remove_rule(uuid)
             del self.__uuids__[key]
 
         # remove old entry
@@ -185,6 +201,8 @@ class TrafficRuleProp(dict):
 
     def __setitem__(self, key, value):
         """Set traffic rule configuration."""
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
 
         if value and not isinstance(value, TrafficRule):
             raise KeyError("Expected TrafficRule, got %s" % type(key))
@@ -220,8 +238,9 @@ class TrafficRuleProp(dict):
             uuid = intent_server.add_traffic_rule(intent)
             self.__uuids__[key].append(uuid)
 
-            # create queue on wtp
-            wtp.connection.send_add_traffic_rule(value)
+            # create queues on wtp
+            for block in wtp.supports:
+                wtp.connection.send_add_traffic_rule(block, value)
 
         # add entry
         dict.__setitem__(self, key, value)

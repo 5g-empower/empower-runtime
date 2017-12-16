@@ -75,7 +75,7 @@ class Tenant:
         self.lvnfs = {}
         self.vaps = {}
         self.components = {}
-        self.traffic_rules = TrafficRuleProp()
+        self.traffic_rules = TrafficRuleProp(self)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """

@@ -279,8 +279,9 @@ class ResourceBlock:
         self._band = band
         self.ucqm = CQM()
         self.ncqm = CQM()
-        self.wifi_stats = None
+        self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
+        self.traffic_rules = {}
         self._supports = set()
         self._ht_supports = set()
 
@@ -385,6 +386,7 @@ class ResourceBlock:
         Pool """
 
         tx_policies = {str(k): v for k, v in self.tx_policies.items()}
+        traffic_rules = {"%s-%u" % k: v for k, v in self.traffic_rules.items()}
 
         return {'addr': self.radio.addr,
                 'hwaddr': self.hwaddr,
@@ -393,6 +395,7 @@ class ResourceBlock:
                 'ht_supports': sorted(self.ht_supports),
                 'tx_policies': tx_policies,
                 'band': BANDS[self.band],
+                'traffic_rules': traffic_rules,
                 'wifi_stats': self.wifi_stats,
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
                 'ncqm': {str(k): v for k, v in self.ncqm.items()}}

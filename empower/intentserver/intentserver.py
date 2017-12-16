@@ -62,9 +62,11 @@ class IntentServer(Service, tornado.web.Application):
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
 
+        self.get_traffic_rule()
         self.get_rule()
         self.get_poa()
 
+        self.remove_traffic_rule()
         self.remove_rule()
         self.remove_poa()
 
@@ -101,6 +103,9 @@ class IntentServer(Service, tornado.web.Application):
             self.log.error("Intent interface not found")
         except Exception as ex:
             self.log.exception(ex)
+
+    def get_traffic_rule(self, uuid=None):
+        self.__get_intent(self.intent_url_traffic_rules, uuid)
 
     def get_rule(self, uuid=None):
         self.__get_intent(self.intent_url_rules, uuid)
@@ -141,6 +146,12 @@ class IntentServer(Service, tornado.web.Application):
                                   url=self.intent_url_poa,
                                   intent=intent)
 
+    def update_traffic_rule(self, intent, uuid):
+        self.__send_intent(method="PUT",
+                           url=self.intent_url_traffic_rules,
+                           intent=intent,
+                           uuid=uuid)
+
     def update_rule(self, intent, uuid):
         self.__send_intent(method="PUT",
                            url=self.intent_url_rules,
@@ -170,7 +181,7 @@ class IntentServer(Service, tornado.web.Application):
         self.__remove_intent(self.intent_url_poa, uuid)
 
     def remove_traffic_rule(self, uuid=None):
-        self.__remove_intent(self.intent_url_traffic_rule, uuid)
+        self.__remove_intent(self.intent_url_traffic_rules, uuid)
 
     def to_dict(self):
         """Return a dict representation of the object."""
