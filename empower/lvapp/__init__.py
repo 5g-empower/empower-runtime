@@ -313,6 +313,17 @@ SET_TRAFFIC_RULE = Struct("set_traffic_rule",
                           UBInt8("dscp"),
                           Bytes("ssid", lambda ctx: ctx.length - 25))
 
+DEL_TRAFFIC_RULE = Struct("del_traffic_rule",
+                          UBInt8("version"),
+                          UBInt8("type"),
+                          UBInt32("length"),
+                          UBInt32("seq"),
+                          Bytes("hwaddr", 6),
+                          UBInt8("channel"),
+                          UBInt8("band"),
+                          UBInt8("dscp"),
+                          Bytes("ssid", lambda ctx: ctx.length - 19))
+
 STATUS_TRAFFIC_RULE = Struct("status_traffic_rule",
                              UBInt8("version"),
                              UBInt8("type"),
@@ -347,6 +358,7 @@ PT_TYPES = {PT_BYE: None,
             PT_CAPS_RESPONSE: CAPS_RESPONSE,
             PT_CAPS_REQUEST: CAPS_REQUEST,
             PT_SET_PORT: SET_PORT,
+            PT_DEL_PORT: DEL_PORT,
             PT_STATUS_PORT: STATUS_PORT,
             PT_STATUS_VAP: STATUS_VAP,
             PT_LVAP_STATUS_REQUEST: LVAP_STATUS_REQUEST,
@@ -354,7 +366,8 @@ PT_TYPES = {PT_BYE: None,
             PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_SET_TRAFFIC_RULE: SET_TRAFFIC_RULE}
+            PT_SET_TRAFFIC_RULE: SET_TRAFFIC_RULE,
+            PT_DEL_TRAFFIC_RULE: DEL_TRAFFIC_RULE}
 
 
 PT_TYPES_HANDLERS = {}

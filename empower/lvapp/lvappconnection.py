@@ -332,7 +332,7 @@ class LVAPPConnection:
 
                 tr = TrafficRule(tenant, 0, 1500, False)
 
-                self.send_add_traffic_rule(block, tr)
+                self.send_set_traffic_rule(block, tr)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -817,7 +817,7 @@ class LVAPPConnection:
         # send default traffic rules
         self.send_trqs()
 
-    def send_add_traffic_rule(self, block, traffic_rule):
+    def send_set_traffic_rule(self, block, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -898,12 +898,14 @@ class LVAPPConnection:
             LOG.warning("No valid intersection found. Ignoring request.")
             return
 
+        block = valid[0]
+
         tr = TrafficRule(tenant=tenant, dscp=dscp, quantum=quantum,
                          amsdu_aggregation=amsdu_aggregation)
 
-        valid[0].traffic_rules[(ssid, dscp)] = tr
+        block.traffic_rules[(ssid, dscp)] = tr
 
-        LOG.info("Traffic status update for %s", tr)
+        LOG.info("Transmission rule status %s", tr)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.

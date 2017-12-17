@@ -240,7 +240,7 @@ class TrafficRuleProp(dict):
 
             # create queues on wtp
             for block in wtp.supports:
-                wtp.connection.send_add_traffic_rule(block, value)
+                wtp.connection.send_set_traffic_rule(block, value)
 
         # add entry
         dict.__setitem__(self, key, value)
