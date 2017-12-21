@@ -26,6 +26,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
+from empower.core.resourcepool import MCS_RATES
 from empower.core.radioport import RadioPort
 from empower.core.trafficrule import TrafficRule
 from empower.lvapp import HEADER
@@ -330,7 +331,18 @@ class LVAPPConnection:
                 if self.wtp.addr not in tenant.wtps:
                     continue
 
-                tr = TrafficRule(tenant, 0, 1500, False)
+                # The quantum is assigned by default to the maximum required time to transmit
+                # a standard Ethernet frame (1500 bytes ofMAC payload) at the basic rate
+                # depending on the PHY layer
+                quantum = 1500 * 8
+
+                if block.ht_supports:
+                    mcs = min(block.ht_supports)
+                    quantum = round((quantum * 1000) / MCS_RATES[mcs])
+                elif block.supports:
+                    quantum = round(quantum / min(block.supports))
+
+                tr = TrafficRule(tenant, 0, quantum, False)
 
                 self.send_set_traffic_rule(block, tr)
 
