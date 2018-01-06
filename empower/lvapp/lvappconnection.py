@@ -221,9 +221,9 @@ class LVAPPConnection:
             return
 
         if status.type == PT_ADD_LVAP_RESPONSE:
-            msg_subtype = "add_lvap"
+            msg_subtype = "add_lvap_response"
         else:
-            msg_subtype = "del_lvap"
+            msg_subtype = "del_lvap_response"
 
         LOG.info("%s from %s WTP %s module_id %u status %u", msg_subtype,
                  EtherAddress(status.sta), EtherAddress(status.wtp),
@@ -507,17 +507,13 @@ class LVAPPConnection:
                      lvap.addr, lvap.ssid, lvap.lvap_bssid)
             return
 
-        # this will trigger an add lvap message to update the ssid
-        lvap.tenant = RUNTIME.load_tenant(tenant_name)
-
-        # set supported band
+        # update some LVAP fields
+        lvap._tenant = RUNTIME.load_tenant(tenant_name)
+        lvap._assoc_id = self.server.assoc_id
         lvap.supported_band = request.supported_band
 
-        # reset downlink radio port
-        lvap.reset_downlink_port()
-
-        # this will trigger an add lvap message to update the assoc id
-        lvap.assoc_id = self.server.assoc_id
+        # send new configuration
+        self.send_add_lvap(lvap, lvap.blocks[0], True)
 
         LOG.info("Assoc request sta %s ssid %s bssid %s assoc id %u, replying",
                  lvap.addr, lvap.ssid, lvap.lvap_bssid, lvap.assoc_id)

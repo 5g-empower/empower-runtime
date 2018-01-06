@@ -481,6 +481,7 @@ class LVAP:
         for block in list(self._downlink.keys()):
             del self._downlink[block]
 
+        # remove uplink
         for block in list(self._uplink.keys()):
             del self._uplink[block]
 
