@@ -55,6 +55,10 @@ from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
 from empower.lvapp import PT_SET_TRAFFIC_RULE
 from empower.lvapp import SET_TRAFFIC_RULE
+from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQUEST
+from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
+from empower.lvapp import PT_PORT_STATUS_REQUEST
+from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -312,27 +316,6 @@ class LVAPPConnection:
 
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
-
-    def send_trqs(self):
-        """Send default traffic rules configurations.
-
-        Args:
-            None
-        Returns:
-            None
-        """
-
-        for block in self.wtp.supports:
-
-            for tenant in RUNTIME.tenants.values():
-
-                # wtp not in this tenant
-                if self.wtp.addr not in tenant.wtps:
-                    continue
-
-                tr = TrafficRule(tenant, 0, 1500, False)
-
-                self.send_set_traffic_rule(block, tr)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -763,8 +746,6 @@ class LVAPPConnection:
 
         block = valid[0]
 
-        LOG.info("Port status from %s, station %s", wtp.addr, sta_addr)
-
         tx_policy = block.tx_policies[sta_addr]
 
         tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
@@ -811,13 +792,16 @@ class LVAPPConnection:
         # fetch active vaps
         self.send_vap_status_request()
 
+        # fetch active traffic rules
+        self.send_traffic_rule_status_request()
+
+        # fetch active transmission rules
+        self.send_port_status_request()
+
         # send vaps
         self.send_vaps()
 
-        # send default traffic rules
-        self.send_trqs()
-
-    def send_set_traffic_rule(self, block, traffic_rule):
+    def send_set_traffic_rule(self, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -833,16 +817,16 @@ class LVAPPConnection:
                            length=25 + len(ssid),
                            seq=self.wtp.seq,
                            flags=flags,
-                           hwaddr=block.hwaddr.to_raw(),
-                           channel=block.channel,
-                           band=block.band,
+                           hwaddr=traffic_rule.block.hwaddr.to_raw(),
+                           channel=traffic_rule.block.channel,
+                           band=traffic_rule.block.band,
                            quantum=traffic_rule.quantum,
                            dscp=traffic_rule.dscp,
                            ssid=ssid.to_raw())
 
         self.send_message(add_tr, SET_TRAFFIC_RULE)
 
-    def send_del_traffic_rule(self, block, traffic_rule):
+    def send_del_traffic_rule(self, traffic_rule):
         """Send an DEL_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -856,9 +840,9 @@ class LVAPPConnection:
                            type=PT_DEL_TRAFFIC_RULE,
                            length=19 + len(ssid),
                            seq=self.wtp.seq,
-                           hwaddr=block.hwaddr.to_raw(),
-                           channel=block.channel,
-                           band=block.band,
+                           hwaddr=traffic_rule.block.hwaddr.to_raw(),
+                           channel=traffic_rule.block.channel,
+                           band=traffic_rule.block.band,
                            dscp=traffic_rule.dscp,
                            ssid=ssid.to_raw())
 
@@ -887,8 +871,6 @@ class LVAPPConnection:
             LOG.info("Traffic rule status from unknown tenant %s", ssid)
             return
 
-        key = (ssid, dscp)
-
         incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
                                  status.channel, status.band)
 
@@ -900,12 +882,12 @@ class LVAPPConnection:
 
         block = valid[0]
 
-        tr = TrafficRule(tenant=tenant, dscp=dscp, quantum=quantum,
-                         amsdu_aggregation=amsdu_aggregation)
+        traffic_rule = block.traffic_rules[(ssid, dscp)]
 
-        block.traffic_rules[(ssid, dscp)] = tr
+        traffic_rule._quantum = quantum
+        traffic_rule._amsdu_aggregation = amsdu_aggregation
 
-        LOG.info("Transmission rule status %s", tr)
+        LOG.info("Transmission rule status %s", traffic_rule)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
@@ -967,6 +949,26 @@ class LVAPPConnection:
         msg = VAP_STATUS_REQUEST.build(vap_request)
         self.stream.write(msg)
 
+    def send_traffic_rule_status_request(self):
+        """Send a TRAFFIC_RULE_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        lvap_request = Container(version=PT_VERSION,
+                                 type=PT_TRAFFIC_RULE_STATUS_REQUEST,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending traffic rule status request to %s", self.wtp.addr)
+
+        msg = TRAFFIC_RULE_STATUS_REQUEST.build(lvap_request)
+        self.stream.write(msg)
+
     def send_port_status_request(self):
         """Send a PORT_STATUS_REQUEST message.
         Args:
@@ -977,14 +979,14 @@ class LVAPPConnection:
             None
         """
 
-        caps_request = Container(version=PT_VERSION,
-                                 type=PT_PORT_STATUS_REQ,
+        lvap_request = Container(version=PT_VERSION,
+                                 type=PT_PORT_STATUS_REQUEST,
                                  length=10,
                                  seq=self.wtp.seq)
 
         LOG.info("Sending port status request to %s", self.wtp.addr)
 
-        msg = PORT_STATUS_REQUEST.build(caps_request)
+        msg = PORT_STATUS_REQUEST.build(lvap_request)
         self.stream.write(msg)
 
     @classmethod

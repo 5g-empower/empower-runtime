@@ -18,6 +18,8 @@
 """EmPOWER resouce pool and resource block classes."""
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.core.transmissionpolicy import TxPolicy
+from empower.core.trafficrule import TrafficRule
 
 BT_L20 = 0
 BT_HT20 = 1
@@ -30,22 +32,6 @@ BANDS = {BT_L20: L20,
 
 REVERSE_BANDS = {L20: BT_L20,
                  HT20: BT_HT20}
-
-TX_MCAST_LEGACY = 0x0
-TX_MCAST_DMS = 0x1
-TX_MCAST_UR = 0x2
-
-TX_MCAST_LEGACY_H = 'legacy'
-TX_MCAST_DMS_H = 'dms'
-TX_MCAST_UR_H = 'ur'
-
-TX_MCAST = {TX_MCAST_LEGACY: TX_MCAST_LEGACY_H,
-            TX_MCAST_DMS: TX_MCAST_DMS_H,
-            TX_MCAST_UR: TX_MCAST_UR_H}
-
-REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
-                    TX_MCAST_DMS_H: TX_MCAST_DMS,
-                    TX_MCAST_UR_H: TX_MCAST_UR}
 
 
 class TxPolicyProp(dict):
@@ -64,145 +50,20 @@ class TxPolicyProp(dict):
             return dict.__getitem__(self, key)
 
 
-class TxPolicy:
-    """Transmission policy.
+class TrafficRuleQueueProp(dict):
+    """Override getitem behaviour by a default TxRule."""
 
-    A transmission policy is a set of rule that must be used by the rate
-    control algorithm to select the actual transmission rate.
-
-    Attributes:
-        block: the actual block to which this tx policy refers to
-        hwaddr: the mac address of the wireless interface
-        channel: The channel id
-        band: The band type (0=L20, 1=HT20)
-        ucqm: User interference matrix group. Rssi values to LVAPs.
-        ncqm: Network interference matrix group. Rssi values to WTPs.
-        supports: list of MCS supported in this Resource Block as
-          reported by the device, that is if the device is an 11a
-          device it will report [6, 12, 18, 36, 54]. If the device is
-          an 11n device it will report [0, 1, 2, 3, 4, 5, 6, 7]
-    """
-
-    def __init__(self, addr, block):
-
-        self.addr = addr
+    def __init__(self, block, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.block = block
-        self._no_ack = False
-        self._rts_cts = 2436
-        self._mcast = TX_MCAST_LEGACY
-        self._mcs = block.supports
-        self._ht_mcs = block.ht_supports
-        self._ur_count = 3
 
-    def to_dict(self):
-        """Return a json-frinedly representation of the object."""
-
-        return {'no_ack': self.no_ack,
-                'rts_cts': self.rts_cts,
-                'mcast': TX_MCAST[self.mcast],
-                'mcs': self.mcs,
-                'ht_mcs': self.ht_mcs,
-                'ur_count': self.ur_count}
-
-    def __repr__(self):
-
-        mcs = ", ".join([str(x) for x in self.mcs])
-        ht_mcs = ", ".join([str(x) for x in self.ht_mcs])
-
-        return \
-            "%s no_ack %s rts_cts %u mcast %s mcs %s ht_mcs %s ur_count %u" % \
-            (self.addr, self.no_ack, self.rts_cts, TX_MCAST[self.mcast],
-             mcs, ht_mcs, self.ur_count)
-
-    @property
-    def ur_count(self):
-        """ Get ur_count . """
-
-        return self._ur_count
-
-    @ur_count .setter
-    def ur_count(self, ur_count):
-        """ Set ur_count . """
-
-        self._ur_count = int(ur_count)
-
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def mcast(self):
-        """ Get mcast mode. """
-
-        return self._mcast
-
-    @mcast.setter
-    def mcast(self, mcast):
-        """ Set the mcast mode. """
-
-        self._mcast = mcast if mcast in TX_MCAST else TX_MCAST_LEGACY
-
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def mcs(self):
-        """ Get set of MCS. """
-
-        return self._mcs
-
-    @mcs.setter
-    def mcs(self, mcs):
-        """ Set the list of MCS. """
-
-        self._mcs = self.block.supports & set(mcs)
-
-        if not self._mcs:
-            self._mcs = self.block.supports
-
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def ht_mcs(self):
-        """ Get set of HT MCS. """
-
-        return self._ht_mcs
-
-    @ht_mcs.setter
-    def ht_mcs(self, ht_mcs):
-        """ Set the list of MCS. """
-
-        self._ht_mcs = self.block.ht_supports & set(ht_mcs)
-
-        if not self._ht_mcs:
-            self._ht_mcs = self.block.ht_supports
-
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def no_ack(self):
-        """ Get no ack flag. """
-
-        return self._no_ack
-
-    @no_ack.setter
-    def no_ack(self, no_ack):
-        """ Set the no ack flag. """
-
-        self._no_ack = True if no_ack else False
-
-        self.block.radio.connection.send_set_port(self)
-
-    @property
-    def rts_cts(self):
-        """ Get rts_cts . """
-
-        return self._rts_cts
-
-    @rts_cts.setter
-    def rts_cts(self, rts_cts):
-        """ Set rts_cts . """
-
-        self._rts_cts = int(rts_cts)
-
-        self.block.radio.connection.send_set_port(self)
+    def __getitem__(self, key):
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            value = TrafficRule(ssid=key[0], dscp=key[1], block=self.block)
+            dict.__setitem__(self, key, value)
+            return dict.__getitem__(self, key)
 
 
 class CQM(dict):
@@ -281,7 +142,7 @@ class ResourceBlock:
         self.ncqm = CQM()
         self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
-        self.traffic_rules = {}
+        self.traffic_rules = TrafficRuleQueueProp(self)
         self._supports = set()
         self._ht_supports = set()
 

@@ -62,7 +62,8 @@ PT_VAP_STATUS_REQUEST = 0x54
 PT_SET_TRAFFIC_RULE = 0x56
 PT_DEL_TRAFFIC_RULE = 0x57
 PT_STATUS_TRAFFIC_RULE = 0x58
-
+PT_TRAFFIC_RULE_STATUS_REQUEST = 0x61
+PT_PORT_STATUS_REQUEST = 0x62
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
@@ -211,6 +212,18 @@ LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt8("type"),
                              UBInt32("length"),
                              UBInt32("seq"))
+
+TRAFFIC_RULE_STATUS_REQUEST = \
+    Struct("traffic_rule_status_request", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"))
+
+PORT_STATUS_REQUEST = \
+    Struct("port_status_request", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"))
 
 VAP_STATUS_REQUEST = Struct("vap_status_request", UBInt8("version"),
                             UBInt8("type"),

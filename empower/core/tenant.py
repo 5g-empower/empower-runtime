@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 #
 # Copyright (c) 2016 Roberto Riggio
@@ -18,14 +17,114 @@
 
 """EmPOWER Runtime Tenant Class."""
 
-from empower.core.trafficrule import TrafficRuleProp
 from empower.persistence.persistence import TblBelongs
 from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
+from empower.core.utils import ofmatch_d2s
+from empower.core.utils import ofmatch_s2d
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
 T_TYPES = [T_TYPE_SHARED, T_TYPE_UNIQUE]
+
+
+class TrafficRuleProp(dict):
+    """Maps Flows to TrafficRules."""
+
+    def __init__(self, tenant, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__uuids__ = {}
+        self.tenant = tenant
+
+    def __getitem__(self, key):
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
+
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            value = TrafficRule(self.tenant, 0, 1500, False)
+            dict.__setitem__(self, key, value)
+            return dict.__getitem__(self, key)
+
+    def __delitem__(self, key):
+        """Clear traffic rule configuration."""
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
+
+        value = self.__getitem__(key)
+
+        # remove queues
+        from empower.main import RUNTIME
+        from empower.intentserver.intentserver import IntentServer
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
+
+        for wtp in wtps:
+
+            if not wtp.is_online():
+                continue
+
+            # delete queue on wtp
+            for block in wtp.supports:
+                wtp.connection.send_del_traffic_rule(block, value)
+                del block.queues[(value.tenant.tenant_name, value.dscp)]
+
+        # remove traffic rules
+        if key in self.__uuids__:
+            for uuid in self.__uuids__[key]:
+                intent_server.remove_rule(uuid)
+            del self.__uuids__[key]
+
+        # remove old entry
+        dict.__delitem__(self, key)
+
+    def __setitem__(self, key, value):
+        """Set traffic rule configuration."""
+
+        key = ofmatch_d2s(ofmatch_s2d(key))
+
+        if value and not isinstance(value, TrafficRule):
+            raise KeyError("Expected TrafficRule, got %s" % type(key))
+
+        # remove traffic rule
+        if self.__contains__(key):
+            self.__delitem__(key)
+
+        self.__uuids__[key] = []
+
+        from empower.main import RUNTIME
+        from empower.intentserver.intentserver import IntentServer
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
+
+        for wtp in wtps:
+
+            if not wtp.is_online():
+                continue
+
+            # get network port
+            port = wtp.port()
+
+            # set/update traffic rule
+            intent = {'version': '1.0',
+                      'dpid': port.dpid,
+                      'port': port.port_id,
+                      'dscp': value.dscp,
+                      'match': ofmatch_s2d(key)}
+
+            # add new virtual link
+            uuid = intent_server.add_traffic_rule(intent)
+            self.__uuids__[key].append(uuid)
+
+            # create queues on wtp
+            for block in wtp.supports:
+                wtp.connection.send_set_traffic_rule(block, value)
+
+        # add entry
+        dict.__setitem__(self, key, value)
 
 
 class Tenant:
