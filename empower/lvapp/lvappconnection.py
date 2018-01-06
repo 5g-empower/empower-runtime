@@ -876,12 +876,12 @@ class LVAPPConnection:
 
         block = valid[0]
 
-        traffic_rule = block.traffic_rules[(ssid, dscp)]
+        trq = block.traffic_rule_queues[(ssid, dscp)]
 
-        traffic_rule._quantum = quantum
-        traffic_rule._amsdu_aggregation = amsdu_aggregation
+        trq._quantum = quantum
+        trq._amsdu_aggregation = amsdu_aggregation
 
-        LOG.info("Transmission rule status %s", traffic_rule)
+        LOG.info("Transmission rule status %s", trq)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.

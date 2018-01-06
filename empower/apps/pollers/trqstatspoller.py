@@ -43,7 +43,7 @@ class TRQStatsPoller(EmpowerApp):
         """ Called when a new WTP connects to the controller"""
 
         for block in wtp.supports:
-            self.trq_stats(dscp='0x0a', block=block, every=self.every,
+            self.trq_stats(dscp='0x0', block=block, every=self.every,
                            callback=self.trq_stats_callback)
 
     def trq_stats_callback(self, stats):

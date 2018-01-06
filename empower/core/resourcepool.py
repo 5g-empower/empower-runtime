@@ -143,7 +143,7 @@ class ResourceBlock:
         self.ncqm = CQM()
         self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
-        self.traffic_rules = TrafficRuleQueueProp(self)
+        self.traffic_rule_queues = TrafficRuleQueueProp(self)
         self._supports = set()
         self._ht_supports = set()
 
@@ -247,17 +247,17 @@ class ResourceBlock:
         """ Return a JSON-serializable dictionary representing the Resource
         Pool """
 
-        tx_policies = {str(k): v for k, v in self.tx_policies.items()}
-        traffic_rules = {"%s-%s" % k: v for k, v in self.traffic_rules.items()}
+        txps = {str(k): v for k, v in self.tx_policies.items()}
+        trqs = {"%s-%s" % k: v for k, v in self.traffic_rule_queues.items()}
 
         return {'addr': self.radio.addr,
                 'hwaddr': self.hwaddr,
                 'channel': self.channel,
                 'supports': sorted(self.supports),
                 'ht_supports': sorted(self.ht_supports),
-                'tx_policies': tx_policies,
+                'tx_policies': txps,
                 'band': BANDS[self.band],
-                'traffic_rules': traffic_rules,
+                'traffic_rule_queues': trqs,
                 'wifi_stats': self.wifi_stats,
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
                 'ncqm': {str(k): v for k, v in self.ncqm.items()}}
