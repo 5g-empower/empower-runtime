@@ -141,14 +141,9 @@ class VirtualPortPropLvap(VirtualPortProp):
         intent_server = RUNTIME.components[IntentServer.__module__]
 
         # Set downlink and uplink virtual link(s)
-        dl_blocks = list(self.obj.downlink.values())
-        ul_blocks = list(self.obj.uplink.values())
-        blocks = dl_blocks + ul_blocks
+        for block in self.obj.blocks:
 
-        # r_port is a RadioPort object
-        for r_port in blocks:
-
-            n_port = r_port.block.radio.port()
+            n_port = block.radio.port()
 
             # set/update intent
             intent = {'version': '1.0',

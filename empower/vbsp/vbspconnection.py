@@ -22,12 +22,7 @@ import tornado.ioloop
 
 from construct import Container
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.plmnid import PLMNID
-from empower.datatypes.ssid import SSID
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import BT_L20
-from empower.core.radioport import RadioPort
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
 from empower.vbsp import PT_BYE

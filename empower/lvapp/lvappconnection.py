@@ -25,8 +25,6 @@ from construct import Container
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import BT_L20
-from empower.core.radioport import RadioPort
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -508,12 +506,9 @@ class LVAPPConnection:
             return
 
         # update some LVAP fields
-        lvap._tenant = RUNTIME.load_tenant(tenant_name)
-        lvap._assoc_id = self.server.assoc_id
+        lvap.tenant = RUNTIME.load_tenant(tenant_name)
+        lvap.assoc_id = self.server.assoc_id
         lvap.supported_band = request.supported_band
-
-        # send new configuration
-        self.send_add_lvap(lvap, lvap.blocks[0], True)
 
         LOG.info("Assoc request sta %s ssid %s bssid %s assoc id %u, replying",
                  lvap.addr, lvap.ssid, lvap.lvap_bssid, lvap.assoc_id)
@@ -534,16 +529,10 @@ class LVAPPConnection:
         LOG.info("WTP disconnected: %s", self.wtp.addr)
 
         # remove hosted lvaps
-        for addr in list(RUNTIME.lvaps.keys()):
-            lvap = RUNTIME.lvaps[addr]
-            dl_wtps = [block.radio for block in lvap.downlink.keys()]
-            ul_wtps = [block.radio for block in lvap.uplink.keys()]
-            # in case the downlink went down, the remove also the uplinks
-            if self.wtp in dl_wtps:
+        for lvap in list(RUNTIME.lvaps.values()):
+            wtps = [x.radio for x in lvap.blocks]
+            if self.wtp in wtps:
                 RUNTIME.remove_lvap(lvap.addr)
-            elif self.wtp in ul_wtps:
-                LOG.info("Deleting LVAP (UL): %s", lvap.addr)
-                lvap.clear_uplink()
 
         # remove hosted vaps
         for tenant_id in RUNTIME.tenants.keys():
@@ -648,20 +637,15 @@ class LVAPPConnection:
             wtp.connection.send_del_lvap(lvap)
             return
 
-        # this will try to updated the lvap object with the resource block
-        # coming in this status update message.
-        try:
-            if set_mask:
-                # set downlink+uplink block
-                lvap._downlink.setitem(valid[0], RadioPort(lvap, valid[0]))
-            else:
-                # set uplink only blocks
-                lvap._uplink.setitem(valid[0], RadioPort(lvap, valid[0]))
-        except Exception as e:
-            LOG.exception(e)
-            LOG.error("Error while importing block %s, removing.", valid[0])
-            wtp.connection.send_del_lvap(lvap)
-            return
+        # received downlink block but a different downlink block is already
+        # present, delete before going any further
+        if set_mask and lvap._downlink and lvap._downlink != valid[0]:
+            lvap._downlink.radio.connection.send_del_lvap(lvap)
+
+        if set_mask:
+            lvap._downlink = valid[0]
+        else:
+            lvap._uplink.append(valid[0])
 
         # update LVAP ports
         lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
@@ -669,7 +653,7 @@ class LVAPPConnection:
                                         lvap=lvap)
 
         # set supported band
-        lvap.supported_band = status.supported_band
+        lvap._supported_band = status.supported_band
 
         # update LVAP params
         lvap.authentication_state = bool(status.flags.authenticated)
@@ -1124,7 +1108,7 @@ class LVAPPConnection:
         msg = PROBE_RESPONSE.build(response)
         self.stream.write(msg)
 
-    def send_del_lvap(self, lvap):
+    def send_del_lvap(self, lvap, target_block=None):
         """Send a DEL_LVAP message.
         Args:
             lvap: an LVAP object
@@ -1134,16 +1118,14 @@ class LVAPPConnection:
             TypeError: if lvap is not an LVAP object.
         """
 
-        target_block = lvap.target_block
-
-        target_hwaddr = EtherAddress.bcast()
-        target_channel = 0
-        target_band = 0
-
         if target_block:
             target_hwaddr = target_block.hwaddr
             target_channel = target_block.channel
             target_band = target_block.band
+        else:
+            target_hwaddr = EtherAddress.bcast()
+            target_channel = 0
+            target_band = 0
 
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
