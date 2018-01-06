@@ -22,10 +22,53 @@ from empower.persistence import Session
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.utils import ofmatch_d2s
 from empower.core.utils import ofmatch_s2d
+from empower.core.trafficrulequeue import TrafficRuleQueue
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
 T_TYPES = [T_TYPE_SHARED, T_TYPE_UNIQUE]
+
+
+class TrafficRule:
+    """TrafficRule class
+
+    Traffic rules are identified by a match rule. A match rule points to one
+    and only one TrafficRule. However different match rules can point to the
+    same TrafficRule.
+
+    Notice how TrafficRule and TrafficRuleQueue are two different concept. The
+    TrafficRuleQueue exists within a certain ResourceBlock. This means that
+    each interface in a WTP can have many TrafficRuleQueue instances, one for
+    each type of traffic.
+
+    Conversely, the TrafficRule is a recipe for creating TrafficRuleQueue
+    objects. Developers can create new TrafficRule instance within a Tenant.
+    When the WTP connects to the controller, the TrafficRule instance will be
+    translated into TrafficRuleQueue instances and then pushed to the WTP.
+
+    A TrafficRule must specify at least match, ssid, and dscp. The semantic of
+    the rule is that the flow matching the specified rule must be tagged with
+    the specified dscp code. This in time means that this particular flow will
+    be queued in a particualr TrafficRuleQueue.
+    """
+
+    def __init__(self, match, ssid, dscp, quantum=12000,
+                 amsdu_aggregation=False):
+
+        self.match = ofmatch_d2s(ofmatch_s2d(match))
+        self.ssid = ssid
+        self.dscp = dscp
+        self.quantum = quantum
+        self.amsdu_aggregation = amsdu_aggregation
+
+    def to_dict(self):
+        """Return a json-frinedly representation of the object."""
+
+        return {'match': self.match,
+                'ssid': self.ssid,
+                'dscp': self.dscp,
+                'amsdu_aggregation': self.amsdu_aggregation,
+                'quantum': self.quantum}
 
 
 class TrafficRuleProp(dict):
@@ -35,17 +78,6 @@ class TrafficRuleProp(dict):
         super().__init__(*args, **kwargs)
         self.__uuids__ = {}
         self.tenant = tenant
-
-    def __getitem__(self, key):
-
-        key = ofmatch_d2s(ofmatch_s2d(key))
-
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            value = TrafficRule(self.tenant, 0, 1500, False)
-            dict.__setitem__(self, key, value)
-            return dict.__getitem__(self, key)
 
     def __delitem__(self, key):
         """Clear traffic rule configuration."""
@@ -58,18 +90,6 @@ class TrafficRuleProp(dict):
         from empower.main import RUNTIME
         from empower.intentserver.intentserver import IntentServer
         intent_server = RUNTIME.components[IntentServer.__module__]
-
-        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
-
-        for wtp in wtps:
-
-            if not wtp.is_online():
-                continue
-
-            # delete queue on wtp
-            for block in wtp.supports:
-                wtp.connection.send_del_traffic_rule(block, value)
-                del block.queues[(value.tenant.tenant_name, value.dscp)]
 
         # remove traffic rules
         if key in self.__uuids__:
@@ -98,7 +118,10 @@ class TrafficRuleProp(dict):
         from empower.intentserver.intentserver import IntentServer
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        wtps = RUNTIME.tenants[value.tenant.tenant_id].wtps.values()
+        wtps = RUNTIME.tenants[self.tenant.tenant_id].wtps.values()
+
+        ssid = value.ssid
+        dscp = value.dscp
 
         for wtp in wtps:
 
@@ -121,7 +144,12 @@ class TrafficRuleProp(dict):
 
             # create queues on wtp
             for block in wtp.supports:
-                wtp.connection.send_set_traffic_rule(block, value)
+
+                trq = TrafficRuleQueue(ssid, dscp, block)
+                trq._quantum = value.quantum
+                trq._amsdu_aggregation = value.amsdu_aggregation
+
+                wtp.connection.send_set_traffic_rule(trq)
 
         # add entry
         dict.__setitem__(self, key, value)
@@ -195,6 +223,37 @@ class Tenant:
 
         tokens = [self.tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
         return EtherAddress(':'.join(tokens))
+
+    def set_traffic_rule(self, tr):
+        """Add a new traffic rule to the Tenant.
+
+        Args:
+            match, a match rule (as a string, tp_dst=8080,nw_proto=0x0800)
+            tr, a traffic rule object
+
+        Returns:
+            None
+
+        Raises:
+            KeyError, if the match is not available
+        """
+
+        self.traffic_rules[tr.match] = tr
+
+    def del_traffic_rule(self, match):
+        """Del a traffic rule from the Tenant.
+
+        Args:
+            match, a match rule (as a string, tp_dst=8080,nw_proto=0x0800)
+
+        Returns:
+            None
+
+        Raises:
+            KeyError, if the match is not available
+        """
+
+        del self.traffic_rules[match]
 
     def add_pnfdev(self, pnfdev):
         """Add a new PNF Dev to the Tenant.

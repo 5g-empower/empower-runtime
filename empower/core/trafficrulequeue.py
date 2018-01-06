@@ -21,8 +21,8 @@
 from empower.datatypes.etheraddress import EtherAddress
 
 
-class TrafficRule(object):
-    """EmPOWER traffic rule.
+class TrafficRuleQueue(object):
+    """EmPOWER traffic rule queue.
 
     A traffic rule is essentially a queue that is dynamically created at a
     certain WTP in order to collect a portion of the flowspace belonging to a
@@ -47,7 +47,9 @@ class TrafficRule(object):
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
 
-        return {'amsdu_aggregation': self.amsdu_aggregation,
+        return {'ssid': self.ssid,
+                'dscp': self.dscp,
+                'amsdu_aggregation': self.amsdu_aggregation,
                 'quantum': self.quantum}
 
     def __repr__(self):

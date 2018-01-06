@@ -30,13 +30,12 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
-from empower.core.trafficrule import TrafficRule
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
 from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
-
+from empower.core.tenant import TrafficRule
 
 DEFAULT_PORT = 8888
 
@@ -1366,11 +1365,14 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            match = request["match"]
-            trq = request["trq"]
+            tr = TrafficRule(match=request["match"],
+                             ssid=tenant.tenant_name,
+                             **request["trq"])
 
-            tenant.traffic_rules[match] = TrafficRule(tenant, **trq)
+            tenant.set_traffic_rule(tr)
 
+        except TypeError as ex:
+            self.send_error(400, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
@@ -1399,9 +1401,8 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
-            match = args[1]
 
-            del tenant.traffic_rules[match]
+            tenant.del_traffic_rule(args[1])
 
         except ValueError as ex:
             self.send_error(400, message=ex)

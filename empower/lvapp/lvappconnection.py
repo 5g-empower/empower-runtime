@@ -27,7 +27,6 @@ from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BT_L20
 from empower.core.radioport import RadioPort
-from empower.core.trafficrule import TrafficRule
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -809,20 +808,19 @@ class LVAPPConnection:
             None
         """
 
-        ssid = traffic_rule.tenant.tenant_name
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
 
         add_tr = Container(version=PT_VERSION,
                            type=PT_SET_TRAFFIC_RULE,
-                           length=25 + len(ssid),
+                           length=25 + len(traffic_rule.ssid),
                            seq=self.wtp.seq,
                            flags=flags,
                            hwaddr=traffic_rule.block.hwaddr.to_raw(),
                            channel=traffic_rule.block.channel,
                            band=traffic_rule.block.band,
                            quantum=traffic_rule.quantum,
-                           dscp=traffic_rule.dscp,
-                           ssid=ssid.to_raw())
+                           dscp=int(traffic_rule.dscp, 16),
+                           ssid=traffic_rule.ssid.to_raw())
 
         self.send_message(add_tr, SET_TRAFFIC_RULE)
 
@@ -862,7 +860,7 @@ class LVAPPConnection:
 
         quantum = status.quantum
         amsdu_aggregation = bool(status.flags.amsdu_aggregation)
-        dscp = status.dscp
+        dscp = "{0:#0{1}x}".format(status.dscp, 4)
         ssid = SSID(status.ssid)
 
         tenant = RUNTIME.load_tenant(ssid)

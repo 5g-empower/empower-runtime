@@ -19,7 +19,7 @@
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.transmissionpolicy import TxPolicy
-from empower.core.trafficrule import TrafficRule
+from empower.core.trafficrulequeue import TrafficRuleQueue
 
 BT_L20 = 0
 BT_HT20 = 1
@@ -61,7 +61,8 @@ class TrafficRuleQueueProp(dict):
         try:
             return dict.__getitem__(self, key)
         except KeyError:
-            value = TrafficRule(ssid=key[0], dscp=key[1], block=self.block)
+            value = \
+                TrafficRuleQueue(ssid=key[0], dscp=key[1], block=self.block)
             dict.__setitem__(self, key, value)
             return dict.__getitem__(self, key)
 
@@ -247,7 +248,7 @@ class ResourceBlock:
         Pool """
 
         tx_policies = {str(k): v for k, v in self.tx_policies.items()}
-        traffic_rules = {"%s-%u" % k: v for k, v in self.traffic_rules.items()}
+        traffic_rules = {"%s-%s" % k: v for k, v in self.traffic_rules.items()}
 
         return {'addr': self.radio.addr,
                 'hwaddr': self.hwaddr,

@@ -25,8 +25,28 @@ from empower.datatypes.etheraddress import EtherAddress
 def ofmatch_d2s(key):
     """Convert an OFMatch from dictionary to string."""
 
-    match = ",".join(["%s=%s" % x for x in sorted(key.items())])
-    return match
+    matches = []
+
+    for x in sorted(key.items()):
+
+        if x[0] == 'dl_vlan':
+            value = "%s=%u" % x
+        elif x[0] == 'dl_type':
+            value = "%s=%s" % (x[0], "{0:#0{1}x}".format(x[1], 6))
+        elif x[0] == 'in_port':
+            value = "%s=%u" % x
+        elif x[0] == 'nw_proto':
+            value = "%s=%s" % (x[0], "{0:#0{1}x}".format(x[1], 6))
+        elif x[0] == 'tp_dst':
+            value = "%s=%u" % x
+        elif x[0] == 'tp_src':
+            value = "%s=%u" % x
+        else:
+            value = "%s=%s" % x
+
+        matches.append(value)
+
+    return ",".join(matches)
 
 
 def ofmatch_s2d(match):
