@@ -37,6 +37,7 @@ if __name__ == "__main__":
              'bin_counter.bin_counter',
              'wtp_bin_counter.wtp_bin_counter',
              'txp_bin_counter.txp_bin_counter',
+             'trq_stats.trq_stats',
              'rrc_measurements.rrc_measurements',
              'mac_reports.mac_reports',
              'maps.ucqm',
