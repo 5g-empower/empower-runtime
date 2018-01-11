@@ -367,7 +367,7 @@ class LVAPPConnection:
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
         net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap.set_ssids(list(ssids))
+        lvap._ssids(list(ssids))
 
         # set supported band
         lvap._supported_band = request.supported_band
