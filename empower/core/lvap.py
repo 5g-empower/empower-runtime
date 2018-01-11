@@ -369,14 +369,7 @@ class LVAP:
             self._lvap_bssid = net_bssid
 
         # clear all blocks
-        if self.blocks[0]:
-            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
-
-        for block in self.blocks[1:]:
-            block.radio.connection.send_del_lvap(self, block)
-
-        self._downlink = None
-        self._uplink = []
+        self.clear_blocks()
 
         # Set downlink block if different.
         self.__assign_downlink(pool[0])
@@ -445,18 +438,27 @@ class LVAP:
             self.blocks = block
             break
 
-    def clear_lvap(self):
-        """Clear all downlink blocks."""
+    def clear_blocks(self):
+        """Clear all blocks."""
 
-        # clear all blocks
         if self.blocks[0]:
-            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
+            wtp = self.blocks[0].radio
+            if wtp.is_online():
+                wtp.connection.send_del_lvap(self, self.blocks[0])
 
         for block in self.blocks[1:]:
-            block.radio.connection.send_del_lvap(self, block)
+            wtp = block.radio
+            if wtp.is_online():
+                wtp.connection.send_del_lvap(self, block)
 
         self._downlink = None
         self._uplink = []
+
+    def clear_lvap(self):
+        """Clear lvap."""
+
+        # clear all blocks
+        self.clear_blocks()
 
         # remove intent
         if self.poa_uuid:
