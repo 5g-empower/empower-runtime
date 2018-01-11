@@ -370,7 +370,7 @@ class LVAP:
 
         # clear all blocks
         if self.blocks[0]:
-            self.blocks[0].radio.connection.send_del_lvap(self, block)
+            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
 
         for block in self.blocks[1:]:
             block.radio.connection.send_del_lvap(self, block)
@@ -450,7 +450,7 @@ class LVAP:
 
         # clear all blocks
         if self.blocks[0]:
-            self.blocks[0].radio.connection.send_del_lvap(self, block)
+            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
 
         for block in self.blocks[1:]:
             block.radio.connection.send_del_lvap(self, block)
