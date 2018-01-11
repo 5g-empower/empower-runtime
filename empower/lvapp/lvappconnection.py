@@ -370,7 +370,7 @@ class LVAPPConnection:
         lvap.set_ssids(list(ssids))
 
         # set supported band
-        lvap.supported_band = request.supported_band
+        lvap._supported_band = request.supported_band
 
         # Check if block is valid
         incoming = ResourceBlock(wtp, EtherAddress(request.hwaddr),
