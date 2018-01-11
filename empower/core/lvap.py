@@ -187,7 +187,7 @@ class LVAP:
             self.poa_uuid = intent_server.add_poa(intent)
 
     def refresh_lvap(self):
-        """Send add lvap message on the selected port."""
+        """Send add lvap message for downlink and uplinks blocks."""
 
         if not self.blocks:
             return
@@ -279,11 +279,6 @@ class LVAP:
         self._ssids = ssids
         self.refresh_lvap()
 
-    def set_ssids(self, ssids):
-        """Set the ssids assigned to this LVAP without seding messages."""
-
-        self._ssids = ssids
-
     @property
     def ssid(self):
         """ Get the SSID assigned to this LVAP. """
@@ -312,6 +307,9 @@ class LVAP:
     @property
     def txp(self):
         """ Get downlink transmission policy. """
+
+        if not blocks:
+            return None
 
         return self.blocks[0].tx_policies[self.addr]
 
@@ -371,7 +369,10 @@ class LVAP:
             self._lvap_bssid = net_bssid
 
         # clear all blocks
-        for block in self.blocks:
+        if self.blocks[0]:
+            self.blocks[0].radio.connection.send_del_lvap(self, block)
+
+        for block in self.blocks[1:]:
             block.radio.connection.send_del_lvap(self, block)
 
         self._downlink = None
@@ -427,7 +428,7 @@ class LVAP:
     def wtp(self):
         """Return the wtp on which this LVAP is scheduled on."""
 
-        if self.blocks and self.blocks[0]:
+        if self.blocks[0]:
             return self.blocks[0].radio
 
         return None
@@ -448,8 +449,14 @@ class LVAP:
         """Clear all downlink blocks."""
 
         # clear all blocks
-        for block in self.blocks:
+        if self.blocks[0]:
+            self.blocks[0].radio.connection.send_del_lvap(self, block)
+
+        for block in self.blocks[1:]:
             block.radio.connection.send_del_lvap(self, block)
+
+        self._downlink = None
+        self._uplink = []
 
         # remove intent
         if self.poa_uuid:
