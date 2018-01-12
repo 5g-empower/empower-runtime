@@ -203,7 +203,14 @@ class LVAPPConnection:
         """Send message and set common parameters."""
 
         msg.version = PT_VERSION
-        LOG.info("Sending %s to %s", parser.name, self.wtp)
+
+        if self.stream.closed():
+            LOG.warning("Stream closed, unabled to send %s message to %s",
+                        parser.name, self.wtp)
+            return
+
+        LOG.info("Sending %s message to %s", parser.name, self.wtp)
+
         self.stream.write(parser.build(msg))
 
     def _handle_add_del_lvap(self, wtp, status):
@@ -1139,10 +1146,7 @@ class LVAPPConnection:
                              csa_switch_mode=0,
                              csa_switch_count=3)
 
-        LOG.info("Del lvap %s", lvap)
-
-        msg = DEL_LVAP.build(del_lvap)
-        self.stream.write(msg)
+        self.send_message(del_lvap, DEL_LVAP)
 
     def send_set_port(self, tx_policy):
         """Send a SET_PORT message.

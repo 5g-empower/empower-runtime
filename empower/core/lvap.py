@@ -442,14 +442,10 @@ class LVAP:
         """Clear all blocks."""
 
         if self.blocks[0]:
-            wtp = self.blocks[0].radio
-            if wtp.is_online():
-                wtp.connection.send_del_lvap(self, self.blocks[0])
+            self.blocks[0].radio.send_del_lvap(self, self.blocks[0])
 
         for block in self.blocks[1:]:
-            wtp = block.radio
-            if wtp.is_online():
-                wtp.connection.send_del_lvap(self, block)
+            block.radio.send_del_lvap(self, block)
 
         self._downlink = None
         self._uplink = []
