@@ -43,7 +43,8 @@ class RRCMeasurementsPoller(EmpowerApp):
         """ New UE. """
 
         measurements = \
-            [{"earfcn": 1750, "interval": 2000, "max_cells": 2, "max_meas": 2},
+            [{"earfcn": ue.cell.DL_earfcn, "interval": 2000, "max_cells": 2,
+              "max_meas": 2},
              {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
 
         print(ue.ue_id)
