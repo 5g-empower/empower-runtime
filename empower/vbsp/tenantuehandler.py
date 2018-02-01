@@ -90,32 +90,25 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "vbs" not in request:
-                raise ValueError("missing vbs element")
-
-            if "pci" not in request:
-                raise ValueError("missing pci element")
-
             tenant_id = uuid.UUID(args[0])
             ud_id = uuid.UUID(args[1])
 
             tenant = RUNTIME.tenants[tenant_id]
             ue = tenant.ues[ud_id]
 
-            vbs_addr = EtherAddress(request['vbs'])
-            pci = int(request['pci'])
+            if "vbs" in request:
 
-            vbs = tenant.vbses[vbs_addr]
+                vbs_addr = EtherAddress(request['vbs'])
+                vbs = tenant.vbses[vbs_addr]
+                ue.vbs = vbs
 
-            target = None
-            for cell in vbs.cells:
-                if cell.pci == pci:
-                    target = cell
+            elif "cell" in request:
 
-            if not target:
-                raise KeyError("Cell %s/%u not found", vbs_addr, pci)
-
-            ue.cell = target
+                vbs_addr = EtherAddress(request['cell']['vbs'])
+                vbs = tenant.vbses[vbs_addr]
+                pci = int(request['cell']['pci'])
+                cell = vbs.get_cell_by_pci(pci)
+                ue.cell = cell
 
         except KeyError as ex:
             self.send_error(404, message=ex)

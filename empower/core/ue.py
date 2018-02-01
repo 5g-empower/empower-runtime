@@ -143,6 +143,14 @@ class UE:
 
         return self.cell.vbs
 
+    @vbs.setter
+    def vbs(self, vbs):
+        """ Set the vbs. """
+
+        for cell in vbs.cells:
+            self.cell = cell
+            return
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
