@@ -31,7 +31,7 @@ from empower.lvnfp import PT_ADD_LVNF
 from empower.lvnfp import PT_DEL_LVNF
 from empower.lvnfp import PT_LVNF_JOIN
 from empower.lvnfp import PT_LVNF_LEAVE
-from empower.core.virtualport import VirtualPortLvnf
+from empower.core.virtualport import VirtualPort
 from empower.core.lvnf import PROCESS_RUNNING
 from empower.core.lvnf import PROCESS_SPAWNING
 from empower.core.lvnf import PROCESS_STOPPING
@@ -328,11 +328,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 iface = port['iface']
 
-                phy_port = \
-                    NetworkPort(lvnf.cpp.addr, ovs_port_id, hwaddr, iface)
+                port = NetworkPort(lvnf.cpp.addr, ovs_port_id, hwaddr, iface)
 
-                virtual_port = VirtualPortLvnf(virtual_port_id=virtual_port_id,
-                                               phy_port=phy_port)
+                virtual_port = VirtualPort(virtual_port_id=virtual_port_id)
+                virtual_port.ports.append(port)
 
                 lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 

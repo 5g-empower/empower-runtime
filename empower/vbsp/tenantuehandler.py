@@ -31,14 +31,14 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
     """TenantUE handler. Used to view and manipulate UEs in tenants."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9:]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9-]*)/?"]
 
     def get(self, *args, **kwargs):
         """ Get all USe in a Pool or just the specified one.
 
         Args:
             pool_id: the network name
-            imsi: the ue address
+            ue_id: the ue address
 
         Example URLs:
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/ues
@@ -57,7 +57,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
             if len(args) == 1:
                 self.write_as_json(ues.values())
             else:
-                ue = int(args[1])
+                ue = uuid.UUID(args[1])
                 self.write_as_json(ues[ue])
 
         except KeyError as ex:
@@ -71,7 +71,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
 
         Args:
             tenant_id: the tenant id
-            imsi: the ue IMSI
+            ue_id: the ue id
 
         Request:
             version: the protocol version (1.0)
@@ -97,10 +97,10 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
                 raise ValueError("missing pci element")
 
             tenant_id = uuid.UUID(args[0])
-            imsi = int(args[1])
+            ud_id = uuid.UUID(args[1])
 
             tenant = RUNTIME.tenants[tenant_id]
-            ue = tenant.ues[imsi]
+            ue = tenant.ues[ud_id]
 
             vbs_addr = EtherAddress(request['vbs'])
             pci = int(request['pci'])

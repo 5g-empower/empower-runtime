@@ -17,6 +17,8 @@
 
 """RRC measurements module."""
 
+import uuid
+
 from construct import SBInt16
 from construct import UBInt8
 from construct import UBInt16
@@ -77,14 +79,14 @@ class RRCMeasurements(ModuleTrigger):
     """ LVAPStats object. """
 
     MODULE_NAME = "rrc_measurements"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'imsi', 'measurements']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue_id', 'measurements']
 
     def __init__(self):
 
         super().__init__()
 
         # parameters
-        self._imsi = None
+        self._ue_id = None
         self._measurements = {}
 
         # stats
@@ -98,7 +100,7 @@ class RRCMeasurements(ModuleTrigger):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.imsi == other.imsi and \
+        return super().__eq__(other) and self.ue_id == other.ue_id and \
             self.measurements == other.measurements
 
     @property
@@ -126,23 +128,23 @@ class RRCMeasurements(ModuleTrigger):
             }
 
     @property
-    def imsi(self):
-        """Return the imsi."""
+    def ue_id(self):
+        """Return the ue_id."""
 
-        return self._imsi
+        return self._ue_id
 
-    @imsi.setter
-    def imsi(self, value):
-        """Set IMSI Address."""
+    @ue_id.setter
+    def ue_id(self, value):
+        """Set UE id Address."""
 
-        self._imsi = int(value)
+        self._ue_id = uuid.UUID(value)
 
     def to_dict(self):
         """ Return a JSON-serializable."""
 
         out = super().to_dict()
 
-        out['imsi'] = self.imsi
+        out['ue_id'] = self.ue_id
         out['measurements'] = self.measurements
         out['results'] = self.results
 
@@ -158,12 +160,12 @@ class RRCMeasurements(ModuleTrigger):
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.imsi not in tenant.ues:
-            self.log.info("UE %u not found", self.imsi)
+        if self.ue_id not in tenant.ues:
+            self.log.info("UE %u not found", self.ue_id)
             self.unload()
             return
 
-        self.ue = tenant.ues[self.imsi]
+        self.ue = tenant.ues[self.ue_id]
 
         if not self.ue.vbs or not self.ue.vbs.is_online():
             self.log.info("VBS %s not connected", self.ue.vbs.addr)

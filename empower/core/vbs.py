@@ -84,6 +84,15 @@ class VBS(BasePNFDev):
 
         return ether_to_hex(self.addr)
 
+    def get_cell_by_pci(self, pci):
+        """Get cell by PCI."""
+
+        for cell in self.cells:
+            if cell.pci == pci:
+                return cell
+
+        return None
+
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 

@@ -29,14 +29,11 @@ from empower.main import RUNTIME
 class VirtualPort:
     """Virtual port."""
 
-    def __init__(self, virtual_port_id, phy_port):
+    def __init__(self, virtual_port_id, ports=None):
 
         self.virtual_port_id = virtual_port_id
-        self.dpid = phy_port.dpid
-        self.ovs_port_id = phy_port.port_id
-        self.hwaddr = phy_port.hwaddr
-        self.iface = phy_port.iface
-        self.next = dict()
+        self.ports = []
+        self.next = VirtualPortProp()
 
     def clear(self):
         """Clear all outgoing links."""
@@ -50,66 +47,34 @@ class VirtualPort:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
-        return {'dpid': self.dpid,
-                'ovs_port_id': self.ovs_port_id,
-                'virtual_port_id': self.virtual_port_id,
-                'hwaddr': self.hwaddr,
-                'iface': self.iface}
+        return {'virtual_port_id': self.virtual_port_id,
+                'ports': self.ports}
 
     def __hash__(self):
 
-        return hash(self.dpid) + hash(self.ovs_port_id) + \
-            hash(self.virtual_port_id)
+        return hash(self.virtual_port_id)
 
     def __eq__(self, other):
 
-        return (other.dpid == self.dpid and
-                other.ovs_port_id == self.ovs_port_id and
-                other.virtual_port_id == self.virtual_port_id)
+        return (other.virtual_port_id == self.virtual_port_id and
+                other.network_port == self.network_port)
 
     def __repr__(self):
 
-        out_string = "%s ovs_port %s virtual_port %s hwaddr %s iface %s"
-
-        out = out_string % (self.dpid, self.ovs_port_id, self.virtual_port_id,
-                            self.hwaddr, self.iface)
-
-        return out
-
-
-class VirtualPortLvap(VirtualPort):
-    """Virtual port."""
-
-    def __init__(self, virtual_port_id, phy_port, lvap):
-        super(VirtualPortLvap, self).__init__(virtual_port_id, phy_port)
-        self.next = VirtualPortPropLvap(lvap)
-
-
-class VirtualPortLvnf(VirtualPort):
-    """Virtual port."""
-
-    def __init__(self, virtual_port_id, phy_port):
-        super(VirtualPortLvnf, self).__init__(virtual_port_id, phy_port)
-        self.next = VirtualPortPropLvnf(self)
+        ports = [str(x) for x in self.ports]
+        return "virtual_port %u ports [%s]" % \
+            (self.virtual_port_id, ", ".join(ports))
 
 
 class VirtualPortProp(dict):
-    """Maps Flows to VirtualPorts.
+    """Maps flows to VirtualPorts."""
 
-    Flows are dictionary keys in the following format:
-        dl_src=11:22:33:44:55:66,tp_dst=80
-    """
-
-    def __init__(self, obj):
+    def __init__(self):
         super(VirtualPortProp, self).__init__()
         self.__uuids__ = {}
-        self.obj = obj
 
     def __delitem__(self, key):
-        """Clear virtual port configuration.
-
-        Remove entry from dictionary and remove flows.
-        """
+        """Clear virtual port configuration."""
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
@@ -121,10 +86,6 @@ class VirtualPortProp(dict):
 
         # remove old entry
         dict.__delitem__(self, key)
-
-
-class VirtualPortPropLvap(VirtualPortProp):
-    """VirtualPortProp class for LVAPs."""
 
     def __setitem__(self, key, value):
         """Set virtual port configuration."""
@@ -141,16 +102,14 @@ class VirtualPortPropLvap(VirtualPortProp):
         intent_server = RUNTIME.components[IntentServer.__module__]
 
         # Set downlink and uplink virtual link(s)
-        for block in self.obj.blocks:
-
-            n_port = block.radio.port()
+        for port in self.ports:
 
             # set/update intent
             intent = {'version': '1.0',
                       'ttp_dpid': value.dpid,
                       'ttp_port': value.ovs_port_id,
-                      'stp_dpid': n_port.dpid,
-                      'stp_port': n_port.port_id,
+                      'stp_dpid': port.dpid,
+                      'stp_port': port.port_id,
                       'match': ofmatch_s2d(key)}
 
             # add new virtual link
@@ -159,36 +118,3 @@ class VirtualPortPropLvap(VirtualPortProp):
 
             # add entry
             dict.__setitem__(self, key, value)
-
-
-class VirtualPortPropLvnf(VirtualPortProp):
-    """VirtualPortProp class for LVAPs."""
-
-    def __setitem__(self, key, value):
-        """Set virtual port configuration."""
-
-        if value and not isinstance(value, VirtualPort):
-            raise KeyError("Expected VirtualPort, got %s" % type(key))
-
-        # remove virtual link
-        if self.__contains__(key):
-            self.__delitem__(key)
-
-        self.__uuids__[key] = []
-
-        intent_server = RUNTIME.components[IntentServer.__module__]
-
-        # set/update intent
-        intent = {'version': '1.0',
-                  'ttp_dpid': value.dpid,
-                  'ttp_port': value.ovs_port_id,
-                  'stp_dpid': self.obj.dpid,
-                  'stp_port': self.obj.ovs_port_id,
-                  'match': ofmatch_s2d(key)}
-
-        # add new virtual link
-        uuid = intent_server.add_rule(intent)
-        self.__uuids__[key].append(uuid)
-
-        # add entry
-        dict.__setitem__(self, key, value)

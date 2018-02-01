@@ -20,7 +20,7 @@
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
-from empower.core.virtualport import VirtualPortLvap
+from empower.core.virtualport import VirtualPort
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
 from empower.intentserver.intentserver import IntentServer
@@ -154,37 +154,6 @@ class LVAP:
         self.pending.append(self.__module_id)
 
         return self.__module_id
-
-    def __set_ports(self):
-        """Set virtual ports.
-
-        This method is called everytime an LVAP is moved to another WTP. More
-        preciselly it is called every time an assignment to the downlink
-        property is made.
-        """
-
-        # Delete all outgoing virtual link and then remove the entire port
-        if self.ports:
-            self.ports[0].clear()
-            del self.ports[0]
-
-        # Create a new port from scratch
-        self.ports[0] = VirtualPortLvap(phy_port=self.wtp.port(),
-                                        virtual_port_id=0,
-                                        lvap=self)
-
-        # set/update intent
-        intent = {'version': '1.0',
-                  'dpid': self.ports[0].dpid,
-                  'port': self.ports[0].ovs_port_id,
-                  'hwaddr': self.addr}
-
-        intent_server = RUNTIME.components[IntentServer.__module__]
-
-        if self.poa_uuid:
-            intent_server.update_poa(intent, self.poa_uuid)
-        else:
-            self.poa_uuid = intent_server.add_poa(intent)
 
     def refresh_lvap(self):
         """Send add lvap message for downlink and uplinks blocks."""
@@ -377,8 +346,28 @@ class LVAP:
         # set uplink blocks
         self.__assign_uplink(pool[1:])
 
-        # send intents
-        self.__set_ports()
+        # delete all outgoing virtual link and then remove the entire port
+        if self.ports:
+            self.ports[0].clear()
+            del self.ports[0]
+
+        # Create a new port from scratch
+        self.ports[0] = VirtualPort(virtual_port_id=0)
+        for block in self.blocks():
+            self.ports[0].ports.append(block.radio.port())
+
+        # set/update intent
+        intent = {'version': '1.0',
+                  'dpid': self.ports[0].dpid,
+                  'port': self.ports[0].ovs_port_id,
+                  'hwaddr': self.addr}
+
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        if self.poa_uuid:
+            intent_server.update_poa(intent, self.poa_uuid)
+        else:
+            self.poa_uuid = intent_server.add_poa(intent)
 
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
@@ -442,10 +431,10 @@ class LVAP:
         """Clear all blocks."""
 
         if self.blocks[0]:
-            self.blocks[0].radio.send_del_lvap(self, self.blocks[0])
+            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
 
         for block in self.blocks[1:]:
-            block.radio.send_del_lvap(self, block)
+            block.radio.connection.send_del_lvap(self, block)
 
         self._downlink = None
         self._uplink = []

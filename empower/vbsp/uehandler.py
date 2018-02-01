@@ -17,6 +17,7 @@
 
 """UEs Handerler."""
 
+import uuid
 import tornado.web
 import tornado.httpserver
 
@@ -29,13 +30,13 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
     """UE handler. Used to view UEs (controller-wide)."""
 
     HANDLERS = [r"/api/v1/ues/?",
-                r"/api/v1/ues/([0-9:]*)/?"]
+                r"/api/v1/ues/([a-zA-Z0-9-]*)/?"]
 
     def get(self, *args, **kwargs):
         """ Get all UEs or just the specified one.
 
         Args:
-            imsi: the lvap address
+            ue_id: the lvap address
 
         Example URLs:
             GET /api/v1/ues
@@ -48,7 +49,7 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
             if len(args) == 0:
                 self.write_as_json(RUNTIME.ues.values())
             else:
-                ue = int(args[0])
+                ue = uuid.UUID(args[0])
                 self.write_as_json(RUNTIME.ues[ue])
         except KeyError as ex:
             self.send_error(404, message=ex)
@@ -60,13 +61,13 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
         """ Set the cell for a given UE.
 
         Args:
-            imsi: the ue IMSI
+            ud_id: the ue id
 
         Request:
             version: the protocol version (1.0)
 
         Example URLs:
-            PUT /api/v1/ues/111
+            PUT /api/v1/ues/97958af4-6f86-4cd2-9e66-2e61ec60dd0f
         """
 
         try:
@@ -85,8 +86,8 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
             if "pci" not in request:
                 raise ValueError("missing pci element")
 
-            imsi = int(args[0])
-            ue = RUNTIME.ues[imsi]
+            ue_id = uuid.UUID(args[0])
+            ue = RUNTIME.ues[ue_id]
 
             vbs_addr = EtherAddress(request['vbs'])
             pci = int(request['pci'])

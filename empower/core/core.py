@@ -669,25 +669,38 @@ class EmpowerRuntime:
 
         del self.lvaps[lvap.addr]
 
-    def remove_ue(self, imsi):
+    def remove_ue(self, ue_id):
         """Remove UE from the network"""
 
-        if imsi not in self.ues:
+        if ue_id not in self.ues:
             return
 
-        ue = self.ues[imsi]
+        ue = self.ues[ue_id]
 
         if ue.tenant:
 
             # removing UE from tenant, need first to look for right tenant
-            if ue.imsi in ue.tenant.ues:
-                self.log.info("Removing %s from tenant %s", ue.imsi,
+            if ue.ue_id in ue.tenant.ues:
+                self.log.info("Removing %s from tenant %s", ue.ue_id,
                               ue.plmn_id)
-                del ue.tenant.ues[ue.imsi]
+                del ue.tenant.ues[ue.ue_id]
 
             # Raise UE leave event
             from empower.vbsp.vbspserver import VBSPServer
             vbsp_server = self.components[VBSPServer.__module__]
             vbsp_server.send_ue_leave_message_to_self(ue)
 
-        del self.ues[ue.imsi]
+        del self.ues[ue.ue_id]
+
+    def find_ue_by_rnti(self, rnti, pci, vbs):
+        """Find a UE using the tuple rnti, pci, vbs."""
+
+        for ue in self.ues.values():
+
+            if ue.rnti == rnti and \
+               ue.cell.pci == pci and \
+               ue.cell.vbs == vbs:
+
+                return ue
+
+        return None

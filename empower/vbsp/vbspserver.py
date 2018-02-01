@@ -137,8 +137,6 @@ class VBSPServer(PNFPServer, TCPServer):
 
         self.listen(self.port)
 
-        self.pending = {}
-
     def handle_stream(self, stream, address):
         self.log.info('Incoming connection from %r', address)
         self.connection = VBSPConnection(stream, address, server=self)
@@ -146,14 +144,14 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_leave_message_to_self(self, ue):
         """Send an UE_LEAVE message to self."""
 
-        self.log.info("UE LEAVE %u (%s)", ue.imsi, ue.plmn_id)
+        self.log.info("UE LEAVE %u (%s)", ue.ue_id, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_LEAVE]:
             handler(ue)
 
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
-        self.log.info("UE JOIN %u (%s)", ue.imsi, ue.plmn_id)
+        self.log.info("UE JOIN %u (%s)", ue.ue_id, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 

@@ -32,8 +32,9 @@ UE_HO_IN_PROGRESS_ADDING = "ho_in_progress_adding"
 class UE:
     """User Equipment."""
 
-    def __init__(self, imsi, rnti, cell, plmn_id, tenant):
+    def __init__(self, ue_id, imsi, rnti, cell, plmn_id, tenant):
 
+        self.ue_id = ue_id
         self.imsi = imsi
         self.rnti = rnti
         self.plmn_id = plmn_id
@@ -52,7 +53,7 @@ class UE:
     def state(self, state):
         """Set the CPP."""
 
-        self.log.info("UE %s transition %s->%s", self.imsi, self.state,
+        self.log.info("UE %s transition %s->%s", self.ue_id, self.state,
                       state)
 
         if self.state:
@@ -145,7 +146,8 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        return {'imsi': self.imsi,
+        return {'ue_id': self.ue_id,
+                'imsi': self.imsi,
                 'rnti': self.rnti,
                 'plmn_id': self.plmn_id,
                 'cell': self.cell,
@@ -157,7 +159,7 @@ class UE:
 
     def __eq__(self, other):
         if isinstance(other, UE):
-            return self.imsi == other.imsi
+            return self.ue_id == other.ue_id
         return False
 
     def __ne__(self, other):

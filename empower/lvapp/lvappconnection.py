@@ -64,7 +64,7 @@ from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
-from empower.core.virtualport import VirtualPortLvap
+from empower.core.virtualport import VirtualPort
 
 from empower.main import RUNTIME
 
@@ -654,10 +654,11 @@ class LVAPPConnection:
         else:
             lvap._uplink.append(valid[0])
 
-        # update LVAP ports
-        lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
-                                        virtual_port_id=0,
-                                        lvap=lvap)
+        # update ports
+        if not lvap.ports:
+            lvap.ports[0] = VirtualPort(virtual_port_id=0)
+
+        lvap.ports[0].ports.append(wtp.port())
 
         # set supported band
         lvap._supported_band = status.supported_band

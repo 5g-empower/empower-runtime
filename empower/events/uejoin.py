@@ -38,7 +38,7 @@ class UEJoin(ModuleTrigger):
 
         ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if ue.imsi not in ues:
+        if ue.ue_id not in ues:
             return
 
         self.handle_callback(ue)
