@@ -100,7 +100,7 @@ class RRCMeasurements(ModuleTrigger):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.ue_id == other.ue_id and \
+        return super().__eq__(other) and self.ue == other.ue and \
             self.measurements == other.measurements
 
     @property
@@ -129,15 +129,15 @@ class RRCMeasurements(ModuleTrigger):
 
     @property
     def ue_id(self):
-        """Return the ue_id."""
+        """Return the ue."""
 
         return self._ue_id
 
     @ue_id.setter
     def ue_id(self, value):
-        """Set UE id Address."""
+        """Set UE."""
 
-        self._ue_id = uuid.UUID(value)
+        self._ue_id = uuid.UUID(str(value))
 
     def to_dict(self):
         """ Return a JSON-serializable."""

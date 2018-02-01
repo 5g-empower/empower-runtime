@@ -46,6 +46,8 @@ class RRCMeasurementsPoller(EmpowerApp):
             [{"earfcn": 1750, "interval": 2000, "max_cells": 2, "max_meas": 2},
              {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
 
+        print(ue.ue_id)
+
         self.rrc_measurements(ue_id=ue.ue_id,
                               measurements=measurements,
                               callback=self.rrc_measurements_callback)

@@ -28,6 +28,12 @@ class LVNFJoin(ModuleTrigger):
 
     MODULE_NAME = "lvnfjoin"
 
+    def run_once(self):
+        """Check if there are ue already."""
+
+        for lvnf in RUNTIME.tenants[self.tenant_id].lvnfs.values():
+            self.handle_callback(lvnf)
+
     def handle_response(self, lvnf):
         """ Handle an JOIN message.
 
