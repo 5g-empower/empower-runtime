@@ -101,7 +101,7 @@ class VirtualPortProp(dict):
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        # Set downlink and uplink virtual link(s)
+        # Send intents
         for port in self.ports:
 
             # set/update intent

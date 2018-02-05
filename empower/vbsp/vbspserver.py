@@ -94,18 +94,12 @@ class ModuleVBSPWorker(ModuleWorker):
     def handle_ue_leave(self, ue):
         """UE left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "ue") and module.ue == ue:
-                self.modules[module_id].unload()
+        pass
 
     def handle_bye(self, vbs):
         """VBS left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "vbs") and module.vbs == vbs:
-                self.modules[module_id].unload()
+        pass
 
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""

@@ -95,18 +95,12 @@ class ModuleLVAPPWorker(ModuleWorker):
     def handle_lvap_leave(self, lvap):
         """LVAP left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "lvap") and module.lvap == lvap:
-                self.modules[module_id].unload()
+        pass
 
     def handle_bye(self, wtp):
         """WTP left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "wtp") and module.wtp == wtp:
-                self.modules[module_id].unload()
+        pass
 
     def handle_packet(self, wtp, msg):
         """Handle response message."""

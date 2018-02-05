@@ -39,18 +39,18 @@ class LVNFStats(ModulePeriodic):
         super().__init__()
 
         # parameters
-        self.__lvnf = None
+        self._lvnf = None
 
         # data structures
         self.stats = {}
 
     @property
     def lvnf(self):
-        return self.__lvnf
+        return self._lvnf
 
     @lvnf.setter
     def lvnf(self, value):
-        self.__lvnf = UUID(str(value))
+        self._lvnf = UUID(str(value))
 
     def __eq__(self, other):
 

@@ -328,6 +328,8 @@ class VBSPConnection:
             None
         """
 
+        incoming = []
+
         for ue in ue_report.ues:
 
             if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
@@ -361,10 +363,9 @@ class VBSPConnection:
             RUNTIME.ues[ue.ue_id] = ue
             tenant.ues[ue.ue_id] = ue
 
-            self.server.send_ue_join_message_to_self(ue)
+            incoming.append(ue.ue_id)
 
-        incoming = [RUNTIME.find_ue_by_rnti(x.rnti, x.pci, vbs).ue_id
-                    for x in ue_report.ues]
+            self.server.send_ue_join_message_to_self(ue)
 
         # check for leaving UEs
         for ue_id in list(RUNTIME.ues.keys()):
