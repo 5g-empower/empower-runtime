@@ -183,6 +183,7 @@ class Tenant:
                'wtps',
                'cpps',
                'vbses',
+               'components',
                'traffic_rules']
 
     def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type,
