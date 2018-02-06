@@ -353,13 +353,13 @@ class LVAP:
 
         # Create a new port from scratch
         self.ports[0] = VirtualPort(virtual_port_id=0)
-        for block in self.blocks():
+        for block in self.blocks:
             self.ports[0].ports.append(block.radio.port())
 
         # set/update intent
         intent = {'version': '1.0',
-                  'dpid': self.ports[0].dpid,
-                  'port': self.ports[0].ovs_port_id,
+                  'dpid': self.blocks[0].radio.port().dpid,
+                  'port': self.blocks[0].radio.port().ovs_port_id,
                   'hwaddr': self.addr}
 
         intent_server = RUNTIME.components[IntentServer.__module__]
