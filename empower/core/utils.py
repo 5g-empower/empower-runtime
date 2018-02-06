@@ -22,6 +22,67 @@ import random
 from empower.datatypes.etheraddress import EtherAddress
 
 
+def ofmatch_d2s(key):
+    """Convert an OFMatch from dictionary to string."""
+
+    matches = []
+
+    for x in sorted(key.items()):
+
+        if x[0] == 'dl_vlan':
+            value = "%s=%u" % x
+        elif x[0] == 'dl_type':
+            value = "%s=%s" % (x[0], "{0:#0{1}x}".format(x[1], 6))
+        elif x[0] == 'in_port':
+            value = "%s=%u" % x
+        elif x[0] == 'nw_proto':
+            value = "%s=%s" % (x[0], "{0:#0{1}x}".format(x[1], 6))
+        elif x[0] == 'tp_dst':
+            value = "%s=%u" % x
+        elif x[0] == 'tp_src':
+            value = "%s=%u" % x
+        else:
+            value = "%s=%s" % x
+
+        matches.append(value)
+
+    return ",".join(matches)
+
+
+def ofmatch_s2d(match):
+    """Convert an OFMatch from string to dictionary."""
+
+    key = {}
+
+    if match == "":
+        return key
+
+    for token in match.split(","):
+        key_t, value_t = token.split("=")
+
+        if key_t == 'dl_vlan':
+            value_t = int(value_t)
+
+        if key_t == 'dl_type':
+            value_t = int(value_t, 16)
+
+        if key_t == 'in_port':
+            value_t = int(value_t)
+
+        if key_t == 'nw_proto':
+            value_t = int(value_t, 16)
+
+        if key_t == 'tp_dst':
+            value_t = int(value_t)
+
+        if key_t == 'tp_src':
+            value_t = int(value_t)
+
+        key[key_t] = value_t
+
+    return key
+
+
 def get_xid():
     """Return randon 32bits integers to be used as mod_id."""
 

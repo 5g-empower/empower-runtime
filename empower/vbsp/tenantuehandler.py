@@ -31,14 +31,14 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
     """TenantUE handler. Used to view and manipulate UEs in tenants."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9:]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/ues/([a-zA-Z0-9-]*)/?"]
 
     def get(self, *args, **kwargs):
         """ Get all USe in a Pool or just the specified one.
 
         Args:
             pool_id: the network name
-            imsi: the ue address
+            ue_id: the ue address
 
         Example URLs:
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/ues
@@ -57,7 +57,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
             if len(args) == 1:
                 self.write_as_json(ues.values())
             else:
-                ue = int(args[1])
+                ue = uuid.UUID(args[1])
                 self.write_as_json(ues[ue])
 
         except KeyError as ex:
@@ -71,7 +71,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
 
         Args:
             tenant_id: the tenant id
-            imsi: the ue IMSI
+            ue_id: the ue id
 
         Request:
             version: the protocol version (1.0)
@@ -90,32 +90,25 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "vbs" not in request:
-                raise ValueError("missing vbs element")
-
-            if "pci" not in request:
-                raise ValueError("missing pci element")
-
             tenant_id = uuid.UUID(args[0])
-            imsi = int(args[1])
+            ud_id = uuid.UUID(args[1])
 
             tenant = RUNTIME.tenants[tenant_id]
-            ue = tenant.ues[imsi]
+            ue = tenant.ues[ud_id]
 
-            vbs_addr = EtherAddress(request['vbs'])
-            pci = int(request['pci'])
+            if "vbs" in request:
 
-            vbs = tenant.vbses[vbs_addr]
+                vbs_addr = EtherAddress(request['vbs'])
+                vbs = tenant.vbses[vbs_addr]
+                ue.vbs = vbs
 
-            target = None
-            for cell in vbs.cells:
-                if cell.pci == pci:
-                    target = cell
+            elif "cell" in request:
 
-            if not target:
-                raise KeyError("Cell %s/%u not found", vbs_addr, pci)
-
-            ue.cell = target
+                vbs_addr = EtherAddress(request['cell']['vbs'])
+                vbs = tenant.vbses[vbs_addr]
+                pci = int(request['cell']['pci'])
+                cell = vbs.get_cell_by_pci(pci)
+                ue.cell = cell
 
         except KeyError as ex:
             self.send_error(404, message=ex)

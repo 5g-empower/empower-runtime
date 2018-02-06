@@ -25,10 +25,6 @@ from construct import Container
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import BT_L20
-from empower.core.resourcepool import MCS_RATES
-from empower.core.radioport import RadioPort
-from empower.core.trafficrule import TrafficRule
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -56,6 +52,10 @@ from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
 from empower.lvapp import PT_SET_TRAFFIC_RULE
 from empower.lvapp import SET_TRAFFIC_RULE
+from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQUEST
+from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
+from empower.lvapp import PT_PORT_STATUS_REQUEST
+from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
 from empower.core.vap import VAP
@@ -64,7 +64,7 @@ from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
-from empower.core.virtualport import VirtualPortLvap
+from empower.core.virtualport import VirtualPort
 
 from empower.main import RUNTIME
 
@@ -203,7 +203,14 @@ class LVAPPConnection:
         """Send message and set common parameters."""
 
         msg.version = PT_VERSION
-        LOG.info("Sending %s to %s", parser.name, self.wtp)
+
+        if self.stream.closed():
+            LOG.warning("Stream closed, unabled to send %s message to %s",
+                        parser.name, self.wtp)
+            return
+
+        LOG.info("Sending %s message to %s", parser.name, self.wtp)
+
         self.stream.write(parser.build(msg))
 
     def _handle_add_del_lvap(self, wtp, status):
@@ -219,9 +226,9 @@ class LVAPPConnection:
             return
 
         if status.type == PT_ADD_LVAP_RESPONSE:
-            msg_subtype = "add_lvap"
+            msg_subtype = "add_lvap_response"
         else:
-            msg_subtype = "del_lvap"
+            msg_subtype = "del_lvap_response"
 
         LOG.info("%s from %s WTP %s module_id %u status %u", msg_subtype,
                  EtherAddress(status.sta), EtherAddress(status.wtp),
@@ -314,38 +321,6 @@ class LVAPPConnection:
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
 
-    def send_trqs(self):
-        """Send default traffic rules configurations.
-
-        Args:
-            None
-        Returns:
-            None
-        """
-
-        for block in self.wtp.supports:
-
-            for tenant in RUNTIME.tenants.values():
-
-                # wtp not in this tenant
-                if self.wtp.addr not in tenant.wtps:
-                    continue
-
-                # The quantum is assigned by default to the maximum required time to transmit
-                # a standard Ethernet frame (1500 bytes ofMAC payload) at the basic rate
-                # depending on the PHY layer
-                quantum = 1500 * 8
-
-                if block.ht_supports:
-                    mcs = min(block.ht_supports)
-                    quantum = round((quantum * 1000) / MCS_RATES[mcs])
-                elif block.supports:
-                    quantum = round(quantum / min(block.supports))
-
-                tr = TrafficRule(tenant, 0, quantum, False)
-
-                self.send_set_traffic_rule(block, tr)
-
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
         Args:
@@ -399,10 +374,10 @@ class LVAPPConnection:
         LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
         net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap.set_ssids(list(ssids))
+        lvap._ssids = list(ssids)
 
         # set supported band
-        lvap.supported_band = request.supported_band
+        lvap._supported_band = request.supported_band
 
         # Check if block is valid
         incoming = ResourceBlock(wtp, EtherAddress(request.hwaddr),
@@ -537,17 +512,10 @@ class LVAPPConnection:
                      lvap.addr, lvap.ssid, lvap.lvap_bssid)
             return
 
-        # this will trigger an add lvap message to update the ssid
+        # update some LVAP fields
         lvap.tenant = RUNTIME.load_tenant(tenant_name)
-
-        # set supported band
-        lvap.supported_band = request.supported_band
-
-        # reset downlink radio port
-        lvap.reset_downlink_port()
-
-        # this will trigger an add lvap message to update the assoc id
         lvap.assoc_id = self.server.assoc_id
+        lvap.supported_band = request.supported_band
 
         LOG.info("Assoc request sta %s ssid %s bssid %s assoc id %u, replying",
                  lvap.addr, lvap.ssid, lvap.lvap_bssid, lvap.assoc_id)
@@ -568,16 +536,10 @@ class LVAPPConnection:
         LOG.info("WTP disconnected: %s", self.wtp.addr)
 
         # remove hosted lvaps
-        for addr in list(RUNTIME.lvaps.keys()):
-            lvap = RUNTIME.lvaps[addr]
-            dl_wtps = [block.radio for block in lvap.downlink.keys()]
-            ul_wtps = [block.radio for block in lvap.uplink.keys()]
-            # in case the downlink went down, the remove also the uplinks
-            if self.wtp in dl_wtps:
+        for lvap in list(RUNTIME.lvaps.values()):
+            wtps = [x.radio for x in lvap.blocks]
+            if self.wtp in wtps:
                 RUNTIME.remove_lvap(lvap.addr)
-            elif self.wtp in ul_wtps:
-                LOG.info("Deleting LVAP (UL): %s", lvap.addr)
-                lvap.clear_uplink()
 
         # remove hosted vaps
         for tenant_id in RUNTIME.tenants.keys():
@@ -682,28 +644,24 @@ class LVAPPConnection:
             wtp.connection.send_del_lvap(lvap)
             return
 
-        # this will try to updated the lvap object with the resource block
-        # coming in this status update message.
-        try:
-            if set_mask:
-                # set downlink+uplink block
-                lvap._downlink.setitem(valid[0], RadioPort(lvap, valid[0]))
-            else:
-                # set uplink only blocks
-                lvap._uplink.setitem(valid[0], RadioPort(lvap, valid[0]))
-        except Exception as e:
-            LOG.exception(e)
-            LOG.error("Error while importing block %s, removing.", valid[0])
-            wtp.connection.send_del_lvap(lvap)
-            return
+        # received downlink block but a different downlink block is already
+        # present, delete before going any further
+        if set_mask and lvap._downlink and lvap._downlink != valid[0]:
+            lvap._downlink.radio.connection.send_del_lvap(lvap)
 
-        # update LVAP ports
-        lvap.ports[0] = VirtualPortLvap(phy_port=wtp.port(),
-                                        virtual_port_id=0,
-                                        lvap=lvap)
+        if set_mask:
+            lvap._downlink = valid[0]
+        else:
+            lvap._uplink.append(valid[0])
+
+        # update ports
+        if not lvap.ports:
+            lvap.ports[0] = VirtualPort(virtual_port_id=0)
+
+        lvap.ports[0].ports.append(wtp.port())
 
         # set supported band
-        lvap.supported_band = status.supported_band
+        lvap._supported_band = status.supported_band
 
         # update LVAP params
         lvap.authentication_state = bool(status.flags.authenticated)
@@ -775,8 +733,6 @@ class LVAPPConnection:
 
         block = valid[0]
 
-        LOG.info("Port status from %s, station %s", wtp.addr, sta_addr)
-
         tx_policy = block.tx_policies[sta_addr]
 
         tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
@@ -823,13 +779,16 @@ class LVAPPConnection:
         # fetch active vaps
         self.send_vap_status_request()
 
+        # fetch active traffic rules
+        self.send_traffic_rule_status_request()
+
+        # fetch active transmission rules
+        self.send_port_status_request()
+
         # send vaps
         self.send_vaps()
 
-        # send default traffic rules
-        self.send_trqs()
-
-    def send_set_traffic_rule(self, block, traffic_rule):
+    def send_set_traffic_rule(self, traffic_rule):
         """Send an ADD_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -837,24 +796,23 @@ class LVAPPConnection:
             None
         """
 
-        ssid = traffic_rule.tenant.tenant_name
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
 
         add_tr = Container(version=PT_VERSION,
                            type=PT_SET_TRAFFIC_RULE,
-                           length=25 + len(ssid),
+                           length=25 + len(traffic_rule.ssid),
                            seq=self.wtp.seq,
                            flags=flags,
-                           hwaddr=block.hwaddr.to_raw(),
-                           channel=block.channel,
-                           band=block.band,
+                           hwaddr=traffic_rule.block.hwaddr.to_raw(),
+                           channel=traffic_rule.block.channel,
+                           band=traffic_rule.block.band,
                            quantum=traffic_rule.quantum,
-                           dscp=traffic_rule.dscp,
-                           ssid=ssid.to_raw())
+                           dscp=int(traffic_rule.dscp, 16),
+                           ssid=traffic_rule.ssid.to_raw())
 
         self.send_message(add_tr, SET_TRAFFIC_RULE)
 
-    def send_del_traffic_rule(self, block, traffic_rule):
+    def send_del_traffic_rule(self, traffic_rule):
         """Send an DEL_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -868,9 +826,9 @@ class LVAPPConnection:
                            type=PT_DEL_TRAFFIC_RULE,
                            length=19 + len(ssid),
                            seq=self.wtp.seq,
-                           hwaddr=block.hwaddr.to_raw(),
-                           channel=block.channel,
-                           band=block.band,
+                           hwaddr=traffic_rule.block.hwaddr.to_raw(),
+                           channel=traffic_rule.block.channel,
+                           band=traffic_rule.block.band,
                            dscp=traffic_rule.dscp,
                            ssid=ssid.to_raw())
 
@@ -890,7 +848,7 @@ class LVAPPConnection:
 
         quantum = status.quantum
         amsdu_aggregation = bool(status.flags.amsdu_aggregation)
-        dscp = status.dscp
+        dscp = "{0:#0{1}x}".format(status.dscp, 4)
         ssid = SSID(status.ssid)
 
         tenant = RUNTIME.load_tenant(ssid)
@@ -898,8 +856,6 @@ class LVAPPConnection:
         if not tenant:
             LOG.info("Traffic rule status from unknown tenant %s", ssid)
             return
-
-        key = (ssid, dscp)
 
         incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
                                  status.channel, status.band)
@@ -912,12 +868,12 @@ class LVAPPConnection:
 
         block = valid[0]
 
-        tr = TrafficRule(tenant=tenant, dscp=dscp, quantum=quantum,
-                         amsdu_aggregation=amsdu_aggregation)
+        trq = block.traffic_rule_queues[(ssid, dscp)]
 
-        block.traffic_rules[(ssid, dscp)] = tr
+        trq._quantum = quantum
+        trq._amsdu_aggregation = amsdu_aggregation
 
-        LOG.info("Transmission rule status %s", tr)
+        LOG.info("Transmission rule status %s", trq)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
@@ -979,6 +935,26 @@ class LVAPPConnection:
         msg = VAP_STATUS_REQUEST.build(vap_request)
         self.stream.write(msg)
 
+    def send_traffic_rule_status_request(self):
+        """Send a TRAFFIC_RULE_STATUS_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        lvap_request = Container(version=PT_VERSION,
+                                 type=PT_TRAFFIC_RULE_STATUS_REQUEST,
+                                 length=10,
+                                 seq=self.wtp.seq)
+
+        LOG.info("Sending traffic rule status request to %s", self.wtp.addr)
+
+        msg = TRAFFIC_RULE_STATUS_REQUEST.build(lvap_request)
+        self.stream.write(msg)
+
     def send_port_status_request(self):
         """Send a PORT_STATUS_REQUEST message.
         Args:
@@ -989,14 +965,14 @@ class LVAPPConnection:
             None
         """
 
-        caps_request = Container(version=PT_VERSION,
-                                 type=PT_PORT_STATUS_REQ,
+        lvap_request = Container(version=PT_VERSION,
+                                 type=PT_PORT_STATUS_REQUEST,
                                  length=10,
                                  seq=self.wtp.seq)
 
         LOG.info("Sending port status request to %s", self.wtp.addr)
 
-        msg = PORT_STATUS_REQUEST.build(caps_request)
+        msg = PORT_STATUS_REQUEST.build(lvap_request)
         self.stream.write(msg)
 
     @classmethod
@@ -1140,7 +1116,7 @@ class LVAPPConnection:
         msg = PROBE_RESPONSE.build(response)
         self.stream.write(msg)
 
-    def send_del_lvap(self, lvap):
+    def send_del_lvap(self, lvap, target_block=None):
         """Send a DEL_LVAP message.
         Args:
             lvap: an LVAP object
@@ -1150,16 +1126,14 @@ class LVAPPConnection:
             TypeError: if lvap is not an LVAP object.
         """
 
-        target_block = lvap.target_block
-
-        target_hwaddr = EtherAddress.bcast()
-        target_channel = 0
-        target_band = 0
-
         if target_block:
             target_hwaddr = target_block.hwaddr
             target_channel = target_block.channel
             target_band = target_block.band
+        else:
+            target_hwaddr = EtherAddress.bcast()
+            target_channel = 0
+            target_band = 0
 
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
@@ -1173,10 +1147,7 @@ class LVAPPConnection:
                              csa_switch_mode=0,
                              csa_switch_count=3)
 
-        LOG.info("Del lvap %s", lvap)
-
-        msg = DEL_LVAP.build(del_lvap)
-        self.stream.write(msg)
+        self.send_message(del_lvap, DEL_LVAP)
 
     def send_set_port(self, tx_policy):
         """Send a SET_PORT message.

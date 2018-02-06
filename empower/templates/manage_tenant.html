@@ -17,7 +17,7 @@
       runLoader(loadLVNFs, '{{tenant.tenant_id}}')
       lvapsInterval = runLoader(loadLVAPs, '{{tenant.tenant_id}}')
       runLoader(loadVBSes, '{{tenant.tenant_id}}')
-      runLoader(loadUEs, '{{tenant.tenant_id}}')
+      uesInterval =  runLoader(loadUEs, '{{tenant.tenant_id}}')
   }
 
   </script>
@@ -137,16 +137,17 @@
 
     <div class="tabPanel">
 
-      <h1>User Equipments</h1>
+          <h1>User Equipments</h1>
 
-      <table id="ues" class="dump">
-        <tr>
-          <th width="150px">VBS</th>
-          <th width="150px">IMSI</th>
-          <th width="150px">PLMN ID</th>
-          <th width="150px">RNTI</th>
-        </tr>
-      </table>
+          <table id="ues" class="dump">
+            <tr>
+              <th width="350px">UUID</th>
+              <th width="100px">RNTI</th>
+              <th width="100px">IMSI</th>
+              <th width="100px">PLMN ID</th>
+              <th width="200px" colspan="2">VBS</th>
+            </tr>
+          </table>
 
     </div>
 

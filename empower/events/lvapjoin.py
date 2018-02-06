@@ -28,6 +28,12 @@ class LVAPJoin(ModuleTrigger):
 
     MODULE_NAME = "lvapjoin"
 
+    def run_once(self):
+        """Check if there are lvaps already."""
+
+        for lvap in RUNTIME.tenants[self.tenant_id].lvaps.values():
+            self.handle_callback(lvap)
+
     def handle_response(self, lvap):
         """ Handle an LVAL_JOIN message.
         Args:

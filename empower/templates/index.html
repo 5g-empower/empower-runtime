@@ -16,7 +16,7 @@
       runLoader(loadUsers)
       runLoader(loadCPPs)
       runLoader(loadVBSes)
-      runLoader(loadUEs)
+      uesInterval = runLoader(loadUEs)
       runLoader(loadWTPs)
       runLoader(loadIMSI2MAC)
       runLoader(loadMACs, 'allow')
@@ -192,10 +192,11 @@
 
           <table id="ues" class="dump">
             <tr>
+              <th width="350px">UUID</th>
               <th width="100px">RNTI</th>
               <th width="100px">IMSI</th>
               <th width="100px">PLMN ID</th>
-              <th width="200px">VBS (eNB id)</th>
+              <th width="200px" colspan="2">VBS</th>
             </tr>
           </table>
 

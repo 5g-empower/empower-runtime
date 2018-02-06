@@ -28,6 +28,12 @@ class UEJoin(ModuleTrigger):
 
     MODULE_NAME = "uejoin"
 
+    def run_once(self):
+        """Check if there are ue already."""
+
+        for ue in RUNTIME.tenants[self.tenant_id].ues.values():
+            self.handle_callback(ue)
+
     def handle_response(self, ue):
         """ Handle an UE_JOIN message.
         Args:
@@ -38,7 +44,7 @@ class UEJoin(ModuleTrigger):
 
         ues = RUNTIME.tenants[self.tenant_id].ues
 
-        if ue.imsi not in ues:
+        if ue.ue_id not in ues:
             return
 
         self.handle_callback(ue)

@@ -1567,9 +1567,9 @@ function loadLVAPs(tenant) {
     });
 }
 
-function loadUEs(tenant_id) {
-    if (tenant_id) {
-        url = "/api/v1/tenants/" + tenant_id + "/ues"
+function loadUEs(tenant) {
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/ues"
     } else {
         url = "/api/v1/ues"
     }
@@ -1588,7 +1588,7 @@ function loadUEs(tenant_id) {
                 var rowCount = table.rows.length;
                 var row = table.insertRow(rowCount);
                 var mac = row.insertCell(0);
-                mac.colSpan = 4
+                mac.colSpan = 5
                 mac.style.textAlign = "center"
                 mac.innerHTML = "No UEs available"
             }
@@ -1596,6 +1596,8 @@ function loadUEs(tenant_id) {
                 var table = document.getElementById('ues');
                 var row = table.insertRow(table.rows.length);
                 var c = 0
+                var ue_id = row.insertCell(c++);
+                ue_id.innerHTML = data[stream].ue_id
                 var rnti = row.insertCell(c++);
                 rnti.innerHTML = data[stream].rnti
                 var imsi = row.insertCell(c++);
@@ -1603,7 +1605,18 @@ function loadUEs(tenant_id) {
                 var plmn_id = row.insertCell(c++);
                 plmn_id.innerHTML = data[stream].plmn_id
                 var vbs = row.insertCell(c++);
-                vbs.innerHTML = data[stream].vbs.addr + "(" + data[stream].vbs.enb_id + ")"
+                vbs.innerHTML = data[stream].vbs.addr + " (" + data[stream].cell.pci + ")"
+                vbs.id = "field_" + data[stream].ue_id
+                var vbs = row.insertCell(c++);
+                vbs.id = "ctrl_" + data[stream].ue_id
+                vbs.width = "24px"
+                vbs.align = "center"
+                if (tenant) {
+                    vbs.innerHTML = "<a href=\"#\" onClick=\"listVBSes('" + data[stream].ue_id + "','" + data[stream].cell.addr + "', '" + tenant + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
+                } else {
+                    vbs.innerHTML = "<a href=\"#\" onClick=\"listVBSes('" + data[stream].ue_id + "','" + data[stream].cell.addr + "')\"><img width=\"24\" src=\"/static/images/edit.png\" /></a>"
+                }
+
             }
         },
     });
@@ -1653,6 +1666,73 @@ function loadLVNFs(tenant) {
                 cppCtrl.align = "center"
                 cppCtrl.innerHTML = "<a href=\"#\" onClick=\"removeLVNF('" + data[stream].lvnf_id + "','"+tenant+"')\"><img width=\"24\" src=\"/static/images/remove.png\" /></a>"
 
+            }
+        },
+    });
+}
+
+function listVBSes(ue, current, tenant) {
+    clearInterval(uesInterval)
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/vbses"
+    } else {
+        url = "/api/v1/vbses"
+    }
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            var ctrl = document.getElementById('ctrl_' + ue);
+            if (tenant) {
+                ctrl.innerHTML = "<a href=\"#\" onClick=\"setVBS('" + ue + "', '" + tenant + "')\"><img width=\"24\" src=\"/static/images/accept.png\" /></a>"
+            } else {
+                ctrl.innerHTML = "<a href=\"#\" onClick=\"setVBS('" + ue + "')\"><img width=\"24\" src=\"/static/images/accept.png\" /></a>"
+            }
+            var field = document.getElementById('field_' + ue);
+            var tmp = "<select id=\"select_" + ue + "\">"
+            for (var stream in data) {
+                if (data[stream].connection) {
+                    tmp += "<option>" + data[stream].addr + "</option>"
+                }
+            }
+            tmp += "</select>"
+            field.innerHTML = tmp
+            var select = document.getElementById('select_' + ue);
+            select.value = current
+        },
+    });
+}
+
+function setVBS(ue, tenant) {
+    if (tenant) {
+        url = "/api/v1/tenants/" + tenant + "/ues/" + ue
+    } else {
+        url = "/api/v1/ues/" + ue
+    }
+    var select = document.getElementById('select_' + ue);
+    $.ajax({
+        url: url,
+        type: 'PUT',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", BASE_AUTH);
+        },
+        data: '{ "version" : "1.0", "vbs" : "' + select.value + '" }',
+        dataType: 'json',
+        cache: false,
+        success: function (data) {
+            if (tenant) {
+                uesInterval = runLoader(loadUEs, tenant)
+            } else {
+                uesInterval = runLoader(loadUEs)
+            }
+        },
+        error: function (data) {
+            if (tenant) {
+                uesInterval = runLoader(loadUEs, tenant)
+            } else {
+                uesInterval = runLoader(loadUEs)
             }
         },
     });

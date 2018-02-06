@@ -17,17 +17,14 @@
 
 """VBSP Connection."""
 
+import random
+import uuid
 import time
 import tornado.ioloop
 
 from construct import Container
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.plmnid import PLMNID
-from empower.datatypes.ssid import SSID
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import BT_L20
-from empower.core.radioport import RadioPort
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
 from empower.vbsp import PT_BYE
@@ -331,16 +328,14 @@ class VBSPConnection:
             None
         """
 
-        ues = {u.imsi: u for u in ue_report.ues}
+        incoming = []
 
-        # check for new UEs
-        for u in ues.values():
+        for ue in ue_report.ues:
 
-            # UE already known
-            if u.imsi in RUNTIME.ues:
+            if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
                 continue
 
-            plmn_id = PLMNID(u.plmn_id[1:].hex())
+            plmn_id = PLMNID(ue.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:
@@ -351,34 +346,36 @@ class VBSPConnection:
                 self.log.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            cell = None
-
-            for c in vbs.cells:
-                if c.pci == u.pci:
-                    cell = c
-                    break
+            cell = vbs.get_cell_by_pci(ue.pci)
 
             if not cell:
                 self.log.info("PCI %u not found", u.pci)
                 continue
 
-            ue = UE(u.imsi, u.rnti, cell, plmn_id, tenant)
+            if ue.imsi != 0:
+                ue_id = uuid.uuid5(uuid.NAMESPACE_DNS, str(ue.imsi))
+            else:
+                ue_id = uuid.uuid4()
+
+            ue = UE(ue_id, ue.imsi, ue.rnti, cell, plmn_id, tenant)
             ue.set_active()
 
-            RUNTIME.ues[u.imsi] = ue
-            tenant.ues[u.imsi] = ue
+            RUNTIME.ues[ue.ue_id] = ue
+            tenant.ues[ue.ue_id] = ue
+
+            incoming.append(ue.ue_id)
 
             self.server.send_ue_join_message_to_self(ue)
 
         # check for leaving UEs
-        for imsi in list(RUNTIME.ues.keys()):
-            if RUNTIME.ues[imsi].vbs != vbs:
+        for ue_id in list(RUNTIME.ues.keys()):
+            if RUNTIME.ues[ue_id].vbs != vbs:
                 continue
-            if not RUNTIME.ues[imsi].is_active():
-                self.log.info("Handover in progress for %u, ignoring", imsi)
+            if not RUNTIME.ues[ue_id].is_active():
+                self.log.info("Handover in progress for %u, ignoring", ue_id)
                 continue
-            if imsi not in ues:
-                RUNTIME.remove_ue(imsi)
+            if ue_id not in incoming:
+                RUNTIME.remove_ue(ue_id)
 
     def send_ue_ho_request(self, ue, cell):
         """Send a UE_HO_REQUEST message.
@@ -402,9 +399,7 @@ class VBSPConnection:
                                   target_pci=cell.pci,
                                   cause=1)
 
-        modid = self.send_message(ue_ho_request, UE_HO_REQUEST)
-
-        self.server.pending[ue_ho_request.modid] = ue
+        self.send_message(ue_ho_request, UE_HO_REQUEST)
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.
@@ -414,23 +409,9 @@ class VBSPConnection:
             None
         """
 
-        modid = None
-
-        if hdr.modid in self.server.pending:
-            # modid found
-            modid = hdr.modid
-        else:
-            # if modid is not present then try to look up by rnti
-            for i in self.server.pending:
-                if self.server.pending[i].rnti == ho.origin_rnti:
-                    modid = i
-                    break
-
-        if not modid:
-            self.log.error("Invalid modid %u", modid)
-            return
-
-        ue = self.server.pending[modid]
+        addr = hex_to_ether(ho.origin_eNB)
+        origin_vbs = RUNTIME.vbses[addr]
+        ue = RUNTIME.find_ue_by_rnti(ho.origin_rnti, ho.origin_pci, origin_vbs)
 
         if event.op == EP_OPERATION_SUCCESS:
 
@@ -441,10 +422,10 @@ class VBSPConnection:
 
             # UE was added to target eNB
             if ue.is_ho_in_progress_adding():
+                ue._cell = vbs.get_cell_by_pci(hdr.cellid)
+                ue.rnti = ho.target_rnti
                 ue.set_active()
-                del self.server.pending[modid]
                 return
 
         self.log.error("Error while performing handover")
-        del self.server.pending[modid]
-        RUNTIME.remove_ue(ue.imsi)
+        RUNTIME.remove_ue(ue.ue_id)

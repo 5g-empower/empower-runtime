@@ -94,18 +94,12 @@ class ModuleVBSPWorker(ModuleWorker):
     def handle_ue_leave(self, ue):
         """UE left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "ue") and module.ue == ue:
-                self.modules[module_id].unload()
+        pass
 
     def handle_bye(self, vbs):
         """VBS left."""
 
-        for module_id in list(self.modules.keys()):
-            module = self.modules[module_id]
-            if hasattr(module, "vbs") and module.vbs == vbs:
-                self.modules[module_id].unload()
+        pass
 
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""
@@ -137,8 +131,6 @@ class VBSPServer(PNFPServer, TCPServer):
 
         self.listen(self.port)
 
-        self.pending = {}
-
     def handle_stream(self, stream, address):
         self.log.info('Incoming connection from %r', address)
         self.connection = VBSPConnection(stream, address, server=self)
@@ -146,14 +138,14 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_leave_message_to_self(self, ue):
         """Send an UE_LEAVE message to self."""
 
-        self.log.info("UE LEAVE %u (%s)", ue.imsi, ue.plmn_id)
+        self.log.info("UE LEAVE %s (%s)", ue.ue_id, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_LEAVE]:
             handler(ue)
 
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
-        self.log.info("UE JOIN %u (%s)", ue.imsi, ue.plmn_id)
+        self.log.info("UE JOIN %s (%s)", ue.ue_id, ue.plmn_id)
         for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 

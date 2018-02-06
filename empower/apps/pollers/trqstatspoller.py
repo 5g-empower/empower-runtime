@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
+# Copyright (c) 2017 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Hello Manager App."""
+"""TR Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.datatypes.etheraddress import EtherAddress
-from empower.core.resourcepool import TX_MCAST_LEGACY
 
 
-class HelloWorld(EmpowerApp):
-    """HelloWorld App.
+class TRQStatsPoller(EmpowerApp):
+    """TR Stats Poller Apps.
 
     Command Line Parameters:
 
@@ -33,31 +31,28 @@ class HelloWorld(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.helloworld.helloworld \
-            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
+        ./empower-runtime.py apps.pollers.trqstatspoller \
+            --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
     def __init__(self, **kwargs):
-        self.__message = None
         super().__init__(**kwargs)
+        self.wtpup(callback=self.wtp_up_callback)
 
-    def loop(self):
-        """Periodic job."""
+    def wtp_up_callback(self, wtp):
+        """ Called when a new WTP connects to the controller"""
 
-        print("Hello! %s." % self.message)
+        for block in wtp.supports:
+            self.trq_stats(dscp='0x0', block=block, every=self.every,
+                           callback=self.trq_stats_callback)
 
-    @property
-    def message(self):
-        """Return message."""
+    def trq_stats_callback(self, stats):
+        """ New stats available. """
 
-        return self.__message
-
-    @message.setter
-    def message(self, value):
-        """Set message."""
-
-        self.__message = value
+        self.log.info("New trq stats received from %s" % stats.block)
 
 
-def launch(tenant_id, message="World", every=5000):
-    return HelloWorld(tenant_id=tenant_id, message=message, every=every)
+def launch(tenant_id, every=DEFAULT_PERIOD):
+    """ Initialize the module. """
+
+    return TRQStatsPoller(tenant_id=tenant_id, every=every)
