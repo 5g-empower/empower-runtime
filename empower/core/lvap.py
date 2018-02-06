@@ -359,7 +359,7 @@ class LVAP:
         # set/update intent
         intent = {'version': '1.0',
                   'dpid': self.blocks[0].radio.port().dpid,
-                  'port': self.blocks[0].radio.port().ovs_port_id,
+                  'port': self.blocks[0].radio.port().port_id,
                   'hwaddr': self.addr}
 
         intent_server = RUNTIME.components[IntentServer.__module__]
