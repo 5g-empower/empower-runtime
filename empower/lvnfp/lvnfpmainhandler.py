@@ -321,14 +321,14 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                 else:
                     hwaddr = None
 
-                if port['ovs_port_id']:
-                    ovs_port_id = int(port['ovs_port_id'])
+                if port['port_id']:
+                    port_id = int(port['port_id'])
                 else:
-                    ovs_port_id = None
+                    port_id = None
 
                 iface = port['iface']
 
-                port = NetworkPort(lvnf.cpp.addr, ovs_port_id, hwaddr, iface)
+                port = NetworkPort(lvnf.cpp.addr, port_id, hwaddr, iface)
 
                 virtual_port = VirtualPort(virtual_port_id=virtual_port_id)
                 virtual_port.ports.append(port)
