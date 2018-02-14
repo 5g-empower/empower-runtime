@@ -354,7 +354,7 @@ class LVAP:
         # Create a new port from scratch
         self.ports[0] = VirtualPort(virtual_port_id=0)
         for block in self.blocks:
-            self.ports[0].ports.append(block.radio.port())
+            self.ports[0].poas.append(block.radio.port())
 
         # set/update intent
         intent = {'version': '1.0',
