@@ -658,7 +658,7 @@ class LVAPPConnection:
         if not lvap.ports:
             lvap.ports[0] = VirtualPort(virtual_port_id=0)
 
-        lvap.ports[0].ports.append(wtp.port())
+        lvap.ports[0].poas.append(wtp.port())
 
         # set supported band
         lvap._supported_band = status.supported_band
