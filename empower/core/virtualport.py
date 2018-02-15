@@ -33,7 +33,7 @@ class VirtualPort:
 
         self.virtual_port_id = virtual_port_id
         self.poas = []
-        self.next = VirtualPortProp()
+        self.next = VirtualPortProp(self.poas)
 
     def clear(self):
         """Clear all outgoing links."""
@@ -69,9 +69,10 @@ class VirtualPort:
 class VirtualPortProp(dict):
     """Maps flows to VirtualPorts."""
 
-    def __init__(self):
+    def __init__(self, poas):
         super(VirtualPortProp, self).__init__()
         self.__uuids__ = {}
+        self.poas = poas
 
     def __delitem__(self, key):
         """Clear virtual port configuration."""

@@ -166,7 +166,7 @@ class LVAP:
                                                       True)
 
         for block in self.blocks[1:]:
-            block.radio.connection.send_add_lvap(self.lvap, block, False)
+            block.radio.connection.send_add_lvap(self, block, False)
 
     @property
     def encap(self):
@@ -354,7 +354,7 @@ class LVAP:
         # Create a new port from scratch
         self.ports[0] = VirtualPort(virtual_port_id=0)
         for block in self.blocks:
-            self.ports[0].ports.append(block.radio.port())
+            self.ports[0].poas.append(block.radio.port())
 
         # set/update intent
         intent = {'version': '1.0',
