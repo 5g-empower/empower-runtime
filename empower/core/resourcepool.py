@@ -33,7 +33,6 @@ BANDS = {BT_L20: L20,
 REVERSE_BANDS = {L20: BT_L20,
                  HT20: BT_HT20}
 
-
 class TxPolicyProp(dict):
     """Override getitem behaviour by a default TxPolicy."""
 
