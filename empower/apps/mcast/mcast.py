@@ -29,10 +29,11 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.resourcepool import BT_HT20
-from empower.core.resourcepool import TX_MCAST
-from empower.core.resourcepool import TX_MCAST_DMS
-from empower.core.resourcepool import TX_MCAST_LEGACY
+from empower.core.transmissionpolicy import TX_MCAST
+from empower.core.transmissionpolicy import TX_MCAST_DMS
+from empower.core.transmissionpolicy import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress
+import sys
 
 
 class MCastManager(EmpowerApp):
@@ -55,7 +56,9 @@ class MCastManager(EmpowerApp):
 
         # app parameters
         self.receptors = {}
-        self.prob_thershold = 90.0
+        self.receptors_mcses = {}
+        self.receptors_quality = {}
+        self.prob_threshold = 90.0
         self.mcast_addr = EtherAddress("01:00:5e:00:c8:dd")
         self.current = 0
         self.dms = 1
@@ -77,6 +80,58 @@ class MCastManager(EmpowerApp):
         """Called when an LVAP leaves the network."""
 
         del self.receptors[lvap.addr]
+        del self.receptors_mcses[lvap.addr]
+        del self.receptors_quality[lvap.addr]
+
+    def compute_receptors_mcs(self):
+        """ New stats available. """
+
+        for receptor, value in self.receptors.items():
+            highest_prob = 0
+            information = value.to_dict()
+            if not information["rates"]:
+                continue
+
+            lvap = information["lvap"]
+            best_mcs = min(list(map(int, information["rates"].keys())))
+            if lvap in self.receptors_mcses:
+                del self.receptors_mcses[lvap]
+            self.receptors_mcses[lvap] = []
+
+            for mcs, stats in information["rates"].items():
+                if stats["prob"] >= self.prob_threshold:
+                    self.receptors_mcses[lvap].append(int(float(mcs)))
+                elif stats["prob"] > highest_prob:
+                    best_mcs = int(float(mcs))
+                    highest_prob = stats["prob"]
+
+            if not self.receptors_mcses[lvap]:
+                self.receptors_quality[lvap] = False
+                self.receptors_mcses[lvap].append(best_mcs)
+            else:
+                self.receptors_quality[lvap] = True
+
+    def calculate_mcs(self):
+
+        self.compute_receptors_mcs()
+        if not self.receptors_mcses:
+            return 0
+
+        if False not in self.receptors_quality.values():
+            mcses = []
+            for rates in self.receptors_mcses.values():
+                mcses.append(rates)
+
+            mcs_intersection = list(set.intersection(*map(set, mcses)))
+            if mcs_intersection:
+                mcs = max(mcs_intersection)
+                return mcs
+
+        mcs = sys.maxsize
+        for rates in self.receptors_mcses.values():
+            mcs = min(max(rates), mcs)
+
+        return mcs
 
     def get_next_mode(self):
         """Get next mcast mode in the schedule."""
@@ -98,7 +153,7 @@ class MCastManager(EmpowerApp):
             txp = block.tx_policies[self.mcast_addr]
 
             # no clients or DMS slot
-            if not self.lvaps(block) or mode == TX_MCAST_DMS:
+            if not self.lvaps(block) or not self.receptors or mode == TX_MCAST_DMS:
                 self.log.info("Block %s setting mcast address %s to %s",
                               block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
                 txp.mcast = TX_MCAST_DMS
@@ -108,11 +163,11 @@ class MCastManager(EmpowerApp):
             mcs_type = BT_HT20
 
             # compute MCS
-            mcs = 0
+            mcs = max(self.calculate_mcs(), min(block.supports))
 
             # assign MCS
-            self.info("Block %s setting mcast address %s to %s",
-                      block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
+            self.log.info("Block %s setting mcast address %s to %s MCS %d",
+                      block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS], mcs)
             txp.mcast = TX_MCAST_LEGACY
             if mcs_type == BT_HT20:
                 txp.ht_mcs = [mcs]
