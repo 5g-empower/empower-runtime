@@ -50,7 +50,7 @@ class IntentServer(Service, tornado.web.Application):
         self.intent_host = "localhost"
         self.intent_port = 8080
         self.intent_url_rules = "/intent/rules"
-        self.intent_url_poa = "/intent/poa"
+        self.intent_url_poa = "/intent/poas"
         self.intent_url_traffic_rules = "/intent/trs"
 
         handlers = []
