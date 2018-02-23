@@ -166,7 +166,7 @@ class LVAP:
                                                       True)
 
         for block in self.blocks[1:]:
-            block.radio.connection.send_add_lvap(self.lvap, block, False)
+            block.radio.connection.send_add_lvap(self, block, False)
 
     @property
     def encap(self):

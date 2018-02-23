@@ -31,7 +31,7 @@ class RRCMeasurementsPoller(EmpowerApp):
 
     Example:
 
-        ./empower-runtime.py apps.pollers.rrcpoller \
+        ./empower-runtime.py apps.pollers.rrcmeasurementspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
@@ -46,8 +46,6 @@ class RRCMeasurementsPoller(EmpowerApp):
             [{"earfcn": ue.cell.DL_earfcn, "interval": 2000, "max_cells": 2,
               "max_meas": 2},
              {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
-
-        print(ue.ue_id)
 
         self.rrc_measurements(ue_id=ue.ue_id,
                               measurements=measurements,
