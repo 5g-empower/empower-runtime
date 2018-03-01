@@ -349,7 +349,7 @@ class VBSPConnection:
             cell = vbs.get_cell_by_pci(ue.pci)
 
             if not cell:
-                self.log.info("PCI %u not found", u.pci)
+                self.log.info("PCI %u not found", ue.pci)
                 continue
 
             if ue.imsi != 0:
@@ -403,6 +403,16 @@ class VBSPConnection:
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.
+
+        If event.op is set to EP_OPERATION_SUCCESS, then the handover has been
+        successfully performed and the origin_eNB, origin_pci, origin_rnti, and
+        target_rnti are all set to their correct values. This message is always
+        sent by the TARGET eNB.
+
+        If event.op is set to EP_OPERATION_FAIL it means that the HO failed. In
+        this case only the origin_eNB, origin_pci, and origin_rnti fields are
+        filled. This message is always sent by the SOURCE eNB.
+
         Args:
             ho, a UE_HO_RESPONSE message
         Returns:
@@ -415,17 +425,11 @@ class VBSPConnection:
 
         if event.op == EP_OPERATION_SUCCESS:
 
-            # UE was removed from source eNB
-            if ue.is_ho_in_progress_removing():
-                ue.set_ho_in_progress_adding()
-                return
-
-            # UE was added to target eNB
-            if ue.is_ho_in_progress_adding():
+            # UE was removed from source eNB and added to the target
+            if ue.is_ho_in_progress():
                 ue._cell = vbs.get_cell_by_pci(hdr.cellid)
                 ue.rnti = ho.target_rnti
                 ue.set_active()
                 return
 
-        self.log.error("Error while performing handover")
-        RUNTIME.remove_ue(ue.ue_id)
+        raise Exception("Error while performing handover")
