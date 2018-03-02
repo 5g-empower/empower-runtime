@@ -2,7 +2,7 @@
 
 {% block js %}
   <script type="text/javascript">
-    var BASE_AUTH = "Basic " + btoa("foo" + ':' + "foo");
+    var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
     var tenant_id="{{tenant_id}}"
   </script>
 {% end %}
