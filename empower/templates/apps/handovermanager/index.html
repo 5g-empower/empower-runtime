@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Handover manager App</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link type="text/css" href="/static/css/c3.css" rel="stylesheet" />
+    <link type="text/css" href="/static/css/bootstrap.css" rel="stylesheet" />
+
+    <!-- <link rel="stylesheet" type="text/css" href="/static/css/empower.css" /> -->
+    <link rel="stylesheet" type="text/css" href="/static/apps/handovermanager/handovermanager.css" />
+
+    <script type="text/javascript" src="/static/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+    <!-- <script src="https://d3js.org/d3.v4.js"></script> -->
+    <script type="text/javascript" src="/static/js/d3.js"></script>
+    <script type="text/javascript" src="/static/js/c3.js"></script>
+
+    <script type="text/javascript" src="/static/js/empower.ui.lib.js"></script>
+    <script type="text/javascript" src="/static/apps/handovermanager/handovermanager.lib.js"></script>
+
+    <script type="text/javascript">
+      var tenant_id = "{{tenant_id}}"
+
+    </script>
+  </head>
+
+  <body>
+
+    <div id="hoSidenav" class="sidenav">
+      <div class="container">
+        <table class="table table-bordered">
+          <thead class="thead-default">
+            <tr>
+              <th>Handover Parameter</th>
+              <th>Current Value</th>
+              <th>New Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Load Balancing</td>
+              <td><label id="load_balance_c"></label></td>
+              <td>
+                <input type="radio" name="load_balance" value=true> Activate </input>
+                <input type="radio" name="load_balance" value=false> Deactivate </input>
+              </td>
+            </tr>
+            <tr>
+              <td>Source DL threshold</td>
+              <td><label id="s_dl_thr_c"></label></td>
+              <td><input class="text-input" name="s_dl_thr" step="0.01" min="0" max="100" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Source UL threshold</td>
+              <td><label id="s_ul_thr_c"></label></td>
+              <td><input class="text-input" name="s_ul_thr" step="0.01" min="0" max="100" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Target DL threshold</td>
+              <td><label id="t_dl_thr_c"></label></td>
+              <td><input class="text-input" name="t_dl_thr" step="0.01" min="0" max="100" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Target UL threshold</td>
+              <td><label id="t_ul_thr_c"></label></td>
+              <td><input class="text-input" name="t_ul_thr" step="0.01" min="0" max="100" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>UE RSRQ threshold</td>
+              <td><label id="rsrq_thr_c"></label></td>
+              <td><input class="text-input" name="rsrq_thr" onkeypress='return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 45' min="-20" max="-3" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Minimum number of UEs</td>
+              <td><label id="min_ue_c"></label></td>
+              <td><input class="text-input" name="min_ue" onkeypress='return event.charCode >= 48 && event.charCode <= 57' min="0" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Maximum HO from source</td>
+              <td><label id="max_ho_from_c"></label></td>
+              <td><input class="text-input" name="max_ho_from" onkeypress='return event.charCode >= 48 && event.charCode <= 57' min="0" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Maximum HO to target</td>
+              <td><label id="max_ho_to_c"></label></td>
+              <td><input class="text-input" name="max_ho_to" onkeypress='return event.charCode >= 48 && event.charCode <= 57' min="0" tabindex="2" type="number" size="45" />
+            </tr>
+            <tr>
+              <td>Evaluation period (in ms.)</td>
+              <td><label id="every_c"></label></td>
+              <td><input class="text-input" name="every" onkeypress='return event.charCode >= 48 && event.charCode <= 57' min="100" tabindex="2" type="number" size="45" />
+            </tr>
+          </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary" onclick="modHOParam()"> Apply </button>
+        <button type="submit" class="btn btn-primary" onclick="closeNav()"> Close </button>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+
+      <div class="row">
+
+        <div class="jumbotron">
+          <div class="row">
+            <div class="col-xs-1 hoSidePanelToggle" onclick="openNav()">
+              <span>&#9776;</span>
+            </div>
+            <div class="col-xs-11">
+              <h1> Handover manager visualization </h1>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row" id="graphRow"></div>
+
+    </div>
+
+  </body>
+</html>
