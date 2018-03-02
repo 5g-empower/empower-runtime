@@ -328,8 +328,6 @@ class VBSPConnection:
             None
         """
 
-        incoming = []
-
         for ue in ue_report.ues:
 
             if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
@@ -363,19 +361,27 @@ class VBSPConnection:
             RUNTIME.ues[ue.ue_id] = ue
             tenant.ues[ue.ue_id] = ue
 
-            incoming.append(ue.ue_id)
-
             self.server.send_ue_join_message_to_self(ue)
+
+        # incoming ues
+        incoming = []
+        for inc_ue in ue_report.ues:
+            ue = RUNTIME.find_ue_by_rnti(inc_ue.rnti, inc_ue.pci, vbs)
+            incoming.append(ue.ue_id)
 
         # check for leaving UEs
         for ue_id in list(RUNTIME.ues.keys()):
+            # handover in progress, ignoring
+            if not RUNTIME.ues[ue_id].is_active():
+                continue
+            # ue has left due to an handover, ignore
             if RUNTIME.ues[ue_id].vbs != vbs:
                 continue
-            if not RUNTIME.ues[ue_id].is_active():
-                self.log.info("Handover in progress for %u, ignoring", ue_id)
+            # ue already processed
+            if ue_id in incoming:
                 continue
-            if ue_id not in incoming:
-                RUNTIME.remove_ue(ue_id)
+            # ue has left
+            RUNTIME.remove_ue(ue_id)
 
     def send_ue_ho_request(self, ue, cell):
         """Send a UE_HO_REQUEST message.
