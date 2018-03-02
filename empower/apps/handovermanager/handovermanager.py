@@ -79,17 +79,18 @@ class HandoverManager(EmpowerApp):
         """ New UE. """
 
         measurements = \
-            [{"earfcn": ue.cell.DL_earfcn, "interval": 2000, "max_cells": 2,
+            [{"earfcn": ue.cell.DL_earfcn,
+              "interval": 2000,
+              "max_cells": 2,
               "max_meas": 2}]
 
-        self.rrc_measurements(ue_id=ue.ue_id,
-                              measurements=measurements,
+        self.rrc_measurements(ue=ue, measurements=measurements,
                               callback=self.rrc_measurements_callback)
 
     def rrc_measurements_callback(self, rrc):
         """ New measurements available. """
 
-        self.log.info("New rrc measurements received from %s" % rrc.ue_id)
+        self.log.info("New rrc measurements received from %s" % rrc.ue.ue_id)
 
     @property
     def load_balance(self):
@@ -243,19 +244,19 @@ class HandoverManager(EmpowerApp):
 
             for cell in vbs.cells:
 
-                if not cell.stats:
+                if not cell.mac_reports:
                     continue
 
                 self.log.info("Cell %s: DL: %f / %u / %u", cell,
-                              cell.stats['DL_util_last'], self.s_dl_thr,
+                              cell.mac_reports['DL_util_last'], self.s_dl_thr,
                               self.t_dl_thr)
 
                 self.log.info("Cell %s: UL: %f / %u / %u", cell,
-                              cell.stats['UL_util_last'], self.s_ul_thr,
+                              cell.mac_reports['UL_util_last'], self.s_ul_thr,
                               self.t_ul_thr)
 
-                if cell.stats['DL_util_last'] > self.s_dl_thr or \
-                    cell.stats['UL_util_last'] > self.s_ul_thr:
+                if cell.mac_reports['DL_util_last'] > self.s_dl_thr or \
+                    cell.mac_reports['UL_util_last'] > self.s_ul_thr:
 
                     if vbs.addr not in ho_from_vbses:
                         ho_from_vbses[vbs.addr] = {"vbs": vbs,
@@ -266,8 +267,8 @@ class HandoverManager(EmpowerApp):
                     ho_from_vbses[vbs.addr]["cells"].append(cell)
 
 
-                if cell.stats['DL_util_last'] < self.t_dl_thr or \
-                    cell.stats['UL_util_last'] < self.t_ul_thr:
+                if cell.mac_reports['DL_util_last'] < self.t_dl_thr or \
+                    cell.mac_reports['UL_util_last'] < self.t_ul_thr:
 
                     if vbs.addr not in ho_to_vbses:
                         ho_to_vbses[vbs.addr] = {"vbs": vbs,
@@ -296,9 +297,17 @@ class HandoverManager(EmpowerApp):
 
                     # pick best cell in vbs
                     for cell in ho_to_vbses[tvbs]["cells"]:
-                        # replace with actual ho condition
-                        if True:
-                            ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
+
+                        # ignore current cell
+                        if cell == ue.cell:
+                            continue
+
+                        # pick cell from measurements
+                        for measurement in ue.rrc_measurements.values():
+                            if measurement["pci"] == cell.pci and \
+                                measurement["rsrq"] >= self.rsrq_thr:
+
+                                ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
 
                 if ho_info[ue.ue_id]:
                     tvbs = ho_info[ue.ue_id]['cell'].vbs.addr

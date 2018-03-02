@@ -33,6 +33,7 @@ from construct import Padding
 from construct import Bit
 
 from empower.core.app import EmpowerApp
+from empower.core.ue import UE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModuleTrigger
@@ -79,14 +80,14 @@ class RRCMeasurements(ModuleTrigger):
     """ LVAPStats object. """
 
     MODULE_NAME = "rrc_measurements"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue_id', 'measurements']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue', 'measurements']
 
     def __init__(self):
 
         super().__init__()
 
         # parameters
-        self._ue_id = None
+        self._ue = None
         self._measurements = {}
 
         # stats
@@ -94,9 +95,6 @@ class RRCMeasurements(ModuleTrigger):
 
         # set this for auto-cleanup
         self.vbs = None
-
-        # set this for auto-cleanup
-        self.ue = None
 
     def __eq__(self, other):
 
@@ -128,23 +126,32 @@ class RRCMeasurements(ModuleTrigger):
             }
 
     @property
-    def ue_id(self):
+    def ue(self):
         """Return the ue."""
 
-        return self._ue_id
+        return self._ue
 
-    @ue_id.setter
-    def ue_id(self, value):
+    @ue.setter
+    def ue(self, value):
         """Set UE."""
 
-        self._ue_id = uuid.UUID(str(value))
+        if isinstance(value, UE):
+            self._ue = value
+
+        elif isinstance(value, str):
+
+            self._ue = RUNTIME.ues[uuid.UUID(str(value))]
+
+        else:
+
+            raise Exception("Invalid ue value %s", value)
 
     def to_dict(self):
         """ Return a JSON-serializable."""
 
         out = super().to_dict()
 
-        out['ue_id'] = self.ue_id
+        out['ue'] = self.ue
         out['measurements'] = self.measurements
         out['results'] = self.results
 
@@ -160,12 +167,10 @@ class RRCMeasurements(ModuleTrigger):
 
         tenant = RUNTIME.tenants[self.tenant_id]
 
-        if self.ue_id not in tenant.ues:
-            self.log.info("UE %u not found", self.ue_id)
+        if self.ue.ue_id not in tenant.ues:
+            self.log.info("UE %u not found", self.ue.ue_id)
             self.unload()
             return
-
-        self.ue = tenant.ues[self.ue_id]
 
         if not self.ue.vbs or not self.ue.vbs.is_online():
             self.log.info("VBS %s not connected", self.ue.vbs.addr)
@@ -203,7 +208,6 @@ class RRCMeasurements(ModuleTrigger):
         """
 
         for entry in meas.rrc_entries:
-
             self.results[entry.meas_id] = {
                 "meas_id": entry.meas_id,
                 "pci": entry.pci,
@@ -211,7 +215,7 @@ class RRCMeasurements(ModuleTrigger):
                 "rsrq": entry.rsrq
             }
 
-        self.ue.stats = self.results
+        self.ue.rrc_measurements = self.results
 
         # call callback
         self.handle_callback(self)

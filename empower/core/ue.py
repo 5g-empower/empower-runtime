@@ -38,6 +38,7 @@ class UE:
         self._cell = cell
         self.tenant = tenant
         self.__state = None
+        self.rrc_measurements = {}
         self.log = empower.logger.get_logger()
 
     def __str__(self):

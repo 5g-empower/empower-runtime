@@ -43,18 +43,18 @@ class RRCMeasurementsPoller(EmpowerApp):
         """ New UE. """
 
         measurements = \
-            [{"earfcn": ue.cell.DL_earfcn, "interval": 2000, "max_cells": 2,
-              "max_meas": 2},
-             {"earfcn": 2600, "interval": 1000, "max_cells": 5, "max_meas": 5}]
+            [{"earfcn": ue.cell.DL_earfcn,
+              "interval": 2000,
+              "max_cells": 2,
+              "max_meas": 2}]
 
-        self.rrc_measurements(ue_id=ue.ue_id,
-                              measurements=measurements,
+        self.rrc_measurements(ue=ue, measurements=measurements,
                               callback=self.rrc_measurements_callback)
 
     def rrc_measurements_callback(self, rrc):
         """ New measurements available. """
 
-        self.log.info("New rrc measurements received from %s" % rrc.ue_id)
+        self.log.info("New rrc measurements received from %s" % rrc.ue.ue_id)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):

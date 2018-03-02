@@ -35,13 +35,14 @@ class Cell:
         self.DL_prbs = DL_prbs
         self.UL_earfcn = UL_earfcn
         self.UL_prbs = UL_prbs
-        self.stats = {}
+        self.mac_reports = {}
 
     def __str__(self):
         """Return string representation."""
 
-        return "vbs %s eND id %u cell %u" % (self.vbs.addr, self.vbs.enb_id,
-                                             self.pci)
+        return "vbs %s eNB id %u cell %u DL_earfcn %u UL_earfcn %u" % \
+            (self.vbs.addr, self.vbs.enb_id, self.pci, self.DL_earfcn,
+             self.UL_earfcn)
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
@@ -55,7 +56,7 @@ class Cell:
         out['DL_prbs'] = self.DL_prbs
         out['UL_earfcn'] = self.UL_earfcn
         out['UL_prbs'] = self.UL_prbs
-        out['stats'] = self.stats
+        out['mac_reports'] = self.mac_reports
         return out
 
 
