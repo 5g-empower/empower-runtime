@@ -211,6 +211,8 @@ class RRCMeasurements(ModuleTrigger):
                 "rsrq": entry.rsrq
             }
 
+        self.ue.stats = self.results
+
         # call callback
         self.handle_callback(self)
 

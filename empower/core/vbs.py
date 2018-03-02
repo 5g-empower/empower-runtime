@@ -35,6 +35,7 @@ class Cell:
         self.DL_prbs = DL_prbs
         self.UL_earfcn = UL_earfcn
         self.UL_prbs = UL_prbs
+        self.stats = {}
 
     def __str__(self):
         """Return string representation."""
@@ -54,6 +55,7 @@ class Cell:
         out['DL_prbs'] = self.DL_prbs
         out['UL_earfcn'] = self.UL_earfcn
         out['UL_prbs'] = self.UL_prbs
+        out['stats'] = self.stats
         return out
 
 

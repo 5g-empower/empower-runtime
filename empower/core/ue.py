@@ -40,6 +40,11 @@ class UE:
         self.__state = None
         self.log = empower.logger.get_logger()
 
+    def __str__(self):
+        """Return string representation."""
+
+        return "UE %s @ %s" % (self.ue_id, self.cell)
+
     @property
     def state(self):
         """Return the state."""

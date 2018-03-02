@@ -59,11 +59,9 @@ MAC_REPORTS_REQ = Struct("mac_reports_req",
 
 MAC_REPORTS_RESP = Struct("mac_reports_resp",
                           UBInt8("DL_prbs_total"),
-                          UBInt8("DL_prbs_in_use"),
-                          UBInt16("DL_prbs_avg"),
+                          UBInt32("DL_prbs_used"),
                           UBInt8("UL_prbs_total"),
-                          UBInt8("UL_prbs_in_use"),
-                          UBInt16("UL_prbs_avg"))
+                          UBInt32("UL_prbs_used"))
 
 
 class MACReports(ModuleTrigger):
@@ -81,7 +79,9 @@ class MACReports(ModuleTrigger):
         self._deadline = None
 
         # stats
-        self.results = {}
+        self.DL_prbs_last = 0
+        self.UL_prbs_last = 0
+        self.stats = {}
 
         # set this for auto-cleanup
         self.vbs = None
@@ -138,7 +138,7 @@ class MACReports(ModuleTrigger):
 
         out['cell'] = self.cell
         out['deadline'] = self.deadline
-        out['results'] = self.results
+        out['stats'] = self.stats
 
         return out
 
@@ -178,12 +178,21 @@ class MACReports(ModuleTrigger):
             None
         """
 
-        self.results['DL_prbs_total'] = meas.DL_prbs_total
-        self.results['DL_prbs_in_use'] = meas.DL_prbs_in_use
-        self.results['DL_prbs_avg'] = meas.DL_prbs_avg
-        self.results['UL_prbs_total'] = meas.UL_prbs_total
-        self.results['UL_prbs_in_use'] = meas.UL_prbs_in_use
-        self.results['UL_prbs_avg'] = meas.UL_prbs_avg
+        self.stats['DL_prbs_total'] = meas.DL_prbs_total
+        self.stats['DL_prbs_used'] = meas.DL_prbs_used
+        self.stats['DL_prbs_last'] = meas.DL_prbs_used - self.DL_prbs_last
+        self.DL_prbs_last = meas.DL_prbs_used
+        self.stats['DL_util_last'] = float(self.stats['DL_prbs_last']) / \
+            (meas.DL_prbs_total * self.deadline)
+
+        self.stats['UL_prbs_total'] = meas.UL_prbs_total
+        self.stats['UL_prbs_used'] = meas.UL_prbs_used
+        self.stats['UL_prbs_last'] = meas.UL_prbs_used - self.UL_prbs_last
+        self.UL_prbs_last = meas.UL_prbs_used
+        self.stats['UL_util_last'] = float(self.stats['UL_prbs_last']) / \
+            (meas.UL_prbs_total * self.deadline)
+
+        self.cell.stats = self.stats
 
         # call callback
         self.handle_callback(self)

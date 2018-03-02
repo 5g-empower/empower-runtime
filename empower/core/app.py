@@ -105,24 +105,24 @@ class EmpowerApp:
 
         pass
 
-    def vbsps(self):
+    def vbses(self):
         """Return VBSPs in this tenant."""
 
         if self.tenant_id not in RUNTIME.tenants:
             return None
 
-        return RUNTIME.tenants[self.tenant_id].vbsps.values()
+        return RUNTIME.tenants[self.tenant_id].vbses.values()
 
-    def vbsp(self, addr):
+    def vbs(self, addr):
         """Return a particular VBSP in this tenant."""
 
         if self.tenant_id not in RUNTIME.tenants:
             return None
 
-        if addr not in RUNTIME.tenants[self.tenant_id].vbsps:
+        if addr not in RUNTIME.tenants[self.tenant_id].vbses:
             return None
 
-        return RUNTIME.tenants[self.tenant_id].vbsps[addr]
+        return RUNTIME.tenants[self.tenant_id].vbses[addr]
 
     def lvaps(self, block=None):
         """Return LVAPs in this tenant."""
@@ -147,6 +147,30 @@ class EmpowerApp:
             return None
 
         return RUNTIME.tenants[self.tenant_id].lvaps[addr]
+
+    def ues(self, vbs=None):
+        """Return UEs in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        ues = RUNTIME.tenants[self.tenant_id].ues.values()
+
+        if not vbs:
+            return ues
+
+        return [x for x in ues if x.vbs == vbs]
+
+    def ue(self, ue_id):
+        """Return a particular UE in this tenant."""
+
+        if self.tenant_id not in RUNTIME.tenants:
+            return None
+
+        if ue_id not in RUNTIME.tenants[self.tenant_id].ues:
+            return None
+
+        return RUNTIME.tenants[self.tenant_id].ues[ue_id]
 
     def blocks(self):
         """Return all ResourseBlocks in this Tenant."""
