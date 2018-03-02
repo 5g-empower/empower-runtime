@@ -44,6 +44,17 @@ class Cell:
             (self.vbs.addr, self.vbs.enb_id, self.pci, self.DL_earfcn,
              self.UL_earfcn)
 
+    def __hash__(self):
+        return hash(self.vbs) + hash(self.pci)
+
+    def __eq__(self, other):
+        if isinstance(other, Cell):
+            return self.vbs == other.vbs and self.pci == other.pci
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 

@@ -303,13 +303,13 @@ class HandoverManager(EmpowerApp):
                             continue
 
                         # pick cell from measurements
-                        for measurement in ue.rrc_measurements.values():
-                            if measurement["pci"] == cell.pci and \
-                                measurement["rsrq"] >= self.rsrq_thr:
+                        if cell not in ue.rrc_measurements:
+                            continue
 
-                                ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
+                        if ue.rrc_measurements[cell]["rsrq"] > self.rsrq_thr:
+                            ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
 
-                if ho_info[ue.ue_id]:
+                if ue.ue_id in ho_info and ho_info[ue.ue_id]:
                     tvbs = ho_info[ue.ue_id]['cell'].vbs.addr
                     ho_to_vbses[tvbs]["max_ho_to"] += 1
                     ho_from_vbses[svbs]["max_ho_from"] += 1
