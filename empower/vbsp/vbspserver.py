@@ -88,18 +88,14 @@ class ModuleVBSPWorker(ModuleWorker):
                               pt_packet)
 
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
-        self.pnfp_server.register_message(PT_UE_LEAVE, None, self.
-                                          handle_ue_leave)
-
-    def handle_ue_leave(self, ue):
-        """UE left."""
-
-        pass
 
     def handle_bye(self, vbs):
         """VBS left."""
 
-        pass
+        for module_id in list(self.modules.keys()):
+            module = self.modules[module_id]
+            if hasattr(module, "vbs") and module.vbs == vbs:
+                self.modules[module_id].unload()
 
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""

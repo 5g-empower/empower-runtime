@@ -141,13 +141,17 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
+        rrcs = {"%u-%u" % (k.vbs.enb_id, k.pci): v
+                for k, v in self.rrc_measurements.items()}
+
         return {'ue_id': self.ue_id,
                 'imsi': self.imsi,
                 'rnti': self.rnti,
                 'plmn_id': self.plmn_id,
                 'cell': self.cell,
                 'vbs': self.vbs,
-                'state': self.state}
+                'state': self.state,
+                'rrc_measurements': rrcs}
 
     def __hash__(self):
         return hash(self.addr)

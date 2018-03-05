@@ -207,18 +207,16 @@ class RRCMeasurements(ModuleTrigger):
             None
         """
 
-        vbses = RUNTIME.tenants[self.tenant_id].vbses
-
         for entry in meas.rrc_entries:
 
-            cell = None
+            selected = None
 
-            for vbs in vbses.values():
-                for c in vbs.cells:
+            for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
+                for cell in vbs.cells:
                     pci = entry.pci
                     earfcn = self.measurements[entry.meas_id]["earfcn"]
-                    if c.pci == pci and c.DL_earfcn == earfcn:
-                        cell = c
+                    if cell.pci == pci and cell.DL_earfcn == earfcn:
+                        selected = cell
 
             if entry.meas_id not in self.results:
                 self.results[entry.meas_id] = {}
@@ -230,8 +228,12 @@ class RRCMeasurements(ModuleTrigger):
                 "rsrq": entry.rsrq
             }
 
-            self.ue.rrc_measurements[cell] = \
-                self.results[entry.meas_id][entry.pci]
+            self.ue.rrc_measurements[cell] = {
+                "enb_id": cell.vbs.enb_id,
+                "pci": cell.pci,
+                "rsrp": entry.rsrp,
+                "rsrq": entry.rsrq
+            }
 
         # call callback
         self.handle_callback(self)

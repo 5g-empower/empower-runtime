@@ -256,7 +256,7 @@ class HandoverManager(EmpowerApp):
                               self.t_ul_thr)
 
                 if cell.mac_reports['DL_util_last'] > self.s_dl_thr or \
-                    cell.mac_reports['UL_util_last'] > self.s_ul_thr:
+                   cell.mac_reports['UL_util_last'] > self.s_ul_thr:
 
                     if vbs.addr not in ho_from_vbses:
                         ho_from_vbses[vbs.addr] = {"vbs": vbs,
@@ -266,9 +266,8 @@ class HandoverManager(EmpowerApp):
 
                     ho_from_vbses[vbs.addr]["cells"].append(cell)
 
-
                 if cell.mac_reports['DL_util_last'] < self.t_dl_thr or \
-                    cell.mac_reports['UL_util_last'] < self.t_ul_thr:
+                   cell.mac_reports['UL_util_last'] < self.t_ul_thr:
 
                     if vbs.addr not in ho_to_vbses:
                         ho_to_vbses[vbs.addr] = {"vbs": vbs,
@@ -302,10 +301,11 @@ class HandoverManager(EmpowerApp):
                         if cell == ue.cell:
                             continue
 
+                        print("XXX")
                         # pick cell from measurements
                         if cell not in ue.rrc_measurements:
                             continue
-
+                        print("AAA")
                         if ue.rrc_measurements[cell]["rsrq"] > self.rsrq_thr:
                             ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
 
@@ -314,12 +314,15 @@ class HandoverManager(EmpowerApp):
                     ho_to_vbses[tvbs]["max_ho_to"] += 1
                     ho_from_vbses[svbs]["max_ho_from"] += 1
 
+        return
+
         # Handover the UEs
         for handover in ho_info.values():
             ue = handover['ue']
             cell = handover['cell']
             self.log.info("%s -> %s", ue, cell)
             ue.cell = cell
+
 
 def launch(tenant_id,
            every=DEFAULT_PERIOD,

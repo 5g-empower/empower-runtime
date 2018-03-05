@@ -28,6 +28,7 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.core.module import ModuleWorker
 from empower.core.module import ModuleEventWorker
 from empower.persistence.persistence import TblCPP
+from empower.lvnfp import PT_BYE
 from empower.lvnfp import PT_TYPES
 from empower.lvnfp import PT_TYPES_HANDLERS
 from empower.lvnfp.lvnfpmainhandler import LVNFPMainHandler
@@ -68,6 +69,13 @@ class ModuleLVNFPWorker(ModuleWorker):
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
                               pt_packet)
+
+        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
+
+    def handle_bye(self, wtp):
+        """CPP left."""
+
+        pass
 
     def handle_packet(self, msg):
         """Handle response message."""

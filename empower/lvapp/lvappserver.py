@@ -89,18 +89,14 @@ class ModuleLVAPPWorker(ModuleWorker):
                               pt_packet)
 
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
-        self.pnfp_server.register_message(PT_LVAP_LEAVE, None, self.
-                                          handle_lvap_leave)
-
-    def handle_lvap_leave(self, lvap):
-        """LVAP left."""
-
-        pass
 
     def handle_bye(self, wtp):
         """WTP left."""
 
-        pass
+        for module_id in list(self.modules.keys()):
+            module = self.modules[module_id]
+            if hasattr(module, "wtp") and module.wtp == wtp:
+                self.modules[module_id].unload()
 
     def handle_packet(self, wtp, msg):
         """Handle response message."""

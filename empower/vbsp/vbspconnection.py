@@ -429,13 +429,24 @@ class VBSPConnection:
         origin_vbs = RUNTIME.vbses[addr]
         ue = RUNTIME.find_ue_by_rnti(ho.origin_rnti, ho.origin_pci, origin_vbs)
 
+        if not ue:
+            self.log.warning("Unable to find UE rnti %u pci %u enb_id %u",
+                             ho.origin_rnti, ho.origin_pci, vbs.enb_id)
+            return
+
         if event.op == EP_OPERATION_SUCCESS:
 
-            # UE was removed from source eNB and added to the target
+            # set new cell and rnti
+            ue._cell = vbs.get_cell_by_pci(hdr.cellid)
+            ue.rnti = ho.target_rnti
+
+            # UE was removed from source eNB and added to the target, set
+            # status to active, otherwise just return (this is to account for
+            # handovers triggered by the eNB)
+
             if ue.is_ho_in_progress():
-                ue._cell = vbs.get_cell_by_pci(hdr.cellid)
-                ue.rnti = ho.target_rnti
                 ue.set_active()
-                return
+
+            return
 
         raise Exception("Error while performing handover")
