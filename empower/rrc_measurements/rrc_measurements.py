@@ -36,7 +36,7 @@ from empower.core.app import EmpowerApp
 from empower.core.ue import UE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
-from empower.core.module import ModuleTrigger
+from empower.core.module import ModulePeriodic
 from empower.vbsp import PT_VERSION
 from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import EP_DIR_REQUEST
@@ -76,7 +76,7 @@ RRC_RESPONSE = Struct("rrc_response",
                       Array(lambda ctx: ctx.nof_meas, RRC_ENTRY))
 
 
-class RRCMeasurements(ModuleTrigger):
+class RRCMeasurements(ModulePeriodic):
     """ LVAPStats object. """
 
     MODULE_NAME = "rrc_measurements"
@@ -175,6 +175,10 @@ class RRCMeasurements(ModuleTrigger):
         if not self.ue.vbs or not self.ue.vbs.is_online():
             self.log.info("VBS %s not connected", self.ue.vbs.addr)
             self.unload()
+            return
+
+        # if the vbs did not change since last time then return
+        if self.vbs == self.ue.vbs:
             return
 
         self.vbs = self.ue.vbs
