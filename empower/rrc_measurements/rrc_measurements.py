@@ -220,14 +220,22 @@ class RRCMeasurements(ModuleTrigger):
                     if c.pci == pci and c.DL_earfcn == earfcn:
                         cell = c
 
-            self.results[entry.meas_id] = {
+            date = datetime.fromtimestamp(self.last_seen_ts) \
+                .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+            if entry.meas_id not in self.results:
+                self.results[entry.meas_id] = {}
+
+            self.results[entry.meas_id][entry.pci] = {
                 "meas_id": entry.meas_id,
                 "pci": entry.pci,
                 "rsrp": entry.rsrp,
-                "rsrq": entry.rsrq
+                "rsrq": entry.rsrq,
+                "last_seen": date
             }
 
-            self.ue.rrc_measurements[cell] = self.results[entry.meas_id]
+            self.ue.rrc_measurements[cell] = \
+                self.results[entry.meas_id][entry.pci]
 
         # call callback
         self.handle_callback(self)
