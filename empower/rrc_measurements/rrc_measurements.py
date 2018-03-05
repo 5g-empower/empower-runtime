@@ -32,6 +32,8 @@ from construct import BitStruct
 from construct import Padding
 from construct import Bit
 
+from datetime import datetime
+
 from empower.core.app import EmpowerApp
 from empower.core.ue import UE
 from empower.datatypes.etheraddress import EtherAddress
