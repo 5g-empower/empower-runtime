@@ -228,7 +228,7 @@ class RRCMeasurements(ModuleTrigger):
                 "rsrq": entry.rsrq
             }
 
-            self.ue.rrc_measurements[cell] = {
+            self.ue.rrc_measurements[selected] = {
                 "enb_id": cell.vbs.enb_id,
                 "pci": cell.pci,
                 "rsrp": entry.rsrp,

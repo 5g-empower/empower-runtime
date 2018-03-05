@@ -301,20 +301,20 @@ class HandoverManager(EmpowerApp):
                         if cell == ue.cell:
                             continue
 
-                        print("XXX")
                         # pick cell from measurements
                         if cell not in ue.rrc_measurements:
                             continue
-                        print("AAA")
-                        if ue.rrc_measurements[cell]["rsrq"] > self.rsrq_thr:
+
+                        current = ue.rrc_measurements[ue.cell]["rsrq"]
+                        new = ue.rrc_measurements[cell]["rsrq"]
+
+                        if new > current and new > self.rsrq_thr:
                             ho_info[ue.ue_id] = {"ue": ue, "cell": cell}
 
                 if ue.ue_id in ho_info and ho_info[ue.ue_id]:
                     tvbs = ho_info[ue.ue_id]['cell'].vbs.addr
                     ho_to_vbses[tvbs]["max_ho_to"] += 1
                     ho_from_vbses[svbs]["max_ho_from"] += 1
-
-        return
 
         # Handover the UEs
         for handover in ho_info.values():
