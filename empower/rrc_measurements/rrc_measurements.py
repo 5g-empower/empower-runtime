@@ -32,8 +32,6 @@ from construct import BitStruct
 from construct import Padding
 from construct import Bit
 
-from datetime import datetime
-
 from empower.core.app import EmpowerApp
 from empower.core.ue import UE
 from empower.datatypes.etheraddress import EtherAddress
@@ -222,9 +220,6 @@ class RRCMeasurements(ModuleTrigger):
                     if c.pci == pci and c.DL_earfcn == earfcn:
                         cell = c
 
-            date = datetime.fromtimestamp(self.last_seen_ts) \
-                .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
             if entry.meas_id not in self.results:
                 self.results[entry.meas_id] = {}
 
@@ -232,8 +227,7 @@ class RRCMeasurements(ModuleTrigger):
                 "meas_id": entry.meas_id,
                 "pci": entry.pci,
                 "rsrp": entry.rsrp,
-                "rsrq": entry.rsrq,
-                "last_seen": date
+                "rsrq": entry.rsrq
             }
 
             self.ue.rrc_measurements[cell] = \
