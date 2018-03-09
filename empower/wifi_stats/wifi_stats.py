@@ -79,6 +79,10 @@ class WiFiStats(ModulePeriodic):
 
         # data structures
         self.wifi_stats = {}
+        self.tx_per_second = 0
+        self.rx_per_second = 0
+        self.ed_per_second = 0
+        self.last = {}
 
     def __eq__(self, other):
         return super().__eq__(other) and self.block == other.block
@@ -184,14 +188,13 @@ class WiFiStats(ModulePeriodic):
         """
 
         # update this object
-        self.wifi_stats = {}
+        self.wifi_stats.clear()
 
         tx = response.entries[0:100]
         rx = response.entries[100:200]
         ed = response.entries[200:300]
 
         self.wifi_stats['tx'] = []
-
         for entry in tx:
             value = {'type': entry[0],
                      'timestamp': entry[1],
@@ -199,7 +202,6 @@ class WiFiStats(ModulePeriodic):
             self.wifi_stats['tx'].append(value)
 
         self.wifi_stats['rx'] = []
-
         for entry in rx:
             value = {'type': entry[0],
                      'timestamp': entry[1],
@@ -207,16 +209,43 @@ class WiFiStats(ModulePeriodic):
             self.wifi_stats['rx'].append(value)
 
         self.wifi_stats['ed'] = []
-
         for entry in ed:
             value = {'type': entry[0],
                      'timestamp': entry[1],
                      'sample': entry[2] / 180.0, }
             self.wifi_stats['ed'].append(value)
 
+        if 'tx' in self.last:
+            self.tx_per_second = \
+                self.update_stats(self.wifi_stats['tx'], 'tx')
+        if 'rx' in self.last:
+            self.rx_per_second = \
+                self.update_stats(self.wifi_stats['rx'], 'rx')
+        if 'ed' in self.last:
+            self.ed_per_second = \
+                self.update_stats(self.wifi_stats['ed'], 'ed')
+
+        self.last['tx'] = max([sample['timestamp'] for sample in self.wifi_stats['tx']])
+        self.last['rx'] = max([sample['timestamp'] for sample in self.wifi_stats['rx']])
+        self.last['ed'] = max([sample['timestamp'] for sample in self.wifi_stats['ed']])
+
         # call callback
         self.handle_callback(self)
 
+    def update_stats(self, stats, stats_type):
+
+        avg_sec = 0
+        nb_samples = 0
+
+        for index, sample in enumerate(stats):
+            if sample['timestamp'] > self.last[stats_type]:
+                avg_sec += sample['sample']
+                nb_samples += 1
+
+        if nb_samples == 0:
+            return 0
+
+        return (avg_sec/nb_samples)
 
 class WiFiStatsWorker(ModuleLVAPPWorker):
     """ Counter worker. """
