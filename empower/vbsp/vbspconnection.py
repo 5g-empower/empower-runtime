@@ -190,8 +190,9 @@ class VBSPConnection:
         self.log.info("VBS disconnected: %s", self.vbs.addr)
 
         # remove hosted UEs
-        for imsi in list(RUNTIME.ues.keys()):
-            RUNTIME.remove_ue(imsi)
+        for ue in list(RUNTIME.ues.values()):
+            if self.vbs == ue.vbs:
+                RUNTIME.remove_ue(ue.ue_id)
 
         # reset state
         self.vbs.set_disconnected()
