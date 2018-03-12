@@ -329,6 +329,10 @@ class VBSPConnection:
             None
         """
 
+        if not vbs.is_online():
+            self.log.warning("VBS %s not active. ignoring ue_report", vbs.addr)
+            return
+
         for ue in ue_report.ues:
 
             if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
@@ -351,10 +355,12 @@ class VBSPConnection:
                 self.log.info("PCI %u not found", ue.pci)
                 continue
 
-            if ue.imsi != 0:
-                ue_id = uuid.uuid5(uuid.NAMESPACE_DNS, str(ue.imsi))
-            else:
-                ue_id = uuid.uuid4()
+            #if ue.imsi != 0:
+            #    ue_id = uuid.uuid5(uuid.NAMESPACE_DNS, str(ue.imsi))
+            #else:
+            #    ue_id = uuid.uuid4()
+
+            ue_id = uuid.uuid4()
 
             ue = UE(ue_id, ue.imsi, ue.rnti, cell, plmn_id, tenant)
             ue.set_active()

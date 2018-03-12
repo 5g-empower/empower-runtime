@@ -214,12 +214,11 @@ class RRCMeasurements(ModulePeriodic):
         for entry in meas.rrc_entries:
 
             selected = None
+            earfcn = self.measurements[entry.meas_id]["earfcn"]
 
             for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
                 for cell in vbs.cells:
-                    pci = entry.pci
-                    earfcn = self.measurements[entry.meas_id]["earfcn"]
-                    if cell.pci == pci and cell.DL_earfcn == earfcn:
+                    if cell.pci == entry.pci and cell.DL_earfcn == earfcn:
                         selected = cell
 
             if entry.meas_id not in self.results:
@@ -232,12 +231,13 @@ class RRCMeasurements(ModulePeriodic):
                 "rsrq": entry.rsrq
             }
 
-            self.ue.rrc_measurements[selected] = {
-                "enb_id": cell.vbs.enb_id,
-                "pci": cell.pci,
-                "rsrp": entry.rsrp,
-                "rsrq": entry.rsrq
-            }
+            if selected:
+                self.ue.rrc_measurements[selected] = {
+                    "enb_id": cell.vbs.enb_id,
+                    "pci": cell.pci,
+                    "rsrp": entry.rsrp,
+                    "rsrq": entry.rsrq
+                }
 
         # call callback
         self.handle_callback(self)

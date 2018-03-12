@@ -44,7 +44,7 @@ class UE:
     def __str__(self):
         """Return string representation."""
 
-        return "UE %s @ %s" % (self.ue_id, self.cell)
+        return "UE %s (%u) @ %s" % (self.ue_id, self.rnti, self.cell)
 
     @property
     def state(self):
