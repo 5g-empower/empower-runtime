@@ -75,12 +75,12 @@ E_SCHED = Struct("e_sched",
                  UBInt8("op"),
                  UBInt32("interval"))
 
-E_SINGLE = Struct("e_sched",
+E_SINGLE = Struct("e_single",
                   UBInt8("action"),
                   UBInt8("dir"),
                   UBInt8("op"))
 
-E_TRIG = Struct("e_sched",
+E_TRIG = Struct("e_trig",
                 UBInt8("action"),
                 UBInt8("dir"),
                 UBInt8("op"))
