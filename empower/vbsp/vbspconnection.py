@@ -374,6 +374,8 @@ class VBSPConnection:
         incoming = []
         for inc_ue in ue_report.ues:
             ue = RUNTIME.find_ue_by_rnti(inc_ue.rnti, inc_ue.pci, vbs)
+            if not ue:
+                continue
             incoming.append(ue.ue_id)
 
         # check for leaving UEs
@@ -456,4 +458,14 @@ class VBSPConnection:
 
             return
 
-        raise Exception("Error while performing handover")
+        self.log.warning("Handover error UE %s error %u origin %s target %s",
+                         ue.ue_id, event.op, ue.vbs.addr, vbs.addr)
+
+        # error from source VBS, reset UE state
+        if ue.vbs == vbs:
+            if ue.is_ho_in_progress():
+                ue.set_active()
+                return
+
+        # error at target, removing UE
+        RUNTIME.remove_ue(ue.ue_id)
