@@ -31,6 +31,8 @@ from empower.core.app import EmpowerApp
 from empower.core.resourcepool import BT_HT20
 from empower.datatypes.etheraddress import EtherAddress
 from empower.main import RUNTIME
+from empower.maps.ucqm import UCQMWorker
+from empower.wifi_stats.wifi_stats import WiFiStatsWorker
 
 from functools import reduce
 from collections import Counter
@@ -69,6 +71,8 @@ class WifiLoadBalancing(EmpowerApp):
         self.scheduling_attempts = {}
         self.aps_counters = {}
         self.last_handover_time = 0
+        self.coloring_channels  = {36, 40, 1}
+        self.initial_setup = True
 
         # register lvap join/leave events
         self.lvapjoin(callback=self.lvap_join_callback)
@@ -77,14 +81,12 @@ class WifiLoadBalancing(EmpowerApp):
     def lvap_join_callback(self, lvap):
         """Called when a new LVAP joins the network."""
 
-        self.bin_counter(lvap=lvap.addr,
-                 every=self.every,
-                 callback=self.counters_callback)
         self.ucqm_data[lvap.blocks[0].addr.to_str() + lvap.addr.to_str()] = \
             {
                 'rssi': None,
                 'wtp': lvap.blocks[0],
                 'lvap': lvap,
+                'channel': lvap.blocks[0].channel,
                 'active': 1
             }
 
@@ -110,28 +112,19 @@ class WifiLoadBalancing(EmpowerApp):
             self.scheduling_attempts[block.addr] = 0
             self.aps_counters[block.addr] = {}
 
-    def counters_callback(self, stats):
-        """ New stats available. """
-
-        lvap = RUNTIME.lvaps[stats.lvap]
-        if not stats.tx_bytes_per_second or not stats.rx_bytes_per_second:
-            return
-
-        self.aps_counters[lvap.blocks[0].addr][lvap.addr]['tx_bytes_per_second'] = stats.tx_bytes_per_second[0]
-        self.aps_counters[lvap.blocks[0].addr][lvap.addr]['rx_bytes_per_second'] = stats.rx_bytes_per_second[0]
-
     def wifi_stats_callback(self, stats):
         """ New stats available. """
+
+        self.log.info("Statistical information received from %s. Tx occupancy: %f Rx: occupancy %f" 
+                    %(stats.block.addr.to_str(), stats.tx_per_second, stats.rx_per_second))
 
         # If there are no clients attached, it is not necessary to check the channel utilization
         if not self.aps_clients_matrix[stats.block.addr]:
             self.aps_channel_utilization[stats.block.addr] = 0
             return
 
-        bytes_per_second = reduce(lambda x, y: dict((k, v + y[k]) for k, v in x.items()), self.aps_counters[stats.block.addr].values())
         if (stats.tx_per_second + stats.rx_per_second) == 0:
-            if (bytes_per_second['tx_bytes_per_second'] + bytes_per_second['rx_bytes_per_second']) == 0:
-                self.aps_channel_utilization[stats.block.addr] = 0
+            self.aps_channel_utilization[stats.block.addr] = 0
             return
         
         previous_utilization = self.aps_channel_utilization[stats.block.addr]
@@ -139,6 +132,8 @@ class WifiLoadBalancing(EmpowerApp):
         average_utilization = self.estimate_global_channel_utilization()
         channel_utilization_difference = self.evalute_channel_utilization_difference(previous_utilization, self.aps_channel_utilization[stats.block.addr], average_utilization)
 
+        if self.initial_setup:
+            return
         if channel_utilization_difference is True and len(self.aps_clients_matrix[stats.block.addr]) > 1:
             self.scheduling_attempts[stats.block.addr] += 1
         if (time.time() - self.last_handover_time) < 5 or len(self.handover_data) != 0:
@@ -153,6 +148,7 @@ class WifiLoadBalancing(EmpowerApp):
         """Called when a UCQM response is received from a WTP."""
 
         lvaps = RUNTIME.tenants[self.tenant.tenant_id].lvaps
+        channel_changes = False
 
         for lvap in poller.maps.values():
             key = poller.block.addr.to_str() + lvap['addr'].to_str()
@@ -168,18 +164,25 @@ class WifiLoadBalancing(EmpowerApp):
                         'rssi': lvap['mov_rssi'],
                         'wtp': poller.block,
                         'lvap': lvaps[lvap['addr']],
+                        'channel': poller.block.channel,
                         'active':active_flag
                     }
+                    channel_changes = True
                 else:
                     self.ucqm_data[key]['rssi'] = lvap['mov_rssi']
                     self.ucqm_data[key]['active'] = active_flag
+                    if self.ucqm_data[key]['channel'] != poller.block.channel:
+                        self.ucqm_data[key]['channel'] = poller.block.channel
+                        channel_changes = True
+
                 # Conversion of the data structure to obtain the conflict APs
                 if poller.block not in self.clients_aps_matrix[lvap['addr']]:
                     self.clients_aps_matrix[lvap['addr']].append(poller.block)
             elif key in self.ucqm_data:
                 del self.ucqm_data[key]
 
-        self.conflict_graph()
+        if channel_changes:
+            self.conflict_graph()
 
     def conflict_graph(self):
 
@@ -319,10 +322,101 @@ class WifiLoadBalancing(EmpowerApp):
 
         return False
 
+    def find_best_candidate(self, network_graph, attempts):
+        candidates_with_add_info = [
+        (
+            -len({attempts[neighbour] for neighbour in network_graph[n] if neighbour in attempts}), # channels that should not be assigned
+            -len({neighbour for neighbour in network_graph[n] if neighbour not in attempts}), # aps not assigned yet
+            n
+        ) for n in network_graph if n not in attempts]
+
+        candidates_with_add_info.sort()
+        candidates = [n for _,_,n in candidates_with_add_info]
+
+        if candidates:
+            candidate = candidates[0]
+            return candidate
+
+        return None
+
+    def solve_channel_assignment(self, network_graph, channels, attempts):
+        ap_addr = self.find_best_candidate(network_graph, attempts)
+        if ap_addr is None:
+            return attempts # Solution is found
+
+        for c in channels - {attempts[neighbour] for neighbour in network_graph[ap_addr] if neighbour in attempts}:
+            attempts[ap_addr] = c
+            if self.solve_channel_assignment(network_graph, channels, attempts):
+                return attempts
+            else:
+                del attempts[ap_addr]
+
+        return None
+
+    def network_coloring(self):
+
+        if self.clients_aps_matrix:
+            return
+
+        network_graph = {}
+
+        for block, conflict_list in self.conflict_aps.items():
+            network_graph[block.to_str()] = set([neighbour.addr.to_str() for neighbour in conflict_list if conflict_list])
+        network_graph = {block:neighbour_set for block,neighbour_set in network_graph.items() if neighbour_set}
+        channel_assignment = self.solve_channel_assignment(network_graph, self.coloring_channels, dict())
+
+        if not channel_assignment:
+            return
+
+        for block_addr, channel in channel_assignment.items():
+            self.switch_channel(block_addr, channel)
+
+    def switch_channel(self, req_block_addr, channel):
+
+        self.log.info("Performing channel switch for block %s to channel %d" %(req_block_addr, channel))
+
+        wtps = RUNTIME.tenants[self.tenant.tenant_id].wtps
+
+        for wtp in wtps.values():
+            for block in wtp.supports:
+                if block.addr.to_str() == req_block_addr and block.channel == channel:
+                    return
+                elif block.addr.to_str() != req_block_addr:
+                    continue
+
+                self.delete_block_worker(block)
+                block.radio.connection.send_wtp_channel_update_request(block, channel)
+                block.channel = channel
+
+                for lvap in self.aps_clients_matrix[block.addr]:
+                    self.ucqm_data[block.addr.to_str() + lvap.addr.to_str()]['channel'] = channel
+
+                self.ucqm(block=block, every=self.every, callback=self.ucqm_callback)
+                self.wifistats(block=block, every=self.every, callback=self.wifi_stats_callback)
+
+    def delete_block_worker(self, block):
+
+        ucqm_worker = RUNTIME.components[UCQMWorker.__module__]
+        wifi_stats_worker = RUNTIME.components[WiFiStatsWorker.__module__]
+
+        for module_id in list(ucqm_worker.modules.keys()):
+            ucqm_mod = ucqm_worker.modules[module_id]
+            if block == ucqm_mod.block:
+                ucqm_worker.remove_module(module_id)
+
+        for module_id in list(wifi_stats_worker.modules.keys()):
+            wifi_stats_mod = wifi_stats_worker.modules[module_id]
+            if block == wifi_stats_mod.block:
+                wifi_stats_worker.remove_module(module_id)
+                return
+
     def loop(self):
         """ Periodic job. """
 
-        if self.handover_data:
+        if self.initial_setup:
+            self.network_coloring()
+            self.initial_setup = False
+        elif self.handover_data:
             self.check_handover_performance()
 
     def to_dict(self):
@@ -349,7 +443,7 @@ class WifiLoadBalancing(EmpowerApp):
         out['scheduling_attempts'] = \
             {str(k): v for k, v in self.scheduling_attempts.items()}
         out['ucqm_data'] = \
-            {str(k): {'wtp':v['wtp'].addr, 'lvap':v['lvap'].addr, 'rssi':v['rssi'], \
+            {str(k): {'wtp':v['wtp'].addr, 'lvap':v['lvap'].addr, 'rssi':v['rssi'], 'channel':v['channel'], \
                      'active':v['active']} for k, v in self.ucqm_data.items()}
         return out
 
