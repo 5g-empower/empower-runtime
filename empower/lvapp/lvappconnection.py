@@ -1264,3 +1264,26 @@ class LVAPPConnection:
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)
+
+    def send_wtp_channel_update_request(self, block, new_channel):
+        """Send a WTP_CHANNEL_UPDATE_REQUEST message.
+        Args:
+            block: a block object
+            new_channel: the channel to be assigned
+        Returns:
+            None
+        Raises:
+            TypeError: if lvap is not an LVAP object.
+        """
+
+        response = Container(version=PT_VERSION,
+                             type=PT_WTP_CHANNEL_UPDATE_REQUEST,
+                             length=19,
+                             seq=self.wtp.seq,
+                             hwaddr=block.hwaddr.to_raw(),
+                             old_channel=block.channel,
+                             channel=new_channel,
+                             band=block.band)
+
+        msg = WTP_CHANNEL_UPDATE_REQUEST.build(response)
+        self.stream.write(msg)

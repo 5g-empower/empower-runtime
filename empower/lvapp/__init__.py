@@ -64,6 +64,7 @@ PT_DEL_TRAFFIC_RULE = 0x57
 PT_STATUS_TRAFFIC_RULE = 0x58
 PT_TRAFFIC_RULE_STATUS_REQUEST = 0x61
 PT_PORT_STATUS_REQUEST = 0x62
+PT_WTP_CHANNEL_UPDATE_REQUEST = 0x63
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
@@ -352,6 +353,15 @@ STATUS_TRAFFIC_RULE = Struct("status_traffic_rule",
                              UBInt8("dscp"),
                              Bytes("ssid", lambda ctx: ctx.length - 31))
 
+WTP_CHANNEL_UPDATE_REQUEST =  Struct("wtp_channel_update_request", UBInt8("version"),
+                       UBInt8("type"),
+                       UBInt32("length"),
+                       UBInt8("channel"),
+                       Bytes("hwaddr", 6),
+                       UBInt8("old_channel"),
+                       UBInt32("seq"),
+                       UBInt8("band"))
+
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
             PT_LVAP_JOIN: None,
@@ -380,7 +390,8 @@ PT_TYPES = {PT_BYE: None,
             PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
             PT_SET_TRAFFIC_RULE: SET_TRAFFIC_RULE,
-            PT_DEL_TRAFFIC_RULE: DEL_TRAFFIC_RULE}
+            PT_DEL_TRAFFIC_RULE: DEL_TRAFFIC_RULE,
+            PT_WTP_CHANNEL_UPDATE_REQUEST: WTP_CHANNEL_UPDATE_REQUEST}
 
 
 PT_TYPES_HANDLERS = {}
