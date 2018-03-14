@@ -238,7 +238,7 @@ class WiFiStats(ModulePeriodic):
         nb_samples = 0
 
         for index, sample in enumerate(stats):
-            if sample['timestamp'] > self.last[stats_type]:
+            if sample['timestamp'] > self.last[stats_type] and sample['sample'] <= 100.0:
                 avg_sec += sample['sample']
                 nb_samples += 1
 
