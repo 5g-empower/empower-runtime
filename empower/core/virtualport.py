@@ -29,11 +29,13 @@ from empower.main import RUNTIME
 class VirtualPort:
     """Virtual port."""
 
-    def __init__(self, virtual_port_id):
+    def __init__(self, endpoint_uuid, network_port, virtual_port_id=0):
 
+        self.endpoint_uuid = endpoint_uuid
         self.virtual_port_id = virtual_port_id
-        self.poas = []
-        self.next = VirtualPortProp(self.poas)
+        self.network_port = network_port
+
+        self.next = VirtualPortNext(self)
 
     def clear(self):
         """Clear all outgoing links."""
@@ -41,38 +43,38 @@ class VirtualPort:
         if not self.next:
             return
 
-        for key in list(self.next):
-            del self.next[key]
+        self.next.clear()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
-        return {'virtual_port_id': self.virtual_port_id,
-                'poas': self.poas}
+        return {'endpoint_uuid': self.endpoint_uuid,
+                'virtual_port_id': self.virtual_port_id,
+                'network_port': self.network_port}
 
     def __hash__(self):
 
-        return hash(self.virtual_port_id)
+        return hash(self.endpoint_uuid) \
+               + hash(self.virtual_port_id)
 
     def __eq__(self, other):
 
-        return (other.virtual_port_id == self.virtual_port_id and
+        return (other.endpoint_uuid == self.endpoint_uuid and
+                other.virtual_port_id == self.virtual_port_id and
                 other.network_port == self.network_port)
 
     def __repr__(self):
 
-        poas = [str(x) for x in self.poas]
-        return "virtual_port %u poas [%s]" % \
-            (self.virtual_port_id, ", ".join(poas))
+        return "endpoint_uuid %s virtual_port %u network_port %s" % \
+            (self.endpoint_uuid, self.virtual_port_id, str(self.network_port))
 
 
-class VirtualPortProp(dict):
-    """Maps flows to VirtualPorts."""
+class VirtualPortNext(dict):
 
-    def __init__(self, poas):
-        super(VirtualPortProp, self).__init__()
+    def __init__(self, my_virtual_port):
+        super(VirtualPortNext, self).__init__()
+        self.my_virtual_port = my_virtual_port
         self.__uuids__ = {}
-        self.poas = poas
 
     def __delitem__(self, key):
         """Clear virtual port configuration."""
@@ -81,9 +83,8 @@ class VirtualPortProp(dict):
 
         # remove virtual links
         if key in self.__uuids__:
-            for uuid in self.__uuids__[key]:
-                intent_server.remove_rule(uuid)
-            del self.__uuids__[key]
+            intent_server.remove_rule(self.__uuids__[key])
+            self.__uuids__[key] = None
 
         # remove old entry
         dict.__delitem__(self, key)
@@ -98,24 +99,21 @@ class VirtualPortProp(dict):
         if self.__contains__(key):
             self.__delitem__(key)
 
-        self.__uuids__[key] = []
+        self.__uuids__[key] = None
 
         intent_server = RUNTIME.components[IntentServer.__module__]
 
-        # Send intents
-        for port in self.poas:
+        # set/update intent
+        intent = {'version': '1.0',
+                  'ttp_uuid': value.endpoint_uuid,
+                  'ttp_vport': value.virtual_port_id,
+                  'stp_uuid': self.my_virtual_port.endpoint_uuid,
+                  'stp_vport': self.my_virtual_port.virtual_port_id,
+                  'match': ofmatch_s2d(key)}
 
-            # set/update intent
-            intent = {'version': '1.0',
-                      'ttp_dpid': value.poas[0].dpid,
-                      'ttp_port': value.poas[0].port_id,
-                      'stp_dpid': port.dpid,
-                      'stp_port': port.port_id,
-                      'match': ofmatch_s2d(key)}
+        # add new virtual link
+        uuid = intent_server.add_rule(intent)
+        self.__uuids__[key] = uuid
 
-            # add new virtual link
-            uuid = intent_server.add_rule(intent)
-            self.__uuids__[key].append(uuid)
-
-            # add entry
-            dict.__setitem__(self, key, value)
+        # add entry
+        dict.__setitem__(self, key, value)

@@ -50,7 +50,7 @@ class IntentServer(Service, tornado.web.Application):
         self.intent_host = "localhost"
         self.intent_port = 8080
         self.intent_url_rules = "/intent/rules"
-        self.intent_url_poa = "/intent/poas"
+        self.intent_url_endpoint = "/intent/eps"
         self.intent_url_traffic_rules = "/intent/trs"
 
         handlers = []
@@ -64,11 +64,11 @@ class IntentServer(Service, tornado.web.Application):
 
         self.get_traffic_rule()
         self.get_rule()
-        self.get_poa()
+        self.get_endpoint()
 
         self.remove_traffic_rule()
         self.remove_rule()
-        self.remove_poa()
+        self.remove_endpoint()
 
     def __get_response(self, method, url, uuid=None, body=None):
         """Generic get intent."""
@@ -110,20 +110,20 @@ class IntentServer(Service, tornado.web.Application):
     def get_rule(self, uuid=None):
         self.__get_intent(self.intent_url_rules, uuid)
 
-    def get_poa(self, uuid=None):
-        self.__get_intent(self.intent_url_poa, uuid)
+    def get_endpoint(self, uuid=None):
+        self.__get_intent(self.intent_url_endpoint, uuid)
 
     def __send_intent(self, method, url, intent, uuid=None):
         """Create new intent."""
 
         try:
             ret = self.__get_response(method, url, uuid, intent)
-            if ret[0] == 201:
-                url = urlparse(ret[2])
-                uuid = UUID(url.path.split("/")[-1])
-                return uuid
-            if ret[0] == 204:
-                return uuid
+            #if ret[0] == 201:
+                #url = urlparse(ret[2])
+                #uuid = UUID(url.path.split("/")[-1])
+            #    return uuid
+            #if ret[0] == 204:
+            #    return uuid
         except ConnectionRefusedError:
             self.log.warning("Intent interface not found")
         except Exception as ex:
@@ -141,9 +141,9 @@ class IntentServer(Service, tornado.web.Application):
                                   url=self.intent_url_rules,
                                   intent=intent)
 
-    def add_poa(self, intent):
+    def add_endpoint(self, intent):
         return self.__send_intent(method="POST",
-                                  url=self.intent_url_poa,
+                                  url=self.intent_url_endpoint,
                                   intent=intent)
 
     def update_traffic_rule(self, intent, uuid):
@@ -158,9 +158,9 @@ class IntentServer(Service, tornado.web.Application):
                            intent=intent,
                            uuid=uuid)
 
-    def update_poa(self, intent, uuid):
+    def update_endpoint(self, intent, uuid):
         self.__send_intent(method="PUT",
-                           url=self.intent_url_poa,
+                           url=self.intent_url_endpoint,
                            intent=intent,
                            uuid=uuid)
 
@@ -172,13 +172,13 @@ class IntentServer(Service, tornado.web.Application):
         except ConnectionRefusedError:
             self.log.error("Intent interface not found")
         except Exception as ex:
-            Self.log.exception(ex)
+            self.log.exception(ex)
 
     def remove_rule(self, uuid=None):
         self.__remove_intent(self.intent_url_rules, uuid)
 
-    def remove_poa(self, uuid=None):
-        self.__remove_intent(self.intent_url_poa, uuid)
+    def remove_endpoint(self, uuid=None):
+        self.__remove_intent(self.intent_url_endpoint, uuid)
 
     def remove_traffic_rule(self, uuid=None):
         self.__remove_intent(self.intent_url_traffic_rules, uuid)

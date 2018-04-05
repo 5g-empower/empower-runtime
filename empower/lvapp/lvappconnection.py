@@ -58,13 +58,13 @@ from empower.lvapp import PT_PORT_STATUS_REQUEST
 from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
 from empower.core.networkport import NetworkPort
+from empower.core.virtualport import VirtualPort
 from empower.core.vap import VAP
 from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
-from empower.core.virtualport import VirtualPort
 
 from empower.main import RUNTIME
 
@@ -655,10 +655,14 @@ class LVAPPConnection:
             lvap._uplink.append(valid[0])
 
         # update ports
-        if not lvap.ports:
-            lvap.ports[0] = VirtualPort(virtual_port_id=0)
+        wtp_virtual_port = VirtualPort(lvap.lvap_uuid, wtp.port())
 
-        lvap.ports[0].poas.append(wtp.port())
+        if wtp_virtual_port not in lvap.ports.values():
+
+            if lvap.ports:
+                virt_port_id = max(list(lvap.ports.keys())) + 1
+                wtp_virtual_port.virtual_port_id = virt_port_id
+                lvap.ports[virt_port_id] = wtp_virtual_port
 
         # set supported band
         lvap._supported_band = status.supported_band
@@ -1260,7 +1264,7 @@ class LVAPPConnection:
             add_lvap.ssids.append(tmp)
             add_lvap.length = add_lvap.length + len(b_ssid) + 1
 
-        LOG.info("Add lvap %s", lvap)
+        LOG.info("Add lvap %s to block %s", lvap, block)
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)
