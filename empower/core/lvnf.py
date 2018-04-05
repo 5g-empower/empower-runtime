@@ -20,6 +20,7 @@
 import types
 import time
 
+from empower.intentserver.intentserver import IntentServer
 from empower.main import RUNTIME
 
 import empower.logger
@@ -165,6 +166,7 @@ class LVNF:
         delta = int((time.time() - self.__creation_timer) * 1000)
         self.log.info("LVNF %s started in %sms", self.lvnf_id, delta)
 
+        self._create_ep_intent()
         self.__state = PROCESS_RUNNING
 
     def _spawning_stopped(self):
@@ -231,7 +233,38 @@ class LVNF:
 
     def _none_running(self):
 
+        self._create_ep_intent()
         self.__state = PROCESS_RUNNING
+
+    def _create_ep_intent(self):
+
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        endpoint_ports = {}
+
+        for v_port_id, v_port in self.ports.items():
+
+            endpoint_ports[v_port_id] = {'hwaddr': v_port.network_port.hwaddr,
+                                         'port_no': v_port.network_port.port_id,
+                                         'learning': False}
+
+        # set/update intent
+        intent = {'version': '1.0',
+                  'dpid': self.cpp.addr,
+                  'ports': endpoint_ports}
+
+        intent_server.update_endpoint(intent, self.lvnf_id)
+
+    def _delete_ep_intent(self):
+
+        intent_server = RUNTIME.components[IntentServer.__module__]
+
+        for port in self.ports.values():
+            port.clear()
+
+        self.ports = {}
+
+        intent_server.remove_endpoint(self.lvnf_id)
 
     @property
     def cpp(self):
