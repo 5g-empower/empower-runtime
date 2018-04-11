@@ -657,12 +657,12 @@ class LVAPPConnection:
         # update ports
         wtp_virtual_port = VirtualPort(lvap.lvap_uuid, wtp.port())
 
-        if wtp_virtual_port not in lvap.ports.values():
-
-            if lvap.ports:
-                virt_port_id = max(list(lvap.ports.keys())) + 1
-                wtp_virtual_port.virtual_port_id = virt_port_id
-                lvap.ports[virt_port_id] = wtp_virtual_port
+        if not lvap.ports:
+            lvap.ports[0] = wtp_virtual_port
+        elif wtp_virtual_port not in lvap.ports:
+            virt_port_id = max(list(lvap.ports.keys())) + 1
+            wtp_virtual_port.virtual_port_id = virt_port_id
+            lvap.ports[virt_port_id] = wtp_virtual_port
 
         # set supported band
         lvap._supported_band = status.supported_band

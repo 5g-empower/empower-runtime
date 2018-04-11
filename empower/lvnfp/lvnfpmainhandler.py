@@ -334,8 +334,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                                            iface=iface)
 
                 virtual_port = VirtualPort(lvnf.lvnf_id,
-                                          network_port,
-                                          virtual_port_id=virtual_port_id)
+                                           network_port,
+                                           virtual_port_id=virtual_port_id)
 
                 lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 

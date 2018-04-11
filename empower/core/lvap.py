@@ -22,12 +22,10 @@ from uuid import uuid5, NAMESPACE_OID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
-from empower.core.virtualport import VirtualPort
+from empower.core.networkport import NetworkPort
+from empower.core.virtualport import VirtualPort, VirtualPortProp
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
-from empower.intentserver.intentserver import IntentServer
-
-from empower.main import RUNTIME
 
 
 class LVAP:
@@ -137,7 +135,7 @@ class LVAP:
         self._uplink = []
 
         # virtual ports (VNFs)
-        self.ports = {}
+        self.ports = VirtualPortProp()
 
         # downlink intent uuid
         self.lvap_uuid = uuid5(NAMESPACE_OID, str(addr))
@@ -348,32 +346,27 @@ class LVAP:
         # set uplink blocks
         self.__assign_uplink(pool[1:])
 
-        # delete all outgoing virtual links
-        for port in self.ports.values():
-            port.clear()
-
-        self.ports = {}
+        self.ports.clear()
 
         virt_port_counter = 0
+        learn_host = True
+
         for block in self.blocks:
+
+            block_port = block.radio.port()
+            network_port = NetworkPort(dpid=block_port.dpid,
+                                       port_id=block_port.port_id,
+                                       hwaddr=self.addr,
+                                       iface=block_port.iface)
+
             virtual_port = VirtualPort(self.lvap_uuid,
-                                       block.radio.port(),
-                                       virtual_port_id=virt_port_counter)
+                                       network_port,
+                                       virtual_port_id=virt_port_counter,
+                                       learn_host=learn_host)
             self.ports[virt_port_counter] = virtual_port
+
             virt_port_counter += 1
-
-        # set/update intent
-        endpoint_port = {'hwaddr': self.addr,
-                         'port_no': self.blocks[0].radio.port().port_id,
-                         'learning': True}
-
-        intent = {'version': '1.0',
-                  'dpid': self.blocks[0].radio.port().dpid,
-                  'ports': {0: endpoint_port}}
-
-        intent_server = RUNTIME.components[IntentServer.__module__]
-
-        intent_server.update_endpoint(intent, self.lvap_uuid)
+            learn_host = False
 
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
@@ -451,15 +444,8 @@ class LVAP:
         # clear all blocks
         self.clear_blocks()
 
-        # remove intent
-        intent_server = RUNTIME.components[IntentServer.__module__]
-
-        for port in self.ports.values():
-            port.clear()
-
-        self.ports = {}
-
-        intent_server.remove_endpoint(self.lvap_uuid)
+        # clear all ports
+        self.ports.clear()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
