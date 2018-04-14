@@ -24,13 +24,13 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from empower.core.networkport import NetworkPort
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.lvnfp import PT_ADD_LVNF
 from empower.lvnfp import PT_DEL_LVNF
 from empower.lvnfp import PT_LVNF_JOIN
 from empower.lvnfp import PT_LVNF_LEAVE
+from empower.core.networkport import NetworkPort
 from empower.core.virtualport import VirtualPort
 from empower.core.lvnf import PROCESS_RUNNING
 from empower.core.lvnf import PROCESS_SPAWNING
@@ -328,10 +328,14 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 iface = port['iface']
 
-                port = NetworkPort(lvnf.cpp.addr, port_id, hwaddr, iface)
+                network_port = NetworkPort(dpid=lvnf.cpp.addr,
+                                           hwaddr=hwaddr,
+                                           port_id=port_id,
+                                           iface=iface)
 
-                virtual_port = VirtualPort(virtual_port_id=virtual_port_id)
-                virtual_port.poas.append(port)
+                virtual_port = VirtualPort(lvnf.lvnf_id,
+                                           network_port,
+                                           virtual_port_id=virtual_port_id)
 
                 lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 

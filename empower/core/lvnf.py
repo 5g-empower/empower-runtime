@@ -20,6 +20,8 @@
 import types
 import time
 
+from empower.core.virtualport import VirtualPortProp
+from empower.intentserver.intentserver import IntentServer
 from empower.main import RUNTIME
 
 import empower.logger
@@ -82,7 +84,7 @@ class LVNF:
         lvnf_id: The lvnf id (UUID)
         tenant_id: The Tenant id (UUID)
         image: The Image used by this LVNF (Image)
-        ports: The virtual ports supported by this LVNF (Map)
+        ports: The virtual ports supported by this LVNF (VirtualPorts)
         message: The error message retuned by Click (String)
         returncode: The Click process return code, only if stopped (Integer)
         process: The status of the process (running, migrating, migrated,
@@ -94,7 +96,7 @@ class LVNF:
         self.lvnf_id = lvnf_id
         self.tenant_id = tenant_id
         self.image = image
-        self.ports = {}
+        self.ports = VirtualPortProp()
         self.returncode = None
         self.context = None
         self.__state = None

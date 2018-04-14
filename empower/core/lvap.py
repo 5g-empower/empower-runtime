@@ -17,15 +17,15 @@
 
 """EmPOWER Light Virtual Access Point (LVAP) class."""
 
+from uuid import uuid5, NAMESPACE_OID
+
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
-from empower.core.virtualport import VirtualPort
+from empower.core.networkport import NetworkPort
+from empower.core.virtualport import VirtualPort, VirtualPortProp
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
-from empower.intentserver.intentserver import IntentServer
-
-from empower.main import RUNTIME
 
 
 class LVAP:
@@ -135,10 +135,10 @@ class LVAP:
         self._uplink = []
 
         # virtual ports (VNFs)
-        self.ports = {}
+        self.ports = VirtualPortProp()
 
         # downlink intent uuid
-        self.poa_uuid = None
+        self.lvap_uuid = uuid5(NAMESPACE_OID, str(addr))
 
         # module id incremental counter
         self.__module_id = 0
@@ -277,7 +277,7 @@ class LVAP:
     def txp(self):
         """ Get downlink transmission policy. """
 
-        if not blocks:
+        if not self.blocks:
             return None
 
         return self.blocks[0].tx_policies[self.addr]
@@ -346,28 +346,27 @@ class LVAP:
         # set uplink blocks
         self.__assign_uplink(pool[1:])
 
-        # delete all outgoing virtual link and then remove the entire port
-        if self.ports:
-            self.ports[0].clear()
-            del self.ports[0]
+        self.ports.clear()
 
-        # Create a new port from scratch
-        self.ports[0] = VirtualPort(virtual_port_id=0)
+        virt_port_counter = 0
+        learn_host = True
+
         for block in self.blocks:
-            self.ports[0].poas.append(block.radio.port())
 
-        # set/update intent
-        intent = {'version': '1.0',
-                  'dpid': self.blocks[0].radio.port().dpid,
-                  'port': self.blocks[0].radio.port().port_id,
-                  'hwaddr': self.addr}
+            block_port = block.radio.port()
+            network_port = NetworkPort(dpid=block_port.dpid,
+                                       port_id=block_port.port_id,
+                                       hwaddr=self.addr,
+                                       iface=block_port.iface)
 
-        intent_server = RUNTIME.components[IntentServer.__module__]
+            virtual_port = VirtualPort(self.lvap_uuid,
+                                       network_port,
+                                       virtual_port_id=virt_port_counter,
+                                       learn_host=learn_host)
+            self.ports[virt_port_counter] = virtual_port
 
-        if self.poa_uuid:
-            intent_server.update_poa(intent, self.poa_uuid)
-        else:
-            self.poa_uuid = intent_server.add_poa(intent)
+            virt_port_counter += 1
+            learn_host = False
 
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
@@ -379,7 +378,7 @@ class LVAP:
             txp._mcs = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
         else:
             txp._mcs = [1.0, 2.0, 5.5, 11.0,
-                        6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48, 54.0]
+                        6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
 
         if self.supported_band == BT_HT20:
             txp._ht_mcs = \
@@ -447,10 +446,8 @@ class LVAP:
         # clear all blocks
         self.clear_blocks()
 
-        # remove intent
-        if self.poa_uuid:
-            intent_server = RUNTIME.components[IntentServer.__module__]
-            intent_server.remove_poa(self.poa_uuid)
+        # clear all ports
+        self.ports.clear()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
