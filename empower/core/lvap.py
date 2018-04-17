@@ -338,7 +338,7 @@ class LVAP:
             self._lvap_bssid = net_bssid
 
         # clear all blocks
-        self.clear_blocks()
+        self.clear_blocks(target_block=pool[0])
 
         # Set downlink block if different.
         self.__assign_downlink(pool[0])
@@ -426,14 +426,16 @@ class LVAP:
             self.blocks = block
             break
 
-    def clear_blocks(self):
+    def clear_blocks(self, target_block=None):
         """Clear all blocks."""
 
-        if self.blocks[0]:
-            self.blocks[0].radio.connection.send_del_lvap(self, self.blocks[0])
+        if self.blocks[0] and self.blocks[0].channel != target_block.channel:
+            self.blocks[0].radio.connection.send_del_lvap(self, target_block)
+        else:
+            self.blocks[0].radio.connection.send_del_lvap(self)
 
         for block in self.blocks[1:]:
-            block.radio.connection.send_del_lvap(self, block)
+            block.radio.connection.send_del_lvap(self)
 
         self._downlink = None
         self._uplink = []
