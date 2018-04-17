@@ -429,7 +429,10 @@ class LVAP:
     def clear_blocks(self, target_block=None):
         """Clear all blocks."""
 
-        if self.blocks[0] and self.blocks[0].channel != target_block.channel:
+        if not self.blocks[0]:
+            return
+
+        if self.blocks[0].channel != target_block.channel:
             self.blocks[0].radio.connection.send_del_lvap(self, target_block)
         else:
             self.blocks[0].radio.connection.send_del_lvap(self)
