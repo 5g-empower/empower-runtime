@@ -118,12 +118,12 @@ class IntentServer(Service, tornado.web.Application):
 
         try:
             ret = self.__get_response(method, url, uuid, intent)
-            #if ret[0] == 201:
-                #url = urlparse(ret[2])
-                #uuid = UUID(url.path.split("/")[-1])
-            #    return uuid
-            #if ret[0] == 204:
-            #    return uuid
+            if ret[0] == 201:
+                url = urlparse(ret[2])
+                uuid = UUID(url.path.split("/")[-1])
+                return uuid
+            if ret[0] == 204:
+                return uuid
         except ConnectionRefusedError:
             self.log.warning("Intent interface not found")
         except Exception as ex:
@@ -141,20 +141,9 @@ class IntentServer(Service, tornado.web.Application):
                                   url=self.intent_url_rules,
                                   intent=intent)
 
-    def add_endpoint(self, intent):
-        return self.__send_intent(method="POST",
-                                  url=self.intent_url_endpoint,
-                                  intent=intent)
-
     def update_traffic_rule(self, intent, uuid):
         self.__send_intent(method="PUT",
                            url=self.intent_url_traffic_rules,
-                           intent=intent,
-                           uuid=uuid)
-
-    def update_rule(self, intent, uuid):
-        self.__send_intent(method="PUT",
-                           url=self.intent_url_rules,
                            intent=intent,
                            uuid=uuid)
 

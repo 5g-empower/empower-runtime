@@ -198,6 +198,7 @@ class Tenant:
         self.wtps = {}
         self.cpps = {}
         self.vbses = {}
+        self.endpoints = {}
         self.lvaps = {}
         self.ues = {}
         self.lvnfs = {}

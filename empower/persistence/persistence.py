@@ -23,7 +23,7 @@ import empower.datatypes.ssid as ssid
 import empower.datatypes.plmnid as plmnid
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
 from sqlalchemy.types import TypeDecorator, Unicode
 
 from empower.persistence import ENGINE
@@ -264,6 +264,41 @@ class TblVBS(TblPNFDev):
     __mapper_args__ = {
         'polymorphic_identity': 'vbses'
     }
+
+
+class TblEndpoint(Base):
+    """ Endpoint table. """
+
+    __tablename__ = 'endpoint'
+
+    endpoint_id = Column("endpoint_id",
+                         UUID(),
+                         primary_key=True,
+                         default=uuid.uuid4)
+    tenant_id = Column("tenant_id",
+                       UUID(),
+                       ForeignKey("tenant.tenant_id"),
+                       nullable=False)
+    endpoint_name = Column(String, unique=True, nullable=False)
+    desc = Column(String)
+
+
+class TblVirtualPort(Base):
+    """ Endpoint table. """
+
+    __tablename__ = 'virtualport'
+
+    endpoint_id = Column("endpoint_id",
+                         UUID(),
+                         ForeignKey("endpoint.endpoint_id"),
+                         primary_key=True)
+    vport_id = Column(Integer, primary_key=True)
+    dpid = Column(EtherAddress(), nullable=False)
+    port_id = Column(Integer, nullable=False)
+    iface = Column(String, nullable=False)
+    hwaddr = Column(EtherAddress(), nullable=False)
+    learn_host = Column(Boolean, nullable=False)
+
 
 
 class TblAllow(Base):

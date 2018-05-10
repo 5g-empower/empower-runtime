@@ -47,15 +47,16 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports
+                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1
+                lvnfs/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next/
+                in_port=1,dl_type=800,nw_proto=84
         """
 
         try:
 
-            if len(args) != 3:
+            if len(args) not in [3, 4]:
                 raise ValueError("Invalid url")
 
             tenant_id = uuid.UUID(args[0])
@@ -127,14 +128,25 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
             port_id = int(args[2])
             port = lvnf.ports[port_id]
 
-            next_lvnf_id = uuid.UUID(request['next']['lvnf_id'])
-            next_lvnf = tenant.lvnfs[next_lvnf_id]
+            next_type = request['next']['type'].lower()
+            next_id = uuid.UUID(request['next']['uuid'])
 
-            if next_lvnf_id == lvnf_id:
+            valid_types = ["lvnf", "ep"]
+
+            if next_type not in valid_types:
+                raise ValueError("invalid type, allowed are %s" % valid_types)
+
+            next_obj = None
+            if next_type == "lvnf":
+                next_obj = tenant.lvnfs[next_id]
+            elif next_type == "ep":
+                next_obj = tenant.endpoints[next_id]
+
+            if next_id == lvnf_id:
                 raise ValueError("Loop detected")
 
             next_port_id = int(request['next']['port_id'])
-            next_port = next_lvnf.ports[next_port_id]
+            next_port = next_obj.ports[next_port_id]
 
             port.next[match] = next_port
 

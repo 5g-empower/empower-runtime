@@ -154,6 +154,9 @@ class LVNF:
         # set new state
         self.__state = PROCESS_STOPPING
 
+        # clear LVNF ports
+        self.ports.clear()
+
         # send LVNF del message
         self.cpp.connection.send_del_lvnf(self.lvnf_id)
 

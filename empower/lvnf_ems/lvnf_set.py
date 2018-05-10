@@ -31,7 +31,7 @@ from empower.main import RUNTIME
 class LVNFSet(ModulePeriodic):
     """LVNF Set object."""
 
-    MODULE_NAME = "lvnf_get"
+    MODULE_NAME = "lvnf_set"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'lvnf', 'handler',
                 'value']
 

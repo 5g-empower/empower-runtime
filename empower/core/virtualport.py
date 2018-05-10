@@ -160,7 +160,7 @@ class VirtualPortNextProp(dict):
         # remove virtual links
         if key in self.__uuids__:
             intent_server.remove_rule(self.__uuids__[key])
-            self.__uuids__[key] = None
+            del self.__uuids__[key]
 
         # remove old entry
         dict.__delitem__(self, key)
@@ -193,3 +193,9 @@ class VirtualPortNextProp(dict):
 
         # add entry
         dict.__setitem__(self, key, value)
+
+    def clear(self):
+
+        for key in list(self.keys()):
+
+            self.__delitem__(key)

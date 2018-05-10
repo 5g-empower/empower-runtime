@@ -15,24 +15,22 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Tenant/LVAP/Port/Next Handler."""
+"""Tenant/Endpoint/Port/Next Handler."""
+
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.main import RUNTIME
 
 import uuid
 import tornado.web
 
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
-from empower.datatypes.etheraddress import EtherAddress
 
-from empower.main import RUNTIME
+class TenantEndpointNextHandler(EmpowerAPIHandlerAdminUsers):
+    """Tenant/Endpoint/Port/Next Handler."""
 
-
-class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
-    """Tenant/LVAP/Port/Next Handler."""
-
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                r"/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                r"/([a-zA-Z0-9:]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
 
     def initialize(self, server):
         self.server = server
@@ -42,16 +40,18 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: the tenant id
-            [1]: the lvap id
+            [1]: the endpoint id
             [2]: the port id
+            [3]: match
 
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports/1/next
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports/1/next/in_port=1,dl_type=800
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next/
+                in_port=1,dl_type=800,nw_proto=84
         """
 
         try:
@@ -62,11 +62,11 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            lvap_id = EtherAddress(args[1])
-            lvap = tenant.lvaps[lvap_id]
+            endpoint_id = uuid.UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
 
             port_id = int(args[2])
-            port = lvap.ports[port_id]
+            port = endpoint.ports[port_id]
 
             if len(args) == 3:
                 self.write_as_json(port.next)
@@ -86,13 +86,13 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: the tenant id
-            [1]: the lvap id
+            [1]: the endpoint id
             [2]: the port id
 
         Example URLs:
 
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports/1/next
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next
         """
 
         try:
@@ -114,17 +114,16 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             match = request['match']
 
             if not isinstance(match, str):
-                raise ValueError("Field match must be a string, got %s",
-                                 type(match))
+                raise ValueError("Field match must be a string")
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            lvap_id = EtherAddress(args[1])
-            lvap = tenant.lvaps[lvap_id]
+            endpoint_id = uuid.UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
 
             port_id = int(args[2])
-            port = lvap.ports[port_id]
+            port = endpoint.ports[port_id]
 
             next_type = request['next']['type'].lower()
             next_id = uuid.UUID(request['next']['uuid'])
@@ -140,13 +139,16 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             elif next_type == "ep":
                 next_obj = tenant.endpoints[next_id]
 
+            if next_id == endpoint_id:
+                raise ValueError("Loop detected")
+
             next_port_id = int(request['next']['port_id'])
             next_port = next_obj.ports[next_port_id]
 
             port.next[match] = next_port
 
-            url = "/api/v1/tenants/%s/lvaps/%s/ports/%u/next/%s"
-            tokens = (tenant_id, lvap_id, port_id, match)
+            url = "/api/v1/tenants/%s/eps/%s/ports/%u/next/%s"
+            tokens = (tenant_id, endpoint_id, port_id, match)
 
             self.set_header("Location", url % tokens)
 
@@ -162,13 +164,14 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: the tenant id
-            [1]: the lvap id
+            [1]: the endpoint id
             [2]: the port id
+            [3]: match
 
         Example URLs:
 
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                   lvaps/00:14:d3:45:aa:5c/ports/1/next/
+                   eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next/
                    dl_src=00:18:DE:CC:D3:40;dpid=00:0D:B9:2F:56:64;port_id=2
         """
 
@@ -180,11 +183,11 @@ class TenantLVAPNextHandler(EmpowerAPIHandlerAdminUsers):
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            lvap_id = EtherAddress(args[1])
-            lvap = tenant.lvaps[lvap_id]
+            endpoint_id = uuid.UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
 
             port_id = int(args[2])
-            port = lvap.ports[port_id]
+            port = endpoint.ports[port_id]
 
             if len(args) == 4:
                 match = args[3]
