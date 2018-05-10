@@ -15,23 +15,21 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""LVAP Port Handler."""
+"""Endpoint Port Handler."""
+
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.main import RUNTIME
 
 import uuid
 
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
-from empower.datatypes.etheraddress import EtherAddress
 
-from empower.main import RUNTIME
+class TenantEndpointPortHandler(EmpowerAPIHandlerAdminUsers):
+    """Tenant/Endpoint/Port Handler."""
 
-
-class TenantLVAPPortHandler(EmpowerAPIHandlerAdminUsers):
-    """Tenant/LVAP/Port Handler."""
-
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                "/([a-zA-Z0-9:]*)/ports/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvaps" +
-                "/([a-zA-Z0-9:]*)/ports/([0-9]*)/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                "/([a-zA-Z0-9-]*)/ports/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                "/([a-zA-Z0-9-]*)/ports/([0-9]*)/?"]
 
     def initialize(self, server):
         self.server = server
@@ -41,16 +39,16 @@ class TenantLVAPPortHandler(EmpowerAPIHandlerAdminUsers):
 
         Args:
             [0]: the tenant id
-            [1]: the lvap id
+            [1]: the endpoint id
             [2]: the port id
 
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                lvaps/00:14:d3:45:aa:5c/ports/1
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1
         """
 
         try:
@@ -61,15 +59,15 @@ class TenantLVAPPortHandler(EmpowerAPIHandlerAdminUsers):
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            lvap_id = EtherAddress(args[1])
-            lvap = tenant.lvaps[lvap_id]
+            endpoint_id = uuid.UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
 
             if len(args) == 2:
-                self.write_as_json(lvap.ports.values())
+                self.write_as_json(endpoint.ports.values())
                 self.set_status(200, None)
             else:
                 port_id = int(args[2])
-                port = lvap.ports[port_id]
+                port = endpoint.ports[port_id]
                 self.write_as_json(port)
                 self.set_status(200, None)
 

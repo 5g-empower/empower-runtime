@@ -98,6 +98,7 @@ class EmpowerRuntime:
         self.wtps = {}
         self.cpps = {}
         self.vbses = {}
+        self.endpoints = {}
         self.feeds = {}
         self.allowed = {}
         self.denied = {}
