@@ -258,47 +258,20 @@ class TblWTP(TblPNFDev):
     }
 
 
+class TblSwitch(TblPNFDev):
+    """ OpenFlow Switch. """
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'switches'
+    }
+
+
 class TblVBS(TblPNFDev):
     """ Virtual Base Station Point. """
 
     __mapper_args__ = {
         'polymorphic_identity': 'vbses'
     }
-
-
-class TblEndpoint(Base):
-    """ Endpoint table. """
-
-    __tablename__ = 'endpoint'
-
-    endpoint_id = Column("endpoint_id",
-                         UUID(),
-                         primary_key=True,
-                         default=uuid.uuid4)
-    tenant_id = Column("tenant_id",
-                       UUID(),
-                       ForeignKey("tenant.tenant_id"),
-                       nullable=False)
-    endpoint_name = Column(String, unique=True, nullable=False)
-    desc = Column(String)
-
-
-class TblVirtualPort(Base):
-    """ Endpoint table. """
-
-    __tablename__ = 'virtualport'
-
-    endpoint_id = Column("endpoint_id",
-                         UUID(),
-                         ForeignKey("endpoint.endpoint_id"),
-                         primary_key=True)
-    vport_id = Column(Integer, primary_key=True)
-    dpid = Column(EtherAddress(), nullable=False)
-    port_id = Column(Integer, nullable=False)
-    iface = Column(String, nullable=False)
-    hwaddr = Column(EtherAddress(), nullable=False)
-    learn_host = Column(Boolean, nullable=False)
-
 
 
 class TblAllow(Base):
@@ -312,30 +285,5 @@ class TblAllow(Base):
 
     label = Column(String)
 
-
-class TblDeny(Base):
-    """ Deny table. """
-
-    __tablename__ = 'deny'
-
-    addr = Column("addr",
-                  EtherAddress(),
-                  primary_key=True)
-
-    label = Column(String)
-
-
-class TblIMSI2MAC(Base):
-    """ IMSI to MAC address mapping table. """
-
-    __tablename__ = 'imsi2mac'
-
-    imsi = Column("imsi",
-                  Integer,
-                  primary_key=True)
-
-    addr = Column("addr",
-                  EtherAddress(),
-                  unique=True)
 
 Base.metadata.create_all(ENGINE)

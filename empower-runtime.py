@@ -27,8 +27,8 @@ if __name__ == "__main__":
              'lvnfp.lvnfpserver',
              'lvapp.lvappserver',
              'vbsp.vbspserver',
+             'ibnp.ibnpserver',
              'energinoserver.energinoserver',
-             'intentserver.intentserver',
              'lvap_stats.lvap_stats',
              'events.wtpdown',
              'events.wtpup',
@@ -55,7 +55,6 @@ if __name__ == "__main__":
              'events.lvnfleave',
              'lvnf_ems.lvnf_get',
              'lvnf_ems.lvnf_set',
-             'lvnf_stats.lvnf_stats',
-             'endpoint.endpointserver']
+             'lvnf_stats.lvnf_stats']
 
     main(ARGVS)

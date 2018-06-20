@@ -20,8 +20,7 @@
 import types
 import time
 
-from empower.core.virtualport import VirtualPortProp
-from empower.intentserver.intentserver import IntentServer
+from empower.core.endpoint import Endpoint
 from empower.main import RUNTIME
 
 import empower.logger
@@ -45,7 +44,7 @@ PROCESS_MIGRATING_STOP = "migrating_stop"
 PROCESS_MIGRATING_START = "migrating_start"
 
 
-class LVNF:
+class LVNF(Endpoint):
     """A Light Virtual Network Function.
 
     An object representing a Light Virtual Network Function. An LVNF is
@@ -84,7 +83,6 @@ class LVNF:
         lvnf_id: The lvnf id (UUID)
         tenant_id: The Tenant id (UUID)
         image: The Image used by this LVNF (Image)
-        ports: The virtual ports supported by this LVNF (VirtualPorts)
         message: The error message retuned by Click (String)
         returncode: The Click process return code, only if stopped (Integer)
         process: The status of the process (running, migrating, migrated,
@@ -93,10 +91,11 @@ class LVNF:
 
     def __init__(self, lvnf_id, tenant_id, image, cpp):
 
+        super(LVNF, self).__init__(lvnf_id, 'lvnf-%s' % lvnf_id, '')
+
         self.lvnf_id = lvnf_id
         self.tenant_id = tenant_id
         self.image = image
-        self.ports = VirtualPortProp()
         self.returncode = None
         self.context = None
         self.__state = None
