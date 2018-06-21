@@ -23,8 +23,11 @@ import tornado.ioloop
 from construct import Container
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.dpid import DPID
 from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
+from empower.core.datapath import Datapath
+from empower.core.networkport import NetworkPort
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -57,8 +60,6 @@ from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
 from empower.lvapp import PT_PORT_STATUS_REQUEST
 from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
-from empower.core.networkport import NetworkPort
-from empower.core.virtualport import VirtualPort
 from empower.core.vap import VAP
 from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
@@ -334,7 +335,12 @@ class LVAPPConnection:
             self.stream.close()
             return
 
-        if not wtp.port():
+        empower_if = []
+        if wtp.datapath:
+            empower_if = [port for port in wtp.datapath.network_ports.values()
+                          if port.iface == 'empower0']
+
+        if not wtp.datapath or not empower_if:
             LOG.info("WTP %s not ready", wtp.addr)
             return
 
@@ -344,9 +350,6 @@ class LVAPPConnection:
             return
 
         if not RUNTIME.is_allowed(sta):
-            return
-
-        if RUNTIME.is_denied(sta):
             return
 
         ssid = SSID(request.ssid)
@@ -423,10 +426,6 @@ class LVAPPConnection:
             LOG.info("Auth request from %s ignored (white list)", sta)
             return
 
-        if RUNTIME.is_denied(sta):
-            LOG.info("Auth request from %s ignored (black list)", sta)
-            return
-
         lvap_bssid = None
 
         # the request bssid is the lvap's unique bssid
@@ -481,10 +480,6 @@ class LVAPPConnection:
 
         if not RUNTIME.is_allowed(sta):
             LOG.info("Assoc request from %s ignored (white list)", sta)
-            return
-
-        if RUNTIME.is_denied(sta):
-            LOG.info("Assoc request from %s ignored (black list)", sta)
             return
 
         ssid = SSID(request.ssid.decode('UTF-8'))
@@ -553,7 +548,6 @@ class LVAPPConnection:
         self.wtp.set_disconnected()
         self.wtp.last_seen = 0
         self.wtp.connection = None
-        self.wtp.ports = {}
         self.wtp.supports = set()
         self.wtp = None
 
@@ -654,16 +648,6 @@ class LVAPPConnection:
         else:
             lvap._uplink.append(valid[0])
 
-        # update ports
-        wtp_virtual_port = VirtualPort(lvap.lvap_uuid, wtp.port())
-
-        if not lvap.ports:
-            lvap.ports[0] = wtp_virtual_port
-        elif wtp_virtual_port not in lvap.ports:
-            virt_port_id = max(list(lvap.ports.keys())) + 1
-            wtp_virtual_port.virtual_port_id = virt_port_id
-            lvap.ports[virt_port_id] = wtp_virtual_port
-
         # set supported band
         lvap._supported_band = status.supported_band
 
@@ -758,6 +742,19 @@ class LVAPPConnection:
 
         LOG.info("Received caps from %s", wtp.addr)
 
+        if 'dpid' not in caps:
+            LOG.info("Empty caps from WTP (%s)", wtp.addr)
+            # set state to online
+            wtp.set_online()
+            return
+
+        wtp_dpid = DPID(caps['dpid'])
+
+        if not wtp_dpid in RUNTIME.datapaths:
+            RUNTIME.datapaths[wtp_dpid] = Datapath(wtp_dpid)
+
+        wtp.datapath = RUNTIME.datapaths[wtp_dpid]
+
         for block in caps.blocks:
             hwaddr = EtherAddress(block[0])
             r_block = ResourceBlock(wtp, hwaddr, block[1], block[2])
@@ -765,14 +762,18 @@ class LVAPPConnection:
 
         for port in caps.ports:
 
+            hwaddr = EtherAddress(port[0])
+            port_id = int(port[1])
             iface = port[2].decode("utf-8").strip('\0')
 
-            network_port = NetworkPort(dpid=wtp.addr,
-                                       hwaddr=EtherAddress(port[0]),
-                                       port_id=int(port[1]),
-                                       iface=iface)
+            if port_id not in wtp.datapath.network_ports:
 
-            wtp.ports[network_port.port_id] = network_port
+                network_port = NetworkPort(dp=wtp.datapath,
+                                           port_id=port_id,
+                                           hwaddr=hwaddr,
+                                           iface=iface)
+
+                wtp.datapath.network_ports[port_id] = network_port
 
         # set state to online
         wtp.set_online()

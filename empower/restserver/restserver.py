@@ -22,6 +22,7 @@ import tornado.httpserver
 
 from tornado.web import MissingArgumentError
 from uuid import UUID
+from uuid import uuid4
 from empower import settings
 from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
@@ -35,6 +36,7 @@ from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
 from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.dpid import DPID
 from empower.core.tenant import TrafficRule
 
 DEFAULT_PORT = 8888
@@ -219,8 +221,8 @@ class ACLHandler(EmpowerAPIHandler):
 
         Example URLs:
 
-            GET /api/v1/[allow|deny]
-            GET /api/v1/[allow|deny/11:22:33:44:55:66
+            GET /api/v1/allow
+            GET /api/v1/allow/11:22:33:44:55:66
         """
 
         try:
@@ -255,7 +257,7 @@ class ACLHandler(EmpowerAPIHandler):
 
         Example URLs:
 
-            POST /api/v1/[allow|deny]
+            POST /api/v1/allow
         """
         try:
 
@@ -295,7 +297,7 @@ class ACLHandler(EmpowerAPIHandler):
 
         Example URLs:
 
-            DELETE /api/v1/[allow|deny]/11:22:33:44:55:66
+            DELETE /api/v1/allow/11:22:33:44:55:66
         """
 
         try:
@@ -316,139 +318,6 @@ class AllowHandler(ACLHandler):
     STRUCT = "allowed"
     HANDLERS = [r"/api/v1/allow/?",
                 r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
-
-
-class DenyHandler(ACLHandler):
-    """ Deny handler. """
-
-    STRUCT = "denied"
-    HANDLERS = [r"/api/v1/deny/?",
-                r"/api/v1/deny/([a-zA-Z0-9:]*)/?"]
-
-
-class IMSI2MACHandler(EmpowerAPIHandler):
-
-    """IMSI to MAC address handler.
-
-    Used to view and manipulate the IMSI to MAC mappings."""
-
-    HANDLERS = [r"/api/v1/imsi2mac/?",
-                r"/api/v1/imsi2mac/([0-9]*)/?"]
-
-    def get(self, *args, **kwargs):
-        """ List the entire IMSI to MAC mapped entries or just the specified entry.
-
-        Args:
-            imsi: the imsi of the UE
-
-        Example URLs:
-
-            GET /api/v1/imsi2mac
-            GET /api/v1/imsi2mac/222930100001115
-        """
-
-        try:
-
-            if len(args) > 1:
-                raise ValueError("Invalid URL")
-
-            imsi2mac = []
-
-            for k in RUNTIME.imsi2mac.keys():
-                imsi2mac.append({
-                        "imsi": k,
-                        "addr": RUNTIME.imsi2mac[k]
-                    })
-
-            if len(args) == 0:
-                self.write_as_json(imsi2mac)
-            else:
-                imsi = int(args[0])
-                if imsi in RUNTIME.imsi2mac:
-                    self.write_as_json({
-                            "imsi": imsi,
-                            "addr": RUNTIME.imsi2mac[imsi]
-                        })
-                else:
-                    raise KeyError(imsi)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-    def post(self, *args, **kwargs):
-        """ Add new entry to IMSI to MAC entries.
-
-        Args:
-            None
-
-        Request:
-            version: protocol version (1.0)
-            imsi: the imsi of the UE
-            addr: the mac address
-
-        Example URLs:
-
-            POST /api/v1/imsi2mac
-        """
-        try:
-
-            if len(args) != 0:
-                raise ValueError("Invalid URL")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "imsi" not in request:
-                raise ValueError("missing imsi element")
-
-            if "addr" not in request:
-                raise ValueError("missing mac address element")
-
-            if len(request['imsi']) != 15:
-                raise ValueError("invalid imsi element")
-
-            func = getattr(RUNTIME, 'add_imsi2mac')
-            func(int(request['imsi']), EtherAddress(request['addr']))
-
-            self.set_header("Location",
-                            "/api/v1/imsi2mac/%s" % request['imsi'])
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        self.set_status(201, None)
-
-    def delete(self, *args, **kwargs):
-        """ Delete entry from ACL.
-
-        Args:
-            imsi: the imsi of the UE
-
-        Example URLs:
-
-            DELETE /api/v1/imsi2mac/222930100001115
-        """
-
-        try:
-            if len(args) != 1:
-                raise ValueError("Invalid URL")
-
-            if len(args[0]) != 15:
-                raise ValueError("invalid imsi element")
-
-            func = getattr(RUNTIME, 'remove_imsi2mac')
-            func(int(args[0]))
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        self.set_status(204, None)
 
 
 class AccountsHandler(EmpowerAPIHandler):
@@ -1412,6 +1281,401 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
+class TenantEndpointHandler(EmpowerAPIHandlerUsers):
+    """TenantEndpointHandler Handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps/([a-zA-Z0-9-]*)/?"]
+
+    def get(self, *args, **kwargs):
+        """ List all Functions.
+
+        Args:
+            tenant_id: the network names of the tenant
+            endpoint_id: the endpoint uuid
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/eps
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34
+
+        """
+
+        try:
+
+            if len(args) > 2 or len(args) < 1:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            if len(args) == 1:
+                self.write_as_json(tenant.endpoints.values())
+                self.set_status(200, None)
+            else:
+                endpoint_id = UUID(args[1])
+                endpoint = tenant.endpoints[endpoint_id]
+                self.write_as_json(endpoint)
+                self.set_status(200, None)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+    def post(self, *args):
+        """Add a new Endpoint.
+
+        Args:
+            tenant_id: network name of a tenant
+            endpoint_id: the endpoint id
+
+        Request:
+            version: protocol version (1.0)
+            endpoint_name: the endpoint name
+            dpid: the datapath id
+            desc: a description for this endpoint
+            ports: a dictionary of VirtualPorts, where each key is a vport_id
+                port_id: the port number on the datapath id
+                properties: a dictionary of additional information
+                    dont_learn: list of hardware addresses bounded to this port
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/eps
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34
+        """
+
+        try:
+
+            if len(args) > 2 or len(args) < 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "endpoint_name" not in request:
+                raise ValueError("missing endpoint_name element")
+
+            if "dpid" not in request:
+                raise ValueError("missing dpid element")
+
+            if "desc" not in request:
+                desc = "Generic description"
+            else:
+                desc = request['desc']
+
+            if "ports" not in request:
+                raise ValueError("missing ports element")
+
+            if type(request["ports"]) is not dict:
+                raise ValueError("ports is not a dictionary")
+
+            for port in request["ports"].values():
+
+                if "port_id" not in port:
+                    raise ValueError("missing port_id element")
+
+            tenant_id = UUID(args[0])
+
+            if len(args) == 1:
+                endpoint_id = uuid4()
+            else:
+                endpoint_id = UUID(args[1])
+
+            dpid = DPID(request["dpid"])
+
+            RUNTIME.add_endpoint(endpoint_id=endpoint_id,
+                                 tenant_id=tenant_id,
+                                 endpoint_name=request["endpoint_name"],
+                                 desc=desc,
+                                 dpid=dpid,
+                                 ports=request["ports"])
+
+            self.set_header("Location", "/api/v1/tenants/%s/eps/%s"
+                            % (tenant_id, endpoint_id))
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        except RuntimeError as ex:
+            self.send_error(400, message=ex)
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """ Remove an lvnf from a Tenant.
+
+        Args:
+            tenant_id: network name of a tenant
+            endpoint_id: the endpoint_id
+
+        Example URLs:
+
+            Delete /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            endpoint_id = UUID(args[1])
+
+            RUNTIME.remove_endpoint(endpoint_id, tenant_id)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
+
+class TenantEndpointNextHandler(EmpowerAPIHandlerUsers):
+    """Tenant/Endpoint/Port/Next Handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
+
+    def initialize(self, server):
+        self.server = server
+
+    def get(self, *args, **kwargs):
+        """List next associations.
+
+        Args:
+            [0]: the tenant id
+            [1]: the endpoint id
+            [2]: the port id
+            [3]: match
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next/
+                in_port=1,dl_type=800,nw_proto=84
+        """
+
+        try:
+
+            if len(args) not in [3, 4]:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            endpoint_id = UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
+
+            port_id = int(args[2])
+            port = endpoint.ports[port_id]
+
+            if len(args) == 3:
+                self.write_as_json(port.next)
+            else:
+                match = args[3]
+                self.write_as_json(port.next[match])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(200, None)
+
+    def post(self, *args, **kwargs):
+        """Set next flow rules.
+
+        Args:
+            [0]: the tenant id
+            [1]: the endpoint id
+            [2]: the port id
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next
+        """
+
+        try:
+
+            if len(args) != 3:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "match" not in request:
+                raise ValueError("missing match element")
+
+            if "next" not in request:
+                raise ValueError("missing next element")
+
+            match = request['match']
+
+            if not isinstance(match, str):
+                raise ValueError("Field match must be a string")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            endpoint_id = UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
+
+            port_id = int(args[2])
+            port = endpoint.ports[port_id]
+
+            next_type = request['next']['type'].lower()
+            next_id = UUID(request['next']['uuid'])
+
+            valid_types = ["lvnf", "ep"]
+
+            if next_type not in valid_types:
+                raise ValueError("invalid type, allowed are %s" % valid_types)
+
+            next_obj = None
+            if next_type == "lvnf":
+                next_obj = tenant.lvnfs[next_id]
+            elif next_type == "ep":
+                next_obj = tenant.endpoints[next_id]
+
+            if next_id == endpoint_id:
+                raise ValueError("Loop detected")
+
+            next_port_id = int(request['next']['port_id'])
+            next_port = next_obj.ports[next_port_id]
+
+            port.next[match] = next_port
+
+            url = "/api/v1/tenants/%s/eps/%s/ports/%u/next/%s"
+            tokens = (tenant_id, endpoint_id, port_id, match)
+
+            self.set_header("Location", url % tokens)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """Delete next flow rules.
+
+        Args:
+            [0]: the tenant id
+            [1]: the endpoint id
+            [2]: the port id
+            [3]: match
+
+        Example URLs:
+
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                   eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1/next/
+                   dl_src=00:18:DE:CC:D3:40;dpid=00:0D:B9:2F:56:64;port_id=2
+        """
+
+        try:
+
+            if len(args) not in [3, 4]:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            endpoint_id = UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
+
+            port_id = int(args[2])
+            port = endpoint.ports[port_id]
+
+            if len(args) == 4:
+                match = args[3]
+            else:
+                match = ""
+
+            del port.next[match]
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
+
+class TenantEndpointPortHandler(EmpowerAPIHandlerUsers):
+    """Tenant/Endpoint/Port Handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                "/([a-zA-Z0-9-]*)/ports/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
+                "/([a-zA-Z0-9-]*)/ports/([0-9]*)/?"]
+
+    def initialize(self, server):
+        self.server = server
+
+    def get(self, *args, **kwargs):
+        """ List all ports.
+
+        Args:
+            [0]: the tenant id
+            [1]: the endpoint id
+            [2]: the port id
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                eps/49313ecb-9d00-4a7c-b873-b55d3d9ada34/ports/1
+        """
+
+        try:
+
+            if len(args) > 3 or len(args) < 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            endpoint_id = UUID(args[1])
+            endpoint = tenant.endpoints[endpoint_id]
+
+            if len(args) == 2:
+                self.write_as_json(endpoint.ports.values())
+                self.set_status(200, None)
+            else:
+                port_id = int(args[2])
+                port = endpoint.ports[port_id]
+                self.write_as_json(port)
+                self.set_status(200, None)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+
 class RESTServer(Service, tornado.web.Application):
     """Exposes the REST API."""
 
@@ -1449,8 +1713,9 @@ class RESTServer(Service, tornado.web.Application):
                            ManageTenantHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
                            PendingTenantHandler, TenantHandler,
-                           AllowHandler, DenyHandler, IMSI2MACHandler,
-                           TenantTrafficRuleHandler]
+                           AllowHandler,
+                           TenantTrafficRuleHandler, TenantEndpointHandler,
+                           TenantEndpointNextHandler, TenantEndpointPortHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

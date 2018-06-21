@@ -23,7 +23,7 @@ import empower.datatypes.ssid as ssid
 import empower.datatypes.plmnid as plmnid
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
 from sqlalchemy.types import TypeDecorator, Unicode
 
 from empower.persistence import ENGINE
@@ -258,6 +258,14 @@ class TblWTP(TblPNFDev):
     }
 
 
+class TblSwitch(TblPNFDev):
+    """ OpenFlow Switch. """
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'switches'
+    }
+
+
 class TblVBS(TblPNFDev):
     """ Virtual Base Station Point. """
 
@@ -277,30 +285,5 @@ class TblAllow(Base):
 
     label = Column(String)
 
-
-class TblDeny(Base):
-    """ Deny table. """
-
-    __tablename__ = 'deny'
-
-    addr = Column("addr",
-                  EtherAddress(),
-                  primary_key=True)
-
-    label = Column(String)
-
-
-class TblIMSI2MAC(Base):
-    """ IMSI to MAC address mapping table. """
-
-    __tablename__ = 'imsi2mac'
-
-    imsi = Column("imsi",
-                  Integer,
-                  primary_key=True)
-
-    addr = Column("addr",
-                  EtherAddress(),
-                  unique=True)
 
 Base.metadata.create_all(ENGINE)

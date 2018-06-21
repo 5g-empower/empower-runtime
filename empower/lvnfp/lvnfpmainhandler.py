@@ -25,6 +25,7 @@ import tornado.ioloop
 import tornado.websocket
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.dpid import DPID
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.lvnfp import PT_ADD_LVNF
 from empower.lvnfp import PT_DEL_LVNF
@@ -32,6 +33,7 @@ from empower.lvnfp import PT_LVNF_JOIN
 from empower.lvnfp import PT_LVNF_LEAVE
 from empower.core.networkport import NetworkPort
 from empower.core.virtualport import VirtualPort
+from empower.core.datapath import Datapath
 from empower.core.lvnf import PROCESS_RUNNING
 from empower.core.lvnf import PROCESS_SPAWNING
 from empower.core.lvnf import PROCESS_STOPPING
@@ -150,7 +152,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         # reset state
         self.cpp.set_disconnected()
         self.cpp.connection = None
-        self.cpp.ports = {}
+        self.cpp.datapath = None
 
     def send_message(self, message_type, message):
         """Add fixed header fields and send message. """
@@ -221,16 +223,29 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             LOG.info("Caps from unknown CPP (%s)", cpp_addr)
             raise KeyError("Hello from unknown CPP (%s)", cpp_addr)
 
-        cpp.ports = {}
+        if 'dpid' not in caps:
+            LOG.info("Empty caps from CPP (%s)", cpp_addr)
+            # set state to online
+            cpp.set_online()
+            return
 
-        for port in caps['ports'].values():
+        cpp_dpid = DPID(caps['dpid'])
 
-            network_port = NetworkPort(dpid=cpp.addr,
-                                       port_id=port['port_id'],
-                                       iface=port['iface'],
-                                       hwaddr=EtherAddress(port['hwaddr']))
+        if not cpp_dpid in RUNTIME.datapaths:
+            RUNTIME.datapaths[cpp_dpid] = Datapath(cpp_dpid)
 
-            cpp.ports[network_port.port_id] = network_port
+        cpp.datapath = RUNTIME.datapaths[cpp_dpid]
+
+        for port_id, port in caps['ports'].items():
+
+            if int(port_id) not in cpp.datapath.network_ports:
+
+                network_port = NetworkPort(dp=cpp.datapath,
+                                           port_id=int(port['port_id']),
+                                           hwaddr=EtherAddress(port['hwaddr']),
+                                           iface=port['iface'])
+
+                cpp.datapath.network_ports[int(port_id)] = network_port
 
         # set state to online
         cpp.set_online()
@@ -312,6 +327,9 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                 return
 
             # Configure ports
+
+            dp = RUNTIME.datapaths[cpp.datapath.dpid]
+
             for port in status_lvnf['ports'].values():
 
                 virtual_port_id = port['virtual_port_id']
@@ -328,12 +346,19 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
                 iface = port['iface']
 
-                network_port = NetworkPort(dpid=lvnf.cpp.addr,
-                                           hwaddr=hwaddr,
-                                           port_id=port_id,
-                                           iface=iface)
+                # caps may bring vnf network ports, create new network port
+                # only if it has not been added already
+                if port_id not in dp.network_ports:
+                    network_port = NetworkPort(dp=dp,
+                                               port_id=port_id,
+                                               hwaddr=EtherAddress(hwaddr),
+                                               iface=iface)
 
-                virtual_port = VirtualPort(lvnf.lvnf_id,
+                    dp.network_ports[port_id] = network_port
+
+                network_port = dp.network_ports[port_id]
+
+                virtual_port = VirtualPort(lvnf,
                                            network_port,
                                            virtual_port_id=virtual_port_id)
 
