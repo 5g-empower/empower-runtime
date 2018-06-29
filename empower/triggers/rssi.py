@@ -282,7 +282,8 @@ class RssiWorker(ModuleLVAPPWorker):
         """Handle WTP BYE message."""
 
         for module in self.modules.values():
-            module.wtps.remove(wtp)
+            if wtp in module.wtps:
+                module.wtps.remove(wtp)
 
 
 def rssi(**kwargs):
