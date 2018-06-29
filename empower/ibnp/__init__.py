@@ -15,4 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Intent server."""
+""" IBNP Server module. """
+
+PT_VERSION = 0
+
+# cpp to ctrl
+PT_HELLO = "hello"
+
+# ctrl to cpp
+PT_UPDATE_ENDPOINT = "update_endpoint"
+PT_REMOVE_ENDPOINT = "remove_endpoint"
+PT_ADD_RULE = "add_rule"
+PT_REMOVE_RULE = "remove_rule"

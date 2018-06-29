@@ -22,8 +22,6 @@ from uuid import uuid5, NAMESPACE_OID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
-from empower.core.networkport import NetworkPort
-from empower.core.virtualport import VirtualPort, VirtualPortProp
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
 
@@ -133,9 +131,6 @@ class LVAP:
         # while the remaining are the uplink blocks
         self._downlink = None
         self._uplink = []
-
-        # virtual ports (VNFs)
-        self.ports = VirtualPortProp()
 
         # downlink intent uuid
         self.lvap_uuid = uuid5(NAMESPACE_OID, str(addr))
@@ -346,28 +341,6 @@ class LVAP:
         # set uplink blocks
         self.__assign_uplink(pool[1:])
 
-        self.ports.clear()
-
-        virt_port_counter = 0
-        learn_host = True
-
-        for block in self.blocks:
-
-            block_port = block.radio.port()
-            network_port = NetworkPort(dpid=block_port.dpid,
-                                       port_id=block_port.port_id,
-                                       hwaddr=self.addr,
-                                       iface=block_port.iface)
-
-            virtual_port = VirtualPort(self.lvap_uuid,
-                                       network_port,
-                                       virtual_port_id=virt_port_counter,
-                                       learn_host=learn_host)
-            self.ports[virt_port_counter] = virtual_port
-
-            virt_port_counter += 1
-            learn_host = False
-
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
 
@@ -429,7 +402,10 @@ class LVAP:
     def clear_blocks(self, target_block=None):
         """Clear all blocks."""
 
-        if self.blocks[0] and self.blocks[0].channel != target_block.channel:
+        if not self.blocks[0]:
+            return
+
+        if self.blocks[0].channel != target_block.channel:
             self.blocks[0].radio.connection.send_del_lvap(self, target_block)
         else:
             self.blocks[0].radio.connection.send_del_lvap(self)
@@ -446,16 +422,12 @@ class LVAP:
         # clear all blocks
         self.clear_blocks()
 
-        # clear all ports
-        self.ports.clear()
-
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
 
         return {'addr': self.addr,
                 'net_bssid': self.net_bssid,
                 'lvap_bssid': self.lvap_bssid,
-                'ports': self.ports,
                 'wtp': self.wtp,
                 'blocks': self.blocks,
                 'supported_band': BANDS[self.supported_band],

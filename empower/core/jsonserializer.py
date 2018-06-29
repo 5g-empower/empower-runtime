@@ -23,6 +23,8 @@ import types
 
 import empower.datatypes.etheraddress
 import empower.datatypes.ssid
+import empower.datatypes.plmnid
+import empower.datatypes.dpid
 
 
 class IterEncoder(json.JSONEncoder):
@@ -54,6 +56,9 @@ class EmpowerEncoder(IterEncoder):
             return str(obj)
 
         if isinstance(obj, empower.datatypes.etheraddress.EtherAddress):
+            return str(obj)
+
+        if isinstance(obj, empower.datatypes.dpid.DPID):
             return str(obj)
 
         if hasattr(obj, 'to_dict'):

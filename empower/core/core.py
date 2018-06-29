@@ -40,8 +40,7 @@ from empower.core.account import Account
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
-from empower.persistence.persistence import TblDeny
-from empower.persistence.persistence import TblIMSI2MAC
+
 
 import empower.logger
 
@@ -98,10 +97,10 @@ class EmpowerRuntime:
         self.wtps = {}
         self.cpps = {}
         self.vbses = {}
+        self.endpoints = {}
+        self.datapaths = {}
         self.feeds = {}
         self.allowed = {}
-        self.denied = {}
-        self.imsi2mac = {}
         self.log = empower.logger.get_logger()
 
         self.log.info("Starting EmPOWER Runtime")
@@ -115,7 +114,6 @@ class EmpowerRuntime:
         self.__load_accounts()
         self.__load_tenants()
         self.__load_acl()
-        self.__load_imsi2mac()
 
         if options.ctrl_adv:
             self.__ifname = options.ctrl_adv_iface
@@ -182,49 +180,6 @@ class EmpowerRuntime:
                        tenant.bssid_type,
                        tenant.plmn_id)
 
-    def __load_imsi2mac(self):
-        """Load IMSI to MAC mapped values."""
-
-        for entry in Session().query(TblIMSI2MAC).all():
-            self.imsi2mac[entry.imsi] = entry.addr
-
-    def add_imsi2mac(self, imsi, addr):
-        """Add IMSI to MAC mapped value to table."""
-
-        imsi2mac = Session().query(TblIMSI2MAC) \
-                            .filter(TblIMSI2MAC.imsi == imsi) \
-                            .first()
-        if imsi2mac:
-            raise ValueError(imsi)
-
-        try:
-
-            session = Session()
-
-            session.add(TblIMSI2MAC(imsi=imsi, addr=addr))
-            session.commit()
-
-        except IntegrityError:
-            session.rollback()
-            raise ValueError("MAC address must be unique %s", addr)
-
-        self.imsi2mac[imsi] = addr
-
-    def remove_imsi2mac(self, imsi):
-        """Remove IMSI to MAC mapped value from table."""
-
-        imsi2mac = Session().query(TblIMSI2MAC) \
-                            .filter(TblIMSI2MAC.imsi == imsi) \
-                            .first()
-        if not imsi2mac:
-            raise KeyError(imsi)
-
-        session = Session()
-        session.delete(imsi2mac)
-        session.commit()
-
-        del self.imsi2mac[imsi]
-
     def __load_acl(self):
         """ Load ACL list. """
 
@@ -235,13 +190,6 @@ class EmpowerRuntime:
 
             acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
-
-        for deny in Session().query(TblDeny).all():
-            if deny.addr in self.denied:
-                raise ValueError(deny.addr_str)
-
-            acl = ACL(deny.addr, deny.label)
-            self.denied[deny.addr] = acl
 
     def add_allowed(self, sta_addr, label):
         """ Add entry to ACL. """
@@ -276,48 +224,10 @@ class EmpowerRuntime:
 
         del self.allowed[sta_addr]
 
-    def add_denied(self, sta_addr, label):
-        """ Add entry to ACL. """
-
-        deny = Session().query(TblDeny) \
-                        .filter(TblDeny.addr == sta_addr) \
-                        .first()
-        if deny:
-            raise ValueError(sta_addr)
-
-        session = Session()
-        session.add(TblDeny(addr=sta_addr, label=label))
-        session.commit()
-
-        acl = ACL(sta_addr, label)
-        self.denied[sta_addr] = acl
-
-        return acl
-
-    def remove_denied(self, sta_addr):
-        """ Remove entry from ACL. """
-
-        deny = Session().query(TblDeny) \
-                        .filter(TblDeny.addr == sta_addr) \
-                        .first()
-        if not deny:
-            raise KeyError(sta_addr)
-
-        session = Session()
-        session.delete(deny)
-        session.commit()
-
-        del self.denied[sta_addr]
-
     def is_allowed(self, src):
         """ Check if station is allowed. """
 
-        return (self.allowed and src in self.allowed) or not self.allowed
-
-    def is_denied(self, src):
-        """ Check if station is denied. """
-
-        return self.denied and src in self.denied
+        return self.allowed and src in self.allowed
 
     def create_account(self, username, password, role, name, surname, email):
         """Create a new account."""
@@ -465,6 +375,48 @@ class EmpowerRuntime:
             return False
 
         return True
+
+    def add_endpoint(self, endpoint_id, tenant_id, endpoint_name,
+                     desc, dpid, ports):
+        """Add Endpoint."""
+
+        from empower.core.endpoint import Endpoint
+        from empower.core.virtualport import VirtualPort
+
+        endpoint = Endpoint(endpoint_id, endpoint_name, desc)
+
+        for vport_id, vport in ports.items():
+
+            port_id = int(vport['port_id'])
+            network_port = self.datapaths[dpid].network_ports[port_id]
+
+            virtual_port = VirtualPort(endpoint,
+                                       network_port=network_port,
+                                       virtual_port_id=int(vport_id))
+
+            virtual_port.dont_learn = vport['properties']['dont_learn']
+
+            endpoint.ports[int(vport_id)] = virtual_port
+
+        if tenant_id not in self.tenants:
+            raise KeyError(tenant_id)
+
+        tenant = self.tenants[tenant_id]
+        tenant.endpoints[endpoint_id] = endpoint
+        self.endpoints[endpoint_id] = endpoint
+
+    def remove_endpoint(self, endpoint_id, tenant_id):
+        """Remove Endpoint."""
+
+        if endpoint_id not in self.endpoints:
+            raise KeyError(endpoint_id)
+
+        endpoint = self.endpoints[endpoint_id]
+
+        del self.tenants[tenant_id].endpoints[endpoint_id]
+        del self.endpoints[endpoint_id]
+
+        endpoint.ports.clear()
 
     def add_tenant(self, owner, desc, tenant_name, bssid_type,
                    tenant_id=None, plmn_id=None):

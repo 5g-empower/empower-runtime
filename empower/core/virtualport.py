@@ -19,11 +19,15 @@
 
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.intentserver.intentserver import IntentServer
+from empower.ibnp.ibnpserver import IBNPServer
 from empower.core.utils import ofmatch_d2s
 from empower.core.utils import ofmatch_s2d
+from uuid import uuid4
 
 from empower.main import RUNTIME
+
+import empower.logger
+LOG = empower.logger.get_logger()
 
 
 class VirtualPortProp(dict):
@@ -37,7 +41,7 @@ class VirtualPortProp(dict):
         # delete all outgoing virtual links
         self[key].clear()
 
-        endpoint_uuid = list(self.values())[0].endpoint_uuid
+        endpoint_uuid = list(self.values())[0].endpoint.endpoint_id
 
         # remove old entry
         dict.__delitem__(self, key)
@@ -65,29 +69,38 @@ class VirtualPortProp(dict):
     def _remove_intent(self, endpoint_uuid):
         # remove intent
 
-        intent_server = RUNTIME.components[IntentServer.__module__]
-        intent_server.remove_endpoint(endpoint_uuid)
+        ibnp_server = RUNTIME.components[IBNPServer.__module__]
+        if ibnp_server.connection:
+            ibnp_server.connection.send_remove_endpoint(endpoint_uuid)
+        else:
+            LOG.warning('IBN not available')
 
     def _update_intent(self):
         # set/update intent
 
-        endpoint_uuid = list(self.values())[0].endpoint_uuid
+        any_port = list(self.values())[0]
+        endpoint_uuid = any_port.endpoint.endpoint_id
+        dpid = any_port.network_port.dp.dpid
 
         endpoint_ports = {}
 
         for vport_id, vport in self.items():
 
-            endpoint_ports[vport_id] = {'hwaddr': vport.network_port.hwaddr,
-                                        'dpid': vport.network_port.dpid,
-                                        'port_no': vport.network_port.port_id,
-                                        'learn_host': vport.learn_host}
+            endpoint_ports[vport_id] = {'port_no': vport.network_port.port_id,
+                                        'properties': {
+                                            'dont_learn': vport.dont_learn}
+                                        }
 
         intent = {'version': '1.0',
+                  'uuid': endpoint_uuid,
+                  'dpid': dpid,
                   'ports': endpoint_ports}
 
-        intent_server = RUNTIME.components[IntentServer.__module__]
-
-        intent_server.update_endpoint(intent, endpoint_uuid)
+        ibnp_server = RUNTIME.components[IBNPServer.__module__]
+        if ibnp_server.connection:
+            ibnp_server.connection.send_update_endpoint(intent)
+        else:
+            LOG.warning('IBN not available')
 
     def clear(self):
 
@@ -99,13 +112,12 @@ class VirtualPortProp(dict):
 class VirtualPort:
     """Virtual port."""
 
-    def __init__(self, endpoint_uuid, network_port,
-                 virtual_port_id=0, learn_host=False):
+    def __init__(self, endpoint, network_port, virtual_port_id=0):
 
-        self.endpoint_uuid = endpoint_uuid
+        self.endpoint = endpoint
         self.network_port = network_port
         self.virtual_port_id = virtual_port_id
-        self.learn_host = learn_host
+        self.dont_learn = []
 
         self.next = VirtualPortNextProp(self)
 
@@ -120,29 +132,29 @@ class VirtualPort:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
-        return {'endpoint_uuid': self.endpoint_uuid,
+        return {'endpoint_uuid': self.endpoint.endpoint_id,
                 'virtual_port_id': self.virtual_port_id,
                 'network_port': self.network_port,
-                'learn_host': self.learn_host}
+                'dont_learn': self.dont_learn}
 
     def __hash__(self):
 
-        return hash(self.endpoint_uuid) \
+        return hash(self.endpoint.endpoint_id) \
                + hash(self.virtual_port_id)
 
     def __eq__(self, other):
 
-        return (other.endpoint_uuid == self.endpoint_uuid and
+        return (other.endpoint.endpoint_id == self.endpoint.endpoint_id and
                 other.virtual_port_id == self.virtual_port_id and
                 other.network_port == self.network_port and
-                other.learn_host == self.learn_host)
+                other.dont_learn == self.dont_learn)
 
     def __repr__(self):
 
         return "endpoint_uuid %s virtual_port %u " \
-               "network_port %s learn_host %s" % \
-               (self.endpoint_uuid, self.virtual_port_id,
-                str(self.network_port), self.learn_host)
+               "network_port %s dont_learn %s" % \
+               (self.endpoint.endpoint_id, self.virtual_port_id,
+                str(self.network_port), self.dont_learn)
 
 
 class VirtualPortNextProp(dict):
@@ -155,12 +167,18 @@ class VirtualPortNextProp(dict):
     def __delitem__(self, key):
         """Clear virtual port configuration."""
 
-        intent_server = RUNTIME.components[IntentServer.__module__]
+        ibnp_server = RUNTIME.components[IBNPServer.__module__]
 
         # remove virtual links
         if key in self.__uuids__:
-            intent_server.remove_rule(self.__uuids__[key])
-            self.__uuids__[key] = None
+            if ibnp_server.connection:
+                ibnp_server.connection.send_remove_rule(self.__uuids__[key])
+            else:
+                LOG.warning('IBN not available')
+
+            self.my_virtual_port.network_port.remove_match(self.__uuids__[key])
+
+            del self.__uuids__[key]
 
         # remove old entry
         dict.__delitem__(self, key)
@@ -177,19 +195,36 @@ class VirtualPortNextProp(dict):
 
         self.__uuids__[key] = None
 
-        intent_server = RUNTIME.components[IntentServer.__module__]
+        ibnp_server = RUNTIME.components[IBNPServer.__module__]
+
+        rule_uuid = uuid4()
+
+        match = ofmatch_s2d(key)
+        self.my_virtual_port.network_port.add_match(match, rule_uuid)
 
         # set/update intent
         intent = {'version': '1.0',
-                  'ttp_uuid': value.endpoint_uuid,
+                  'rule_uuid': rule_uuid,
+                  'ttp_uuid': value.endpoint.endpoint_id,
                   'ttp_vport': value.virtual_port_id,
-                  'stp_uuid': self.my_virtual_port.endpoint_uuid,
+                  'stp_uuid': self.my_virtual_port.endpoint.endpoint_id,
                   'stp_vport': self.my_virtual_port.virtual_port_id,
-                  'match': ofmatch_s2d(key)}
+                  'match': match}
 
         # add new virtual link
-        uuid = intent_server.add_rule(intent)
-        self.__uuids__[key] = uuid
+        if key in self.__uuids__:
+            if ibnp_server.connection:
+                ibnp_server.connection.send_add_rule(intent)
+            else:
+                LOG.warning('IBN not available')
+        self.__uuids__[key] = rule_uuid
 
         # add entry
         dict.__setitem__(self, key, value)
+
+    def clear(self):
+
+        for key in list(self.keys()):
+
+            self.__delitem__(key)
+

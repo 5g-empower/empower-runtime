@@ -18,6 +18,7 @@
 """EmPOWER Programmable Network Fabric Device Class."""
 
 from datetime import datetime
+from empower.core.datapath import Datapath
 
 from empower.main import RUNTIME
 
@@ -45,7 +46,7 @@ class BasePNFDev:
         feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         period: update period (in ms)
-        ports: OVS ports
+        datapath: the associated OF switch
     """
 
     ALIAS = "pnfdevs"
@@ -61,7 +62,7 @@ class BasePNFDev:
         self.feed = None
         self.__seq = 0
         self.period = 0
-        self.ports = {}
+        self.datapath = None
         self.__state = P_STATE_DISCONNECTED
         self.log = empower.logger.get_logger()
 
@@ -137,15 +138,6 @@ class BasePNFDev:
         # generate register message
         self.__connection.send_register_message_to_self()
 
-    def port(self, ifname="empower0"):
-        """Return OVS port."""
-
-        for port in self.ports.values():
-            if port.iface == ifname:
-                return port
-
-        return None
-
     @property
     def connection(self):
         """Get the connection assigned to this PNFDev."""
@@ -170,7 +162,7 @@ class BasePNFDev:
                 'period': self.period,
                 'label': self.label,
                 'feed': self.feed,
-                'ports': self.ports,
+                'datapath': self.datapath,
                 'state': self.state,
                 'connection': self.connection}
 
