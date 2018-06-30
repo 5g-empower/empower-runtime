@@ -227,4 +227,3 @@ class VirtualPortNextProp(dict):
         for key in list(self.keys()):
 
             self.__delitem__(key)
-

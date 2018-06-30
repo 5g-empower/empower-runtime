@@ -20,6 +20,7 @@
 from empower.core.utils import ofmatch_s2d
 from empower.main import RUNTIME
 
+
 class NetworkPort():
     """Network Port."""
 

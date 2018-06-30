@@ -39,10 +39,9 @@ class Datapath:
         self.dpid = dpid
         self.ip_addr = ip_addr
         self.hosts = {}
+        self.network_ports = {}
 
-        if network_ports is None:
-            self.network_ports = {}
-        else:
+        if network_ports is not None:
             self.network_ports = network_ports
 
     def to_dict(self):
