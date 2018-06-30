@@ -21,6 +21,7 @@ import uuid
 import empower.datatypes.etheraddress as etheraddress
 import empower.datatypes.ssid as ssid
 import empower.datatypes.plmnid as plmnid
+import empower.datatypes.dscp as dscp
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
@@ -143,16 +144,32 @@ class PLMNID(TypeDecorator):
         return False
 
 
-class TblFeed(Base):
-    """ Energino Feeds Table. """
+class DSCP(TypeDecorator):
+    """DSCP type."""
 
-    __tablename__ = 'Feed'
+    impl = Unicode
 
-    feed_id = Column(Integer, primary_key=True)
-    title = Column(String)
-    created = Column(String)
-    updated = Column(String)
-    addr = Column("addr", EtherAddress(), nullable=True)
+    def __init__(self):
+        super().__init__(length=4)
+
+    def process_bind_param(self, value, dialect=None):
+
+        if value and isinstance(value, dscp.DSCP):
+            return value.to_str()
+        elif value and not isinstance(value, dscp.DSCP):
+            raise ValueError('value %s is not a valid DSCP' % value)
+        else:
+            return None
+
+    def process_result_value(self, value, dialect=None):
+
+        if value:
+            return dscp.DSCP(value)
+        else:
+            return None
+
+    def is_mutable(self):
+        return False
 
 
 class TblAccount(Base):
@@ -284,6 +301,18 @@ class TblAllow(Base):
                   primary_key=True)
 
     label = Column(String)
+
+
+class TblTrafficRuleQueue(Base):
+    """ Traffic Rule Queue table. """
+
+    __tablename__ = 'traffic_rule_queue'
+
+    dscp = Column("dscp", DSCP(), primary_key=True, default=0x0)
+    tenant_id = Column(UUID(), ForeignKey('tenant.tenant_id'),
+                       primary_key=True,)
+    quantum = Column(Integer)
+    amsdu_aggregation = Column(Boolean)
 
 
 Base.metadata.create_all(ENGINE)

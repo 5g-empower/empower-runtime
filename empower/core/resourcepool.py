@@ -51,7 +51,7 @@ class TxPolicyProp(dict):
 
 
 class TrafficRuleQueueProp(dict):
-    """Override getitem behaviour by a default TxRule."""
+    """Override getitem behaviour by a default TrafficRuleQueue."""
 
     def __init__(self, block, *args, **kwargs):
         super().__init__(*args, **kwargs)

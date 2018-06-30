@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2017 Roberto Riggio
+# Copyright (c) 2018 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,13 +36,14 @@ class TrafficRuleQueue(object):
           be aggregated in A-MSDUs according to 802.11n settings
         quantum: the quantum to be assigned to this queue at each round
     """
-    def __init__(self, ssid, dscp, block):
+    def __init__(self, ssid, dscp, block, quantum=12000,
+                 amsdu_aggregation=False):
 
         self.ssid = ssid
         self.dscp = dscp
         self.block = block
-        self._quantum = 12000
-        self._amsdu_aggregation = False
+        self._quantum = int(quantum)
+        self._amsdu_aggregation = amsdu_aggregation
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""

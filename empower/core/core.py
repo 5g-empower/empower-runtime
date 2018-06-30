@@ -99,7 +99,6 @@ class EmpowerRuntime:
         self.vbses = {}
         self.endpoints = {}
         self.datapaths = {}
-        self.feeds = {}
         self.allowed = {}
         self.log = empower.logger.get_logger()
 

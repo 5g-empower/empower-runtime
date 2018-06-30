@@ -25,6 +25,7 @@ import empower.datatypes.etheraddress
 import empower.datatypes.ssid
 import empower.datatypes.plmnid
 import empower.datatypes.dpid
+import empower.datatypes.dscp
 
 
 class IterEncoder(json.JSONEncoder):
@@ -47,6 +48,9 @@ class EmpowerEncoder(IterEncoder):
             return obj.__name__
 
         if isinstance(obj, uuid.UUID):
+            return str(obj)
+
+        if isinstance(obj, empower.datatypes.dscp.DSCP):
             return str(obj)
 
         if isinstance(obj, empower.datatypes.ssid.SSID):

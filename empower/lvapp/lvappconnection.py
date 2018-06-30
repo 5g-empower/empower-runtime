@@ -25,6 +25,7 @@ from construct import Container
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
 from empower.datatypes.ssid import SSID
+from empower.datatypes.dscp import DSCP
 from empower.core.resourcepool import ResourceBlock
 from empower.core.datapath import Datapath
 from empower.core.networkport import NetworkPort
@@ -54,10 +55,12 @@ from empower.lvapp import VAP_STATUS_REQUEST
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
-from empower.lvapp import PT_SET_TRAFFIC_RULE
-from empower.lvapp import SET_TRAFFIC_RULE
-from empower.lvapp import PT_TRAFFIC_RULE_STATUS_REQUEST
-from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
+from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
+from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
+from empower.lvapp import DEL_TRAFFIC_RULE_QUEUE
+from empower.lvapp import SET_TRAFFIC_RULE_QUEUE
+from empower.lvapp import PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST
+from empower.lvapp import TRAFFIC_RULE_QUEUE_STATUS_REQUEST
 from empower.lvapp import PT_PORT_STATUS_REQUEST
 from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
@@ -299,6 +302,23 @@ class LVAPPConnection:
         wtp.last_seen = hello.seq
         wtp.last_seen_ts = time.time()
 
+    def send_traffic_rule_queues(self):
+        """Send traffile rule queue configurations.
+
+        Upon connection to the controller, the WTP must be provided
+        with the list of traffic rule queues
+
+        Args:
+            None
+        Returns:
+            None
+        """
+
+        for tenant in RUNTIME.tenants.values():
+            trqs = tenant.get_traffic_rule_queues()
+            for trq in trqs:
+                tenant.dispach_traffic_rule(trq)
+
     def send_vaps(self):
         """Send VAPs configurations.
 
@@ -418,10 +438,6 @@ class LVAPPConnection:
 
         # save LVAP in the runtime
         RUNTIME.lvaps[sta] = lvap
-
-        # this should go inside lvaps
-        #LOG.info("Sending probe response to %s", lvap.addr)
-        #self.send_probe_response(lvap, ssid)
 
     def _handle_auth_request(self, wtp, request):
         """Handle an incoming AUTH_REQUEST message.
@@ -773,7 +789,7 @@ class LVAPPConnection:
 
         wtp_dpid = DPID(caps['dpid'])
 
-        if not wtp_dpid in RUNTIME.datapaths:
+        if wtp_dpid not in RUNTIME.datapaths:
             RUNTIME.datapaths[wtp_dpid] = Datapath(wtp_dpid)
 
         wtp.datapath = RUNTIME.datapaths[wtp_dpid]
@@ -808,7 +824,7 @@ class LVAPPConnection:
         self.send_vap_status_request()
 
         # fetch active traffic rules
-        self.send_traffic_rule_status_request()
+        self.send_traffic_rule_queue_status_request()
 
         # fetch active transmission rules
         self.send_port_status_request()
@@ -816,8 +832,11 @@ class LVAPPConnection:
         # send vaps
         self.send_vaps()
 
-    def send_set_traffic_rule(self, traffic_rule):
-        """Send an ADD_TRAFFIC_RULE message.
+        # send vaps
+        self.send_traffic_rule_queues()
+
+    def send_set_traffic_rule_queue(self, traffic_rule):
+        """Send an SET_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
         Returns:
@@ -827,7 +846,7 @@ class LVAPPConnection:
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
 
         add_tr = Container(version=PT_VERSION,
-                           type=PT_SET_TRAFFIC_RULE,
+                           type=PT_SET_TRAFFIC_RULE_QUEUE,
                            length=25 + len(traffic_rule.ssid),
                            seq=self.wtp.seq,
                            flags=flags,
@@ -835,12 +854,13 @@ class LVAPPConnection:
                            channel=traffic_rule.block.channel,
                            band=traffic_rule.block.band,
                            quantum=traffic_rule.quantum,
-                           dscp=int(traffic_rule.dscp, 16),
+                           dscp=traffic_rule.dscp.to_raw(),
                            ssid=traffic_rule.ssid.to_raw())
 
-        self.send_message(add_tr, SET_TRAFFIC_RULE)
+        print(add_tr)
+        self.send_message(add_tr, SET_TRAFFIC_RULE_QUEUE)
 
-    def send_del_traffic_rule(self, traffic_rule):
+    def send_del_traffic_rule_queue(self, traffic_rule):
         """Send an DEL_TRAFFIC_RULE message.
         Args:
             traffic_rule: a Traffic Rule object
@@ -848,24 +868,22 @@ class LVAPPConnection:
             None
         """
 
-        ssid = traffic_rule.tenant.tenant_name
-
         del_tr = Container(version=PT_VERSION,
-                           type=PT_DEL_TRAFFIC_RULE,
-                           length=19 + len(ssid),
+                           type=PT_DEL_TRAFFIC_RULE_QUEUE,
+                           length=19 + len(traffic_rule.ssid),
                            seq=self.wtp.seq,
                            hwaddr=traffic_rule.block.hwaddr.to_raw(),
                            channel=traffic_rule.block.channel,
                            band=traffic_rule.block.band,
-                           dscp=traffic_rule.dscp,
-                           ssid=ssid.to_raw())
+                           dscp=traffic_rule.dscp.to_raw(),
+                           ssid=traffic_rule.ssid.to_raw())
 
-        self.send_message(del_tr, DEL_TRAFFIC_RULE)
+        self.send_message(del_tr, DEL_TRAFFIC_RULE_QUEUE)
 
-    def _handle_status_traffic_rule(self, wtp, status):
-        """Handle an incoming STATUS_TRAFFIC_RULE message.
+    def _handle_status_traffic_rule_queue(self, wtp, status):
+        """Handle an incoming STATUS_TRAFFIC_RULE_QUEUE message.
         Args:
-            status, a STATUS_TRAFFIC_RULE message
+            status, a STATUS_TRAFFIC_RULE_QUEUE message
         Returns:
             None
         """
@@ -876,7 +894,7 @@ class LVAPPConnection:
 
         quantum = status.quantum
         amsdu_aggregation = bool(status.flags.amsdu_aggregation)
-        dscp = "{0:#0{1}x}".format(status.dscp, 4)
+        dscp = DSCP(status.dscp)
         ssid = SSID(status.ssid)
 
         tenant = RUNTIME.load_tenant(ssid)
@@ -963,8 +981,8 @@ class LVAPPConnection:
         msg = VAP_STATUS_REQUEST.build(vap_request)
         self.stream.write(msg)
 
-    def send_traffic_rule_status_request(self):
-        """Send a TRAFFIC_RULE_STATUS_REQUEST message.
+    def send_traffic_rule_queue_status_request(self):
+        """Send a PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST message.
         Args:
             None
         Returns:
@@ -973,14 +991,14 @@ class LVAPPConnection:
             None
         """
 
-        lvap_request = Container(version=PT_VERSION,
-                                 type=PT_TRAFFIC_RULE_STATUS_REQUEST,
+        trqs_request = Container(version=PT_VERSION,
+                                 type=PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST,
                                  length=10,
                                  seq=self.wtp.seq)
 
         LOG.info("Sending traffic rule status request to %s", self.wtp.addr)
 
-        msg = TRAFFIC_RULE_STATUS_REQUEST.build(lvap_request)
+        msg = TRAFFIC_RULE_QUEUE_STATUS_REQUEST.build(trqs_request)
         self.stream.write(msg)
 
     def send_port_status_request(self):

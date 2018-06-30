@@ -107,7 +107,6 @@ class Feed:
                'updated': self.updated,
                'status': status,
                'datastreams': self.datastreams.values(),
-               'feed': '/api/v1/feeds/%u.json' % (self.feed_id),
                'mngt': self.mngt}
 
         if self.pnfdev:

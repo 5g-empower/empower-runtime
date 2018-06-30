@@ -254,6 +254,10 @@ class LVAP:
         self._timer = None
         self.log.info("LVAP %s spawning took %sms", self.addr, delta)
 
+        # send a probe response
+        wtp = self.blocks[0].radio
+        wtp.connection.send_probe_response(self, self.tenant.tenant_name)
+
     def _running_removing(self):
 
         # set timer

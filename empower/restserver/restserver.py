@@ -37,7 +37,7 @@ from empower.datatypes.ssid import SSID
 from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
-from empower.core.tenant import TrafficRule
+from empower.datatypes.dscp import DSCP
 
 DEFAULT_PORT = 8888
 
@@ -1153,25 +1153,24 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
 
-class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
-    """Tenat traffic rule handler."""
+class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
+    """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/([a-zA-Z0-9_=,]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/([a-zA-Z0-9-]*)/?"]
 
     def get(self, *args, **kwargs):
-        """List traffic rules.
+        """List traffic rules queues.
 
         Args:
             tenant_id: network name of a tenant
-            traffic_rule: the traffic rule
+            dscp: the traffic rule queue DSCP
 
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
-              tp_dst=8080,nw_proto=0x0800
-
+              0x40
         """
 
         try:
@@ -1181,43 +1180,40 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
-            traffic_rules = tenant.traffic_rules
+            trqs = tenant.get_traffic_rule_queues()
 
             if len(args) == 1:
-                self.write_as_json(traffic_rules.values())
+                self.write_as_json(trqs.values())
             else:
-                traffic_rule = args[1]
-                self.write_as_json(traffic_rules[args[1]])
+                dscp = DSCP(args[1])
+                self.write_as_json(trqs[dscp])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def put(self, *args, **kwargs):
+    def post(self, *args, **kwargs):
         """Add traffic rule.
 
         Args:
             tenant_id: network name of a tenant
-            traffic_rule: the traffic rule
+            dscp: the traffic rule queue DSCP (optional)
 
         Example URLs:
 
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
             {
                 "version" : 1.0,
-                "match" : "tp_dst=8080,nw_proto=0x0800"
-                "trq" : {
-                    "aggregation" : true,
-                    "quantum" : 1500
-                }
+                "aggregation" : true,
+                "quantum" : 1500
             }
 
         """
 
         try:
 
-            if len(args) != 1:
+            if len(args) not in [1, 2]:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -1225,20 +1221,74 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "match" not in request:
-                raise ValueError("missing match element")
+            if "amsdu_aggregation" not in request:
+                raise ValueError("missing amsdu_aggregation element")
 
-            if "trq" not in request:
-                raise ValueError("missing trq element")
+            if "quantum" not in request:
+                raise ValueError("missing quantum element")
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            tr = TrafficRule(match=request["match"],
-                             ssid=tenant.tenant_name,
-                             **request["trq"])
+            if len(args) == 1:
+                dscp = DSCP("0x00")
+            else:
+                dscp = DSCP(args[1])
 
-            tenant.set_traffic_rule(tr)
+            tenant.add_traffic_rule_queue(dscp,
+                                          request["quantum"],
+                                          request["amsdu_aggregation"])
+
+        except TypeError as ex:
+            self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+    def put(self, *args, **kwargs):
+        """modify traffic rule.
+
+        Args:
+            tenant_id: network name of a tenant
+            dscp: the traffic rule queue DSCP (optional)
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            {
+                "version" : 1.0,
+                "aggregation" : true,
+                "quantum" : 1500
+            }
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "amsdu_aggregation" not in request:
+                raise ValueError("missing amsdu_aggregation element")
+
+            if "quantum" not in request:
+                raise ValueError("missing quantum element")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+            dscp = DSCP(args[1])
+
+            tenant.set_traffic_rule_queue(dscp,
+                                          request["quantum"],
+                                          request["amsdu_aggregation"])
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1250,16 +1300,16 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
     def delete(self, *args, **kwargs):
-        """Delete traffic rules.
+        """Delete traffic rule queues.
 
         Args:
             tenant_id: network name of a tenant
-            traffic_rule: the traffic rule
+            dscp: the traffic rule queue DSCP
 
         Example URLs:
 
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
-              tp_dst=8080,nw_proto=0x0800
+              0x40
 
         """
 
@@ -1269,9 +1319,10 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
                 raise ValueError("Invalid url")
 
             tenant_id = UUID(args[0])
+            dscp = DSCP(args[1])
             tenant = RUNTIME.tenants[tenant_id]
 
-            tenant.del_traffic_rule(args[1])
+            tenant.del_traffic_rule_queue(dscp)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1713,9 +1764,9 @@ class RESTServer(Service, tornado.web.Application):
                            ManageTenantHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
                            PendingTenantHandler, TenantHandler,
-                           AllowHandler,
-                           TenantTrafficRuleHandler, TenantEndpointHandler,
-                           TenantEndpointNextHandler, TenantEndpointPortHandler]
+                           AllowHandler, TenantTrafficRuleQueueHandler,
+                           TenantEndpointHandler, TenantEndpointNextHandler,
+                           TenantEndpointPortHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
