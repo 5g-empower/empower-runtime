@@ -17,13 +17,25 @@
 
 """EmPOWER Light Virtual Access Point (LVAP) class."""
 
-from uuid import uuid5, NAMESPACE_OID
+import time
 
 from empower.core.resourcepool import ResourceBlock
 from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
+from empower.main import RUNTIME
+
+import empower.logger
+
+# add lvap message sent, status not received
+PROCESS_SPAWNING = "spawning"
+
+# add lvap message sent, status received
+PROCESS_RUNNING = "running"
+
+# del lvap message(s) sent, no status(es) received
+PROCESS_REMOVING = "removing"
 
 
 class LVAP:
@@ -127,28 +139,150 @@ class LVAP:
         # supported band
         self._supported_band = None
 
-        # list of blocks assigned to this LVAP, the first is the downlink block
-        # while the remaining are the uplink blocks
+        # current blocks (i.e. tthe interfaces on which the lvap is running)
         self._downlink = None
         self._uplink = []
 
-        # downlink intent uuid
-        self.lvap_uuid = uuid5(NAMESPACE_OID, str(addr))
+        # target block for handover
+        self.target_blocks = None
 
-        # module id incremental counter
-        self.__module_id = 0
+        # the lvap state
+        self._state = None
 
-        # pending ids
+        # target block to be used for handover
+        self._target_blocks = None
+
+        # migration sats
+        self._timer = None
+
+        # pending module ids (transions happen when list is empty)
         self.pending = []
 
+        # logger :)
+        self.log = empower.logger.get_logger()
+
+    def handle_del_lvap_response(self, xid, _):
+
+        if xid not in self.pending:
+            self.log.error("Xid %u not in pending list, ignoring", xid)
+            return
+
+        if self.state != PROCESS_REMOVING:
+            self.log.error("Del lvap response received in state %s, ignoring",
+                           self.state)
+            return
+
+        self.pending.remove(xid)
+
+        # all pending processed
+        if not self.pending:
+            self.state = PROCESS_SPAWNING
+
+    def handle_add_lvap_response(self, xid, _):
+
+        if xid not in self.pending:
+            self.log.error("Xid %u not in pending list, ignoring", xid)
+            return
+
+        if self.state != PROCESS_SPAWNING:
+            self.log.error("Add lvap response received in state %s, ignoring",
+                           self.state)
+            return
+
+        self.pending.remove(xid)
+
+        # all pending processed
+        if not self.pending:
+            self.state = PROCESS_RUNNING
+
     @property
-    def module_id(self):
-        """Return new sequence id."""
+    def state(self):
+        """Return the state."""
 
-        self.__module_id += 1
-        self.pending.append(self.__module_id)
+        return self._state
 
-        return self.__module_id
+    @state.setter
+    def state(self, state):
+        """Set the CPP."""
+
+        self.log.info("LVAP %s transition %s->%s", self.addr, self.state,
+                      state)
+
+        if self.state:
+            method = "_%s_%s" % (self.state, state)
+        else:
+            method = "_none_%s" % state
+
+        if hasattr(self, method):
+            callback = getattr(self, method)
+            callback()
+            return
+
+        raise IOError("Invalid transistion %s -> %s" % (self.state, state))
+
+    def _none_spawning(self):
+
+        # set timer
+        self._timer = time.time()
+
+        # set new state
+        self._state = PROCESS_SPAWNING
+
+        # Set downlink block if different.
+        self.__assign_downlink(self.target_blocks[0])
+
+        # set uplink blocks
+        self.__assign_uplink(self.target_blocks[1:])
+
+    def _removing_spawning(self):
+
+        # set new state
+        self._state = PROCESS_SPAWNING
+
+        # Set downlink block if different.
+        self.__assign_downlink(self.target_blocks[0])
+
+        # set uplink blocks
+        self.__assign_uplink(self.target_blocks[1:])
+
+        # reset target blocks
+        self.target_blocks = None
+
+    def _spawning_running(self):
+
+        # set new state
+        self._state = PROCESS_RUNNING
+
+        # compute stats
+        delta = int((time.time() - self._timer) * 1000)
+        self._timer = None
+        self.log.info("LVAP %s spawning took %sms", self.addr, delta)
+
+    def _running_removing(self):
+
+        # set timer
+        self._timer = time.time()
+
+        # set new state
+        self._state = PROCESS_REMOVING
+
+        # send del lvap message
+        wtp = self.blocks[0].radio
+        if self.blocks[0].channel != self.target_blocks[0].channel:
+            csa_switch_channel = self.target_blocks[0].channel
+            xid = wtp.connection.send_del_lvap(self, csa_switch_channel)
+            self.pending.append(xid)
+        else:
+            xid = wtp.connection.send_del_lvap(self)
+            self.pending.append(xid)
+
+        for block in self.blocks[1:]:
+            xid = block.radio.connection.send_del_lvap(self)
+            self.pending.append(xid)
+
+        # reset uplink and downlink
+        self._downlink = None
+        self._uplink = []
 
     def refresh_lvap(self):
         """Send add lvap message for downlink and uplinks blocks."""
@@ -332,14 +466,15 @@ class LVAP:
             self._assoc_id = 0
             self._lvap_bssid = net_bssid
 
-        # clear all blocks
-        self.clear_blocks(target_block=pool[0])
+        # save target block
+        self.target_blocks = pool
 
-        # Set downlink block if different.
-        self.__assign_downlink(pool[0])
-
-        # set uplink blocks
-        self.__assign_uplink(pool[1:])
+        if self.state is None:
+            self.state = PROCESS_SPAWNING
+        elif self.state == PROCESS_RUNNING:
+            self.state = PROCESS_REMOVING
+        else:
+            IOError("Setting blocks on invalid state: %s" % self.state)
 
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
@@ -362,7 +497,8 @@ class LVAP:
         dl_block.radio.connection.send_set_port(txp)
 
         # send add_lvap message
-        dl_block.radio.connection.send_add_lvap(self, dl_block, True)
+        xid = dl_block.radio.connection.send_add_lvap(self, dl_block, True)
+        self.pending.append(xid)
 
         # save block
         self._downlink = dl_block
@@ -373,7 +509,8 @@ class LVAP:
         for block in ul_blocks:
 
             # send add_lvap message
-            block.radio.connection.send_add_lvap(self, block, False)
+            xid = block.radio.connection.send_add_lvap(self, block, False)
+            self.pending.append(xid)
 
             # save block into the list
             self._uplink.append(block)
@@ -402,25 +539,11 @@ class LVAP:
     def clear_blocks(self, target_block=None):
         """Clear all blocks."""
 
-        if not self.blocks[0]:
-            return
-
-        if self.blocks[0].channel != target_block.channel:
-            self.blocks[0].radio.connection.send_del_lvap(self, target_block)
-        else:
-            self.blocks[0].radio.connection.send_del_lvap(self)
-
-        for block in self.blocks[1:]:
+        for block in self.blocks:
             block.radio.connection.send_del_lvap(self)
 
         self._downlink = None
         self._uplink = []
-
-    def clear_lvap(self):
-        """Clear lvap."""
-
-        # clear all blocks
-        self.clear_blocks()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the LVAP """
@@ -430,6 +553,7 @@ class LVAP:
                 'lvap_bssid': self.lvap_bssid,
                 'wtp': self.wtp,
                 'blocks': self.blocks,
+                'state': self.state,
                 'supported_band': BANDS[self.supported_band],
                 'ssids': self.ssids,
                 'assoc_id': self.assoc_id,

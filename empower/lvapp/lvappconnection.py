@@ -28,6 +28,7 @@ from empower.datatypes.ssid import SSID
 from empower.core.resourcepool import ResourceBlock
 from empower.core.datapath import Datapath
 from empower.core.networkport import NetworkPort
+from empower.core.utils import get_xid
 from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
@@ -60,6 +61,7 @@ from empower.lvapp import TRAFFIC_RULE_STATUS_REQUEST
 from empower.lvapp import PT_PORT_STATUS_REQUEST
 from empower.lvapp import PORT_STATUS_REQUEST
 from empower.core.lvap import LVAP
+from empower.core.lvap import PROCESS_RUNNING
 from empower.core.vap import VAP
 from empower.lvapp import PT_ADD_VAP
 from empower.lvapp import ADD_VAP
@@ -214,8 +216,34 @@ class LVAPPConnection:
 
         self.stream.write(parser.build(msg))
 
-    def _handle_add_del_lvap(self, wtp, status):
-        """Handle an incoming ADD_DEL_LVAP message.
+    def _handle_add_lvap_response(self, wtp, status):
+        """Handle an incoming ADD_LVAP message.
+        Args:
+            status, a ADD_LVAP message
+        Returns:
+            None
+        """
+
+        if not wtp.connection:
+            LOG.info("Add lvap response from disconnected WTP %s", wtp.addr)
+            return
+
+        LOG.info("Add lvap response from %s WTP %s module_id %u status %s",
+                 EtherAddress(status.sta), EtherAddress(status.wtp),
+                 status.module_id, status.status)
+
+        sta = EtherAddress(status.sta)
+
+        if sta not in RUNTIME.lvaps:
+            LOG.info("Add response from unknown LVAP %s", sta)
+            return
+
+        lvap = RUNTIME.lvaps[sta]
+
+        lvap.handle_add_lvap_response(status.module_id, status.status)
+
+    def _handle_del_lvap_response(self, wtp, status):
+        """Handle an incoming DEL_LVAP message.
         Args:
             status, a ADD_DEL_LVAP message
         Returns:
@@ -223,34 +251,22 @@ class LVAPPConnection:
         """
 
         if not wtp.connection:
-            LOG.info("Add/del response from disconnected WTP %s", wtp.addr)
+            LOG.info("Del lvap response from disconnected WTP %s", wtp.addr)
             return
 
-        if status.type == PT_ADD_LVAP_RESPONSE:
-            msg_subtype = "add_lvap_response"
-        else:
-            msg_subtype = "del_lvap_response"
-
-        LOG.info("%s from %s WTP %s module_id %u status %u", msg_subtype,
+        LOG.info("Del lvap response from %s WTP %s module_id %u status %u",
                  EtherAddress(status.sta), EtherAddress(status.wtp),
                  status.module_id, status.status)
 
         sta = EtherAddress(status.sta)
 
         if sta not in RUNTIME.lvaps:
-            LOG.info("Add/del response from unknown LVAP %s", sta)
+            LOG.info("Del response from unknown LVAP %s", sta)
             return
 
         lvap = RUNTIME.lvaps[sta]
 
-        if status.module_id in lvap.pending:
-            LOG.info("LVAP %s, pending module id %s found. Removing.",
-                     lvap.addr, status.module_id)
-            idx = lvap.pending.index(status.module_id)
-            del lvap.pending[idx]
-        else:
-            LOG.info("LVAP %s, pending module id %s not found. Ignoring.",
-                     lvap.addr, status.module_id)
+        lvap.handle_del_lvap_response(status.module_id, status.status)
 
     def _handle_hello(self, wtp, hello):
         """Handle an incoming HELLO message.
@@ -373,8 +389,7 @@ class LVAPPConnection:
             LOG.info("No SSIDs available at this WTP")
             return
 
-        # spawn new LVAP
-        LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
+        # check if block is valid
         net_bssid = generate_bssid(BASE_MAC, sta)
         lvap = LVAP(sta, net_bssid, net_bssid)
         lvap._ssids = list(ssids)
@@ -392,14 +407,21 @@ class LVAPPConnection:
             LOG.warning("No valid intersection found. Ignoring request.")
             return
 
-        # This will trigger an LVAP ADD message (and REMOVE if necessary)
+        # spawn new LVAP
+        LOG.info("Spawning new LVAP %s on %s", sta, wtp.addr)
+
+        # this will trigger an LVAP ADD message
         lvap.blocks = valid[0]
+
+        # This will trigger an LVAP ADD message
+        # lvap.start(valid[0])
 
         # save LVAP in the runtime
         RUNTIME.lvaps[sta] = lvap
 
-        LOG.info("Sending probe response to %s", lvap.addr)
-        self.send_probe_response(lvap, ssid)
+        # this should go inside lvaps
+        #LOG.info("Sending probe response to %s", lvap.addr)
+        #self.send_probe_response(lvap, ssid)
 
     def _handle_auth_request(self, wtp, request):
         """Handle an incoming AUTH_REQUEST message.
@@ -622,6 +644,7 @@ class LVAPPConnection:
             net_bssid_addr = EtherAddress(status.net_bssid)
             lvap_bssid_addr = EtherAddress(status.lvap_bssid)
             lvap = LVAP(sta, net_bssid_addr, lvap_bssid_addr)
+            lvap._state = PROCESS_RUNNING
 
             RUNTIME.lvaps[sta] = lvap
 
@@ -1121,7 +1144,7 @@ class LVAPPConnection:
         msg = PROBE_RESPONSE.build(response)
         self.stream.write(msg)
 
-    def send_del_lvap(self, lvap, target_block=None):
+    def send_del_lvap(self, lvap, csa_switch_channel=0):
         """Send a DEL_LVAP message.
         Args:
             lvap: an LVAP object
@@ -1131,28 +1154,19 @@ class LVAPPConnection:
             TypeError: if lvap is not an LVAP object.
         """
 
-        if target_block:
-            target_hwaddr = target_block.hwaddr
-            target_channel = target_block.channel
-            target_band = target_block.band
-        else:
-            target_hwaddr = EtherAddress.bcast()
-            target_channel = 0
-            target_band = 0
-
         del_lvap = Container(version=PT_VERSION,
                              type=PT_DEL_LVAP,
-                             length=30,
+                             length=23,
                              seq=self.wtp.seq,
-                             module_id=lvap.module_id,
+                             module_id=get_xid(),
                              sta=lvap.addr.to_raw(),
-                             target_hwaddr=target_hwaddr.to_raw(),
-                             target_channel=target_channel,
-                             tagert_band=target_band,
-                             csa_switch_mode=0,
-                             csa_switch_count=3)
+                             csa_switch_mode=csa_switch_channel,
+                             csa_switch_count=3,
+                             csa_switch_channel=csa_switch_channel)
 
         self.send_message(del_lvap, DEL_LVAP)
+
+        return del_lvap.module_id
 
     def send_set_port(self, tx_policy):
         """Send a SET_PORT message.
@@ -1237,7 +1251,7 @@ class LVAPPConnection:
                              type=PT_ADD_LVAP,
                              length=51,
                              seq=self.wtp.seq,
-                             module_id=lvap.module_id,
+                             module_id=get_xid(),
                              flags=flags,
                              assoc_id=lvap.assoc_id,
                              hwaddr=block.hwaddr.to_raw(),
@@ -1269,3 +1283,5 @@ class LVAPPConnection:
 
         msg = ADD_LVAP.build(add_lvap)
         self.stream.write(msg)
+
+        return add_lvap.module_id

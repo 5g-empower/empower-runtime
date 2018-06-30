@@ -158,11 +158,9 @@ DEL_LVAP = Struct("del_lvap", UBInt8("version"),
                   UBInt32("seq"),
                   UBInt32("module_id"),
                   Bytes("sta", 6),
-                  Bytes("target_hwaddr", 6),
-                  UBInt8("target_channel"),
-                  UBInt8("tagert_band"),
                   UBInt8("csa_switch_mode"),
-                  UBInt8("csa_switch_count"))
+                  UBInt8("csa_switch_count"),
+                  UBInt8("csa_switch_channel"))
 
 STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
                      UBInt8("type"),
@@ -304,14 +302,23 @@ STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     Bytes("net_bssid", 6),
                     Bytes("ssid", lambda ctx: ctx.length - 30))
 
-ADD_DEL_LVAP_RESPONSE = Struct("add_del_lvap", UBInt8("version"),
-                               UBInt8("type"),
-                               UBInt32("length"),
-                               UBInt32("seq"),
-                               Bytes("wtp", 6),
-                               Bytes("sta", 6),
-                               UBInt32("module_id"),
-                               UBInt32("status"))
+ADD_LVAP_RESPONSE = Struct("add_lvap_response", UBInt8("version"),
+                           UBInt8("type"),
+                           UBInt32("length"),
+                           UBInt32("seq"),
+                           Bytes("wtp", 6),
+                           Bytes("sta", 6),
+                           UBInt32("module_id"),
+                           UBInt32("status"))
+
+DEL_LVAP_RESPONSE = Struct("del_lvap_response", UBInt8("version"),
+                           UBInt8("type"),
+                           UBInt32("length"),
+                           UBInt32("seq"),
+                           Bytes("wtp", 6),
+                           Bytes("sta", 6),
+                           UBInt32("module_id"),
+                           UBInt32("status"))
 
 SET_TRAFFIC_RULE = Struct("set_traffic_rule",
                           UBInt8("version"),
@@ -378,8 +385,8 @@ PT_TYPES = {PT_BYE: None,
             PT_LVAP_STATUS_REQUEST: LVAP_STATUS_REQUEST,
             PT_VAP_STATUS_REQUEST: VAP_STATUS_REQUEST,
             PT_STATUS_TRAFFIC_RULE: STATUS_TRAFFIC_RULE,
-            PT_ADD_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
-            PT_DEL_LVAP_RESPONSE: ADD_DEL_LVAP_RESPONSE,
+            PT_ADD_LVAP_RESPONSE: ADD_LVAP_RESPONSE,
+            PT_DEL_LVAP_RESPONSE: DEL_LVAP_RESPONSE,
             PT_SET_TRAFFIC_RULE: SET_TRAFFIC_RULE,
             PT_DEL_TRAFFIC_RULE: DEL_TRAFFIC_RULE}
 

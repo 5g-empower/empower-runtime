@@ -617,7 +617,7 @@ class EmpowerRuntime:
 
         # Reset LVAP
         self.log.info("Deleting LVAP (DL+UL): %s", lvap.addr)
-        lvap.clear_lvap()
+        lvap.clear_blocks()
 
         del self.lvaps[lvap.addr]
 
