@@ -36,7 +36,6 @@ from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
 from empower.lvapp.lvaphandler import LVAPHandler
 from empower.lvapp.tenantlvaphandler import TenantLVAPHandler
-from empower.lvapp.tenantvaphandler import TenantVAPHandler
 
 from empower.main import RUNTIME
 
@@ -163,7 +162,6 @@ def launch(port=DEFAULT_PORT):
     rest_server.add_handler_class(WTPHandler, server)
     rest_server.add_handler_class(LVAPHandler, server)
     rest_server.add_handler_class(TenantLVAPHandler, server)
-    rest_server.add_handler_class(TenantVAPHandler, server)
 
     server.log.info("LVAP Server available at %u", server.port)
     return server
