@@ -826,79 +826,37 @@ class LVAPPConnection:
         self.log.info("VAP status %s", vap)
 
     def send_caps_request(self):
-        """Send a CAPS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
+        """Send a CAPS_REQUEST message."""
 
         msg = Container(length=10)
         return self.send_message(PT_CAPS_REQUEST, msg)
 
     def send_lvap_status_request(self):
-        """Send a LVAP_STATUS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
+        """Send a LVAP_STATUS_REQUEST message."""
 
         msg = Container(length=10)
         return self.send_message(PT_LVAP_STATUS_REQUEST, msg)
 
     def send_vap_status_request(self):
-        """Send a VAP_STATUS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
+        """Send a VAP_STATUS_REQUEST message."""
 
         msg = Container(length=10)
         return self.send_message(PT_VAP_STATUS_REQUEST, msg)
 
     def send_traffic_rule_queue_status_request(self):
-        """Send a PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
+        """Send a PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST message."""
 
         msg = Container(length=10)
         return self.send_message(PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST, msg)
 
     def send_port_status_request(self):
-        """Send a PORT_STATUS_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
+        """Send a PORT_STATUS_REQUEST message."""
 
         msg = Container(length=10)
         return self.send_message(PT_PORT_STATUS_REQUEST, msg)
 
     def send_add_vap(self, vap):
-        """Send a ADD_VAP message.
-        Args:
-            vap: an VAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
+        """Send a ADD_VAP message."""
 
         msg = Container(length=24 + len(vap.ssid),
                         hwaddr=vap.block.hwaddr.to_raw(),
@@ -910,40 +868,19 @@ class LVAPPConnection:
         return self.send_message(PT_ADD_VAP, msg)
 
     def send_del_vap(self, vap):
-        """Send a DEL_VAP message.
-        Args:
-            vap: an VAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
+        """Send a DEL_VAP message."""
 
         msg = Container(length=16, net_bssid=vap.net_bssid.to_raw())
         return self.send_message(PT_DEL_VAP, msg)
 
     def send_assoc_response(self, lvap):
-        """Send a ASSOC_RESPONSE message.
-        Args:
-            lvap: an LVAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a ASSOC_RESPONSE message."""
 
         msg = Container(length=16, sta=lvap.addr.to_raw())
         return self.send_message(PT_ASSOC_RESPONSE, msg)
 
     def send_auth_response(self, lvap):
-        """Send a AUTH_RESPONSE message.
-        Args:
-            lvap: an LVAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a AUTH_RESPONSE message."""
 
         msg = Container(length=22,
                         sta=lvap.addr.to_raw(),
@@ -952,30 +889,16 @@ class LVAPPConnection:
         return self.send_message(PT_AUTH_RESPONSE, msg)
 
     def send_probe_response(self, lvap, ssid):
-        """Send a PROBE_RESPONSE message.
-        Args:
-            lvap: an LVAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a PROBE_RESPONSE message."""
 
         msg = Container(length=16 + len(ssid.to_raw()),
                         sta=lvap.addr.to_raw(),
                         ssid=ssid.to_raw())
 
-        return elf.send_message(PT_PROBE_RESPONSE, msg)
+        return self.send_message(PT_PROBE_RESPONSE, msg)
 
     def send_del_lvap(self, lvap, csa_switch_channel=0):
-        """Send a DEL_LVAP message.
-        Args:
-            lvap: an LVAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a DEL_LVAP message."""
 
         msg = Container(length=23,
                         sta=lvap.addr.to_raw(),
@@ -986,14 +909,7 @@ class LVAPPConnection:
         return self.send_message(PT_DEL_LVAP, msg)
 
     def send_set_port(self, tx_policy):
-        """Send a SET_PORT message.
-        Args:
-            port: a Port object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a SET_PORT message."""
 
         flags = Container(no_ack=tx_policy.no_ack)
         rates = sorted([int(x * 2) for x in tx_policy.mcs])
@@ -1016,14 +932,7 @@ class LVAPPConnection:
         return self.send_message(PT_SET_PORT, msg)
 
     def send_del_port(self, tx_policy):
-        """Send a DEL_PORT message.
-        Args:
-            port: a Port object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a DEL_PORT message."""
 
         msg = Container(length=24,
                         sta=tx_policy.addr.to_raw(),
@@ -1034,14 +943,7 @@ class LVAPPConnection:
         return self.send_message(PT_DEL_PORT, msg)
 
     def send_add_lvap(self, lvap, block, set_mask):
-        """Send a ADD_LVAP message.
-        Args:
-            lvap: an LVAP object
-        Returns:
-            None
-        Raises:
-            TypeError: if lvap is not an LVAP object.
-        """
+        """Send a ADD_LVAP message."""
 
         flags = Container(authenticated=lvap.authentication_state,
                           associated=lvap.association_state,
@@ -1095,12 +997,7 @@ class LVAPPConnection:
             handler(self.wtp)
 
     def send_set_traffic_rule_queue(self, traffic_rule):
-        """Send an SET_TRAFFIC_RULE message.
-        Args:
-            traffic_rule: a Traffic Rule object
-        Returns:
-            None
-        """
+        """Send an SET_TRAFFIC_RULE message."""
 
         flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
 
@@ -1116,12 +1013,7 @@ class LVAPPConnection:
         return self.send_message(PT_SET_TRAFFIC_RULE_QUEUE, msg)
 
     def send_del_traffic_rule_queue(self, traffic_rule):
-        """Send an DEL_TRAFFIC_RULE message.
-        Args:
-            traffic_rule: a Traffic Rule object
-        Returns:
-            None
-        """
+        """Send an DEL_TRAFFIC_RULE message. """
 
         msg = Container(length=19 + len(traffic_rule.ssid),
                         hwaddr=traffic_rule.block.hwaddr.to_raw(),
