@@ -49,3 +49,9 @@ class WTP(BasePNFDev):
         out = super().to_dict()
         out['supports'] = self.supports
         return out
+
+    def get_block(self, hwaddr, channel, band):
+        """Look for block."""
+
+        incoming = ResourceBlock(EtherAddress(hwaddr), channel, band)
+        return = [block for block in self.supports if block == incoming]

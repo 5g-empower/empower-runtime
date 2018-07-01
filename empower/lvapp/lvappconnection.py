@@ -484,10 +484,7 @@ class LVAPPConnection:
         lvap._supported_band = request.supported_band
 
         # Check if block is valid
-        incoming = ResourceBlock(wtp, EtherAddress(request.hwaddr),
-                                 request.channel, request.band)
-
-        valid = [block for block in wtp.supports if block == incoming]
+        valid = wtp.get_block(request.hwaddr, request.channel, request.band)
 
         if not valid:
             self.log.warning("No valid intersection found. Ignoring request.")
@@ -520,7 +517,6 @@ class LVAPPConnection:
         lvap = RUNTIME.lvaps[sta]
 
         if not RUNTIME.is_allowed(sta):
-            self.log.info("Auth request from %s ignored (white list)", sta)
             return
 
         lvap_bssid = None
@@ -570,7 +566,6 @@ class LVAPPConnection:
         lvap = RUNTIME.lvaps[sta]
 
         if not RUNTIME.is_allowed(sta):
-            self.log.info("Assoc request from %s ignored (white list)", sta)
             return
 
         ssid = SSID(request.ssid.decode('UTF-8'))
@@ -665,10 +660,7 @@ class LVAPPConnection:
         lvap = RUNTIME.lvaps[sta]
 
         # Check if block is valid
-        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
-                                 status.channel, status.band)
-
-        valid = [block for block in wtp.supports if block == incoming]
+        valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
@@ -733,6 +725,8 @@ class LVAPPConnection:
             # Raise LVAP join event
             self.server.send_lvap_join_message_to_self(lvap)
 
+        self.log.info("LVAP status %s", lvap)
+
     @classmethod
     def _handle_status_port(cls, wtp, status):
         """Handle an incoming PORT message.
@@ -742,21 +736,16 @@ class LVAPPConnection:
             None
         """
 
-        sta_addr = EtherAddress(status.sta)
-
-        # incoming block
-        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
-                                 status.channel, status.band)
-
-        valid = [block for block in wtp.supports if block == incoming]
+        # Check if block is valid
+        valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
-            self.log.error("Incoming block %s is invalid", incoming)
+            self.log.warning("No valid intersection found. Removing block.")
+            wtp.connection.send_del_lvap(lvap)
             return
 
-        block = valid[0]
-
-        tx_policy = block.tx_policies[sta_addr]
+        sta = EtherAddress(status.sta)
+        tx_policy = valid[0].tx_policies[sta]
 
         tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
         tx_policy._ht_mcs = set([int(x) for x in status.ht_mcs])
@@ -786,18 +775,15 @@ class LVAPPConnection:
             self.log.info("Traffic rule status from unknown tenant %s", ssid)
             return
 
-        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
-                                 status.channel, status.band)
-
-        valid = [block for block in self.wtp.supports if block == incoming]
+        # Check if block is valid
+        valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
-            self.log.warning("No valid intersection found. Ignoring request.")
+            self.log.warning("No valid intersection found. Removing block.")
+            wtp.connection.send_del_lvap(lvap)
             return
 
-        block = valid[0]
-
-        trq = block.traffic_rule_queues[(ssid, dscp)]
+        trq = valid[0].traffic_rule_queues[(ssid, dscp)]
 
         trq._quantum = quantum
         trq._amsdu_aggregation = amsdu_aggregation
@@ -822,10 +808,13 @@ class LVAPPConnection:
                           net_bssid_addr, ssid)
             return
 
-        incoming = ResourceBlock(wtp, EtherAddress(status.hwaddr),
-                                 status.channel, status.band)
+        # Check if block is valid
+        valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
-        self.log.info("VAP status update from %s", net_bssid_addr)
+        if not valid:
+            self.log.warning("No valid intersection found. Removing block.")
+            wtp.connection.send_del_lvap(lvap)
+            return
 
         # If the VAP does not exists, then create a new one
         if net_bssid_addr not in tenant.vaps:
