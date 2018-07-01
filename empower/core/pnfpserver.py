@@ -23,8 +23,6 @@ import tornado.websocket
 
 from uuid import UUID
 
-import empower.logger
-
 from tornado.tcpserver import TCPServer
 
 from empower.core.service import Service
