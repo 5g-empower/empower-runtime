@@ -54,6 +54,7 @@ def bound_ucqm(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return ucqm(**kwargs)
 
+
 setattr(EmpowerApp, UCQM.MODULE_NAME, bound_ucqm)
 
 

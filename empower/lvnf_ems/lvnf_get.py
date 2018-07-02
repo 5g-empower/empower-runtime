@@ -167,6 +167,7 @@ def bound_lvnf_get(self, **kwargs):
     kwargs['lvnf'] = self.lvnf
     return lvnf_get(**kwargs)
 
+
 setattr(LVNF, LVNFGet.MODULE_NAME, bound_lvnf_get)
 
 

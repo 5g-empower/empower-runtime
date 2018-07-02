@@ -362,6 +362,7 @@ def bound_summary(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return summary(**kwargs)
 
+
 setattr(EmpowerApp, Summary.MODULE_NAME, bound_summary)
 
 

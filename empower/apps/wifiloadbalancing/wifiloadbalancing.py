@@ -39,6 +39,7 @@ import sys
 
 RSSI_LIMIT = 10
 
+
 class WifiLoadBalancing(EmpowerApp):
     """WifiLoadBalancing app.
 
@@ -78,8 +79,9 @@ class WifiLoadBalancing(EmpowerApp):
         """Called when a new LVAP joins the network."""
 
         self.bin_counter(lvap=lvap.addr,
-                 every=self.every,
-                 callback=self.counters_callback)
+                         every=self.every,
+                         callback=self.counters_callback)
+
         self.ucqm_data[lvap.blocks[0].addr.to_str() + lvap.addr.to_str()] = \
             {
                 'rssi': None,
@@ -101,8 +103,14 @@ class WifiLoadBalancing(EmpowerApp):
         """Called when a new WTP connects to the controller."""
 
         for block in wtp.supports:
-            self.ucqm(block=block, every=self.every, callback=self.ucqm_callback)
-            self.wifistats(block=block, every=self.every, callback=self.wifi_stats_callback)
+
+            self.ucqm(block=block,
+                      every=self.every,
+                      callback=self.ucqm_callback)
+
+            self.wifistats(block=block,
+                           every=self.every,
+                           callback=self.wifi_stats_callback)
 
             self.conflict_aps[block.addr] = []
             self.aps_clients_matrix[block.addr] = []
@@ -114,16 +122,20 @@ class WifiLoadBalancing(EmpowerApp):
         """ New stats available. """
 
         lvap = RUNTIME.lvaps[stats.lvap]
+
         if not stats.tx_bytes_per_second or not stats.rx_bytes_per_second:
             return
 
-        self.aps_counters[lvap.blocks[0].addr][lvap.addr]['tx_bytes_per_second'] = stats.tx_bytes_per_second[0]
-        self.aps_counters[lvap.blocks[0].addr][lvap.addr]['rx_bytes_per_second'] = stats.rx_bytes_per_second[0]
+        cnt = self.aps_counters[lvap.blocks[0].addr][lvap.addr]
+
+        cnt['tx_bytes_per_second'] = stats.tx_bytes_per_second[0]
+        cnt['rx_bytes_per_second'] = stats.rx_bytes_per_second[0]
 
     def wifi_stats_callback(self, stats):
         """ New stats available. """
 
-        # If there are no clients attached, it is not necessary to check the channel utilization
+        # If there are no clients attached, it is not necessary to check the
+        # channel utilization
         if not self.aps_clients_matrix[stats.block.addr]:
             self.aps_channel_utilization[stats.block.addr] = 0
             return
@@ -133,7 +145,7 @@ class WifiLoadBalancing(EmpowerApp):
             if (bytes_per_second['tx_bytes_per_second'] + bytes_per_second['rx_bytes_per_second']) == 0:
                 self.aps_channel_utilization[stats.block.addr] = 0
             return
-        
+
         previous_utilization = self.aps_channel_utilization[stats.block.addr]
         self.aps_channel_utilization[stats.block.addr] = (stats.tx_per_second + stats.rx_per_second)
         average_utilization = self.estimate_global_channel_utilization()
@@ -269,7 +281,7 @@ class WifiLoadBalancing(EmpowerApp):
         utilization = 0
         for value in self.aps_channel_utilization.values():
             utilization += value
-        
+
         return (utilization/len(self.aps_channel_utilization))
 
     def check_handover_performance(self):
@@ -352,6 +364,7 @@ class WifiLoadBalancing(EmpowerApp):
             {str(k): {'wtp':v['wtp'].addr, 'lvap':v['lvap'].addr, 'rssi':v['rssi'], \
                      'active':v['active']} for k, v in self.ucqm_data.items()}
         return out
+
 
 def launch(tenant_id, every=1000):
     """ Initialize the module. """

@@ -198,6 +198,7 @@ def bound_lvap_stats(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return lvap_stats(**kwargs)
 
+
 setattr(EmpowerApp, LVAPStats.MODULE_NAME, bound_lvap_stats)
 
 

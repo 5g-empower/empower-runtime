@@ -54,6 +54,7 @@ def bound_ncqm(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return ncqm(**kwargs)
 
+
 setattr(EmpowerApp, NCQM.MODULE_NAME, bound_ncqm)
 
 

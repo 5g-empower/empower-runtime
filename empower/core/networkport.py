@@ -77,9 +77,8 @@ class NetworkPort():
 
     def __repr__(self):
 
-        out = "%s port_id %u hwaddr %s iface %s neighbour %s" % (self.dp.dpid,
-                                                                 self.port_id,
-                                                                 self.hwaddr,
-                                                                 self.iface,
-                                                                 self.neighbour)
+        out = "%s port_id %u hwaddr %s iface %s neighbour %s" % \
+            (self.dp.dpid, self.port_id, self.hwaddr, self.iface,
+             self.neighbour)
+
         return out

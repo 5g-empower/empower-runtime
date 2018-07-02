@@ -172,6 +172,7 @@ def bound_lvnf_set(self, **kwargs):
     kwargs['every'] = -1
     return lvnf_set(**kwargs)
 
+
 setattr(LVNF, LVNFSet.MODULE_NAME, bound_lvnf_set)
 
 

@@ -221,6 +221,7 @@ def bound_mac_reports(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return mac_reports(**kwargs)
 
+
 setattr(EmpowerApp, MACReports.MODULE_NAME, bound_mac_reports)
 
 

@@ -329,6 +329,7 @@ def bound_bin_counter(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return bin_counter(**kwargs)
 
+
 setattr(EmpowerApp, BinCounter.MODULE_NAME, bound_bin_counter)
 
 

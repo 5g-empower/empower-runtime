@@ -153,7 +153,9 @@ class MCastManager(EmpowerApp):
             txp = block.tx_policies[self.mcast_addr]
 
             # no clients or DMS slot
-            if not self.lvaps(block) or not self.receptors or mode == TX_MCAST_DMS:
+            if (not self.lvaps(block) or not self.receptors or
+                    mode == TX_MCAST_DMS):
+
                 self.log.info("Block %s setting mcast address %s to %s",
                               block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
                 txp.mcast = TX_MCAST_DMS

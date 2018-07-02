@@ -355,11 +355,6 @@ class VBSPConnection:
                 self.log.info("PCI %u not found", ue.pci)
                 continue
 
-            #if ue.imsi != 0:
-            #    ue_id = uuid.uuid5(uuid.NAMESPACE_DNS, str(ue.imsi))
-            #else:
-            #    ue_id = uuid.uuid4()
-
             ue_id = uuid.uuid4()
 
             ue = UE(ue_id, ue.imsi, ue.rnti, cell, plmn_id, tenant)

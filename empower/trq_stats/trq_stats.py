@@ -226,6 +226,7 @@ def bound_trq_stats(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return trq_stats(**kwargs)
 
+
 setattr(EmpowerApp, TRQStats.MODULE_NAME, bound_trq_stats)
 
 

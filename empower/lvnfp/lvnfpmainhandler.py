@@ -231,7 +231,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         cpp_dpid = DPID(caps['dpid'])
 
-        if not cpp_dpid in RUNTIME.datapaths:
+        if cpp_dpid not in RUNTIME.datapaths:
             RUNTIME.datapaths[cpp_dpid] = Datapath(cpp_dpid)
 
         cpp.datapath = RUNTIME.datapaths[cpp_dpid]

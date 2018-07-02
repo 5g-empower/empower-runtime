@@ -262,6 +262,7 @@ def bound_rrc_measurements(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return rrc_measurements(**kwargs)
 
+
 setattr(EmpowerApp, RRCMeasurements.MODULE_NAME, bound_rrc_measurements)
 
 

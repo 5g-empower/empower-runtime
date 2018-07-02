@@ -298,6 +298,7 @@ def bound_rssi(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return rssi(**kwargs)
 
+
 setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)
 
 

@@ -225,9 +225,12 @@ class WiFiStats(ModulePeriodic):
             self.ed_per_second = \
                 self.update_stats(self.wifi_stats['ed'], 'ed')
 
-        self.last['tx'] = max([sample['timestamp'] for sample in self.wifi_stats['tx']])
-        self.last['rx'] = max([sample['timestamp'] for sample in self.wifi_stats['rx']])
-        self.last['ed'] = max([sample['timestamp'] for sample in self.wifi_stats['ed']])
+        self.last['tx'] = \
+            max([sample['timestamp'] for sample in self.wifi_stats['tx']])
+        self.last['rx'] = \
+            max([sample['timestamp'] for sample in self.wifi_stats['rx']])
+        self.last['ed'] = \
+            max([sample['timestamp'] for sample in self.wifi_stats['ed']])
 
         # call callback
         self.handle_callback(self)
@@ -245,7 +248,8 @@ class WiFiStats(ModulePeriodic):
         if nb_samples == 0:
             return 0
 
-        return (avg_sec/nb_samples)
+        return (avg_sec / nb_samples)
+
 
 class WiFiStatsWorker(ModuleLVAPPWorker):
     """ Counter worker. """
@@ -264,6 +268,7 @@ def bound_wifi_stats(self, **kwargs):
 
     kwargs['tenant_id'] = self.tenant.tenant_id
     return wifi_stats(**kwargs)
+
 
 setattr(EmpowerApp, WiFiStats.MODULE_NAME, bound_wifi_stats)
 

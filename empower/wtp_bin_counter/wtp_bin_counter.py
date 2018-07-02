@@ -349,6 +349,7 @@ def bound_wtp_bin_counter(self, **kwargs):
     kwargs['tenant_id'] = self.tenant.tenant_id
     return wtp_bin_counter(**kwargs)
 
+
 setattr(EmpowerApp, WTPBinCounter.MODULE_NAME, bound_wtp_bin_counter)
 
 

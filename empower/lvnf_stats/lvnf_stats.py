@@ -140,6 +140,7 @@ def bound_lvnf_stats(self, **kwargs):
     kwargs['lvnf'] = self.lvnf
     return lvnf_stats(**kwargs)
 
+
 setattr(LVNF, LVNFStats.MODULE_NAME, bound_lvnf_stats)
 
 

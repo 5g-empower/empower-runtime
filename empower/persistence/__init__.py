@@ -28,6 +28,7 @@ ENGINE = create_engine(CONFIGDB_ENGINE, pool_recycle=6000)
 def on_connect(conn, record):
     conn.execute('pragma foreign_keys=ON')
 
+
 event.listen(ENGINE, 'connect', on_connect)
 
 SESSION_FACTORY = sessionmaker(autoflush=True,

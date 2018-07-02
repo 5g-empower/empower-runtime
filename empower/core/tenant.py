@@ -19,6 +19,8 @@
 
 import json
 
+from sqlalchemy.exc import IntegrityError
+
 from empower.persistence.persistence import TblBelongs
 from empower.persistence.persistence import TblTrafficRuleQueue
 from empower.persistence import Session
@@ -145,7 +147,7 @@ class Tenant:
             session = Session()
             session.add(trq)
             session.commit()
-        except:
+        except IntegrityError:
             session.rollback()
             raise ValueError("Duplicate entry (%s, %s)", self.tenant_id, dscp)
 
