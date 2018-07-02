@@ -266,6 +266,8 @@ class LVAPPConnection:
     def send_message(self, msg_type, msg):
         """Send message and set common parameters."""
 
+        parser = PT_TYPES[msg_type]
+
         if self.stream.closed():
             self.log.warning("Stream closed, unabled to send %s message to %s",
                              parser.name, self.wtp)
@@ -274,11 +276,6 @@ class LVAPPConnection:
         msg.version = PT_VERSION
         msg.seq = self.wtp.seq
         msg.type = msg_type
-
-        if hasattr(msg, 'module_id'):
-            msg.module_id = get_xid()
-
-        parser = PT_TYPES[msg_type]
 
         self.log.info("Sending %s message to %s seq %u",
                       parser.name,
@@ -691,8 +688,7 @@ class LVAPPConnection:
 
         self.log.info("LVAP status %s", lvap)
 
-    @classmethod
-    def _handle_status_port(cls, wtp, status):
+    def _handle_status_port(self, wtp, status):
         """Handle an incoming PORT message.
         Args:
             status, a STATUS_PORT message
@@ -754,8 +750,7 @@ class LVAPPConnection:
 
         self.log.info("Transmission rule status %s", trq)
 
-    @classmethod
-    def _handle_status_vap(cls, wtp, status):
+    def _handle_status_vap(self, wtp, status):
         """Handle an incoming STATUS_VAP message.
         Args:
             status, a STATUS_VAP message
@@ -865,6 +860,7 @@ class LVAPPConnection:
         """Send a DEL_LVAP message."""
 
         msg = Container(length=23,
+                        module_id=get_xid(),
                         sta=lvap.addr.to_raw(),
                         csa_switch_mode=0,
                         csa_switch_count=3,
@@ -921,6 +917,7 @@ class LVAPPConnection:
         msg = Container(length=51,
                         flags=flags,
                         assoc_id=lvap.assoc_id,
+                        module_id=get_xid(),
                         hwaddr=block.hwaddr.to_raw(),
                         channel=block.channel,
                         band=block.band,
@@ -934,17 +931,17 @@ class LVAPPConnection:
         if lvap.ssid:
             b_ssid = lvap.ssid.to_raw()
             tmp = Container(length=len(b_ssid), ssid=b_ssid)
-            add_lvap.ssids.append(tmp)
-            add_lvap.length = add_lvap.length + len(b_ssid) + 1
+            msg.ssids.append(tmp)
+            msg.length = msg.length + len(b_ssid) + 1
         else:
-            add_lvap.ssids.append(Container(length=0, ssid=b''))
-            add_lvap.length = add_lvap.length + 1
+            msg.ssids.append(Container(length=0, ssid=b''))
+            msg.length = msg.length + 1
 
         for ssid in lvap.ssids:
             b_ssid = ssid.to_raw()
             tmp = Container(length=len(b_ssid), ssid=b_ssid)
-            add_lvap.ssids.append(tmp)
-            add_lvap.length = add_lvap.length + len(b_ssid) + 1
+            msg.ssids.append(tmp)
+            msg.length = msg.length + len(b_ssid) + 1
 
         return self.send_message(PT_ADD_LVAP, msg)
 
