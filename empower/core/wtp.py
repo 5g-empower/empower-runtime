@@ -54,4 +54,4 @@ class WTP(BasePNFDev):
         """Look for block."""
 
         incoming = ResourceBlock(EtherAddress(hwaddr), channel, band)
-        return = [block for block in self.supports if block == incoming]
+        return [block for block in self.supports if block == incoming]
