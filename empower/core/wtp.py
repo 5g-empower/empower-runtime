@@ -18,7 +18,8 @@
 """Wireless Termination Point."""
 
 from empower.core.pnfdev import BasePNFDev
-
+from empower.core.resourcepool import ResourceBlock
+from empower.datatypes.etheraddress import EtherAddress
 
 class WTP(BasePNFDev):
     """A Wireless Termination Point.
@@ -53,5 +54,5 @@ class WTP(BasePNFDev):
     def get_block(self, hwaddr, channel, band):
         """Look for block."""
 
-        incoming = ResourceBlock(EtherAddress(hwaddr), channel, band)
+        incoming = ResourceBlock(self, EtherAddress(hwaddr), channel, band)
         return [block for block in self.supports if block == incoming]
