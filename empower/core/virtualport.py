@@ -66,8 +66,9 @@ class VirtualPortProp(dict):
 
         self._update_intent()
 
-    def _remove_intent(self, endpoint_uuid):
-        # remove intent
+    @classmethod
+    def _remove_intent(cls, endpoint_uuid):
+        """Remove intent."""
 
         ibnp_server = RUNTIME.components[IBNPServer.__module__]
         if ibnp_server.connection:
@@ -76,7 +77,7 @@ class VirtualPortProp(dict):
             LOG.warning('IBN not available')
 
     def _update_intent(self):
-        # set/update intent
+        """Set/update intent."""
 
         any_port = list(self.values())[0]
         endpoint_uuid = any_port.endpoint.endpoint_id
@@ -86,10 +87,9 @@ class VirtualPortProp(dict):
 
         for vport_id, vport in self.items():
 
+            props = {'dont_learn': vport.dont_learn}
             endpoint_ports[vport_id] = {'port_no': vport.network_port.port_id,
-                                        'properties': {
-                                            'dont_learn': vport.dont_learn}
-                                        }
+                                        'properties': props}
 
         intent = {'version': '1.0',
                   'uuid': endpoint_uuid,

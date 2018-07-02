@@ -87,10 +87,13 @@ class Maps(ModulePeriodic):
 
     @property
     def block(self):
+        """Return the block."""
+
         return self._block
 
     @block.setter
     def block(self, value):
+        """Set the block."""
 
         if isinstance(value, ResourceBlock):
 

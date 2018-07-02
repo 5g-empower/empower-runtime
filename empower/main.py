@@ -17,6 +17,9 @@
 
 """EmPOWER bootstrap module."""
 
+from uuid import UUID
+from ipaddress import ip_address
+
 import logging
 import logging.config
 import os
@@ -24,9 +27,6 @@ import sys
 import inspect
 import types
 import tornado.ioloop
-
-from uuid import UUID
-from ipaddress import ip_address
 
 from empower.core.core import EmpowerRuntime
 
@@ -211,7 +211,7 @@ def _do_import(base_name):
 
     names_to_try = ["empower" + "." + base_name, base_name]
 
-    if len(names_to_try) == 0:
+    if not names_to_try:
         logging.error("Module not found: %s", base_name)
         return False
 
@@ -299,8 +299,8 @@ def main(argv=None):
 
     # Set the runtime after logging has been configured. This must be done
     # here since the components loader requires this symbol to be defined.
-    import empower.main
-    empower.main.RUNTIME = EmpowerRuntime(_OPTIONS)
+    global RUNTIME
+    RUNTIME = EmpowerRuntime(_OPTIONS)
 
     # launch components
     if _do_launch(components, components_order):
