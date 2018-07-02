@@ -32,6 +32,7 @@ class IterEncoder(json.JSONEncoder):
     """Encode iterable objects as lists."""
 
     def default(self, obj):
+
         try:
             return list(obj)
         except TypeError:
@@ -43,26 +44,17 @@ class EmpowerEncoder(IterEncoder):
 
     def default(self, obj):
 
-        if isinstance(obj, types.FunctionType) or \
-           isinstance(obj, types.MethodType):
+        if isinstance(obj, (types.FunctionType, types.MethodType)):
             return obj.__name__
 
-        if isinstance(obj, uuid.UUID):
-            return str(obj)
+        instances = (uuid.UUID,
+                     empower.datatypes.dscp.DSCP,
+                     empower.datatypes.ssid.SSID,
+                     empower.datatypes.plmnid.PLMNID,
+                     empower.datatypes.etheraddress.EtherAddress,
+                     empower.datatypes.dpid.DPID)
 
-        if isinstance(obj, empower.datatypes.dscp.DSCP):
-            return str(obj)
-
-        if isinstance(obj, empower.datatypes.ssid.SSID):
-            return str(obj)
-
-        if isinstance(obj, empower.datatypes.plmnid.PLMNID):
-            return str(obj)
-
-        if isinstance(obj, empower.datatypes.etheraddress.EtherAddress):
-            return str(obj)
-
-        if isinstance(obj, empower.datatypes.dpid.DPID):
+        if isinstance(obj, instances):
             return str(obj)
 
         if hasattr(obj, 'to_dict'):
