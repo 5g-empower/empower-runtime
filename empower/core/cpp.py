@@ -29,10 +29,11 @@ class CPP(BasePNFDev):
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
-        every: update period (in ms)
-        ports: OVS ports
+        period: update period (in ms)
+        datapath: the associated OF switch
+        state: this device status
+        log: logging facility
     """
 
     ALIAS = "cpps"

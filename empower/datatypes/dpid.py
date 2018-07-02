@@ -86,13 +86,14 @@ class DPID:
         Returns the dpid as string consisting of 16 hex chars separated
         by separator.
         """
-        return int(self.to_str().replace(":", ""), 16)
+        return int(self.to_str().replace(separator, ""), 16)
 
     def match(self, other):
         """ Bitwise match. """
-        if type(other) == DPID:
+
+        if isinstance(other, DPID):
             other = other.to_raw()
-        elif type(other) == bytes:
+        elif isinstance(other, bytes):
             pass
         else:
             try:
@@ -108,9 +109,10 @@ class DPID:
         return self.to_str()
 
     def __eq__(self, other):
-        if type(other) == DPID:
+
+        if isinstance(other, DPID):
             other = other.to_raw()
-        elif type(other) == bytes:
+        elif isinstance(other, bytes):
             pass
         else:
             try:

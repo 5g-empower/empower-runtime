@@ -22,6 +22,7 @@ from empower.core.virtualport import VirtualPortProp
 
 
 class Endpoint:
+    """An endpoint."""
 
     def __init__(self, endpoint_id, endpoint_name, desc):
 

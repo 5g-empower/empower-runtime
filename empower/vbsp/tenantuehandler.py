@@ -107,7 +107,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
                 vbs_addr = EtherAddress(request['cell']['vbs'])
                 vbs = tenant.vbses[vbs_addr]
                 pci = int(request['cell']['pci'])
-                cell = vbs.get_cell_by_pci(pci)
+                cell = vbs.get_cell(pci)
                 ue.cell = cell
 
         except KeyError as ex:

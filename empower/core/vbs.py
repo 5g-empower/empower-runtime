@@ -22,10 +22,7 @@ from empower.core.utils import ether_to_hex
 
 
 class Cell:
-    """An eNB cell, this track the parameters of one cell.
-
-    Attributes:
-    """
+    """An eNB cell, this track the parameters of one cell."""
 
     def __init__(self, vbs, pci, cap, DL_earfcn, DL_prbs, UL_earfcn, UL_prbs):
         self.vbs = vbs
@@ -59,6 +56,7 @@ class Cell:
         """Return a JSON-serializable dictionary representing the CPP."""
 
         out = {}
+
         out['enb_id'] = self.vbs.enb_id
         out['addr'] = self.vbs.addr
         out['pci'] = self.pci
@@ -68,6 +66,7 @@ class Cell:
         out['UL_earfcn'] = self.UL_earfcn
         out['UL_prbs'] = self.UL_prbs
         out['mac_reports'] = self.mac_reports
+
         return out
 
 
@@ -80,9 +79,11 @@ class VBS(BasePNFDev):
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
-        every: update period (in ms)
+        period: update period (in ms)
+        datapath: the associated OF switch
+        state: this device status
+        log: logging facility
     """
 
     ALIAS = "vbses"
@@ -98,15 +99,6 @@ class VBS(BasePNFDev):
 
         return ether_to_hex(self.addr)
 
-    def get_cell_by_pci(self, pci):
-        """Get cell by PCI."""
-
-        for cell in self.cells:
-            if cell.pci == pci:
-                return cell
-
-        return None
-
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 
@@ -114,3 +106,12 @@ class VBS(BasePNFDev):
         out['enb_id'] = self.enb_id
         out['cells'] = self.cells
         return out
+
+    def get_cell(self, pci):
+        """Get cell by PCI."""
+
+        for cell in self.cells:
+            if cell.pci == pci:
+                return cell
+
+        return None

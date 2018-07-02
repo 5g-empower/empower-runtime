@@ -114,7 +114,7 @@ class MACReports(ModuleTrigger):
             vbs = RUNTIME.vbses[EtherAddress(value['vbs'])]
             pci = int(value['pci'])
 
-            self._cell = vbs.get_cell_by_pci(pci)
+            self._cell = vbs.get_cell(pci)
 
             if not self._cell:
                 raise ValueError("Invalid pci %u", pci)

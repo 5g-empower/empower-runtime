@@ -22,16 +22,10 @@ class Datapath:
     """An OpenFlow switch.
 
     Attributes:
-        addr: This PNFDev MAC address (EtherAddress)
-        label: A human-radable description of this PNFDev (str)
-        connection: Signalling channel connection (BasePNFPMainHandler)
-        last_seen: Sequence number of the last hello message received (int)
-        last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
-        seq: Next sequence number (int)
-        every: update period (in ms)
-        ports: OVS ports
-        supports: set of resource blocks supported by the WTP
+        dpid: the datapath id
+        ip_addr: the ip address of the switch
+        hosts: the hosts connected to this switch
+        netwprok_ports: the network ports connected to this switch
     """
 
     def __init__(self, dpid, ip_addr=None, network_ports=None):
@@ -51,3 +45,15 @@ class Datapath:
                 'ip_addr': self.ip_addr,
                 'hosts': self.hosts,
                 'network_ports': self.network_ports}
+
+    def __eq__(self, other):
+
+        if isinstance(other, Datapath):
+            return self.dpid == other.dpid
+
+        return False
+
+    def __str__(self):
+
+        return "Datapath %s, ip_addr=%s" \
+               % (self.dpid, self.ip_addr)

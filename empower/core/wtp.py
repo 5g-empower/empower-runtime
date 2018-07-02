@@ -21,6 +21,7 @@ from empower.core.pnfdev import BasePNFDev
 from empower.core.resourcepool import ResourceBlock
 from empower.datatypes.etheraddress import EtherAddress
 
+
 class WTP(BasePNFDev):
     """A Wireless Termination Point.
 
@@ -30,11 +31,11 @@ class WTP(BasePNFDev):
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
-        every: update period (in ms)
-        ports: OVS ports
-        supports: set of resource blocks supported by the WTP
+        period: update period (in ms)
+        datapath: the associated OF switch
+        state: this device status
+        log: logging facility
     """
 
     ALIAS = "wtps"

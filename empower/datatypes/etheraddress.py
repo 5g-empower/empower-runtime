@@ -104,13 +104,14 @@ class EtherAddress:
         Returns the address as string consisting of 12 hex chars separated
         by separator.
         """
-        return int(self.to_str().replace(":", ""), 16)
+        return int(self.to_str().replace(separator, ""), 16)
 
     def match(self, other):
         """ Bitwise match. """
-        if type(other) == EtherAddress:
+
+        if isinstance(other, EtherAddress):
             other = other.to_raw()
-        elif type(other) == bytes:
+        elif isinstance(other, bytes):
             pass
         else:
             try:
@@ -126,9 +127,10 @@ class EtherAddress:
         return self.to_str()
 
     def __eq__(self, other):
-        if type(other) == EtherAddress:
+
+        if isinstance(other, EtherAddress):
             other = other.to_raw()
-        elif type(other) == bytes:
+        elif isinstance(other, bytes):
             pass
         else:
             try:

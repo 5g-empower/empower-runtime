@@ -18,9 +18,6 @@
 """EmPOWER Programmable Network Fabric Device Class."""
 
 from datetime import datetime
-from empower.core.datapath import Datapath
-
-from empower.main import RUNTIME
 
 import empower.logger
 
@@ -43,10 +40,11 @@ class BasePNFDev:
         connection: Signalling channel connection (BasePNFPMainHandler)
         last_seen: Sequence number of the last hello message received (int)
         last_seen_ts: Timestamp of the last hello message received (int)
-        feed: The power consumption monitoring feed (Feed)
         seq: Next sequence number (int)
         period: update period (in ms)
         datapath: the associated OF switch
+        state: this device status
+        log: logging facility
     """
 
     ALIAS = "pnfdevs"
@@ -59,7 +57,6 @@ class BasePNFDev:
         self.__connection = None
         self.last_seen = 0
         self.last_seen_ts = 0
-        self.feed = None
         self.__seq = 0
         self.period = 0
         self.datapath = None
@@ -161,7 +158,6 @@ class BasePNFDev:
                 'last_seen_ts': date,
                 'period': self.period,
                 'label': self.label,
-                'feed': self.feed,
                 'datapath': self.datapath,
                 'state': self.state,
                 'connection': self.connection}
@@ -174,12 +170,13 @@ class BasePNFDev:
         return self.__seq
 
     def __str__(self):
+
         if self.connection:
             return "%s at %s last_seen %d" % (self.addr,
                                               self.connection.addr[0],
                                               self.last_seen)
-        else:
-            return "%s" % (self.addr)
+
+        return "%s" % (self.addr)
 
     def __hash__(self):
         return hash(self.addr)
@@ -191,17 +188,3 @@ class BasePNFDev:
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    def powerdown(self):
-        """ Power down node. """
-
-        if self.feed and self.feed.is_on:
-            self.feed.is_on = False
-            if self.connection:
-                self.connection.stream.close()
-
-    def powerup(self):
-        """ Power up node. """
-
-        if self.feed and not self.feed.is_on:
-            self.feed.is_on = True

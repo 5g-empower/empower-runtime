@@ -349,7 +349,7 @@ class VBSPConnection:
                 self.log.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            cell = vbs.get_cell_by_pci(ue.pci)
+            cell = vbs.get_cell(ue.pci)
 
             if not cell:
                 self.log.info("PCI %u not found", ue.pci)
@@ -441,7 +441,7 @@ class VBSPConnection:
         if event.op == EP_OPERATION_SUCCESS:
 
             # set new cell and rnti
-            ue._cell = vbs.get_cell_by_pci(hdr.cellid)
+            ue._cell = vbs.get_cell(hdr.cellid)
             ue.rnti = ho.target_rnti
 
             # UE was removed from source eNB and added to the target, set
