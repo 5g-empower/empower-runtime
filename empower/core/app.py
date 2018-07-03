@@ -17,7 +17,6 @@
 
 """EmPOWER base app class."""
 
-import time
 import uuid
 import tornado.ioloop
 import empower.logger
@@ -253,7 +252,7 @@ class EmpowerApp:
         tenant = RUNTIME.tenants[self.tenant_id]
 
         if lvnf_id in tenant.lvnfs:
-            raise KeyError("LVNF found %s", lvnf_id)
+            raise KeyError("LVNF found %s" % lvnf_id)
 
         lvnf = LVNF(lvnf_id=lvnf_id,
                     tenant_id=self.tenant_id,

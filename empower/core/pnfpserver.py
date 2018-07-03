@@ -17,13 +17,11 @@
 
 """PNF Protocol Server."""
 
+from uuid import UUID
+
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
-
-from uuid import UUID
-
-from tornado.tcpserver import TCPServer
 
 from empower.core.service import Service
 from empower.persistence import Session
@@ -60,7 +58,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid url")
 
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(self.server.pnfdevs.values())
             else:
                 pnfdev = self.server.pnfdevs[EtherAddress(args[0])]
@@ -89,7 +87,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
 
         try:
 
-            if len(args) > 0:
+            if not args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -304,7 +302,7 @@ class PNFPServer(Service):
                 continue
 
             if belongs.tenant_id not in RUNTIME.tenants:
-                raise KeyError("Tenant not found %s", belongs.tenant_id)
+                raise KeyError("Tenant not found %s" % belongs.tenant_id)
 
             pnfdev = self.pnfdevs[belongs.addr]
             tenant = RUNTIME.tenants[belongs.tenant_id]
@@ -363,15 +361,6 @@ class PNFPServer(Service):
 
         if pt_type not in self.pt_types:
             self.pt_types[pt_type] = parser
-
-        if pt_type not in self.pt_types_handlers:
-            self.pt_types_handlers[pt_type] = []
-
-        if handler:
-            self.pt_types_handlers[pt_type].append(handler)
-
-    def register_message_handler(self, pt_type, handler):
-        """ Register new handler. This will be called after the default. """
 
         if pt_type not in self.pt_types_handlers:
             self.pt_types_handlers[pt_type] = []

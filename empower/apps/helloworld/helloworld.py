@@ -19,8 +19,6 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.datatypes.etheraddress import EtherAddress
-from empower.core.resourcepool import TX_MCAST_LEGACY
 
 
 class HelloWorld(EmpowerApp):
@@ -59,5 +57,7 @@ class HelloWorld(EmpowerApp):
         self.__message = value
 
 
-def launch(tenant_id, message="World", every=5000):
+def launch(tenant_id, message="World", every=DEFAULT_PERIOD):
+    """ Initialize the module. """
+
     return HelloWorld(tenant_id=tenant_id, message=message, every=every)
