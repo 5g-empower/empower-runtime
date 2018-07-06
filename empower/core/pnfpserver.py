@@ -87,7 +87,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
 
         try:
 
-            if not args:
+            if args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)

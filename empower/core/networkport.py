@@ -17,9 +17,6 @@
 
 """Network port."""
 
-from empower.core.utils import ofmatch_s2d
-from empower.main import RUNTIME
-
 
 class NetworkPort():
     """Network Port."""
@@ -35,21 +32,24 @@ class NetworkPort():
         self._matches = {}
 
     def add_match(self, match, rule_uuid):
+        """Add a new match rule to the nework port."""
 
         if 'in_port' in match:
             raise ValueError('the \"in_port\" parameter is not allowed')
 
-        # todo check for OF conflicts
+        # TODO: check for OF conflicts
         if False:
             raise ValueError('match conflict')
 
         self._matches[rule_uuid] = match
 
     def remove_match(self, rule_uuid):
+        """Remove new match rule from the nework port."""
 
         del self._matches[rule_uuid]
 
     def to_dict_no_neighbour(self):
+        """Return JSON representation of the object (no neighbour)."""
 
         return {'dpid': self.dp.dpid,
                 'port_id': self.port_id,

@@ -18,14 +18,16 @@
 """Empower persistence layer."""
 
 import uuid
-import empower.datatypes.etheraddress as etheraddress
-import empower.datatypes.ssid as ssid
-import empower.datatypes.plmnid as plmnid
-import empower.datatypes.dscp as dscp
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
 from sqlalchemy.types import TypeDecorator, Unicode
+
+import empower.datatypes.etheraddress as etheraddress
+import empower.datatypes.ssid as ssid
+import empower.datatypes.plmnid as plmnid
+import empower.datatypes.dscp as dscp
+import empower.datatypes.match as match
 
 from empower.persistence import ENGINE
 
@@ -172,6 +174,34 @@ class DSCP(TypeDecorator):
         return False
 
 
+class Match(TypeDecorator):
+    """Match type adapter."""
+
+    impl = Unicode
+
+    def __init__(self):
+        super().__init__(length=100)
+
+    def process_bind_param(self, value, dialect=None):
+
+        if value and isinstance(value, match.Match):
+            return value.to_str()
+        elif value and not isinstance(value, match.Match):
+            raise ValueError('value %s is not a valid Match' % value)
+        else:
+            return None
+
+    def process_result_value(self, value, dialect=None):
+
+        if value:
+            return match.Match(value)
+
+        return None
+
+    def is_mutable(self):
+        return False
+
+
 class TblAccount(Base):
     """ Account table. """
 
@@ -309,10 +339,27 @@ class TblTrafficRuleQueue(Base):
     __tablename__ = 'traffic_rule_queue'
 
     dscp = Column("dscp", DSCP(), primary_key=True, default=0x0)
-    tenant_id = Column(UUID(), ForeignKey('tenant.tenant_id'),
+    tenant_id = Column(UUID(),
+                       ForeignKey('tenant.tenant_id'),
                        primary_key=True,)
     quantum = Column(Integer)
     amsdu_aggregation = Column(Boolean)
+
+
+class TblTrafficRule(Base):
+    """ Traffic Rule Queue table. """
+
+    __tablename__ = 'traffic_rule'
+
+    match = Column("match", Match(), primary_key=True)
+
+    tenant_id = Column(UUID(),
+                       ForeignKey('tenant.tenant_id'),
+                       primary_key=True,)
+
+    dscp = Column(DSCP())
+
+    label = Column(String)
 
 
 Base.metadata.create_all(ENGINE)

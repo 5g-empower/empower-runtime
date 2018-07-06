@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
-#
+# Copyright (c) 2018 Giovanni Baggio
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,10 +21,7 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from empower.restserver.restserver import RESTServer
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
-
-from empower.main import RUNTIME
 
 
 DEFAULT_PORT = 4444
@@ -62,6 +59,13 @@ class IBNPServer(tornado.web.Application):
 
         self.__seq += 1
         return self.__seq
+
+    def to_dict(self):
+        """ Return a dict representation of the object. """
+
+        out = {}
+        out['port'] = self.port
+        return out
 
 
 def launch(port=DEFAULT_PORT):

@@ -24,12 +24,13 @@ from empower.core.virtualport import VirtualPortProp
 class Endpoint:
     """An endpoint."""
 
-    def __init__(self, endpoint_id, endpoint_name, desc):
+    def __init__(self, endpoint_id, endpoint_name, dp, desc):
 
         self.endpoint_id = endpoint_id
         self.endpoint_name = endpoint_name
         self.desc = desc
-        self.ports = VirtualPortProp()
+        self.dp = dp
+        self.ports = VirtualPortProp(self)
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the Endpoint."""
@@ -37,6 +38,7 @@ class Endpoint:
         return {"endpoint_uuid": self.endpoint_id,
                 "endpoint_name": self.endpoint_name,
                 "desc": self.desc,
+                "dp": self.dp,
                 "ports": self.ports}
 
     def __eq__(self, other):

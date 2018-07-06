@@ -18,9 +18,6 @@
 """Traffic rule."""
 
 
-from empower.datatypes.etheraddress import EtherAddress
-
-
 class TrafficRuleQueue(object):
     """EmPOWER traffic rule queue.
 
@@ -36,6 +33,7 @@ class TrafficRuleQueue(object):
           be aggregated in A-MSDUs according to 802.11n settings
         quantum: the quantum to be assigned to this queue at each round
     """
+
     def __init__(self, ssid, dscp, block, quantum=12000,
                  amsdu_aggregation=False):
 

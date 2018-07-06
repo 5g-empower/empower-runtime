@@ -17,12 +17,10 @@
 
 """Virtual port."""
 
-
-from empower.datatypes.etheraddress import EtherAddress
-from empower.ibnp.ibnpserver import IBNPServer
-from empower.core.utils import ofmatch_d2s
-from empower.core.utils import ofmatch_s2d
 from uuid import uuid4
+
+from empower.ibnp.ibnpserver import IBNPServer
+from empower.core.utils import ofmatch_s2d
 
 from empower.main import RUNTIME
 
@@ -31,9 +29,11 @@ LOG = empower.logger.get_logger()
 
 
 class VirtualPortProp(dict):
+    """Virtual port class (dictionary)."""
 
-    def __init__(self):
-        super(VirtualPortProp, self).__init__()
+    def __init__(self, endpoint, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.endpoint = endpoint
 
     def __delitem__(self, key):
         """Clear virtual port and update/remove intent."""
@@ -41,15 +41,13 @@ class VirtualPortProp(dict):
         # delete all outgoing virtual links
         self[key].clear()
 
-        endpoint_uuid = list(self.values())[0].endpoint.endpoint_id
-
         # remove old entry
         dict.__delitem__(self, key)
 
         if self.items():
             self._update_intent()
         else:
-            self._remove_intent(endpoint_uuid)
+            self._remove_intent(self.endpoint.endpoint_id)
 
     def __setitem__(self, key, value):
         """Add virtual port and update intent."""
@@ -79,21 +77,16 @@ class VirtualPortProp(dict):
     def _update_intent(self):
         """Set/update intent."""
 
-        any_port = list(self.values())[0]
-        endpoint_uuid = any_port.endpoint.endpoint_id
-        dpid = any_port.network_port.dp.dpid
-
         endpoint_ports = {}
 
         for vport_id, vport in self.items():
-
             props = {'dont_learn': vport.dont_learn}
             endpoint_ports[vport_id] = {'port_no': vport.network_port.port_id,
                                         'properties': props}
 
         intent = {'version': '1.0',
-                  'uuid': endpoint_uuid,
-                  'dpid': dpid,
+                  'uuid': self.endpoint.endpoint_id,
+                  'dpid': self.endpoint.dp.dpid,
                   'ports': endpoint_ports}
 
         ibnp_server = RUNTIME.components[IBNPServer.__module__]
@@ -103,9 +96,7 @@ class VirtualPortProp(dict):
             LOG.warning('IBN not available')
 
     def clear(self):
-
         for key in list(self.keys()):
-
             self.__delitem__(key)
 
 
@@ -118,7 +109,6 @@ class VirtualPort:
         self.network_port = network_port
         self.virtual_port_id = virtual_port_id
         self.dont_learn = []
-
         self.next = VirtualPortNextProp(self)
 
     def clear(self):
@@ -158,6 +148,7 @@ class VirtualPort:
 
 
 class VirtualPortNextProp(dict):
+    """Chaining class."""
 
     def __init__(self, my_virtual_port):
         super(VirtualPortNextProp, self).__init__()
@@ -223,7 +214,5 @@ class VirtualPortNextProp(dict):
         dict.__setitem__(self, key, value)
 
     def clear(self):
-
         for key in list(self.keys()):
-
             self.__delitem__(key)

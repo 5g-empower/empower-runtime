@@ -67,6 +67,7 @@ from empower.lvapp import PT_PORT_STATUS_REQUEST
 from empower.lvapp import PORT_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
+from empower.lvapp import PT_DEL_VAP
 from empower.lvapp import PT_CAPS_RESPONSE
 from empower.lvapp import PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST
 from empower.core.lvap import LVAP
@@ -431,9 +432,8 @@ class LVAPPConnection:
 
         # send traffic rule queues
         for tenant in RUNTIME.tenants.values():
-            trqs = tenant.get_traffic_rule_queues()
-            for trq in trqs:
-                tenant.dispach_traffic_rule(trq)
+            for rule in tenant.traffic_rule_queues:
+                tenant.dispach_traffic_rule_queue(rule)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -771,13 +771,13 @@ class LVAPPConnection:
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
-            self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
+            self.log.warning("No valid intersection found. Removing VAP.")
+            wtp.connection.send_del_vap(net_bssid_addr)
             return
 
         # If the VAP does not exists, then create a new one
         if net_bssid_addr not in tenant.vaps:
-            vap = VAP(net_bssid_addr, incoming, wtp, tenant)
+            vap = VAP(net_bssid_addr, valid, wtp, tenant)
             tenant.vaps[net_bssid_addr] = vap
 
         vap = tenant.vaps[net_bssid_addr]
@@ -826,10 +826,10 @@ class LVAPPConnection:
 
         return self.send_message(PT_ADD_VAP, msg)
 
-    def send_del_vap(self, vap):
+    def send_del_vap(self, net_bssid):
         """Send a DEL_VAP message."""
 
-        msg = Container(length=16, net_bssid=vap.net_bssid.to_raw())
+        msg = Container(length=16, net_bssid=net_bssid.to_raw())
         return self.send_message(PT_DEL_VAP, msg)
 
     def send_assoc_response(self, lvap):

@@ -26,6 +26,7 @@ import empower.datatypes.ssid
 import empower.datatypes.plmnid
 import empower.datatypes.dpid
 import empower.datatypes.dscp
+import empower.datatypes.match
 
 
 class IterEncoder(json.JSONEncoder):
@@ -52,7 +53,8 @@ class EmpowerEncoder(IterEncoder):
                      empower.datatypes.ssid.SSID,
                      empower.datatypes.plmnid.PLMNID,
                      empower.datatypes.etheraddress.EtherAddress,
-                     empower.datatypes.dpid.DPID)
+                     empower.datatypes.dpid.DPID,
+                     empower.datatypes.match.Match)
 
         if isinstance(obj, instances):
             return str(obj)

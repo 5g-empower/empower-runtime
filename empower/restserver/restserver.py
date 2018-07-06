@@ -17,12 +17,13 @@
 
 """Exposes a RESTful interface for EmPOWER."""
 
+from uuid import UUID
+from uuid import uuid4
+
 import tornado.web
 import tornado.httpserver
 
 from tornado.web import MissingArgumentError
-from uuid import UUID
-from uuid import uuid4
 from empower import settings
 from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
@@ -38,6 +39,7 @@ from empower.datatypes.plmnid import PLMNID
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
 from empower.datatypes.dscp import DSCP
+from empower.datatypes.match import Match
 
 DEFAULT_PORT = 8888
 
@@ -1180,13 +1182,12 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
-            trqs = tenant.get_traffic_rule_queues()
 
             if len(args) == 1:
-                self.write_as_json(trqs.values())
+                self.write_as_json(tenant.traffic_rule_queues.values())
             else:
                 dscp = DSCP(args[1])
-                self.write_as_json(trqs[dscp])
+                self.write_as_json(tenant.traffic_rule_queues[dscp])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1206,14 +1207,15 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
             {
                 "version" : 1.0,
                 "aggregation" : true,
-                "quantum" : 1500
+                "quantum" : 1500,
+                "dscp": "0x42"
             }
 
         """
 
         try:
 
-            if len(args) not in [1, 2]:
+            if len(args) != 1:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -1227,17 +1229,19 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
             if "quantum" not in request:
                 raise ValueError("missing quantum element")
 
+            if "dscp" not in request:
+                raise ValueError("missing dscp element")
+
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
-            if len(args) == 1:
-                dscp = DSCP("0x00")
-            else:
-                dscp = DSCP(args[1])
+            dscp = DSCP(request["dscp"])
 
-            tenant.add_traffic_rule_queue(dscp,
-                                          request["quantum"],
+            tenant.add_traffic_rule_queue(dscp, request["quantum"],
                                           request["amsdu_aggregation"])
+
+            url = "/api/v1/tenants/%s/trqs/%s" % (tenant_id, dscp)
+            self.set_header("Location", url)
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1257,7 +1261,7 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
         Example URLs:
 
-            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/0x40
             {
                 "version" : 1.0,
                 "aggregation" : true,
@@ -1284,10 +1288,10 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
+
             dscp = DSCP(args[1])
 
-            tenant.set_traffic_rule_queue(dscp,
-                                          request["quantum"],
+            tenant.set_traffic_rule_queue(dscp, request["quantum"],
                                           request["amsdu_aggregation"])
 
         except TypeError as ex:
@@ -1319,8 +1323,9 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
                 raise ValueError("Invalid url")
 
             tenant_id = UUID(args[0])
-            dscp = DSCP(args[1])
             tenant = RUNTIME.tenants[tenant_id]
+
+            dscp = DSCP(args[1])
 
             tenant.del_traffic_rule_queue(dscp)
 
@@ -1727,6 +1732,136 @@ class TenantEndpointPortHandler(EmpowerAPIHandlerUsers):
             self.send_error(404, message=ex)
 
 
+class TenantTrafficHandler(EmpowerAPIHandlerUsers):
+    """Tenat traffic rule queue handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9_=,]*)/?"]
+
+    def get(self, *args, **kwargs):
+        """List traffic rules .
+
+        Args:
+            tenant_id: network name of a tenant
+            match: the openflow match rule (e.g. dl_vlan=100;tp_dst=80)
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
+              dl_vlan=100;tp_dst=80
+        """
+
+        try:
+
+            if len(args) not in [1, 2]:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            if len(args) == 1:
+                self.write_as_json(tenant.traffic_rules.values())
+            else:
+                match = Match(args[1])
+                self.write_as_json(tenant.traffic_rules[match])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+    def post(self, *args, **kwargs):
+        """Add traffic rule.
+
+        Args:
+            tenant_id: network name of a tenant
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            {
+                "version" : 1.0,
+                "trq" : 0x40,
+                "label" : "video traffic (high priority)",
+                "match" : "dl_vlan=100;tp_dst=80",
+            }
+
+        """
+
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            if "dscp" not in request:
+                raise ValueError("missing dscp element")
+
+            if "label" not in request:
+                raise ValueError("missing label element")
+
+            if "match" not in request:
+                raise ValueError("missing match element")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            dscp = DSCP(request["dscp"])
+            match = Match(request["match"])
+
+            tenant.add_traffic_rule(match, dscp, request["label"])
+
+            url = "/api/v1/tenants/%s/trs/%s" % (tenant_id, match)
+            print(url)
+            self.set_header("Location", url)
+
+        except TypeError as ex:
+            self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(201, None)
+
+    def delete(self, *args, **kwargs):
+        """Delete traffic rule queues.
+
+        Args:
+            tenant_id: network name of a tenant
+
+        Example URLs:
+
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
+              dl_vlan=100;tp_dst=80
+
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid url")
+
+            tenant_id = UUID(args[0])
+            tenant = RUNTIME.tenants[tenant_id]
+
+            match = Match(args[1])
+
+            tenant.del_traffic_rule(match)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+        self.set_status(204, None)
+
+
 class RESTServer(Service, tornado.web.Application):
     """Exposes the REST API."""
 
@@ -1766,7 +1901,7 @@ class RESTServer(Service, tornado.web.Application):
                            PendingTenantHandler, TenantHandler,
                            AllowHandler, TenantTrafficRuleQueueHandler,
                            TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler]
+                           TenantEndpointPortHandler, TenantTrafficHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

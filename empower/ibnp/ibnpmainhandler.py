@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
-#
+# Copyright (c) 2018 Giovanni Baggio
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -81,7 +81,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
                 LOG.exception(ex)
                 return
         else:
-            LOG.error('Unknown handler %s' % handler_name)
+            LOG.error('Unknown handler %s', handler_name)
 
     def on_close(self):
         """ Handle IBN disconnection """
@@ -115,7 +115,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         if not self.server.connection:
             self.server.connection = self
 
-        LOG.info("Hello from Ryu IBN seq %u", hello['seq'])
+        LOG.info("Hello from IBN seq %u", hello['seq'])
 
         self.server.period = hello['every']
         self.server.last_seen = hello['seq']

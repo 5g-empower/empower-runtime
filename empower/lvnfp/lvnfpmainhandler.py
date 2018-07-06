@@ -221,7 +221,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             cpp = RUNTIME.cpps[cpp_addr]
         except KeyError:
             LOG.info("Caps from unknown CPP (%s)", cpp_addr)
-            raise KeyError("Hello from unknown CPP (%s)", cpp_addr)
+            raise KeyError("Hello from unknown CPP (%s)" % cpp_addr)
 
         if 'dpid' not in caps:
             LOG.info("Empty caps from CPP (%s)", cpp_addr)
