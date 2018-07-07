@@ -19,46 +19,46 @@
 
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.app import EmpowerApp
-from empower.maps.maps import POLLER_RESPONSE
-from empower.maps.maps import Maps
+from empower.lvapp.cqm.maps import POLLER_RESPONSE
+from empower.lvapp.cqm.maps import Maps
 
 from empower.main import RUNTIME
 
-PT_POLLER_REQUEST = 0x26
-PT_POLLER_RESPONSE = 0x27
+PT_POLLER_REQUEST = 0x28
+PT_POLLER_RESPONSE = 0x29
 
 
-class UCQM(Maps):
+class NCQM(Maps):
     """User Channel Quality Maps."""
 
-    MODULE_NAME = "ucqm"
+    MODULE_NAME = "ncqm"
     PT_REQUEST = PT_POLLER_REQUEST
 
 
-class UCQMWorker(ModuleLVAPPWorker):
+class NCQMWorker(ModuleLVAPPWorker):
     """User channel quality map worker."""
 
     pass
 
 
-def ucqm(**kwargs):
+def ncqm(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[UCQMWorker.__module__]
+    worker = RUNTIME.components[NCQMWorker.__module__]
     return worker.add_module(**kwargs)
 
 
-def bound_ucqm(self, **kwargs):
+def bound_ncqm(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return ucqm(**kwargs)
+    return ncqm(**kwargs)
 
 
-setattr(EmpowerApp, UCQM.MODULE_NAME, bound_ucqm)
+setattr(EmpowerApp, NCQM.MODULE_NAME, bound_ncqm)
 
 
 def launch():
     """ Initialize the module. """
 
-    return UCQMWorker(UCQM, PT_POLLER_RESPONSE, POLLER_RESPONSE)
+    return NCQMWorker(NCQM, PT_POLLER_RESPONSE, POLLER_RESPONSE)
