@@ -23,20 +23,18 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 from empower.datatypes.etheraddress import EtherAddress
 
-DEFAULT_LVAP = "00:24:d7:07:f2:10"
+DEFAULT_LVAP = "60:F4:45:D0:3B:FC"
 
 
 class PingPong(EmpowerApp):
     """Ping-pong handover App.
 
     Command Line Parameters:
-
         tenant_id: tenant id
-        lvap: the lvap address (optinal, default 00:18:DE:CC:D3:40)
+        lvap: the lvap address (optinal, default 60:F4:45:D0:3B:FC)
         every: loop period in ms (optional, default 5000ms)
 
     Example:
-
         ./empower-runtime.py apps.pingpong.pingpong \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
@@ -74,7 +72,7 @@ class PingPong(EmpowerApp):
         lvap.blocks = block[0]
 
 
-def launch(tenant_id, lvap=DEFAULT_LVAP, period=5000):
+def launch(tenant_id, lvap=DEFAULT_LVAP, every=DEFAULT_PERIOD):
     """Initialize the module.`"""
 
-    return PingPong(tenant_id=tenant_id, lvap_addr=lvap)
+    return PingPong(tenant_id=tenant_id, lvap_addr=lvap, every=every)
