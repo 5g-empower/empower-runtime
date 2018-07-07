@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""TRQ Statistics Poller Apps."""
+"""TXP Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 
 
-class TRQStatsPoller(EmpowerApp):
+class TXPStatsPoller(EmpowerApp):
     """TR Stats Poller App.
 
     Command Line Parameters:
@@ -28,7 +28,7 @@ class TRQStatsPoller(EmpowerApp):
         every: loop period in ms (optional, default 5000ms)
 
     Example:
-        ./empower-runtime.py apps.pollers.trqstatspoller \
+        ./empower-runtime.py apps.pollers.txpstatspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
@@ -36,10 +36,10 @@ class TRQStatsPoller(EmpowerApp):
         """Called when a new WTP connects to the controller."""
 
         for block in wtp.supports:
-            self.trq_bin_counter(block=block)
+            self.txp_bin_counter(block=block)
 
 
 def launch(tenant_id):
     """ Initialize the module. """
 
-    return TRQStatsPoller(tenant_id=tenant_id)
+    return TXPStatsPoller(tenant_id=tenant_id)

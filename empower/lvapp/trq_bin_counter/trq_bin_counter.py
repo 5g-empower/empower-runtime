@@ -110,9 +110,9 @@ class TRQBinCounter(ModulePeriodic):
 
     @bins.setter
     def bins(self, bins):
-        """ Set the distribution bins. Default is [ 8192 ]. """
+        """ Setthe distribution bins. Default is [ 8192 ]."""
 
-        if bins > 0:
+        if bins:
 
             if [x for x in bins if isinstance(x, int)] != bins:
                 raise ValueError("bins values must be integers")
@@ -126,7 +126,9 @@ class TRQBinCounter(ModulePeriodic):
             if [x for x in bins if x > 0] != bins:
                 raise ValueError("bins values must be positive")
 
-        self._bins = bins
+            self._bins = bins
+
+        raise ValueError("empty bins")
 
     @property
     def block(self):
@@ -241,7 +243,7 @@ class TRQBinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if entry == 0:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]
@@ -268,7 +270,7 @@ class TRQBinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if entry == 0:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]

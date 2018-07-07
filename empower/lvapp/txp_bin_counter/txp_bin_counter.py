@@ -69,14 +69,14 @@ class TXPBinCounter(ModulePeriodic):
     """ PacketsCounter object. """
 
     MODULE_NAME = "txp_bin_counter"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block', 'mcast']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
 
         super().__init__()
 
         # parameters
-        self._mcast = None
+        self._mcast = EtherAddress('ff:ff:ff:ff:ff:ff')
         self._bins = [8192]
         self._block = None
 
@@ -111,9 +111,9 @@ class TXPBinCounter(ModulePeriodic):
 
     @bins.setter
     def bins(self, bins):
-        """ Set the distribution bins. Default is [ 8192 ]. """
+        """ Setthe distribution bins. Default is [ 8192 ]."""
 
-        if len(bins) > 0:
+        if bins:
 
             if [x for x in bins if isinstance(x, int)] != bins:
                 raise ValueError("bins values must be integers")
@@ -127,10 +127,14 @@ class TXPBinCounter(ModulePeriodic):
             if [x for x in bins if x > 0] != bins:
                 raise ValueError("bins values must be positive")
 
-        self._bins = bins
+            self._bins = bins
+
+        raise ValueError("empty bins")
 
     @property
     def block(self):
+        """Block."""
+
         return self._block
 
     @block.setter
@@ -178,6 +182,7 @@ class TXPBinCounter(ModulePeriodic):
 
         out['bins'] = self.bins
         out['mcast'] = self.mcast
+        out['block'] = self.block.to_dict()
         out['tx_bytes'] = self.tx_bytes
         out['tx_packets'] = self.tx_packets
 
@@ -238,7 +243,7 @@ class TXPBinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if len(entry) == 0:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]
@@ -265,7 +270,7 @@ class TXPBinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if len(entry) == 0:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]
