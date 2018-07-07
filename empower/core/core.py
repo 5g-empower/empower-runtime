@@ -290,6 +290,7 @@ class EmpowerRuntime:
         tenant_id = params['tenant_id']
 
         if tenant_id not in self.tenants:
+            self.log.error("Invalid tenant: %s", tenant_id)
             return
 
         if name in self.tenants[tenant_id].components:

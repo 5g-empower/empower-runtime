@@ -17,7 +17,6 @@
 
 """EmPOWER resouce pool and resource block classes."""
 
-from empower.datatypes.etheraddress import EtherAddress
 from empower.core.transmissionpolicy import TxPolicy
 from empower.core.trafficrulequeue import TrafficRuleQueue
 
@@ -71,9 +70,6 @@ class CQM(dict):
     """Override getitem behaviour by returning -inf instead of KeyError
     when the key is missing."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def __getitem__(self, key):
 
         try:
@@ -104,6 +100,28 @@ class ResourcePool(list):
         blocks = sorted(self,
                         key=lambda x: x.ucqm[addr]['mov_rssi'],
                         reverse=True)
+
+        return ResourcePool(blocks)
+
+    def filter_by_channel(self, channel):
+        """Return list sorted filered by channel."""
+
+        blocks = []
+
+        for block in self.__iter__():
+            if block.channel == channel:
+                blocks.append(block)
+
+        return ResourcePool(blocks)
+
+    def filter_by_band(self, band):
+        """Return list sorted filered by band."""
+
+        blocks = []
+
+        for block in self.__iter__():
+            if block.band == band:
+                blocks.append(block)
 
         return ResourcePool(blocks)
 

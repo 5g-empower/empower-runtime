@@ -24,7 +24,6 @@ from empower.core.resourcepool import BANDS
 from empower.core.resourcepool import BT_HT20
 from empower.core.utils import generate_bssid
 from empower.core.tenant import T_TYPE_SHARED
-from empower.main import RUNTIME
 
 import empower.logger
 
@@ -529,15 +528,14 @@ class LVAP:
     def wtp(self, wtp):
         """Assigns LVAP to new wtp."""
 
-        for block in wtp.supports:
-            if self.blocks and block.channel != self.blocks[0].channel:
-                continue
-            if self.blocks and block.band != self.blocks[0].band:
-                continue
-            self.blocks = block
-            break
+        blocks = wtp.blocks() \
+                    .filter_by_channel(self.blocks[0].channel) \
+                    .filter_by_band(self.blocks[0].band) \
+                    .first()
 
-    def clear_blocks(self, target_block=None):
+        self.blocks = blocks
+
+    def clear_blocks(self):
         """Clear all blocks."""
 
         for block in self.blocks:

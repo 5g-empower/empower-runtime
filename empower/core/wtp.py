@@ -19,6 +19,7 @@
 
 from empower.core.pnfdev import BasePNFDev
 from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import ResourcePool
 from empower.datatypes.etheraddress import EtherAddress
 
 
@@ -51,6 +52,17 @@ class WTP(BasePNFDev):
         out = super().to_dict()
         out['supports'] = self.supports
         return out
+
+    def blocks(self):
+        """Return all blocks supported by this WTP."""
+
+        pool = ResourcePool()
+
+        # Update the pool with all the available ResourseBlocks
+        for block in self.supports:
+            pool.append(block)
+
+        return pool
 
     def get_block(self, hwaddr, channel, band):
         """Look for block."""
