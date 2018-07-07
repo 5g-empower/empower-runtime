@@ -98,17 +98,25 @@ class ResourcePool(list):
     This extends the list in order to add a few filtering and sorting methods
     """
 
-    def sortByRssi(self, addr):
-        blocks = sorted(self, key=lambda x: x.ucqm[addr]['mov_rssi'],
+    def sort_by_rssi(self, addr):
+        """Return list sorted by rssi for the spcified address."""
+
+        blocks = sorted(self,
+                        key=lambda x: x.ucqm[addr]['mov_rssi'],
                         reverse=True)
+
         return ResourcePool(blocks)
 
     def first(self):
+        """Return first entry in the list."""
+
         block = list.__getitem__(self, 0)
         return ResourcePool([block])
 
     def last(self):
-        selected = list.__getitem__(self, -1)
+        """Return last entry in the list."""
+
+        block = list.__getitem__(self, -1)
         return ResourcePool([block])
 
 

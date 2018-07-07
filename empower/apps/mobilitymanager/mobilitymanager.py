@@ -21,31 +21,21 @@ from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
-class ProactiveMobilityManager(EmpowerApp):
+class MobilityManager(EmpowerApp):
     """Reactive mobility manager.
 
     Command Line Parameters:
-
         tenant_id: tenant id
         every: loop period in ms (optional, default 5000ms)
 
     Example:
-
         ./empower-runtime.py apps.mobilitymanager.proactivemm \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
-    def __init__(self, **kwargs):
+    def wtp_up(self, wtp):
+        """New WTP."""
 
-        super().__init__(**kwargs)
-
-        # Register an wtp up event
-        self.wtpup(callback=self.wtp_up_callback)
-
-    def wtp_up_callback(self, wtp):
-        """Called when a new WTP connects to the controller."""
-
-        # Start polling WTP
         for block in wtp.supports:
             self.ucqm(block=block, every=self.every)
 
@@ -53,10 +43,10 @@ class ProactiveMobilityManager(EmpowerApp):
         """ Periodic job. """
 
         for lvap in self.lvaps():
-            lvap.blocks = self.blocks().sortByRssi(lvap.addr).first()
+            lvap.blocks = self.blocks().sort_by_rssi(lvap.addr).first()
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
 
-    return ProactiveMobilityManager(tenant_id=tenant_id, every=every)
+    return MobilityManager(tenant_id=tenant_id, every=every)
