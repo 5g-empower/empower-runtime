@@ -20,9 +20,9 @@
 import time
 import tornado.ioloop
 
-import empower.logger
-
 from construct import Container
+
+import empower.logger
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
@@ -36,35 +36,19 @@ from empower.lvapp import HEADER
 from empower.lvapp import PT_VERSION
 from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
-from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_AUTH_RESPONSE
-from empower.lvapp import AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
-from empower.lvapp import ASSOC_RESPONSE
 from empower.lvapp import PT_SET_PORT
-from empower.lvapp import SET_PORT
 from empower.lvapp import PT_ADD_LVAP
-from empower.lvapp import ADD_LVAP
 from empower.lvapp import PT_DEL_LVAP
-from empower.lvapp import DEL_LVAP
+from empower.lvapp import PT_DEL_PORT
 from empower.lvapp import PT_PROBE_RESPONSE
-from empower.lvapp import PROBE_RESPONSE
-from empower.lvapp import PT_ADD_LVAP_RESPONSE
-from empower.lvapp import PT_DEL_LVAP_RESPONSE
-from empower.lvapp import CAPS_REQUEST
-from empower.lvapp import LVAP_STATUS_REQUEST
-from empower.lvapp import VAP_STATUS_REQUEST
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
 from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
 from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
-from empower.lvapp import DEL_TRAFFIC_RULE_QUEUE
-from empower.lvapp import SET_TRAFFIC_RULE_QUEUE
-from empower.lvapp import PT_STATUS_TRAFFIC_RULE_QUEUE
-from empower.lvapp import TRAFFIC_RULE_QUEUE_STATUS_REQUEST
 from empower.lvapp import PT_PORT_STATUS_REQUEST
-from empower.lvapp import PORT_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_DEL_VAP
@@ -74,7 +58,6 @@ from empower.core.lvap import LVAP
 from empower.core.lvap import PROCESS_RUNNING
 from empower.core.vap import VAP
 from empower.lvapp import PT_ADD_VAP
-from empower.lvapp import ADD_VAP
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.core.utils import generate_bssid
@@ -272,7 +255,7 @@ class LVAPPConnection:
         if self.stream.closed():
             self.log.warning("Stream closed, unabled to send %s message to %s",
                              parser.name, self.wtp)
-            return
+            return 0
 
         msg.version = PT_VERSION
         msg.seq = self.wtp.seq
@@ -287,10 +270,11 @@ class LVAPPConnection:
 
         if hasattr(msg, 'module_id'):
             return msg.module_id
-        else:
-            return 0
 
-    def _handle_add_lvap_response(self, wtp, status):
+        return 0
+
+    @classmethod
+    def _handle_add_lvap_response(cls, _, status):
         """Handle an incoming ADD_LVAP_RESPONSE message.
         Args:
             status, a ADD_LVAP message
@@ -307,7 +291,8 @@ class LVAPPConnection:
 
         lvap.handle_add_lvap_response(status.module_id, status.status)
 
-    def _handle_del_lvap_response(self, wtp, status):
+    @classmethod
+    def _handle_del_lvap_response(cls, _, status):
         """Handle an incoming DEL_LVAP_RESPONSE message.
         Args:
             status, a DEL_LVAP_RESPONSE message
