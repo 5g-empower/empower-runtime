@@ -21,7 +21,7 @@
 class DSCP:
     """DSCP object representing a DSCP"""
 
-    def __init__(self, dscp):
+    def __init__(self, dscp=0):
 
         if isinstance(dscp, str):
             self.dscp = int(dscp, 16)

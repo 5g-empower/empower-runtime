@@ -35,21 +35,19 @@ class TRQStatsPoller(EmpowerApp):
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.wtpup(callback=self.wtp_up_callback)
-
-    def wtp_up_callback(self, wtp):
+    def wtp_up(self, wtp):
         """ Called when a new WTP connects to the controller"""
 
         for block in wtp.supports:
-            self.trq_stats(dscp='0x0', block=block, every=self.every,
-                           callback=self.trq_stats_callback)
+            self.trq_bin_counter(dscp='0x0',
+                                 block=block,
+                                 every=self.every,
+                                 callback=self.trq_stats_callback)
 
     def trq_stats_callback(self, stats):
         """ New stats available. """
 
-        self.log.info("New trq stats received from %s" % stats.block)
+        self.log.info("New trq stats received from %s", stats.block)
 
 
 def launch(tenant_id, every=DEFAULT_PERIOD):

@@ -28,6 +28,7 @@ from construct import Array
 
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.dscp import DSCP
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import ModulePeriodic
 from empower.core.resourcepool import ResourceBlock
@@ -67,10 +68,10 @@ TRQ_BIN_COUNTER_RESPONSE = \
 
 
 class TRQBinCounter(ModulePeriodic):
-    """ TXPBinCounter object. """
+    """ TRQBinCounter object. """
 
-    MODULE_NAME = "txp_bin_counter"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'dscp', 'block']
+    MODULE_NAME = "trq_bin_counter"
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
 
@@ -79,7 +80,7 @@ class TRQBinCounter(ModulePeriodic):
         # parameters
         self._block = None
         self._bins = [8192]
-        self._dscp = None
+        self._dscp = DSCP()
 
         # data structures
         self.tx_packets = []
@@ -99,7 +100,7 @@ class TRQBinCounter(ModulePeriodic):
 
     @dscp.setter
     def dscp(self, value):
-        self._dscp = "{0:#0{1}x}".format(int(value, 16), 4)
+        self._dscp = DSCP(value)
 
     @property
     def bins(self):
@@ -218,7 +219,7 @@ class TRQBinCounter(ModulePeriodic):
                               hwaddr=self.block.hwaddr.to_raw(),
                               channel=self.block.channel,
                               band=self.block.band,
-                              dscp=int(self.dscp, 16),
+                              dscp=self.dscp.to_raw(),
                               ssid=tenant.tenant_name.to_raw())
 
         msg = TRQ_BIN_COUNTER_REQUEST.build(stats_req)
