@@ -25,9 +25,6 @@ from construct import Sequence
 from construct import Container
 from construct import Struct
 from construct import Array
-from construct import BitStruct
-from construct import Padding
-from construct import Bit
 
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
@@ -39,39 +36,40 @@ from empower.lvapp import PT_VERSION
 from empower.main import RUNTIME
 
 
-PT_TRQ_STATS_REQUEST = 0x59
-PT_TRQ_STATS_RESPONSE = 0x60
+PT_TRQ_BIN_COUNTER_REQUEST = 0x59
+PT_TRQ_BIN_COUNTER_RESPONSE = 0x60
+
+STATS = Sequence("stats", UBInt16("bytes"), UBInt32("count"))
+
+TRQ_BIN_COUNTER_REQUEST = \
+    Struct("trq_bin_counter_request", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           UBInt32("module_id"),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt8("dscp"),
+           Bytes("ssid", lambda ctx: ctx.length - 23))
+
+TRQ_BIN_COUNTER_RESPONSE = \
+    Struct("trq_bin_counter_response", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           UBInt32("module_id"),
+           Bytes("wtp", 6),
+           UBInt32("deficit_used"),
+           UBInt32("max_queue_length"),
+           UBInt16("nb_tx"),
+           Array(lambda ctx: ctx.nb_tx, STATS))
 
 
-TRQ_STATS_REQUEST = Struct("trq_stats_request", UBInt8("version"),
-                           UBInt8("type"),
-                           UBInt32("length"),
-                           UBInt32("seq"),
-                           UBInt32("module_id"),
-                           Bytes("hwaddr", 6),
-                           UBInt8("channel"),
-                           UBInt8("band"),
-                           UBInt8("dscp"),
-                           Bytes("ssid", lambda ctx: ctx.length - 23))
+class TRQBinCounter(ModulePeriodic):
+    """ TXPBinCounter object. """
 
-TRQ_STATS_RESPONSE = Struct("trq_stats_response", UBInt8("version"),
-                            UBInt8("type"),
-                            UBInt32("length"),
-                            UBInt32("seq"),
-                            UBInt32("module_id"),
-                            Bytes("wtp", 6),
-                            BitStruct("flags", Padding(15),
-                                      Bit("amsdu_aggregation")),
-                            UBInt32("deficit_used"),
-                            UBInt32("tx_pkts"),
-                            UBInt32("tx_bytes"),
-                            UBInt32("max_queue_length"))
-
-
-class TRQStats(ModulePeriodic):
-    """ TRStats object. """
-
-    MODULE_NAME = "trq_stats"
+    MODULE_NAME = "txp_bin_counter"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'dscp', 'block']
 
     def __init__(self):
@@ -80,10 +78,14 @@ class TRQStats(ModulePeriodic):
 
         # parameters
         self._block = None
+        self._bins = [8192]
         self._dscp = None
 
         # data structures
-        self.trq_stats = {}
+        self.tx_packets = []
+        self.tx_bytes = []
+        self.deficit_used = 0
+        self.max_queue_length = 0
 
     def __eq__(self, other):
 
@@ -91,6 +93,8 @@ class TRQStats(ModulePeriodic):
 
     @property
     def dscp(self):
+        """DSCP code."""
+
         return self._dscp
 
     @dscp.setter
@@ -98,7 +102,35 @@ class TRQStats(ModulePeriodic):
         self._dscp = "{0:#0{1}x}".format(int(value, 16), 4)
 
     @property
+    def bins(self):
+        """ Return the lvaps list """
+
+        return self._bins
+
+    @bins.setter
+    def bins(self, bins):
+        """ Set the distribution bins. Default is [ 8192 ]. """
+
+        if bins > 0:
+
+            if [x for x in bins if isinstance(x, int)] != bins:
+                raise ValueError("bins values must be integers")
+
+            if sorted(bins) != bins:
+                raise ValueError("bins must be monotonically increasing")
+
+            if sorted(set(bins)) != sorted(bins):
+                raise ValueError("bins values must not contain duplicates")
+
+            if [x for x in bins if x > 0] != bins:
+                raise ValueError("bins values must be positive")
+
+        self._bins = bins
+
+    @property
     def block(self):
+        """Block."""
+
         return self._block
 
     @block.setter
@@ -144,9 +176,13 @@ class TRQStats(ModulePeriodic):
 
         out = super().to_dict()
 
+        out['bins'] = self.bins
+        out['tx_bytes'] = self.tx_bytes
+        out['tx_packets'] = self.tx_packets
         out['block'] = self.block.to_dict()
         out['dscp'] = self.dscp
-        out['trq_stats'] = {str(k): v for k, v in self.trq_stats.items()}
+        out['deficit_used'] = self.deficit_used
+        out['max_queue_length'] = self.max_queue_length
 
         return out
 
@@ -175,7 +211,7 @@ class TRQStats(ModulePeriodic):
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
         stats_req = Container(version=PT_VERSION,
-                              type=PT_TRQ_STATS_REQUEST,
+                              type=PT_TRQ_BIN_COUNTER_REQUEST,
                               length=23+len(tenant.tenant_name),
                               seq=wtp.seq,
                               module_id=self.module_id,
@@ -185,52 +221,107 @@ class TRQStats(ModulePeriodic):
                               dscp=int(self.dscp, 16),
                               ssid=tenant.tenant_name.to_raw())
 
-        msg = TRQ_STATS_REQUEST.build(stats_req)
+        msg = TRQ_BIN_COUNTER_REQUEST.build(stats_req)
         wtp.connection.stream.write(msg)
 
+    def fill_bytes_samples(self, data):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        out = [0] * len(self.bins)
+
+        for entry in samples:
+            if entry == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(self.bins)):
+                if size <= self.bins[i]:
+                    out[i] = out[i] + size * count
+                    break
+
+        return out
+
+    def fill_packets_samples(self, data):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
+
+        samples = sorted(data, key=lambda entry: entry[0])
+        out = [0] * len(self.bins)
+
+        for entry in samples:
+            if entry == 0:
+                continue
+            size = entry[0]
+            count = entry[1]
+            for i in range(0, len(self.bins)):
+                if size <= self.bins[i]:
+                    out[i] = out[i] + count
+                    break
+
+        return out
+
     def handle_response(self, response):
-        """Handle an incoming TRQ_STATS_RESPONSE message.
+        """Handle an incoming STATS_RESPONSE message.
         Args:
-            response, a TRQ_STATS_RESPONSE message
+            stats, a STATS_RESPONSE message
         Returns:
             None
         """
 
         # update this object
-        self.trq_stats = {
-            'deficit_used': response.deficit_used,
-            'tx_pkts': response.tx_pkts,
-            'tx_bytes': response.tx_bytes,
-            'max_queue_length': response.max_queue_length,
-        }
+        self.tx_bytes = self.fill_bytes_samples(response.stats)
+        self.tx_packets = self.fill_packets_samples(response.stats)
+
+        self.deficit_used = response.deficit_used
+        self.max_queue_length = response.max_queue_length
 
         # call callback
         self.handle_callback(self)
 
 
-class TRQStatsWorker(ModuleLVAPPWorker):
-    """ Counter worker. """
+class TRQBinCounterWorker(ModuleLVAPPWorker):
+    """Counter worker."""
 
     pass
 
 
-def trq_stats(**kwargs):
+def trq_bin_counter(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[TRQStatsWorker.__module__].add_module(**kwargs)
+    worker = RUNTIME.components[TRQBinCounter.__module__]
+    return worker.add_module(**kwargs)
 
 
-def bound_trq_stats(self, **kwargs):
+def bound_trq_bin_counter(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return trq_stats(**kwargs)
+    return trq_bin_counter(**kwargs)
 
 
-setattr(EmpowerApp, TRQStats.MODULE_NAME, bound_trq_stats)
+setattr(EmpowerApp, TRQBinCounter.MODULE_NAME, bound_trq_bin_counter)
 
 
 def launch():
     """ Initialize the module. """
 
-    return TRQStatsWorker(TRQStats, PT_TRQ_STATS_RESPONSE, TRQ_STATS_RESPONSE)
+    return TRQBinCounterWorker(TRQBinCounter, PT_TRQ_BIN_COUNTER_RESPONSE,
+                               TRQ_BIN_COUNTER_RESPONSE)

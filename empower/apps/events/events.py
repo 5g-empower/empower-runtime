@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2016 Roberto Riggio
+# Copyright (c) 2018 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 """Events Apps."""
 
 from empower.core.app import EmpowerApp
-from empower.core.app import DEFAULT_PERIOD
 
 
 class EventsApp(EmpowerApp):
@@ -27,7 +26,6 @@ class EventsApp(EmpowerApp):
     Command Line Parameters:
 
         tenant_id: tenant id
-        every: loop period in ms (optional, default 5000ms)
 
     Example:
 
@@ -35,93 +33,48 @@ class EventsApp(EmpowerApp):
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.cppup(callback=self.cpp_up_callback)
-        self.cppdown(callback=self.cpp_down_callback)
-        self.wtpup(callback=self.wtp_up_callback)
-        self.wtpdown(callback=self.wtp_down_callback)
-        self.lvapjoin(callback=self.lvap_join_callback)
-        self.lvapleave(callback=self.lvap_leave_callback)
-        self.lvnfjoin(callback=self.lvnf_join_callback)
-        self.lvnfleave(callback=self.lvnf_leave_callback)
-        self.vbsup(callback=self.vbs_up_callback)
-        self.vbsdown(callback=self.vbs_down_callback)
-        self.uejoin(callback=self.ue_join_callback)
-        self.ueleave(callback=self.ue_leave_callback)
+    def lvap_join(self, lvap):
+        """Called when an LVAP joins a tenant."""
 
-    def vbs_down_callback(self, vbs):
-        """Called when an VBS disconnects from a tennant."""
+        self.log.info("LVAP %s joined %s!", lvap.addr, lvap.ssid)
 
-        self.log.info("VBS %s disconnected" % vbs.addr)
+    def lvap_leave(self, lvap):
+        """Called when an LVAP leaves a tenant."""
 
-    def vbs_up_callback(self, vbs):
-        """Called when an VBS connects to a tennant."""
+        self.log.info("LVAP %s left %s!", lvap.addr, lvap.ssid)
 
-        self.log.info("VBS %s connected" % vbs.addr)
+    def vbs_down(self, vbs):
+        """Called when a VBS disconnects to the controller."""
 
-    def ue_leave_callback(self, ue):
-        """Called when an UE disconnects from a VBS."""
+        self.log.info("VBS %s disconnected!", vbs.addr)
 
-        self.log.info("UE %s disconnected" % ue.rnti)
+    def vbs_up(self, vbs):
+        """Called when a VBS connects from the controller."""
 
-    def ue_join_callback(self, ue):
-        """Called when an UE connects to a VBS."""
+        self.log.info("VBS %s connected!", vbs.addr)
 
-        self.log.info("UE %s connected" % ue.rnti)
+    def wtp_down(self, wtp):
+        """Called when a VBS disconnects to the controller."""
 
-    def lvnf_join_callback(self, lvnf):
-        """Called when an LVNF associates to a tennant."""
+        self.log.info("WTP %s disconnected!", wtp.addr)
 
-        self.log.info("LVNF %s joined %s" % (lvnf.lvnf_id, lvnf.tenant_id))
+    def wtp_up(self, wtp):
+        """Called when a WTP connects from the controller."""
 
-    def lvnf_leave_callback(self, lvnf):
-        """Called when an LVNF associates to a tennant."""
+        self.log.info("WTP %s connected!", wtp.addr)
 
-        self.log.info("LVNF %s left %s" % (lvnf.lvnf_id, lvnf.tenant_id))
+    def cpp_down(self, cpp):
+        """Called when a CPP disconnects to the controller."""
 
-    def lvap_leave_callback(self, lvap):
-        """Called when an LVAP disassociates from a tennant."""
+        self.log.info("CPP %s disconnected!", cpp.addr)
 
-        self.log.info("LVAP %s left %s" % (lvap.addr, lvap.ssid))
+    def cpp_up(self, cpp):
+        """Called when a VBS connects from the controller."""
 
-    def lvap_join_callback(self, lvap):
-        """Called when an LVAP associates to a tennant."""
-
-        self.log.info("LVAP %s joined %s" % (lvap.addr, lvap.ssid))
-
-    def ue_join_callback(self, ue):
-        """Called when an UE associates to a tennant."""
-
-        self.log.info("UE %s joined %u" % (ue.ue_id, ue.plmn_id))
-
-    def ue_leave_callback(self, ue):
-        """Called when an UE leaves a tennant."""
-
-        self.log.info("UE %s left %u" % (ue.ue_id, ue.plmn_id))
-
-    def wtp_up_callback(self, wtp):
-        """Called when a new wtp connects to the controller."""
-
-        self.log.info("WTP %s connected!" % wtp.addr)
-
-    def wtp_down_callback(self, wtp):
-        """Called when a wtp connectdiss from the controller."""
-
-        self.log.info("WTP %s left!" % wtp.addr)
-
-    def cpp_up_callback(self, cpp):
-        """Called when a new cpp connects to the controller."""
-
-        self.log.info("CPP %s connected!" % cpp.addr)
-
-    def cpp_down_callback(self, cpp):
-        """Called when a cpp disconnects from the controller."""
-
-        self.log.info("CPP %s left!" % cpp.addr)
+        self.log.info("CPP %s connected!", cpp.addr)
 
 
-def launch(tenant_id, every=DEFAULT_PERIOD):
-    """ Initialize the module. """
+def launch(tenant_id):
+    """Initialize the app."""
 
-    return EventsApp(tenant_id=tenant_id, every=every)
+    return EventsApp(tenant_id=tenant_id)

@@ -45,6 +45,56 @@ class EmpowerApp:
             setattr(self, param, kwargs[param])
             self.params.append(param)
 
+    def lvnf_leave(self, lvap):
+        """Called when an LVNF leaves a tenant."""
+
+        pass
+
+    def lvnf_join(self, lvap):
+        """Called when an LVNF joins a tenant."""
+
+        pass
+
+    def lvap_leave(self, lvap):
+        """Called when an LVAP leavess a tenant."""
+
+        pass
+
+    def lvap_join(self, lvap):
+        """Called when an LVAP joins a tenant."""
+
+        pass
+
+    def vbs_down(self, vbs):
+        """Called when a VBS disconnects to the controller."""
+
+        pass
+
+    def vns_up(self, vbs):
+        """Called when a VBS connects from the controller."""
+
+        pass
+
+    def cpp_down(self, cpp):
+        """Called when a CPP disconnects to the controller."""
+
+        pass
+
+    def cpp_up(self, cpp):
+        """Called when a CPP connects from the controller."""
+
+        pass
+
+    def wtp_down(self, wtp):
+        """Called when a WTP disconnects to the controller."""
+
+        pass
+
+    def wtp_up(self, wtp):
+        """Called when a WTP connects from the controller."""
+
+        pass
+
     @property
     def tenant_id(self):
         """Return tenant_id."""

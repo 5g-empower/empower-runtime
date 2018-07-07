@@ -57,22 +57,6 @@ class VBSHandler(BasePNFDevHandler):
                 (r"/api/v1/vbses/([a-zA-Z0-9:]*)/?")]
 
 
-class ModuleVBSPEventWorker(ModuleEventWorker):
-    """Module worker (VBSP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-
-        ModuleEventWorker.__init__(self, VBSPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
 class ModuleVBSPWorker(ModuleWorker):
     """Module worker (VBSP Server version).
 

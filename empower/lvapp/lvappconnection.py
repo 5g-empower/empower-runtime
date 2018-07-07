@@ -948,11 +948,19 @@ class LVAPPConnection:
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
 
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.wtp_down(self.wtp)
+
         for handler in self.server.pt_types_handlers[PT_BYE]:
             handler(self.wtp)
 
     def send_register_message_to_self(self):
         """Send a unsollicited REGISTER message to senf."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.wtp_up(self.wtp)
 
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.wtp)

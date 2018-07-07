@@ -205,11 +205,19 @@ class VBSPConnection:
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
 
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.vbs_down(self.vbs)
+
         for handler in self.server.pt_types_handlers[PT_BYE]:
             handler(self.vbs)
 
     def send_register_message_to_self(self):
         """Send a unsollicited REGISTER message to senf."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.vbs_up(self.vbs)
 
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.vbs)

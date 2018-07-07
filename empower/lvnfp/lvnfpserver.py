@@ -91,21 +91,6 @@ class ModuleLVNFPWorker(ModuleWorker):
         module.handle_response(msg)
 
 
-class ModuleLVNFPEventWorker(ModuleEventWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVNFPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
 class LVNFPServer(PNFPServer, tornado.web.Application):
     """Exposes the EmPOWER LVNF API."""
 

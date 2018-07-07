@@ -115,6 +115,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
     def send_bye_message_to_self(self):
         """Send bye message to self."""
 
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.cpp_down(self.cpp)
+
         msg = {'version': PT_VERSION,
                'type': PT_BYE,
                'seq': self.cpp.seq,
@@ -124,6 +128,10 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_register_message_to_self(self):
         """Send register message to self."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.cpp_up(self.cpp)
 
         msg = {'version': PT_VERSION,
                'type': PT_REGISTER,

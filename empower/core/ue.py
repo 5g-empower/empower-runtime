@@ -113,7 +113,7 @@ class UE:
             return
 
         if not cell.vbs.is_online():
-            raise ValueError("Cell %s is not online", cell)
+            raise ValueError("Cell %s is not online" % cell)
 
         if self.state != UE_ACTIVE:
             raise ValueError("An handover is already in progress")

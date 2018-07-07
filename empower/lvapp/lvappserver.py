@@ -56,21 +56,6 @@ class WTPHandler(BasePNFDevHandler):
                 (r"/api/v1/wtps/([a-zA-Z0-9:]*)/?")]
 
 
-class ModuleLVAPPEventWorker(ModuleEventWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
 class ModuleLVAPPWorker(ModuleWorker):
     """Module worker (LVAP Server version).
 
@@ -140,14 +125,20 @@ class LVAPPServer(PNFPServer, TCPServer):
     def send_lvap_leave_message_to_self(self, lvap):
         """Send an LVAP_LEAVE message to self."""
 
-        self.log.info("LVAP LEAVE %s (%s)", lvap.addr, lvap.ssid)
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.lvap_leave(lvap)
+
         for handler in self.pt_types_handlers[PT_LVAP_LEAVE]:
             handler(lvap)
 
     def send_lvap_join_message_to_self(self, lvap):
         """Send an LVAP_JOIN message to self."""
 
-        self.log.info("LVAP JOIN %s (%s)", lvap.addr, lvap.ssid)
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.lvap_join(lvap)
+
         for handler in self.pt_types_handlers[PT_LVAP_JOIN]:
             handler(lvap)
 
