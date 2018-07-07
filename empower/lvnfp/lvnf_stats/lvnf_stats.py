@@ -21,8 +21,8 @@ from uuid import UUID
 
 from empower.core.lvnf import LVNF
 from empower.core.module import ModulePeriodic
-from empower.lvnf_stats import PT_LVNF_STATS_RESPONSE
-from empower.lvnf_stats import PT_LVNF_STATS_REQUEST
+from empower.lvnfp.lvnf_stats import PT_LVNF_STATS_RESPONSE
+from empower.lvnfp.lvnf_stats import PT_LVNF_STATS_REQUEST
 from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 
 from empower.main import RUNTIME

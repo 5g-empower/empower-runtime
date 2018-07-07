@@ -40,11 +40,11 @@ if __name__ == "__main__":
              'lvapp.rssi.rssi',
              'lvapp.summary.summary',
 
-             'rrc_measurements.rrc_measurements',
-             'mac_reports.mac_reports',
+             'vbsp.rrc_measurements.rrc_measurements',
+             'vbsp.mac_reports.mac_reports',
 
-             'lvnf_ems.lvnf_get',
-             'lvnf_ems.lvnf_set',
-             'lvnf_stats.lvnf_stats']
+             'lvnfp.lvnf_get.lvnf_get',
+             'lvnfp.lvnf_set.lvnf_set',
+             'lvnfp.lvnf_stats.lvnf_stats']
 
     main(ARGVS)

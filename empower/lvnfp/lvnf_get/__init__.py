@@ -19,5 +19,3 @@
 
 PT_LVNF_GET_REQUEST = "lvnf_get_request"
 PT_LVNF_GET_RESPONSE = "lvnf_get_response"
-PT_LVNF_SET_REQUEST = "lvnf_set_request"
-PT_LVNF_SET_RESPONSE = "lvnf_set_response"

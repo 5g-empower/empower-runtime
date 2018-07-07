@@ -21,8 +21,8 @@ from uuid import UUID
 
 from empower.core.lvnf import LVNF
 from empower.core.module import ModulePeriodic
-from empower.lvnf_ems import PT_LVNF_SET_REQUEST
-from empower.lvnf_ems import PT_LVNF_SET_RESPONSE
+from empower.lvnfp.lvnf_set import PT_LVNF_SET_REQUEST
+from empower.lvnfp.lvnf_set import PT_LVNF_SET_RESPONSE
 from empower.lvnfp.lvnfpserver import ModuleLVNFPWorker
 
 from empower.main import RUNTIME
@@ -75,6 +75,8 @@ class LVNFSet(ModulePeriodic):
 
     @property
     def lvnf(self):
+        """LVNF."""
+
         return self.__lvnf
 
     @lvnf.setter
