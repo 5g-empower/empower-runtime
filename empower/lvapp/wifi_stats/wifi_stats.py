@@ -67,7 +67,7 @@ WIFI_STATS_RESPONSE = Struct("wifi_stats_response", UBInt8("version"),
 class WiFiStats(ModulePeriodic):
     """ A maps poller. """
 
-    MODULE_NAME = "wifistats"
+    MODULE_NAME = "wifi_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):

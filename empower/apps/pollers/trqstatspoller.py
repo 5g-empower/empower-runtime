@@ -33,7 +33,7 @@ class TRQStatsPoller(EmpowerApp):
     """
 
     def wtp_up(self, wtp):
-        """Called when a new WTP connects to the controller."""
+        """New WTP."""
 
         for block in wtp.supports:
             self.trq_bin_counter(block=block)
