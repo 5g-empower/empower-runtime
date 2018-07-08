@@ -612,7 +612,6 @@ class LVAPPConnection:
             return
 
         set_mask = bool(status.flags.set_mask)
-        incoming_ssids = [SSID(x.ssid) for x in status.ssids]
 
         # received downlink block but a different downlink block is already
         # present, delete before going any further

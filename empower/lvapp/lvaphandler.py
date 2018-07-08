@@ -47,7 +47,7 @@ class LVAPHandler(EmpowerAPIHandler):
         try:
             if len(args) > 1:
                 raise ValueError("Invalid URL")
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(RUNTIME.lvaps.values())
             else:
                 lvap = EtherAddress(args[0])

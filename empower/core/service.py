@@ -17,19 +17,15 @@
 
 """EmPOWER base service class."""
 
-import time
-import uuid
 import tornado.ioloop
 import empower.logger
-
-from empower.main import RUNTIME
 
 DEFAULT_PERIOD = 5000
 
 
 class Service:
     """Service class.
-
+s
     This is the basic service class. EmPOWER loosely follows the RFC7426.
     Services implements generics functions that offer open interfaces to other
     applications and services. Apps are a special class of services that do not
@@ -46,6 +42,7 @@ class Service:
         self.params = []
         self.log = empower.logger.get_logger()
         self.worker = None
+        self.every = DEFAULT_PERIOD
 
         for param in kwargs:
             setattr(self, param, kwargs[param])

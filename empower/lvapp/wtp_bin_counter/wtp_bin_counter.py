@@ -30,8 +30,6 @@ from construct import Array
 
 from empower.lvapp import PT_VERSION
 from empower.datatypes.etheraddress import EtherAddress
-from empower.lvapp.lvappserver import LVAPPServer
-from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import ModulePeriodic
 from empower.core.app import EmpowerApp
@@ -74,10 +72,10 @@ class WTPBinCounter(ModulePeriodic):
 
     For example:
 
-        wtp_bin_counter(bins=[512, 1514, 8192],
-                        wtp="11:22:33:44:55:66",
-                        2000,
-                        callback=counters_callback)
+        self.wtp_bin_counter(bins=[512, 1514, 8192],
+                             wtp="11:22:33:44:55:66",
+                             2000,
+                             callback=self.counters_callback)
 
     This classifies the traffic TX/RX by the client lvap into the specified
     bins. Notice that with packet we mean the entire L2 PDU (Ethernet). In the
@@ -138,7 +136,7 @@ class WTPBinCounter(ModulePeriodic):
     def bins(self, bins):
         """ Set the distribution bins. Default is [ 8192 ]. """
 
-        if len(bins) > 0:
+        if bins:
 
             if [x for x in bins if isinstance(x, int)] != bins:
                 raise ValueError("bins values must be integers")
@@ -229,6 +227,16 @@ class WTPBinCounter(ModulePeriodic):
         return stats
 
     def fill_packets_sample(self, values):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
 
         out = {}
 
@@ -260,6 +268,16 @@ class WTPBinCounter(ModulePeriodic):
         return out
 
     def fill_bytes_sample(self, values):
+        """ Compute samples.
+
+        Samples are in the following format (after ordering):
+
+        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
+
+        Each 2-tuple has format [ size, count ] where count is the number of
+        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+
+        """
 
         out = {}
 

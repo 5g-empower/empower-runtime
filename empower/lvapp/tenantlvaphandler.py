@@ -19,7 +19,6 @@
 
 import tornado.web
 import tornado.httpserver
-import uuid
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers

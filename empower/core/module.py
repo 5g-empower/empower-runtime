@@ -183,7 +183,7 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class Module():
+class Module:
     """Module object.
 
     Attributes:

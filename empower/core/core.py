@@ -17,7 +17,6 @@
 
 """EmPOWER Runtime."""
 
-import random
 import socket
 import fcntl
 import struct
@@ -125,8 +124,8 @@ class EmpowerRuntime:
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        info = fcntl.ioctl(sock.fileno(), 0x8927, struct.pack('256s',
-                           self.__ifname[:15].encode('utf-8')))
+        ifname = struct.pack('256s', self.__ifname[:15].encode('utf-8'))
+        info = fcntl.ioctl(sock.fileno(), 0x8927, ifname)
 
         src = EtherAddress(':'.join(['%02x' % char for char in info[18:24]]))
         dst = EtherAddress("FF:FF:FF:FF:FF:FF")
@@ -329,7 +328,7 @@ class EmpowerRuntime:
         from empower.core.app import EmpowerApp
 
         if not issubclass(type(app), EmpowerApp):
-            raise ValueError("Module %s cannot be removed", app_id)
+            raise ValueError("Module %s cannot be removed" % app_id)
 
         app.stop()
         del tenant.components[app_id]
@@ -344,7 +343,7 @@ class EmpowerRuntime:
         from empower.core.module import ModuleWorker
 
         if not issubclass(type(worker), ModuleWorker):
-            raise ValueError("Module %s cannot be removed", name)
+            raise ValueError("Module %s cannot be removed" % name)
 
         to_be_removed = []
 
@@ -424,7 +423,7 @@ class EmpowerRuntime:
         """Create new Tenant."""
 
         if tenant_id in self.tenants:
-            raise ValueError("Tenant %s exists", tenant_id)
+            raise ValueError("Tenant %s exists" % tenant_id)
 
         try:
 
@@ -449,7 +448,7 @@ class EmpowerRuntime:
 
         except IntegrityError:
             session.rollback()
-            raise ValueError("Tenant name %s exists", tenant_name)
+            raise ValueError("Tenant name %s exists" % tenant_name)
 
         self.tenants[request.tenant_id] = \
             Tenant(request.tenant_id,
@@ -477,8 +476,8 @@ class EmpowerRuntime:
             return Session().query(TblPendingTenant) \
                             .filter(TblPendingTenant.owner == username) \
                             .all()
-        else:
-            return Session().query(TblPendingTenant).all()
+
+        return Session().query(TblPendingTenant).all()
 
     def request_tenant(self, owner, desc, tenant_name, bssid_type,
                        tenant_id=None, plmn_id=None):
@@ -486,10 +485,10 @@ class EmpowerRuntime:
         """Request new Tenant."""
 
         if tenant_id in self.tenants:
-            raise ValueError("Tenant %s exists", tenant_id)
+            raise ValueError("Tenant %s exists" % tenant_id)
 
         if self.load_pending_tenant(tenant_id):
-            raise ValueError("Tenant %s exists", tenant_id)
+            raise ValueError("Tenant %s exists" % tenant_id)
 
         try:
 
@@ -514,7 +513,7 @@ class EmpowerRuntime:
 
         except IntegrityError:
             session.rollback()
-            raise ValueError("Tenant name %s exists", tenant_name)
+            raise ValueError("Tenant name %s exists" % tenant_name)
 
         return request.tenant_id
 
@@ -627,32 +626,32 @@ class EmpowerRuntime:
         if ue_id not in self.ues:
             return
 
-        ue = self.ues[ue_id]
+        uequip = self.ues[ue_id]
 
-        if ue.tenant:
+        if uequip.tenant:
 
             # removing UE from tenant, need first to look for right tenant
-            if ue.ue_id in ue.tenant.ues:
-                self.log.info("Removing %s from tenant %s", ue.ue_id,
-                              ue.plmn_id)
-                del ue.tenant.ues[ue.ue_id]
+            if uequip.ue_id in uequip.tenant.ues:
+                self.log.info("Removing %s from tenant %s", uequip.ue_id,
+                              uequip.plmn_id)
+                del uequip.tenant.ues[uequip.ue_id]
 
             # Raise UE leave event
             from empower.vbsp.vbspserver import VBSPServer
             vbsp_server = self.components[VBSPServer.__module__]
-            vbsp_server.send_ue_leave_message_to_self(ue)
+            vbsp_server.send_ue_leave_message_to_self(uequip)
 
-        del self.ues[ue.ue_id]
+        del self.ues[uequip.ue_id]
 
     def find_ue_by_rnti(self, rnti, pci, vbs):
         """Find a UE using the tuple rnti, pci, vbs."""
 
-        for ue in self.ues.values():
+        for uequip in self.ues.values():
 
-            if ue.rnti == rnti and \
-               ue.cell.pci == pci and \
-               ue.cell.vbs == vbs:
+            if uequip.rnti == rnti and \
+               uequip.cell.pci == pci and \
+               uequip.cell.vbs == vbs:
 
-                return ue
+                return uequip
 
         return None

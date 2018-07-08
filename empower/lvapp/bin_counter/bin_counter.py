@@ -70,8 +70,7 @@ class BinCounter(ModulePeriodic):
     specifed bins.
 
     For example:
-
-        lvap.bin_counter(bins=[512, 1514, 8192],
+        self.bin_counter(bins=[512, 1514, 8192],
                          2000,
                          callback=self.counters_callback)
 
@@ -134,7 +133,7 @@ class BinCounter(ModulePeriodic):
     def bins(self, bins):
         """ Set the distribution bins. Default is [ 8192 ]. """
 
-        if len(bins) > 0:
+        if bins:
 
             if [x for x in bins if isinstance(x, int)] != bins:
                 raise ValueError("bins values must be integers")
@@ -220,7 +219,7 @@ class BinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if len(entry) == 0:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]
@@ -247,7 +246,7 @@ class BinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if len(entry) == 0:
+            if entry:
                 continue
             size = entry[0]
             count = entry[1]
@@ -258,7 +257,8 @@ class BinCounter(ModulePeriodic):
 
         return out
 
-    def update_stats(self, delta, last, current):
+    @classmethod
+    def update_stats(cls, delta, last, current):
         """Update stats."""
 
         stats = []

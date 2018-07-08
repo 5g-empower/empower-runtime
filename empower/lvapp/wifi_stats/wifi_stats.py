@@ -20,7 +20,6 @@
 from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
-from construct import SBInt8
 from construct import Bytes
 from construct import Sequence
 from construct import Container
@@ -31,7 +30,6 @@ from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModulePeriodic
-from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
 from empower.lvapp import PT_VERSION
 
@@ -65,7 +63,7 @@ WIFI_STATS_RESPONSE = Struct("wifi_stats_response", UBInt8("version"),
 
 
 class WiFiStats(ModulePeriodic):
-    """ A maps poller. """
+    """Wi-Fi Stats."""
 
     MODULE_NAME = "wifi_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
@@ -89,6 +87,8 @@ class WiFiStats(ModulePeriodic):
 
     @property
     def block(self):
+        """Block."""
+
         return self._block
 
     @block.setter
@@ -190,26 +190,26 @@ class WiFiStats(ModulePeriodic):
         # update this object
         self.wifi_stats.clear()
 
-        tx = response.entries[0:100]
-        rx = response.entries[100:200]
-        ed = response.entries[200:300]
+        tran = response.entries[0:100]
+        recv = response.entries[100:200]
+        edet = response.entries[200:300]
 
         self.wifi_stats['tx'] = []
-        for entry in tx:
+        for entry in tran:
             value = {'type': entry[0],
                      'timestamp': entry[1],
                      'sample': entry[2] / 180.0, }
             self.wifi_stats['tx'].append(value)
 
         self.wifi_stats['rx'] = []
-        for entry in rx:
+        for entry in recv:
             value = {'type': entry[0],
                      'timestamp': entry[1],
                      'sample': entry[2] / 180.0, }
             self.wifi_stats['rx'].append(value)
 
         self.wifi_stats['ed'] = []
-        for entry in ed:
+        for entry in edet:
             value = {'type': entry[0],
                      'timestamp': entry[1],
                      'sample': entry[2] / 180.0, }
@@ -236,11 +236,12 @@ class WiFiStats(ModulePeriodic):
         self.handle_callback(self)
 
     def update_stats(self, stats, stats_type):
+        """Update stats."""
 
         avg_sec = 0
         nb_samples = 0
 
-        for index, sample in enumerate(stats):
+        for _, sample in enumerate(stats):
             if sample['timestamp'] > self.last[stats_type]:
                 avg_sec += sample['sample']
                 nb_samples += 1
@@ -248,7 +249,7 @@ class WiFiStats(ModulePeriodic):
         if nb_samples == 0:
             return 0
 
-        return (avg_sec / nb_samples)
+        return avg_sec / nb_samples
 
 
 class WiFiStatsWorker(ModuleLVAPPWorker):
