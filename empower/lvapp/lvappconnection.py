@@ -245,6 +245,7 @@ class LVAPPConnection:
         self.wtp.last_seen = 0
         self.wtp.connection = None
         self.wtp.supports = set()
+        self.wtp.datapath = None
         self.wtp = None
 
     def send_message(self, msg_type, msg):

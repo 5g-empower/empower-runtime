@@ -74,8 +74,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
         if self.get_secure_cookie("user"):
             return self.get_secure_cookie("user").decode('UTF-8')
-        else:
-            return None
+
+        return None
 
     @tornado.web.authenticated
     def get(self):
@@ -1817,7 +1817,6 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
             tenant.add_traffic_rule(match, dscp, request["label"])
 
             url = "/api/v1/tenants/%s/trs/%s" % (tenant_id, match)
-            print(url)
             self.set_header("Location", url)
 
         except TypeError as ex:

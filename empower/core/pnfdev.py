@@ -121,11 +121,11 @@ class BasePNFDev:
 
     def _online_disconnected(self):
 
-        # set new state
-        self.__state = P_STATE_DISCONNECTED
-
         # generate bye message
         self.__connection.send_bye_message_to_self()
+
+        # set new state
+        self.__state = P_STATE_DISCONNECTED
 
     def _connected_online(self):
 

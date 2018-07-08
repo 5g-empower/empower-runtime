@@ -26,10 +26,11 @@ from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.core.module import ModuleWorker
-from empower.core.module import ModuleEventWorker
 from empower.persistence.persistence import TblCPP
 from empower.lvnfp import PT_BYE
 from empower.lvnfp import PT_TYPES
+from empower.lvnfp import PT_LVNF_LEAVE
+from empower.lvnfp import PT_LVNF_JOIN
 from empower.lvnfp import PT_TYPES_HANDLERS
 from empower.lvnfp.lvnfpmainhandler import LVNFPMainHandler
 from empower.lvnfp.tenantlvnfhandler import TenantLVNFHandler
@@ -57,7 +58,7 @@ class CPPHandler(BasePNFDevHandler):
 
 
 class ModuleLVNFPWorker(ModuleWorker):
-    """Module worker (LVAP Server version).
+    """Module worker (LVNF Server version).
 
     Keeps track of the currently defined modules for each tenant (events only)
 
@@ -72,7 +73,7 @@ class ModuleLVNFPWorker(ModuleWorker):
 
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
 
-    def handle_bye(self, wtp):
+    def handle_bye(self, cpp, msg):
         """CPP left."""
 
         pass
@@ -112,6 +113,26 @@ class LVNFPServer(PNFPServer, tornado.web.Application):
         tornado.web.Application.__init__(self, handlers)
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
+
+    def send_lvnf_leave_message_to_self(self, lvnf):
+        """Send an LVNF_LEAVE message to self."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.lvnf_leave(lvnf)
+
+        for handler in self.pt_types_handlers[PT_LVNF_LEAVE]:
+            handler(lvnf)
+
+    def send_lvnf_join_message_to_self(self, lvnf):
+        """Send an LVNF_JOIN message to self."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.lvnf_join(lvnf)
+
+        for handler in self.pt_types_handlers[PT_LVNF_JOIN]:
+            handler(lvnf)
 
 
 def launch(port=DEFAULT_PORT):

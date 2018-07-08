@@ -17,31 +17,23 @@
 
 """Light Virtual Network Function."""
 
-import types
 import time
 
 from empower.core.endpoint import Endpoint
-from empower.main import RUNTIME
 
 import empower.logger
 
-# add lvnf message sent, no status received
+# add lvap message sent, status not received
 PROCESS_SPAWNING = "spawning"
 
-# add lvnf message sent, status received (process is running)
+# add lvap message sent, status received
 PROCESS_RUNNING = "running"
 
-# del lvnf message sent, no status received
-PROCESS_STOPPING = "stopping"
+# del lvap message(s) sent, no status(es) received
+PROCESS_REMOVING = "removing"
 
-# del lvnf message sent, status
-PROCESS_STOPPED = "stopped"
-
-# del lvnf message sent, no status received yet
-PROCESS_MIGRATING_STOP = "migrating_stop"
-
-# add lvnf message sent, no status received yet
-PROCESS_MIGRATING_START = "migrating_start"
+# del lvap message(s) sent, no status(es) received
+PROCESS_TERMINATED = "terminated"
 
 
 class LVNF(Endpoint):
@@ -89,31 +81,66 @@ class LVNF(Endpoint):
             stopped, done)
     """
 
-    def __init__(self, lvnf_id, tenant_id, image, cpp):
+    def __init__(self, uuid, tenant, image):
 
-        super(LVNF, self).__init__(lvnf_id, 'lvnf-%s' % lvnf_id, '')
+        super(LVNF, self).__init__(uuid)
 
-        self.lvnf_id = lvnf_id
-        self.tenant_id = tenant_id
+        self.tenant = tenant
         self.image = image
-        self.returncode = None
-        self.context = None
         self.__state = None
-        self.__cpp = cpp
+        self.__cpp = None
         self.__target_cpp = None
-        self.__migration_timer = None
-        self.__creation_timer = None
+        self.__context = None
+        self.__timer = None
+        self.pending = []
         self.log = empower.logger.get_logger()
 
-    def start(self):
-        """Spawn LVNF."""
+    def handle_lvnf_status_response(self, cpp):
+        """Status message received."""
 
-        self.state = PROCESS_SPAWNING
+        self.__cpp = cpp
+        self.__state = PROCESS_RUNNING
+        self.datapath = cpp.datapath
 
-    def stop(self):
-        """Remove LVNF."""
+    def handle_del_lvnf_response(self, xid, context):
+        """Received as result of a del lvnf command."""
 
-        self.state = PROCESS_STOPPING
+        if xid not in self.pending:
+            self.log.error("Xid %u not in pending list, ignoring", xid)
+            return
+
+        if self.state != PROCESS_REMOVING:
+            self.log.error("Del lvnf response received in state %s, ignoring",
+                           self.state)
+            return
+
+        self.pending.remove(xid)
+
+        # all pending processed
+        if not self.pending:
+            if self.target_cpp:
+                self.__context = context
+                self.state = PROCESS_SPAWNING
+            else:
+                self.state = PROCESS_TERMINATED
+
+    def handle_add_lvnf_response(self, xid):
+        """Received as result of a del lvnf command."""
+
+        if xid not in self.pending:
+            self.log.error("Xid %u not in pending list, ignoring", xid)
+            return
+
+        if self.state != PROCESS_SPAWNING:
+            self.log.error("Add lvnf response received in state %s, ignoring",
+                           self.state)
+            return
+
+        self.pending.remove(xid)
+
+        # all pending processed
+        if not self.pending:
+            self.state = PROCESS_RUNNING
 
     @property
     def state(self):
@@ -125,7 +152,7 @@ class LVNF(Endpoint):
     def state(self, state):
         """Set the CPP."""
 
-        self.log.info("LVNF %s transition %s->%s", self.lvnf_id, self.state,
+        self.log.info("LVNF %s transition %s->%s", self.uuid, self.state,
                       state)
 
         if self.state:
@@ -140,150 +167,124 @@ class LVNF(Endpoint):
 
         raise IOError("Invalid transistion %s -> %s" % (self.state, state))
 
-    def _running_spawning(self):
-
-        # set new state
-        self.__state = PROCESS_MIGRATING_STOP
-
-        # remove lvnf
-        self.cpp.connection.send_del_lvnf(self.lvnf_id)
-
-    def _running_stopping(self):
-
-        # set new state
-        self.__state = PROCESS_STOPPING
-
-        # clear LVNF ports
-        self.ports.clear()
-
-        # send LVNF del message
-        self.cpp.connection.send_del_lvnf(self.lvnf_id)
-
-    def _stopping_stopped(self):
-
-        # set new state
-        self.__state = PROCESS_STOPPED
-
-    def _spawning_running(self):
-
-        delta = int((time.time() - self.__creation_timer) * 1000)
-        self.log.info("LVNF %s started in %sms", self.lvnf_id, delta)
-
-        self.__state = PROCESS_RUNNING
-
-    def _spawning_stopped(self):
-
-        self.__state = PROCESS_STOPPED
-
-    def _running_migrating_stop(self):
-
-        # set time
-        self.__migration_timer = time.time()
-
-        # set new state
-        self.__state = PROCESS_MIGRATING_STOP
-
-        # remove lvnf
-        self.cpp.connection.send_del_lvnf(self.lvnf_id)
-
-        # Delete all outgoing virtual links
-        for port_id in self.ports:
-            self.ports[port_id].clear()
-
-        # look for LVAPs that points to this LVNF
-        for lvap in RUNTIME.lvaps.values():
-            for port_id in lvap.ports:
-                lvap.ports[port_id].clear()
-
-        # look for LVNFs that points to this LVNF
-        for tenant in RUNTIME.tenants.values():
-            for lvnf in tenant.lvnfs.values():
-                for port_id in lvnf.ports:
-                    lvnf.ports[port_id].clear()
-
-    def _migrating_stop_migrating_start(self):
-
-        # set new cpp
-        self.cpp = self.__target_cpp
-
-        # set new state
-        self.__state = PROCESS_MIGRATING_START
-
-        # add lvnf
-        self.cpp.connection.send_add_lvnf(self.image, self.lvnf_id,
-                                          self.tenant_id, self.context)
-
-    def _migrating_start_running(self):
-
-        self.__state = PROCESS_RUNNING
-
-        delta = int((time.time() - self.__migration_timer) * 1000)
-        self.log.info("LVNF %s migration took %sms", self.lvnf_id, delta)
-
     def _none_spawning(self):
 
         # set timer
-        self.__creation_timer = time.time()
+        self.__timer = time.time()
 
         # set new state
         self.__state = PROCESS_SPAWNING
 
-        # send LVNF add message
-        self.cpp.connection.send_add_lvnf(self.image,
-                                          self.lvnf_id,
-                                          self.tenant_id)
+        # Send add lvnf message
+        xid = self.__target_cpp.connection.send_add_lvnf(self.image,
+                                                         self.uuid,
+                                                         self.tenant.tenant_id,
+                                                         self.__context)
+        self.pending.append(xid)
 
-    def _none_running(self):
+        self.__context = None
 
+    def _removing_spawning(self):
+
+        # set new state
+        self.__state = PROCESS_SPAWNING
+
+        # Send add lvnf message
+        xid = self.__target_cpp.connection.send_add_lvnf(self.image,
+                                                         self.uuid,
+                                                         self.tenant.tenant_id,
+                                                         self.__context)
+
+        self.pending.append(xid)
+
+        self.__context = None
+
+    def _removing_terminated(self):
+
+        # compute stats
+        delta = int((time.time() - self.__timer) * 1000)
+        self.__timer = None
+        self.log.info("LVNF %s removal took %sms", self.uuid, delta)
+
+    def _spawning_running(self):
+
+        # set new state
         self.__state = PROCESS_RUNNING
+
+        # compute stats
+        delta = int((time.time() - self.__timer) * 1000)
+        self.__timer = None
+        self.log.info("LVNF %s spawning took %sms", self.uuid, delta)
+
+        # set cpp
+        self.__cpp = self.__target_cpp
+
+        # set datapath
+        self.datapath = self.cpp.datapath
+
+        # reset target cCPP
+        self.__target_cpp = None
+
+    def _running_removing(self):
+
+        # set timer
+        self.__timer = time.time()
+
+        # set new state
+        self.__state = PROCESS_REMOVING
+
+        # send del lvnf message
+        xid = self.cpp.connection.send_del_lvnf(self.uuid)
+        self.pending.append(xid)
+
+        # reset uplink and downlink
+        self.__cpp = None
+
+    @property
+    def target_cpp(self):
+        """Return the CPP on which this LVNF must move"""
+
+        return self.__target_cpp
 
     @property
     def cpp(self):
-        """Return the CPP."""
+        """Return the CPP on which this LVNF is running"""
 
         return self.__cpp
 
     @cpp.setter
     def cpp(self, cpp):
-        """Set the CPP."""
+        """Assigns LVNF to new CPP."""
 
-        if self.state == PROCESS_RUNNING:
+        # save target CPP
+        self.__target_cpp = cpp
 
-            # save target cpp
-            self.__target_cpp = cpp
-
-            # move to new state
-            self.state = PROCESS_MIGRATING_STOP
-
-        elif self.state == PROCESS_MIGRATING_STOP:
-
-            # set cpp
-            self.__cpp = cpp
-            self.__target_cpp = None
-
+        if self.state is None:
+            self.state = PROCESS_SPAWNING
+        elif self.state == PROCESS_RUNNING:
+            self.state = PROCESS_REMOVING
         else:
-
-            IOError("Setting CPP on invalid state: %s" % self.state)
+            IOError("Setting blocks on invalid state: %s" % self.state)
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the Poll."""
 
-        return {'lvnf_id': self.lvnf_id,
-                'image': self.image,
-                'tenant_id': self.tenant_id,
-                'cpp': self.cpp,
-                'state': self.state,
-                'returncode': self.returncode,
-                'ports': self.ports}
+        out = super().to_dict()
+
+        out['image'] = self.image
+        out['cpp'] = self.cpp
+        out['state'] = self.state
+
+        return out
 
     def __eq__(self, other):
 
         if isinstance(other, LVNF):
-            return self.lvnf_id == other.lvnf_id
+            return self.uuid == other.uuid
 
         return False
 
     def __str__(self):
 
         return "LVNF %s (nb_ports=%u)\n%s" % \
-            (self.lvnf_id, self.image.nb_ports, self.image.vnf)
+            (self.uuid, self.image.nb_ports, self.image.vnf)

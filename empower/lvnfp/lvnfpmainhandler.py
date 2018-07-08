@@ -29,22 +29,19 @@ from empower.datatypes.dpid import DPID
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.lvnfp import PT_ADD_LVNF
 from empower.lvnfp import PT_DEL_LVNF
-from empower.lvnfp import PT_LVNF_JOIN
-from empower.lvnfp import PT_LVNF_LEAVE
 from empower.core.networkport import NetworkPort
 from empower.core.virtualport import VirtualPort
 from empower.core.datapath import Datapath
-from empower.core.lvnf import PROCESS_RUNNING
-from empower.core.lvnf import PROCESS_SPAWNING
-from empower.core.lvnf import PROCESS_STOPPING
-from empower.core.lvnf import PROCESS_MIGRATING_STOP
-from empower.core.lvnf import PROCESS_MIGRATING_START
-from empower.core.lvnf import PROCESS_STOPPED
 from empower.lvnfp import PT_BYE
+from empower.lvnfp import PT_CAPS_RESPONSE
+from empower.lvnfp import PT_HELLO
 from empower.lvnfp import PT_REGISTER
 from empower.lvnfp import PT_VERSION
+from empower.lvnfp import PT_LVNF_STATUS_REQUEST
+from empower.lvnfp import PT_CAPS_REQUEST
 from empower.core.lvnf import LVNF
 from empower.core.image import Image
+from empower.core.utils import get_xid
 
 from empower.main import RUNTIME
 
@@ -88,57 +85,83 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
     def handle_message(self, msg):
         """Handle incoming message."""
 
-        addr = EtherAddress(msg['addr'])
+        msg_type = msg['type']
 
-        if addr not in self.server.pnfdevs:
-            LOG.info("Unknown origin %s, closing connection", addr)
-            self.close()
+        if msg_type not in self.server.pt_types:
+            LOG.error("Unknown message type %s", msg_type)
             return
 
-        LOG.info("Received %s seq %u from %s", msg['type'], msg['seq'],
-                 self.request.remote_ip)
+        addr = EtherAddress(msg['cpp'])
 
-        handler_name = "_handle_%s" % msg['type']
+        try:
+            cpp = RUNTIME.cpps[addr]
+        except KeyError:
+            LOG.error("Unknown CPP (%s), closing connection", addr)
+            self.stream.close()
+            return
+
+        valid = [PT_HELLO]
+        if not cpp.connection and msg_type not in valid:
+            LOG.info("Got %s message from disconnected %s seq %u",
+                     msg_type, addr, msg['seq'])
+            return
+
+        LOG.info("Got %s message from %s seq %u xid %s",
+                 msg_type, addr, msg['seq'], msg['xid'])
+
+        if msg_type == PT_HELLO:
+            self.cpp = cpp
+
+        valid = [PT_HELLO, PT_CAPS_RESPONSE]
+        if not cpp.is_online() and msg_type not in valid:
+            LOG.info("CPP %s not ready", addr)
+            return
+
+        handler_name = "_handle_%s" % msg_type
 
         if hasattr(self, handler_name):
             handler = getattr(self, handler_name)
-            try:
-                handler(msg)
-            except Exception as ex:
-                LOG.exception(ex)
-                return
+            handler(msg)
 
-        if msg['type'] in self.server.pt_types_handlers:
-            for handler in self.server.pt_types_handlers[msg['type']]:
+        if msg_type in self.server.pt_types_handlers:
+            for handler in self.server.pt_types_handlers[msg_type]:
                 handler(msg)
 
     def send_bye_message_to_self(self):
         """Send bye message to self."""
 
+        msg = {'version': PT_VERSION,
+               'type': PT_BYE,
+               'seq': self.cpp.seq,
+               'cpp': self.cpp.addr,
+               'xid': get_xid()}
+
+        self.handle_message(msg)
+
+    def _handle_bye(self, _):
+        """Handle bye message."""
+
         for tenant in RUNTIME.tenants.values():
             for app in tenant.components.values():
                 app.cpp_down(self.cpp)
 
-        msg = {'version': PT_VERSION,
-               'type': PT_BYE,
-               'seq': self.cpp.seq,
-               'addr': self.cpp.addr}
-
-        self.handle_message(msg)
-
     def send_register_message_to_self(self):
         """Send register message to self."""
-
-        for tenant in RUNTIME.tenants.values():
-            for app in tenant.components.values():
-                app.cpp_up(self.cpp)
 
         msg = {'version': PT_VERSION,
                'type': PT_REGISTER,
                'seq': self.cpp.seq,
-               'addr': self.cpp.addr}
+               'cpp': self.cpp.addr,
+               'xid': get_xid()}
 
         self.handle_message(msg)
+
+    def _handle_register(self, _):
+        """Handle register message."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.cpp_up(self.cpp)
 
     def on_close(self):
         """ Handle PNFDev disconnection """
@@ -146,21 +169,21 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         if not self.cpp:
             return
 
+        LOG.info("CPP disconnected: %s", self.cpp.addr)
+
         # remove hosted lvnfs
         for tenant in RUNTIME.tenants.values():
-            for lvnf_id in list(tenant.lvnfs.keys()):
-                lvnf = tenant.lvnfs[lvnf_id]
-                LOG.info("LVNF LEAVE %s", lvnf.lvnf_id)
-                for handler in self.server.pt_types_handlers[PT_LVNF_LEAVE]:
-                    handler(lvnf)
-                LOG.info("Deleting LVNF: %s", lvnf.lvnf_id)
-                tenant = RUNTIME.tenants[lvnf.tenant_id]
-                del tenant.lvnfs[lvnf.lvnf_id]
+            for lvnf in list(tenant.lvnfs.values()):
+                if lvnf.cpp == self.cpp:
+                    tenant.remove_lvnf(lvnf.uuid)
 
         # reset state
         self.cpp.set_disconnected()
+        self.cpp.last_seen = 0
         self.cpp.connection = None
+        self.cpp.supports = set()
         self.cpp.datapath = None
+        self.cpp = None
 
     def send_message(self, message_type, message):
         """Add fixed header fields and send message. """
@@ -168,9 +191,44 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         message['version'] = PT_VERSION
         message['type'] = message_type
         message['seq'] = self.cpp.seq
+        message['xid'] = get_xid()
 
-        LOG.info("Sending %s seq %u", message['type'], message['seq'])
+        LOG.info("Sending %s seq %u xid %u",
+                 message['type'],
+                 message['seq'],
+                 message['xid'])
+
         self.write_message(json.dumps(message, cls=EmpowerEncoder))
+
+        return message['xid']
+
+    def send_lvnf_status_request(self):
+        """Send del LVNF."""
+
+        msg = {}
+        self.send_message(PT_LVNF_STATUS_REQUEST, msg)
+
+    def send_caps_request(self):
+        """Send del LVNF."""
+
+        msg = {}
+        self.send_message(PT_CAPS_REQUEST, msg)
+
+    def send_del_lvnf(self, lvnf_id):
+        """Send del LVNF."""
+
+        undeploy = {'lvnf_id': lvnf_id}
+        return self.send_message(PT_DEL_LVNF, undeploy)
+
+    def send_add_lvnf(self, image, lvnf_id, tenant_id, context=None):
+        """Send add LVNF."""
+
+        deploy = {'lvnf_id': lvnf_id,
+                  'tenant_id': tenant_id,
+                  'image': image.to_dict(),
+                  'context': context}
+
+        return self.send_message(PT_ADD_LVNF, deploy)
 
     def _handle_hello(self, hello):
         """Handle an incoming PNFDEV_HELLO message.
@@ -182,38 +240,27 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
 
-        cpp_addr = EtherAddress(hello['addr'])
-
-        try:
-            cpp = RUNTIME.cpps[cpp_addr]
-        except KeyError:
-            LOG.info("Hello from unknown CPP (%s)", cpp_addr)
-            raise KeyError("Hello from unknown CPP (%s)", cpp_addr)
-
         # New connection
-        if not cpp.connection:
+        if not self.cpp.connection:
 
             # save remote address
             self.addr = self.request.remote_ip
 
-            # set pointer to pnfdev object
-            self.cpp = cpp
-
             # set connection
-            cpp.connection = self
+            self.cpp.connection = self
 
             # change state
-            cpp.set_connected()
+            self.cpp.set_connected()
 
-        LOG.info("Hello from %s CPP %s seq %u", self.addr, cpp.addr,
-                 hello['seq'])
+            # send caps request
+            self.send_caps_request()
 
         # Update PNFDev params
-        cpp.period = hello['every']
-        cpp.last_seen = hello['seq']
-        cpp.last_seen_ts = time.time()
+        self.cpp.period = hello['every']
+        self.cpp.last_seen = hello['seq']
+        self.cpp.last_seen_ts = time.time()
 
-    def _handle_caps(self, caps):
+    def _handle_caps_response(self, caps):
         """Handle an incoming cap response message.
 
         Args:
@@ -223,72 +270,87 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
 
-        cpp_addr = EtherAddress(caps['addr'])
+        dpid = DPID(caps['dpid'])
 
-        try:
-            cpp = RUNTIME.cpps[cpp_addr]
-        except KeyError:
-            LOG.info("Caps from unknown CPP (%s)", cpp_addr)
-            raise KeyError("Hello from unknown CPP (%s)" % cpp_addr)
+        if dpid not in RUNTIME.datapaths:
+            RUNTIME.datapaths[dpid] = Datapath(dpid)
 
-        if 'dpid' not in caps:
-            LOG.info("Empty caps from CPP (%s)", cpp_addr)
-            # set state to online
-            cpp.set_online()
-            return
-
-        cpp_dpid = DPID(caps['dpid'])
-
-        if cpp_dpid not in RUNTIME.datapaths:
-            RUNTIME.datapaths[cpp_dpid] = Datapath(cpp_dpid)
-
-        cpp.datapath = RUNTIME.datapaths[cpp_dpid]
+        self.cpp.datapath = RUNTIME.datapaths[dpid]
 
         for port_id, port in caps['ports'].items():
 
-            if int(port_id) not in cpp.datapath.network_ports:
+            if int(port_id) not in self.cpp.datapath.network_ports:
 
-                network_port = NetworkPort(dp=cpp.datapath,
+                network_port = NetworkPort(dp=self.cpp.datapath,
                                            port_id=int(port['port_id']),
                                            hwaddr=EtherAddress(port['hwaddr']),
                                            iface=port['iface'])
 
-                cpp.datapath.network_ports[int(port_id)] = network_port
+                self.cpp.datapath.network_ports[int(port_id)] = network_port
 
         # set state to online
-        cpp.set_online()
+        self.cpp.set_online()
 
-    def send_del_lvnf(self, lvnf_id):
-        """Send del LVNF."""
+        # fetch active lvnfs
+        self.send_lvnf_status_request()
 
-        undeploy = {'lvnf_id': lvnf_id}
-        self.send_message(PT_DEL_LVNF, undeploy)
-
-    def send_add_lvnf(self, image, lvnf_id, tenant_id, context=None):
-        """Send add LVNF."""
-
-        deploy = {'lvnf_id': lvnf_id,
-                  'tenant_id': tenant_id,
-                  'image': image.to_dict(),
-                  'context': context}
-
-        self.send_message(PT_ADD_LVNF, deploy)
-
-    def _handle_status_lvnf(self, status_lvnf):
-        """Handle an incoming STATUS_LVNF message.
+    def _handle_add_lvnf_response(self, response):
+        """Handle an incoming ADD_LVNF_RESPONSE message.
 
         Args:
-            status_lvnf, a STATUS_LVNF message
+            response, a ADD_LVNF_RESPONSE message
 
         Returns:
             None
         """
 
-        addr = EtherAddress(status_lvnf['addr'])
-        cpp = RUNTIME.cpps[addr]
+        if response['returncode'] is not None:
 
-        tenant_id = uuid.UUID(status_lvnf['tenant_id'])
-        lvnf_id = uuid.UUID(status_lvnf['lvnf_id'])
+            LOG.error("Unable to start LVNF %s, returncode %u",
+                      response['lvnf_id'], response['returncode'])
+
+            tenant_id = uuid.UUID(response['tenant_id'])
+            lvnf_id = uuid.UUID(response['lvnf_id'])
+
+            if tenant_id not in RUNTIME.tenants:
+                LOG.warning("Tenant %s not found, ignoring LVNF %s", tenant_id,
+                            lvnf_id)
+                return
+
+            tenant = RUNTIME.tenants[tenant_id]
+
+            if lvnf_id not in tenant.lvnfs:
+                LOG.warning("LVNF %s not found, ignoring", lvnf_id)
+                return
+
+            del tenant.lvnfs[lvnf_id]
+
+            return
+
+        # update dpid
+        dpid = DPID(response['dpid'])
+
+        if dpid not in RUNTIME.datapaths:
+            RUNTIME.datapaths[dpid] = Datapath(dpid)
+
+        self.cpp.datapath = RUNTIME.datapaths[dpid]
+
+        # update network ports
+        for port in response['ports'].values():
+
+            if port['ovs_port_id'] not in self.cpp.datapath.network_ports:
+
+                network_port = NetworkPort(dp=self.cpp.datapath,
+                                           port_id=port['ovs_port_id'],
+                                           hwaddr=EtherAddress(port['hwaddr']),
+                                           iface=port['iface'])
+
+                self.cpp.datapath.network_ports[port['ovs_port_id']] = \
+                    network_port
+
+        # update lvnf
+        tenant_id = uuid.UUID(response['tenant_id'])
+        lvnf_id = uuid.UUID(response['lvnf_id'])
 
         if tenant_id not in RUNTIME.tenants:
             LOG.warning("Tenant %s not found, ignoring LVNF %s", tenant_id,
@@ -297,129 +359,134 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         tenant = RUNTIME.tenants[tenant_id]
 
-        LOG.info("LVNF %s status update", lvnf_id)
+        if lvnf_id not in tenant.lvnfs:
+            LOG.warning("LVNF %s not found, ignoring", lvnf_id)
+            return
+
+        lvnf = tenant.lvnfs[lvnf_id]
+
+        lvnf.handle_add_lvnf_response(response['xid'])
+
+        # update virtual ports
+        for port in response['ports'].values():
+
+            network_port = self.cpp.datapath.network_ports[port['ovs_port_id']]
+            virtual_port_id = port['virtual_port_id']
+
+            virtual_port = VirtualPort(endpoint=lvnf,
+                                       network_port=network_port,
+                                       virtual_port_id=virtual_port_id)
+
+            lvnf.ports[virtual_port.virtual_port_id] = virtual_port
+
+    def _handle_del_lvnf_response(self, response):
+        """Handle an incoming del_LVNF_RESPONSE message.
+
+        Args:
+            response, a del_LVNF_RESPONSE message
+
+        Returns:
+            None
+        """
+
+        print("=================================================")
+        print("=================================================")
+        print(response['context'])
+        print("=================================================")
+        print("=================================================")
+
+        # update lvnf
+        tenant_id = uuid.UUID(response['tenant_id'])
+        lvnf_id = uuid.UUID(response['lvnf_id'])
+
+        if tenant_id not in RUNTIME.tenants:
+            LOG.warning("Tenant %s not found, ignoring LVNF %s", tenant_id,
+                        lvnf_id)
+            return
+
+        tenant = RUNTIME.tenants[tenant_id]
+
+        if lvnf_id not in tenant.lvnfs:
+            LOG.warning("LVNF %s not found, ignoring", lvnf_id)
+            return
+
+        lvnf = tenant.lvnfs[lvnf_id]
+
+        lvnf.handle_del_lvnf_response(response['xid'], response['context'])
+
+        if not lvnf.target_cpp:
+            del tenant.lvnfs[lvnf_id]
+
+    def _handle_lvnf_status_response(self, response):
+        """Handle an incoming LVNF_STATUS_RESPONSE message.
+
+        Args:
+            status_lvnf, a LVNF_STATUS_RESPONSE message
+
+        Returns:
+            None
+        """
+
+        # update dpid
+        dpid = DPID(response['dpid'])
+
+        if dpid not in RUNTIME.datapaths:
+            RUNTIME.datapaths[dpid] = Datapath(dpid)
+
+        self.cpp.datapath = RUNTIME.datapaths[dpid]
+
+        # update network ports
+        for port in response['ports'].values():
+
+            if port['ovs_port_id'] not in self.cpp.datapath.network_ports:
+
+                network_port = NetworkPort(dp=self.cpp.datapath,
+                                           port_id=port['ovs_port_id'],
+                                           hwaddr=EtherAddress(port['hwaddr']),
+                                           iface=port['iface'])
+
+                self.cpp.datapath.network_ports[port['ovs_port_id']] = \
+                    network_port
+
+        # update lvnf
+        tenant_id = uuid.UUID(response['tenant_id'])
+        lvnf_id = uuid.UUID(response['lvnf_id'])
+
+        if tenant_id not in RUNTIME.tenants:
+            LOG.warning("Tenant %s not found, ignoring LVNF %s", tenant_id,
+                        lvnf_id)
+            return
+
+        tenant = RUNTIME.tenants[tenant_id]
 
         # Add lvnf to tenant if not present
         if lvnf_id not in tenant.lvnfs:
 
             LOG.warning("LVNF %s not found, adding.", lvnf_id)
 
-            img_dict = status_lvnf['image']
+            img_dict = response['image']
 
             image = Image(nb_ports=img_dict['nb_ports'],
                           vnf=img_dict['vnf'],
                           state_handlers=img_dict['state_handlers'],
                           handlers=img_dict['handlers'])
 
-            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant_id, image, cpp)
+            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant, image)
 
         lvnf = tenant.lvnfs[lvnf_id]
 
-        if lvnf.state in (None, PROCESS_RUNNING, PROCESS_SPAWNING,
-                          PROCESS_MIGRATING_START):
+        lvnf.handle_lvnf_status_response(self.cpp)
 
-            if status_lvnf['returncode']:
+        # update virtual ports
+        for port in response['ports'].values():
 
-                # Raise LVNF leave event
-                if lvnf.state:
-                    LOG.info("LVNF LEAVE %s", lvnf_id)
-                    handlers = self.server.pt_types_handlers[PT_LVNF_LEAVE]
-                    for handler in handlers:
-                        handler(lvnf)
+            network_port = self.cpp.datapath.network_ports[port['ovs_port_id']]
+            virtual_port_id = port['virtual_port_id']
 
-                lvnf.returncode = status_lvnf['returncode']
-                lvnf.contex = status_lvnf['context']
+            virtual_port = VirtualPort(endpoint=lvnf,
+                                       network_port=network_port,
+                                       virtual_port_id=virtual_port_id)
 
-                lvnf.state = PROCESS_STOPPED
+            lvnf.ports[virtual_port.virtual_port_id] = virtual_port
 
-                return
-
-            # Configure ports
-
-            dp = RUNTIME.datapaths[cpp.datapath.dpid]
-
-            for port in status_lvnf['ports'].values():
-
-                virtual_port_id = port['virtual_port_id']
-
-                if port['hwaddr']:
-                    hwaddr = EtherAddress(port['hwaddr'])
-                else:
-                    hwaddr = None
-
-                if port['ovs_port_id']:
-                    port_id = int(port['ovs_port_id'])
-                else:
-                    port_id = None
-
-                iface = port['iface']
-
-                # caps may bring vnf network ports, create new network port
-                # only if it has not been added already
-                if port_id not in dp.network_ports:
-                    network_port = NetworkPort(dp=dp,
-                                               port_id=port_id,
-                                               hwaddr=EtherAddress(hwaddr),
-                                               iface=iface)
-
-                    dp.network_ports[port_id] = network_port
-
-                network_port = dp.network_ports[port_id]
-
-                virtual_port = VirtualPort(lvnf,
-                                           network_port,
-                                           virtual_port_id=virtual_port_id)
-
-                lvnf.ports[virtual_port.virtual_port_id] = virtual_port
-
-            lvnf.returncode = status_lvnf['returncode']
-            lvnf.contex = status_lvnf['context']
-
-            lvnf.state = PROCESS_RUNNING
-
-            # Raise LVNF join event
-            if lvnf.state == PROCESS_RUNNING:
-                LOG.info("LVNF JOIN %s", lvnf.lvnf_id)
-                handlers = self.server.pt_types_handlers[PT_LVNF_JOIN]
-                for handler in handlers:
-                    handler(lvnf)
-
-        elif lvnf.state == PROCESS_STOPPING:
-
-            if status_lvnf['returncode']:
-
-                # Raise LVNF leave event
-                if lvnf.state:
-                    LOG.info("LVNF LEAVE %s", lvnf_id)
-                    handlers = self.server.pt_types_handlers[PT_LVNF_LEAVE]
-                    for handler in handlers:
-                        handler(lvnf)
-
-                lvnf.returncode = status_lvnf['returncode']
-                lvnf.contex = status_lvnf['context']
-
-                lvnf.state = PROCESS_STOPPED
-
-                # remove lvnf
-                del tenant.lvnfs[lvnf_id]
-
-                return
-
-            IOError("No return code on stopping LVNF")
-
-        elif lvnf.state == PROCESS_MIGRATING_STOP:
-
-            if status_lvnf['returncode']:
-
-                lvnf.returncode = status_lvnf['returncode']
-                lvnf.context = status_lvnf['context']
-
-                lvnf.state = PROCESS_MIGRATING_START
-
-                return
-
-            IOError("No returncode on migrating LVNF")
-
-        else:
-
-            raise IOError("Invalid transistion")
+        LOG.info("LVNF Status: %s", lvnf)

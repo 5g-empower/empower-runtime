@@ -24,7 +24,6 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
 from empower.core.module import ModuleWorker
-from empower.core.module import ModuleEventWorker
 from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP

@@ -24,33 +24,29 @@ from empower.core.virtualport import VirtualPortProp
 class Endpoint:
     """An endpoint."""
 
-    def __init__(self, endpoint_id, endpoint_name, dp, desc):
+    def __init__(self, uuid, label="", datapath=None):
 
-        self.endpoint_id = endpoint_id
-        self.endpoint_name = endpoint_name
-        self.desc = desc
-        self.dp = dp
+        self.uuid = uuid
+        self.label = label
+        self.datapath = datapath
         self.ports = VirtualPortProp(self)
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the Endpoint."""
 
-        return {"endpoint_uuid": self.endpoint_id,
-                "endpoint_name": self.endpoint_name,
-                "desc": self.desc,
-                "dp": self.dp,
+        return {"uuid": self.uuid,
+                "label": self.label,
+                "datapath": self.datapath,
                 "ports": self.ports}
 
     def __eq__(self, other):
 
         if isinstance(other, Endpoint):
-            return self.endpoint_id == other.endpoint_id \
-                   and self.endpoint_name == other.endpoint_name \
-                   and self.ports == other.ports
+            return self.uuid == other.uuid
 
         return False
 
     def __str__(self):
 
-        return "Endpoint %s, name=%s, description=%s, ports=%s" \
-               % (self.endpoint_id, self.endpoint_name, self.desc, self.ports)
+        return "Endpoint %s, label=%s, ports=%s" \
+               % (self.uuid, self.label, self.ports)

@@ -128,29 +128,22 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             tenant = RUNTIME.tenants[tenant_id]
             cpp = tenant.cpps[addr]
 
+            if not cpp.is_online():
+                raise ValueError("CPP %s is not online" % addr)
+
             image = Image(nb_ports=request['image']['nb_ports'],
                           vnf=request['image']['vnf'],
                           state_handlers=state_handlers,
                           handlers=handlers)
-
-            if not cpp.connection:
-                raise ValueError("CPP disconnected %s" % addr)
 
             if len(args) == 1:
                 lvnf_id = uuid.uuid4()
             else:
                 lvnf_id = uuid.UUID(args[1])
 
-            lvnf = LVNF(lvnf_id=lvnf_id,
-                        tenant_id=tenant_id,
-                        image=image,
-                        cpp=cpp)
+            lvnf = LVNF(uuid=lvnf_id, tenant=tenant, image=image)
+            lvnf.cpp = cpp
 
-            lvnf.start()
-
-            # the LVNF is added to the list because in this way its state is
-            # maintained as spawning, then as a result of the lvnf status
-            # message this can change to running or stopped.
             tenant.lvnfs[lvnf_id] = lvnf
 
         except ValueError as ex:
@@ -196,9 +189,6 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             cpp = tenant.cpps[addr]
             lvnf = tenant.lvnfs[lvnf_id]
 
-            if not cpp.connection:
-                raise ValueError("CPP disconnected %s" % addr)
-
             lvnf.cpp = cpp
 
         except ValueError as ex:
@@ -233,7 +223,7 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             lvnf_id = uuid.UUID(args[1])
             lvnf = tenant.lvnfs[lvnf_id]
 
-            lvnf.stop()
+            lvnf.cpp = None
 
         except ValueError as ex:
             self.send_error(400, message=ex)

@@ -19,13 +19,7 @@
 
 from uuid import uuid4
 
-from empower.ibnp.ibnpserver import IBNPServer
-from empower.core.utils import ofmatch_s2d
-
-from empower.main import RUNTIME
-
-import empower.logger
-LOG = empower.logger.get_logger()
+from empower.core.utils import get_module
 
 
 class VirtualPortProp(dict):
@@ -47,7 +41,7 @@ class VirtualPortProp(dict):
         if self.items():
             self._update_intent()
         else:
-            self._remove_intent(self.endpoint.endpoint_id)
+            self._remove_intent(self.endpoint.uuid)
 
     def __setitem__(self, key, value):
         """Add virtual port and update intent."""
@@ -65,14 +59,13 @@ class VirtualPortProp(dict):
         self._update_intent()
 
     @classmethod
-    def _remove_intent(cls, endpoint_uuid):
+    def _remove_intent(cls, uuid):
         """Remove intent."""
 
-        ibnp_server = RUNTIME.components[IBNPServer.__module__]
-        if ibnp_server.connection:
-            ibnp_server.connection.send_remove_endpoint(endpoint_uuid)
-        else:
-            LOG.warning('IBN not available')
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        if ibnp_server and ibnp_server.connection:
+            ibnp_server.connection.send_remove_endpoint(uuid)
 
     def _update_intent(self):
         """Set/update intent."""
@@ -85,15 +78,14 @@ class VirtualPortProp(dict):
                                         'properties': props}
 
         intent = {'version': '1.0',
-                  'uuid': self.endpoint.endpoint_id,
-                  'dpid': self.endpoint.dp.dpid,
+                  'uuid': self.endpoint.uuid,
+                  'dpid': self.endpoint.datapath.dpid,
                   'ports': endpoint_ports}
 
-        ibnp_server = RUNTIME.components[IBNPServer.__module__]
-        if ibnp_server.connection:
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        if ibnp_server and ibnp_server.connection:
             ibnp_server.connection.send_update_endpoint(intent)
-        else:
-            LOG.warning('IBN not available')
 
     def clear(self):
         for key in list(self.keys()):
@@ -122,8 +114,7 @@ class VirtualPort:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Port """
 
-        return {'endpoint_uuid': self.endpoint.endpoint_id,
-                'virtual_port_id': self.virtual_port_id,
+        return {'virtual_port_id': self.virtual_port_id,
                 'network_port': self.network_port,
                 'dont_learn': self.dont_learn}
 
@@ -158,6 +149,7 @@ class VirtualPortNextProp(dict):
     def __delitem__(self, key):
         """Clear virtual port configuration."""
 
+        from empower.ibnp.ibnpserver import IBNPServer
         ibnp_server = RUNTIME.components[IBNPServer.__module__]
 
         # remove virtual links
@@ -186,6 +178,7 @@ class VirtualPortNextProp(dict):
 
         self.__uuids__[key] = None
 
+        from empower.ibnp.ibnpserver import IBNPServer
         ibnp_server = RUNTIME.components[IBNPServer.__module__]
 
         rule_uuid = uuid4()

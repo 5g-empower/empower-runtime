@@ -157,6 +157,7 @@ class LVAP:
         self.log = empower.logger.get_logger()
 
     def handle_del_lvap_response(self, xid, _):
+        """Received as result of a del lvap command."""
 
         if xid not in self.pending:
             self.log.error("Xid %u not in pending list, ignoring", xid)
@@ -174,6 +175,7 @@ class LVAP:
             self.state = PROCESS_SPAWNING
 
     def handle_add_lvap_response(self, xid, _):
+        """Received as result of a add lvap command."""
 
         if xid not in self.pending:
             self.log.error("Xid %u not in pending list, ignoring", xid)
@@ -442,11 +444,11 @@ class LVAP:
             pool = []
             pool.append(blocks)
         else:
-            raise TypeError("Invalid type: %s", type(blocks))
+            raise TypeError("Invalid type: %s" % type(blocks))
 
         for block in pool:
             if not isinstance(block, ResourceBlock):
-                raise TypeError("Invalid type: %s", type(block))
+                raise TypeError("Invalid type: %s" % type(block))
 
         # If LVAP is associated to a shared tenant, then reset LVAP
         if self._tenant and self._tenant.bssid_type == T_TYPE_SHARED:

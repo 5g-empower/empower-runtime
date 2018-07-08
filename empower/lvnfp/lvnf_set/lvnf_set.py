@@ -90,6 +90,7 @@ class LVNFSet(ModulePeriodic):
 
         out['lvnf'] = self.lvnf
         out['handler'] = self.handler
+        out['value'] = self.value
         out['samples'] = self.samples
         out['retcode'] = self.retcode
 
