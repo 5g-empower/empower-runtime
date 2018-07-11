@@ -31,17 +31,22 @@ class NetworkPort():
 
         self._matches = {}
 
-    def add_match(self, match, rule_uuid):
+    def add_match(self, new_match, rule_uuid):
         """Add a new match rule to the nework port."""
 
-        if 'in_port' in match:
+        if 'in_port' in new_match.match:
             raise ValueError('the \"in_port\" parameter is not allowed')
 
-        # TODO: check for OF conflicts
-        if False:
-            raise ValueError('match conflict')
+        for match in self._matches.values():
 
-        self._matches[rule_uuid] = match
+            common = {cond: value for cond, value in new_match.items()
+                      if cond in match and value == match[cond]}
+
+            if common == new_match or common == match:
+                raise ValueError('match conflict: %s --> %s'
+                                 % (new_match, match))
+
+        self._matches[rule_uuid] = new_match
 
     def remove_match(self, rule_uuid):
         """Remove new match rule from the nework port."""

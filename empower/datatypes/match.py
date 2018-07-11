@@ -95,7 +95,7 @@ class Match:
         return key
 
     def to_str(self):
-        """ Return the ASCII represenation of the DSCP """
+        """ Return the ASCII representation of the OFMatch """
 
         return self.__ofmatch_d2s(self.match)
 

@@ -134,6 +134,42 @@ class Tenant:
         tokens = [self.tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
         return EtherAddress(':'.join(tokens))
 
+    def add_endpoint(self, endpoint_id, endpoint_name, datapath, ports):
+        """Add Endpoint."""
+
+        from empower.core.endpoint import Endpoint
+        from empower.core.virtualport import VirtualPort
+
+        endpoint = Endpoint(uuid=endpoint_id,
+                            label=endpoint_name,
+                            datapath=datapath)
+
+        for vport_id, vport in ports.items():
+
+            port_id = int(vport['port_id'])
+            network_port = datapath.network_ports[port_id]
+
+            virtual_port = VirtualPort(endpoint,
+                                       network_port=network_port,
+                                       virtual_port_id=int(vport_id))
+
+            virtual_port.dont_learn = vport['properties']['dont_learn']
+
+            endpoint.ports[int(vport_id)] = virtual_port
+
+        self.endpoints[endpoint_id] = endpoint
+
+    def remove_endpoint(self, endpoint_id):
+        """Remove Endpoint."""
+
+        if endpoint_id not in self.endpoints:
+            raise KeyError(endpoint_id)
+
+        endpoint = self.endpoints[endpoint_id]
+
+        endpoint.ports.clear()
+        del self.endpoints[endpoint_id]
+
     @property
     def traffic_rules(self):
         """Fetch traffic rule queues in this tenant."""
