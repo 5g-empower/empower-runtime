@@ -389,12 +389,6 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
 
-        print("=================================================")
-        print("=================================================")
-        print(response['context'])
-        print("=================================================")
-        print("=================================================")
-
         # update lvnf
         tenant_id = uuid.UUID(response['tenant_id'])
         lvnf_id = uuid.UUID(response['lvnf_id'])

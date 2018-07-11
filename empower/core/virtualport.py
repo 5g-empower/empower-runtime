@@ -19,7 +19,11 @@
 
 from uuid import uuid4
 
+from empower.datatypes.match import Match
 from empower.core.utils import get_module
+
+import empower.logger
+LOG = empower.logger.get_logger()
 
 
 class VirtualPortProp(dict):
@@ -150,7 +154,7 @@ class VirtualPortNextProp(dict):
         """Clear virtual port configuration."""
 
         from empower.ibnp.ibnpserver import IBNPServer
-        ibnp_server = RUNTIME.components[IBNPServer.__module__]
+        ibnp_server = get_module(IBNPServer.__module__)
 
         # remove virtual links
         if key in self.__uuids__:
@@ -179,21 +183,21 @@ class VirtualPortNextProp(dict):
         self.__uuids__[key] = None
 
         from empower.ibnp.ibnpserver import IBNPServer
-        ibnp_server = RUNTIME.components[IBNPServer.__module__]
+        ibnp_server = get_module(IBNPServer.__module__)
 
         rule_uuid = uuid4()
 
-        match = ofmatch_s2d(key)
+        match = Match(key)
         self.my_virtual_port.network_port.add_match(match, rule_uuid)
 
         # set/update intent
         intent = {'version': '1.0',
                   'rule_uuid': rule_uuid,
-                  'ttp_uuid': value.endpoint.endpoint_id,
+                  'ttp_uuid': value.endpoint.uuid,
                   'ttp_vport': value.virtual_port_id,
-                  'stp_uuid': self.my_virtual_port.endpoint.endpoint_id,
+                  'stp_uuid': self.my_virtual_port.endpoint.uuid,
                   'stp_vport': self.my_virtual_port.virtual_port_id,
-                  'match': match}
+                  'match': match.match}
 
         # add new virtual link
         if key in self.__uuids__:

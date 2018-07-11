@@ -96,7 +96,6 @@ class EmpowerRuntime:
         self.wtps = {}
         self.cpps = {}
         self.vbses = {}
-        self.endpoints = {}
         self.datapaths = {}
         self.allowed = {}
         self.log = empower.logger.get_logger()
@@ -374,48 +373,6 @@ class EmpowerRuntime:
             return False
 
         return True
-
-    def add_endpoint(self, endpoint_id, tenant_id, endpoint_name,
-                     desc, dpid, ports):
-        """Add Endpoint."""
-
-        from empower.core.endpoint import Endpoint
-        from empower.core.virtualport import VirtualPort
-
-        endpoint = Endpoint(endpoint_id, endpoint_name, desc)
-
-        for vport_id, vport in ports.items():
-
-            port_id = int(vport['port_id'])
-            network_port = self.datapaths[dpid].network_ports[port_id]
-
-            virtual_port = VirtualPort(endpoint,
-                                       network_port=network_port,
-                                       virtual_port_id=int(vport_id))
-
-            virtual_port.dont_learn = vport['properties']['dont_learn']
-
-            endpoint.ports[int(vport_id)] = virtual_port
-
-        if tenant_id not in self.tenants:
-            raise KeyError(tenant_id)
-
-        tenant = self.tenants[tenant_id]
-        tenant.endpoints[endpoint_id] = endpoint
-        self.endpoints[endpoint_id] = endpoint
-
-    def remove_endpoint(self, endpoint_id, tenant_id):
-        """Remove Endpoint."""
-
-        if endpoint_id not in self.endpoints:
-            raise KeyError(endpoint_id)
-
-        endpoint = self.endpoints[endpoint_id]
-
-        del self.tenants[tenant_id].endpoints[endpoint_id]
-        del self.endpoints[endpoint_id]
-
-        endpoint.ports.clear()
 
     def add_tenant(self, owner, desc, tenant_name, bssid_type,
                    tenant_id=None, plmn_id=None):

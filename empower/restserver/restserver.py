@@ -1391,7 +1391,6 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
             version: protocol version (1.0)
             endpoint_name: the endpoint name
             dpid: the datapath id
-            desc: a description for this endpoint
             ports: a dictionary of VirtualPorts, where each key is a vport_id
                 port_id: the port number on the datapath id
                 properties: a dictionary of additional information
@@ -1420,11 +1419,6 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
             if "dpid" not in request:
                 raise ValueError("missing dpid element")
 
-            if "desc" not in request:
-                desc = "Generic description"
-            else:
-                desc = request['desc']
-
             if "ports" not in request:
                 raise ValueError("missing ports element")
 
@@ -1438,19 +1432,23 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
 
+            if tenant_id not in RUNTIME.tenants:
+                raise KeyError(tenant_id)
+
+            tenant = RUNTIME.tenants[tenant_id]
+
             if len(args) == 1:
                 endpoint_id = uuid4()
             else:
                 endpoint_id = UUID(args[1])
 
             dpid = DPID(request["dpid"])
+            datapath = RUNTIME.datapaths[dpid]
 
-            RUNTIME.add_endpoint(endpoint_id=endpoint_id,
-                                 tenant_id=tenant_id,
-                                 endpoint_name=request["endpoint_name"],
-                                 desc=desc,
-                                 dpid=dpid,
-                                 ports=request["ports"])
+            tenant.add_endpoint(endpoint_id=endpoint_id,
+                                endpoint_name=request["endpoint_name"],
+                                datapath=datapath,
+                                ports=request["ports"])
 
             self.set_header("Location", "/api/v1/tenants/%s/eps/%s"
                             % (tenant_id, endpoint_id))
@@ -1486,9 +1484,15 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
                 raise ValueError("Invalid url")
 
             tenant_id = UUID(args[0])
+
+            if tenant_id not in RUNTIME.tenants:
+                raise KeyError(tenant_id)
+
+            tenant = RUNTIME.tenants[tenant_id]
+
             endpoint_id = UUID(args[1])
 
-            RUNTIME.remove_endpoint(endpoint_id, tenant_id)
+            tenant.remove_endpoint(endpoint_id)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
