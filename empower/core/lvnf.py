@@ -81,26 +81,23 @@ class LVNF(Endpoint):
             stopped, done)
     """
 
-    def __init__(self, uuid, tenant, image):
+    def __init__(self, uuid, tenant, image, cpp=None, state=None):
 
-        super(LVNF, self).__init__(uuid)
+        datapath = None
+        if cpp:
+            datapath = cpp.datapath
+
+        super(LVNF, self).__init__(uuid, "lvnf_ep %s" % uuid, datapath)
 
         self.tenant = tenant
         self.image = image
-        self.__state = None
-        self.__cpp = None
+        self.__state = state
+        self.__cpp = cpp
         self.__target_cpp = None
         self.__context = None
         self.__timer = None
         self.pending = []
         self.log = empower.logger.get_logger()
-
-    def handle_lvnf_status_response(self, cpp):
-        """Status message received."""
-
-        self.__cpp = cpp
-        self.__state = PROCESS_RUNNING
-        self.datapath = cpp.datapath
 
     def handle_del_lvnf_response(self, xid, context):
         """Received as result of a del lvnf command."""
@@ -220,7 +217,7 @@ class LVNF(Endpoint):
         self.__cpp = self.__target_cpp
 
         # set datapath
-        self.datapath = self.cpp.datapath
+        self.datapath = self.__cpp.datapath
 
         # reset target cCPP
         self.__target_cpp = None
