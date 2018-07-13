@@ -408,6 +408,9 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
 
         lvnf.handle_del_lvnf_response(response['xid'], response['context'])
 
+        # remove virtual ports
+        lvnf.ports.clear()
+
         if not lvnf.target_cpp:
             del tenant.lvnfs[lvnf_id]
 
@@ -465,8 +468,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                           state_handlers=img_dict['state_handlers'],
                           handlers=img_dict['handlers'])
 
-            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, self.cpp.datapath, tenant,
-                                         image, self.cpp, "running")
+            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant, image,
+                                         self.cpp, "running")
 
         lvnf = tenant.lvnfs[lvnf_id]
 

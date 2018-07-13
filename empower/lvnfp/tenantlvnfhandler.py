@@ -141,8 +141,7 @@ class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
             else:
                 lvnf_id = uuid.UUID(args[1])
 
-            lvnf = LVNF(uuid=lvnf_id, datapath=cpp.datapath,
-                        tenant=tenant, image=image)
+            lvnf = LVNF(uuid=lvnf_id, tenant=tenant, image=image)
             lvnf.cpp = cpp
 
             tenant.lvnfs[lvnf_id] = lvnf

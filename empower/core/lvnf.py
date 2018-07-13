@@ -81,7 +81,11 @@ class LVNF(Endpoint):
             stopped, done)
     """
 
-    def __init__(self, uuid, datapath, tenant, image, cpp=None, state=None):
+    def __init__(self, uuid, tenant, image, cpp=None, state=None):
+
+        datapath = None
+        if cpp:
+            datapath = cpp.datapath
 
         super(LVNF, self).__init__(uuid, "lvnf_ep %s" % uuid, datapath)
 
@@ -211,6 +215,9 @@ class LVNF(Endpoint):
 
         # set cpp
         self.__cpp = self.__target_cpp
+
+        # set datapath
+        self.datapath = self.__cpp.datapath
 
         # reset target cCPP
         self.__target_cpp = None
