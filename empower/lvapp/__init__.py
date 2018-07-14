@@ -32,10 +32,10 @@ from construct import Padding
 
 PT_VERSION = 0x00
 
-PT_BYE = 0xFF00
-PT_REGISTER = 0xFF01
-PT_LVAP_JOIN = 0xFF02
-PT_LVAP_LEAVE = 0xFF03
+PT_BYE = "bye"
+PT_REGISTER = "register"
+PT_LVAP_JOIN = "lvap_join"
+PT_LVAP_LEAVE = "lvap_leave"
 
 PT_HELLO = 0x04
 PT_PROBE_REQUEST = 0x05

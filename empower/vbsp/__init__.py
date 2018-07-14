@@ -40,10 +40,10 @@ from construct import OptionalGreedyRange
 
 PT_VERSION = 0x01
 
-PT_BYE = 0xFF00
-PT_REGISTER = 0xFF01
-PT_UE_JOIN = 0xFF02
-PT_UE_LEAVE = 0xFF03
+PT_BYE = "bye"
+PT_REGISTER = "register"
+PT_UE_JOIN = "ue_join"
+PT_UE_LEAVE = "ue_leave"
 
 EP_OPERATION_UNSPECIFIED = 0
 EP_OPERATION_SUCCESS = 1
