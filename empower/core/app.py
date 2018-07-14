@@ -17,11 +17,9 @@
 
 """EmPOWER base app class."""
 
-import uuid
 import tornado.ioloop
 import empower.logger
 
-from empower.core.lvnf import LVNF
 from empower.core.resourcepool import ResourcePool
 
 from empower.main import RUNTIME
