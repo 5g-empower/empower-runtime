@@ -271,6 +271,13 @@ class Module:
 
         return out
 
+    def as_json(self):
+        """Return a JSON representation of the object."""
+
+        return json.dumps(self.to_dict(), 
+                          cls=EmpowerEncoder,
+                          indent=4)
+
     @property
     def callback(self):
         """ Return this triger callback. """
