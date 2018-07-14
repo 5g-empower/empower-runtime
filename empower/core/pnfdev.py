@@ -89,6 +89,11 @@ class BasePNFDev:
 
         self.state = P_STATE_CONNECTED
 
+    def is_connected(self):
+        """Return if pnfdev is connected"""
+
+        return self.state == P_STATE_CONNECTED or self.is_online()
+
     def set_disconnected(self):
         """Move to connected state."""
 
