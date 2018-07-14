@@ -18,56 +18,6 @@
 """Virtual Base Station Point."""
 
 from empower.core.pnfdev import BasePNFDev
-from empower.core.utils import ether_to_hex
-
-
-class Cell:
-    """An eNB cell, this track the parameters of one cell."""
-
-    def __init__(self, vbs, pci, cap, DL_earfcn, DL_prbs, UL_earfcn, UL_prbs):
-        self.vbs = vbs
-        self.pci = pci
-        self.cap = cap
-        self.DL_earfcn = DL_earfcn
-        self.DL_prbs = DL_prbs
-        self.UL_earfcn = UL_earfcn
-        self.UL_prbs = UL_prbs
-        self.mac_reports = {}
-
-    def __str__(self):
-        """Return string representation."""
-
-        return "vbs %s eNB id %u cell %u DL_earfcn %u UL_earfcn %u" % \
-            (self.vbs.addr, self.vbs.enb_id, self.pci, self.DL_earfcn,
-             self.UL_earfcn)
-
-    def __hash__(self):
-        return hash(self.vbs) + hash(self.pci)
-
-    def __eq__(self, other):
-        if isinstance(other, Cell):
-            return self.vbs == other.vbs and self.pci == other.pci
-        return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def to_dict(self):
-        """Return a JSON-serializable dictionary representing the CPP."""
-
-        out = {}
-
-        out['enb_id'] = self.vbs.enb_id
-        out['addr'] = self.vbs.addr
-        out['pci'] = self.pci
-        out['cap'] = self.cap
-        out['DL_earfcn'] = self.DL_earfcn
-        out['DL_prbs'] = self.DL_prbs
-        out['UL_earfcn'] = self.UL_earfcn
-        out['UL_prbs'] = self.UL_prbs
-        out['mac_reports'] = self.mac_reports
-
-        return out
 
 
 class VBS(BasePNFDev):
@@ -91,27 +41,11 @@ class VBS(BasePNFDev):
 
     def __init__(self, addr, label):
         super().__init__(addr, label)
-        self.cells = set()
-
-    @property
-    def enb_id(self):
-        """Return tenant id."""
-
-        return ether_to_hex(self.addr)
+        self.cells = {}
 
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 
         out = super().to_dict()
-        out['enb_id'] = self.enb_id
         out['cells'] = self.cells
         return out
-
-    def get_cell(self, pci):
-        """Get cell by PCI."""
-
-        for cell in self.cells:
-            if cell.pci == pci:
-                return cell
-
-        return None
