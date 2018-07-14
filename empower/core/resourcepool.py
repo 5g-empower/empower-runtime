@@ -66,28 +66,6 @@ class TrafficRuleQueueProp(dict):
             return dict.__getitem__(self, key)
 
 
-class CQM(dict):
-    """Override getitem behaviour by returning -inf instead of KeyError
-    when the key is missing."""
-
-    def __getitem__(self, key):
-
-        try:
-
-            return dict.__getitem__(self, key)
-
-        except KeyError:
-
-            inf = {'addr': key,
-                   'last_rssi_std': -float("inf"),
-                   'last_rssi_avg': -float("inf"),
-                   'last_packets': 0,
-                   'hist_packets': 0,
-                   'mov_rssi': -float("inf")}
-
-            return inf
-
-
 class ResourcePool(list):
     """ EmPOWER resource pool.
 
@@ -165,8 +143,8 @@ class ResourceBlock:
         self._hwaddr = hwaddr
         self._channel = channel
         self._band = band
-        self.ucqm = CQM()
-        self.ncqm = CQM()
+        self.ucqm = {}
+        self.ncqm = {}
         self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
         self.traffic_rule_queues = TrafficRuleQueueProp(self)
@@ -304,5 +282,5 @@ class ResourceBlock:
                 other.band == self.band)
 
     def __repr__(self):
-        return "(%s, %s, %u, %s)" % (self.radio.addr, self.hwaddr,
-                                     self.channel, BANDS[self.band])
+        return "wtp %s block %s, %u, %s" % \
+            (self.radio.addr, self.hwaddr, self.channel, BANDS[self.band])
