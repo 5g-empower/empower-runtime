@@ -29,10 +29,9 @@ UE_HO_IN_PROGRESS = "ho_in_progress"
 class UE:
     """User Equipment."""
 
-    def __init__(self, ue_id, imsi, rnti, cell, plmn_id, tenant):
+    def __init__(self, ue_id, rnti, cell, plmn_id, tenant):
 
         self.ue_id = ue_id
-        self.imsi = imsi
         self.rnti = rnti
         self.plmn_id = plmn_id
         self._cell = cell
@@ -84,18 +83,22 @@ class UE:
         self.__state = UE_ACTIVE
 
     def set_active(self):
+        """Set UE status to active."""
 
         self.state = UE_ACTIVE
 
     def set_ho_in_progress(self):
+        """Set UE status to HO in progress."""
 
         self.state = UE_HO_IN_PROGRESS
 
     def is_active(self):
+        """Check if UE is active."""
 
         return self.state == UE_ACTIVE
 
     def is_ho_in_progress(self):
+        """Check if UE is doing an handover."""
 
         return self.state == UE_HO_IN_PROGRESS
 
@@ -115,7 +118,7 @@ class UE:
         if not cell.vbs.is_online():
             raise ValueError("Cell %s is not online" % cell)
 
-        if self.state != UE_ACTIVE:
+        if not self.is_active():
             raise ValueError("An handover is already in progress")
 
         # change state
@@ -145,7 +148,6 @@ class UE:
                 for k, v in self.rrc_measurements.items()}
 
         return {'ue_id': self.ue_id,
-                'imsi': self.imsi,
                 'rnti': self.rnti,
                 'plmn_id': self.plmn_id,
                 'cell': self.cell,
@@ -154,7 +156,7 @@ class UE:
                 'rrc_measurements': rrcs}
 
     def __hash__(self):
-        return hash(self.addr)
+        return hash(self.ue_id)
 
     def __eq__(self, other):
         if isinstance(other, UE):
