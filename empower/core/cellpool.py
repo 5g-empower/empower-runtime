@@ -24,10 +24,13 @@ class CellPool(list):
     This extends the list in order to add a few filtering and sorting methods
     """
 
-    def sort_by_rsrp(self, addr):
+    def sort_by_rsrp(self, ue_id):
         """Return list sorted by rsrp for the specified address."""
 
-        cells = sorted(self, key=lambda x: x.rrc_measurements[addr]['mov_rssi'],
+        filtered = [x for x in self if ue_id in x.rrc_measurements]
+
+        cells = sorted(filtered, 
+                       key=lambda x: x.rrc_measurements[ue_id]['rsrp'],
                        reverse=True)
 
         return CellPool(cells)
@@ -35,14 +38,20 @@ class CellPool(list):
     def first(self):
         """Return first entry in the list."""
 
-        cell = list.__getitem__(self, 0)
-        return CellPool([cell])
+        if self:
+            cell = list.__getitem__(self, 0)
+            return CellPool([cell])
+
+        return CellPool()
 
     def last(self):
         """Return last entry in the list."""
 
-        cell = list.__getitem__(self, -1)
-        return CellPool([cell])
+        if self:
+            cell = list.__getitem__(self, -1)
+            return CellPool([cell])
+
+        return CellPool()
 
 
 class Cell:

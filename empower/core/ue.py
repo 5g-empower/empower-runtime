@@ -17,46 +17,112 @@
 
 """User Equipment class."""
 
+import time
+
+from empower.core.cellpool import Cell
+from empower.core.cellpool import CellPool
+
 import empower.logger
 
-# ue is active
-UE_ACTIVE = "active"
+# add lvap message sent, status received
+PROCESS_RUNNING = "running"
 
-# ho in progress
-UE_HO_IN_PROGRESS = "ho_in_progress"
+# del lvap message(s) sent, no status(es) received
+PROCESS_REMOVING = "removing"
 
 
 class UE:
     """User Equipment."""
 
-    def __init__(self, ue_id, rnti, cell, plmn_id, tenant):
+    def __init__(self, ue_id, rnti, cell, tenant):
 
+        # read only parameters
         self.ue_id = ue_id
-        self.rnti = rnti
-        self.plmn_id = plmn_id
-        self._cell = cell
         self.tenant = tenant
-        self.__state = None
+
+        # set on different situations, e.g. after an handover
+        self.rnti = rnti
+
+        # the current cell
+        self._cell = cell
+
+        # the ue state
+        self._state = PROCESS_RUNNING
+
+        # target cell to be used for handover
+        self.target_cell = None
+
+        # migration sats
+        self._timer = None
+
+        # pending module ids (transions happen when list is empty)
+        self.pending = []
+
+        # the rrc measurement, this is set by an rrc_measurement module
         self.rrc_measurements = {}
+
+        # logger :)
         self.log = empower.logger.get_logger()
 
-    def __str__(self):
-        """Return string representation."""
 
-        return "UE %s (%u) @ %s" % (self.ue_id, self.rnti, self.cell)
+    def handle_ue_handover_response(self, origin_vbs, target_vbs, origin_rnti, target_rnti, origin_pci, target_pci, xid, opcode):
+        """Received as result of a del lvap command."""
+
+        if xid not in self.pending:
+            self.log.error("Xid %u not in pending list, ignoring", xid)
+            return
+
+        if self.state != PROCESS_REMOVING:
+            self.log.error("UE Handover response received in state %s, ignoring",
+                           self.state)
+            return
+
+        self.pending.remove(xid)
+
+        self.log.info("UE %s handover opcode %u %s (%u) -> %s (%u)", 
+                      self.ue_id, opcode, origin_vbs.addr, origin_pci, 
+                      target_vbs.addr, target_pci)
+
+        # handover was a success
+        if opcode == 1:
+
+            # set new cell and rnti
+            self._cell = target_vbs.cells[target_pci]
+            self.rnti = target_rnti
+
+            # set state to running
+            self._state = PROCESS_RUNNING
+
+            return
+
+        # handover failed at the source
+        if origin_vbs == target_vbs:
+
+            # reset new cell and rnti
+            self._cell = origin_vbs.cells[target_pci]
+            self.rnti = origin_rnti
+
+            # set state to running
+            self._state = PROCESS_RUNNING
+
+            return
+
+    def is_running(self):
+        """Check if the UE is running."""
+
+        return self._state == PROCESS_RUNNING
 
     @property
     def state(self):
         """Return the state."""
 
-        return self.__state
+        return self._state
 
     @state.setter
     def state(self, state):
         """Set the CPP."""
 
-        self.log.info("UE %s transition %s->%s", self.ue_id, self.state,
-                      state)
+        self.log.info("UE %s transition %s->%s", self.ue_id, self.state, state)
 
         if self.state:
             method = "_%s_%s" % (self.state, state)
@@ -70,37 +136,29 @@ class UE:
 
         raise IOError("Invalid transistion %s -> %s" % (self.state, state))
 
-    def _none_active(self):
+    def _removing_running(self):
 
-        self.__state = UE_ACTIVE
+        # set new state
+        self._state = PROCESS_RUNNING
 
-    def _active_ho_in_progress(self):
+        # compute stats
+        delta = int((time.time() - self._timer) * 1000)
+        self._timer = None
+        self.log.info("UE %s handover took %sms", self.ue_id, delta)
 
-        self.__state = UE_HO_IN_PROGRESS
+    def _running_removing(self):
 
-    def _ho_in_progress_active(self):
+        # set timer
+        self._timer = time.time()
 
-        self.__state = UE_ACTIVE
+        # set new state
+        self._state = PROCESS_REMOVING
 
-    def set_active(self):
-        """Set UE status to active."""
+        # send ho request message
+        xid = self.vbs.connection.send_ue_ho_request(self, self.target_cell)
 
-        self.state = UE_ACTIVE
-
-    def set_ho_in_progress(self):
-        """Set UE status to HO in progress."""
-
-        self.state = UE_HO_IN_PROGRESS
-
-    def is_active(self):
-        """Check if UE is active."""
-
-        return self.state == UE_ACTIVE
-
-    def is_ho_in_progress(self):
-        """Check if UE is doing an handover."""
-
-        return self.state == UE_HO_IN_PROGRESS
+        # track xid
+        self.pending.append(xid)
 
     @property
     def cell(self):
@@ -112,20 +170,25 @@ class UE:
     def cell(self, cell):
         """ Set the cell. """
 
-        if self._cell == cell:
+        if self.pending:
+            raise ValueError("Handover in progress")
+
+        if not cell:
             return
 
-        if not cell.vbs.is_online():
-            raise ValueError("Cell %s is not online" % cell)
+        if isinstance(cell, CellPool):
+            cell = cell[0]
 
-        if not self.is_active():
-            raise ValueError("An handover is already in progress")
+        if not isinstance(cell, Cell):
+            raise TypeError("Invalid type: %s" % type(cell))
 
-        # change state
-        self.set_ho_in_progress()
+        # save target block
+        self.target_cell = cell
 
-        # perform handover
-        self.cell.vbs.connection.send_ue_ho_request(self, cell)
+        if self.state == PROCESS_RUNNING:
+            self.state = PROCESS_REMOVING
+        else:
+            IOError("Setting blocks on invalid state: %s" % self.state)
 
     @property
     def vbs(self):
@@ -137,9 +200,7 @@ class UE:
     def vbs(self, vbs):
         """ Set the vbs. """
 
-        for cell in vbs.cells:
-            self.cell = cell
-            return
+        self.cell = vbs.cells().first()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
@@ -149,11 +210,16 @@ class UE:
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
-                'plmn_id': self.plmn_id,
                 'cell': self.cell,
                 'vbs': self.vbs,
                 'state': self.state,
                 'rrc_measurements': rrcs}
+
+    def __str__(self):
+        """Return string representation."""
+
+        return "UE %s (%u) @ %s" % (self.ue_id, self.rnti, self.cell)
+
 
     def __hash__(self):
         return hash(self.ue_id)

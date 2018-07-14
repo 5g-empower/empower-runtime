@@ -345,8 +345,7 @@ class VBSPConnection:
             cell = vbs.cells[ue.pci]
             ue_id = uuid.uuid4()
 
-            ue = UE(ue_id, ue.rnti, cell, plmn_id, tenant)
-            ue.set_active()
+            ue = UE(ue_id, ue.rnti, cell, tenant)
 
             RUNTIME.ues[ue.ue_id] = ue
             tenant.ues[ue.ue_id] = ue
@@ -359,7 +358,7 @@ class VBSPConnection:
         # check for leaving UEs
         for ue_id in list(RUNTIME.ues.keys()):
             # handover in progress, ignoring
-            if not RUNTIME.ues[ue_id].is_active():
+            if not RUNTIME.ues[ue_id].is_running():
                 continue
             # ue has left due to an handover, ignore
             if RUNTIME.ues[ue_id].vbs != vbs:
@@ -387,42 +386,24 @@ class VBSPConnection:
         Returns:
             None
         """
+        
+        origin_enbid = EtherAddress(b'\x00\x00' + ho.origin_enbid)
 
-        addr = hex_to_ether(ho.origin_eNB)
-        origin_vbs = RUNTIME.vbses[addr]
+        if origin_enbid not in RUNTIME.vbses:
+            self.log.warning("HO response from unknown VBS %s", RUNTIME.vbses)
+            return
+
+        origin_vbs = RUNTIME.vbses[origin_enbid]
+
         ue = RUNTIME.find_ue_by_rnti(ho.origin_rnti, ho.origin_pci, origin_vbs)
 
         if not ue:
-            self.log.warning("Unable to find UE rnti %u pci %u enb_id %u",
-                             ho.origin_rnti, ho.origin_pci, vbs.enb_id)
+            self.log.warning("Unable to find UE rnti %u pci %u vbs %s",
+                             ho.origin_rnti, ho.origin_pci, origin_vbs)
             return
 
-        if event.op == EP_OPERATION_SUCCESS:
-
-            # set new cell and rnti
-            ue._cell = vbs.get_cell(hdr.cellid)
-            ue.rnti = ho.target_rnti
-
-            # UE was removed from source eNB and added to the target, set
-            # status to active, otherwise just return (this is to account for
-            # handovers triggered by the eNB)
-
-            if ue.is_ho_in_progress():
-                ue.set_active()
-
-            return
-
-        self.log.warning("Handover error UE %s error %u origin %s target %s",
-                         ue.ue_id, event.op, ue.vbs.addr, vbs.addr)
-
-        # error from source VBS, reset UE state
-        if ue.vbs == vbs:
-            if ue.is_ho_in_progress():
-                ue.set_active()
-                return
-
-        # error at target, removing UE
-        RUNTIME.remove_ue(ue.ue_id)
+        ue.handle_ue_handover_response(origin_vbs, self.vbs, ho.origin_rnti, ho.target_rnti, 
+                                       ho.origin_pci, hdr.cellid, hdr.xid, event.opcode)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
@@ -435,7 +416,11 @@ class VBSPConnection:
         """
 
         msg = Container(dummy=0)
-        self.send_message(msg, E_TYPE_SINGLE, EP_ACT_CAPS, CAPS_REQUEST)
+        
+        self.send_message(msg, 
+                          E_TYPE_SINGLE, 
+                          EP_ACT_CAPS, 
+                          CAPS_REQUEST)
     
     def send_ue_reports_request(self):
         """Send a UE Reports message.
@@ -448,8 +433,12 @@ class VBSPConnection:
         """
 
         msg = Container(dummy=0)
-        self.send_message(msg, E_TYPE_TRIG, EP_ACT_UE_REPORT, UE_REPORT_REQUEST, opcode=EP_OPERATION_ADD)
 
+        self.send_message(msg, 
+                          E_TYPE_TRIG, 
+                          EP_ACT_UE_REPORT, 
+                          UE_REPORT_REQUEST, 
+                          opcode=EP_OPERATION_ADD)
 
     def send_ue_ho_request(self, ue, cell):
         """Send a UE_HO_REQUEST message.
@@ -461,16 +450,9 @@ class VBSPConnection:
             None
         """
 
-        ue_ho_request = Container(type=E_TYPE_SINGLE,
-                                  cellid=ue.cell.pci,
-                                  modid=get_xid(),
-                                  length=UE_HO_REQUEST.sizeof(),
-                                  action=EP_ACT_HANDOVER,
-                                  dir=EP_DIR_REQUEST,
-                                  op=EP_OPERATION_UNSPECIFIED,
-                                  rnti=ue.rnti,
-                                  target_enb=cell.vbs.enb_id,
-                                  target_pci=cell.pci,
-                                  cause=1)
+        msg = Container(rnti=ue.rnti,
+                        target_enbid=b'\x00\x00' + cell.vbs.addr.to_raw(),
+                        target_pci=cell.pci,
+                        cause=1)
 
-        self.send_message(ue_ho_request, UE_HO_REQUEST)
+        return self.send_message(msg, E_TYPE_SINGLE, EP_ACT_HANDOVER, UE_HO_REQUEST, cellid=ue.cell.pci)

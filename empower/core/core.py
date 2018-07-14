@@ -589,7 +589,7 @@ class EmpowerRuntime:
 
             # removing UE from tenant, need first to look for right tenant
             if ue.ue_id in ue.tenant.ues:
-                self.log.info("Removing %s from tenant %s", ue.ue_id, ue.plmn_id)
+                self.log.info("Removing %s from tenant %s", ue.ue_id, ue.tenant.plmn_id)
                 del ue.tenant.ues[ue.ue_id]
 
             # Raise UE leave event

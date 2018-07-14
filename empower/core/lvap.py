@@ -138,14 +138,11 @@ class LVAP:
         self._downlink = None
         self._uplink = []
 
-        # target block for handover
-        self.target_blocks = None
-
         # the lvap state
         self._state = None
 
         # target block to be used for handover
-        self._target_blocks = None
+        self.target_blocks = None
 
         # migration sats
         self._timer = None
