@@ -17,7 +17,6 @@
 
 """VBSP Connection."""
 
-import random
 import uuid
 import time
 import tornado.ioloop
@@ -25,20 +24,19 @@ import tornado.ioloop
 from construct import Container
 
 from empower.datatypes.plmnid import PLMNID
+from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
 from empower.vbsp import PT_BYE
 from empower.vbsp import PT_REGISTER
-from empower.vbsp import PT_UE_JOIN
-from empower.vbsp import PT_UE_LEAVE
+from empower.vbsp import EP_ACT_HELLO
+from empower.vbsp import EP_ACT_CAPS
 from empower.vbsp import E_TYPE_SINGLE
 from empower.vbsp import E_TYPE_SCHED
 from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import E_SINGLE
 from empower.vbsp import E_SCHED
 from empower.vbsp import E_TRIG
-from empower.vbsp import EP_ACT_ECAP
-from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
 from empower.vbsp import UE_HO_REQUEST
@@ -47,10 +45,11 @@ from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
 from empower.vbsp import EP_OPERATION_SUCCESS
 from empower.vbsp import EP_ACT_HANDOVER
+from empower.vbsp import CAPS_TYPES
+from empower.vbsp import EP_CAPS_CELL
 from empower.core.utils import hex_to_ether
-from empower.core.utils import ether_to_hex
 from empower.core.utils import get_xid
-from empower.core.vbs import Cell
+from empower.core.cellpool import Cell
 from empower.core.ue import UE
 
 from empower.main import RUNTIME
@@ -149,11 +148,10 @@ class VBSPConnection:
 
         if self.server.pt_types[msg_type]:
 
-            self.log.info("Got message type %u (%s)", msg_type,
-                          self.server.pt_types[msg_type].name)
-
             msg = self.server.pt_types[msg_type].parse(self.__buffer[offset:])
-            addr = hex_to_ether(hdr.enbid)
+            msg_name = self.server.pt_types[msg_type].name
+
+            addr = EtherAddress(hdr.enbid[2:8])
 
             try:
                 vbs = RUNTIME.vbses[addr]
@@ -162,12 +160,27 @@ class VBSPConnection:
                 self.stream.close()
                 return
 
-            name = self.server.pt_types[msg_type].name
-            handler_name = "_handle_%s" % name
+            if not self.vbs:
+                self.vbs = vbs
+
+            valid = [EP_ACT_HELLO]
+            if not self.vbs.is_connected() and msg_type not in valid:
+                self.log.info("Got %s message from disconnected VBS %s seq %u",
+                              msg_name, addr, hdr.seq)
+                return
+
+            valid = [EP_ACT_HELLO, EP_ACT_CAPS]
+            if not self.vbs.is_online() and msg_type not in valid:
+                self.log.info("Got %s message from offline VBS %s seq %u",
+                              msg_name, addr, hdr.seq)
+                return
+
+            self.log.info("Got %s message from %s seq %u xid %u",
+                          msg_name, self.vbs.addr, hdr.seq, hdr.xid)
+
+            handler_name = "_handle_%s" % msg_name
 
             if hasattr(self, handler_name):
-                self.log.info("%s from %s VBS %s seq %u",
-                              name, self.addr[0], vbs.addr, hdr.seq)
                 handler = getattr(self, handler_name)
                 handler(vbs, hdr, event, msg)
 
@@ -222,20 +235,31 @@ class VBSPConnection:
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.vbs)
 
-    def send_message(self, msg, parser):
+    def send_message(self, msg, msg_type, action, parser, cellid=0, 
+                     xid=0, opcode=EP_OPERATION_UNSPECIFIED):
         """Send message and set common parameters."""
 
+        msg.type = msg_type
         msg.version = PT_VERSION
-        msg.enbid = self.vbs.enb_id
+        msg.enbid = b'\x00\x00' + self.vbs.addr.to_raw()
+        msg.cellid = cellid
+        if xid != 0:
+            msg.xid = xid
+        else:
+            msg.xid = get_xid()
+        msg.flags = Container(dir=1)
         msg.seq = self.vbs.seq
+        msg.length = parser.sizeof()
+
+        msg.action = action
+        msg.opcode = opcode
 
         self.log.info("Sending %s to %s", parser.name, self.vbs)
-
         self.stream.write(parser.build(msg))
 
-        return msg.modid
+        return msg.xid
 
-    def _handle_hello(self, vbs, hdr, event, hello):
+    def _handle_hello(self, vbs, hdr, event, _):
         """Handle an incoming HELLO message.
         Args:
             hello, a HELLO message
@@ -245,9 +269,6 @@ class VBSPConnection:
 
         # New connection
         if not vbs.connection:
-
-            # set pointer to pnfdev object
-            self.vbs = vbs
 
             # set connection
             vbs.connection = self
@@ -263,43 +284,24 @@ class VBSPConnection:
         vbs.last_seen = hdr.seq
         vbs.last_seen_ts = time.time()
 
-    def send_caps_request(self):
-        """Send a CAPS_REQUEST message.
-        Args:
-            vbs: an VBS object
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
-
-        caps_request = Container(type=E_TYPE_SINGLE,
-                                 cellid=0,
-                                 modid=get_xid(),
-                                 length=CAPS_REQUEST.sizeof(),
-                                 action=EP_ACT_ECAP,
-                                 dir=EP_DIR_REQUEST,
-                                 op=EP_OPERATION_UNSPECIFIED,
-                                 dummy=0)
-
-        self.send_message(caps_request, CAPS_REQUEST)
-
     def _handle_caps_response(self, vbs, hdr, event, caps):
         """Handle an incoming HELLO message.
         Args:
-            hello, a CAPS message
+            hello, a CAPS messagge
         Returns:
             None
         """
 
         # clear cells
-        vbs.cells = set()
+        vbs.cells = {}
 
         # add new cells
-        for c in caps.cells:
-            cell = Cell(vbs, c.pci, c.cap, c.DL_earfcn, c.DL_prbs,
-                        c.UL_earfcn, c.UL_prbs)
-            vbs.cells.add(cell)
+        for raw_cap in caps.options:
+            cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
+            if raw_cap.type == EP_CAPS_CELL:
+                cell = Cell(vbs, cap.pci, cap.cap, cap.dl_earfcn, cap.dl_prbs,
+                            cap.ul_earfcn, cap.ul_prbs)
+                vbs.cells[cap.pci] = cell
 
         # transition to the online state
         vbs.set_online()
@@ -307,27 +309,6 @@ class VBSPConnection:
         # if UE reports are supported then activate them
         if bool(caps.flags.ue_report):
             self.send_ue_reports_request()
-
-    def send_ue_reports_request(self):
-        """Send a UE Reports message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            TypeError: if vap is not an VAP object
-        """
-
-        ue_report = Container(type=E_TYPE_TRIG,
-                              cellid=0,
-                              modid=get_xid(),
-                              length=UE_REPORT_REQUEST.sizeof(),
-                              action=EP_ACT_UE_REPORT,
-                              dir=EP_DIR_REQUEST,
-                              op=EP_OPERATION_ADD,
-                              dummy=0)
-
-        self.send_message(ue_report, UE_REPORT_REQUEST)
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -337,15 +318,15 @@ class VBSPConnection:
             None
         """
 
-        if not vbs.is_online():
-            self.log.warning("VBS %s not active. ignoring ue_report", vbs.addr)
-            return
+        incoming = []
 
         for ue in ue_report.ues:
 
+            # UE already known, ignore.
             if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
                 continue
 
+            # otherwise check if we can add it
             plmn_id = PLMNID(ue.plmn_id[1:].hex())
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
@@ -357,15 +338,14 @@ class VBSPConnection:
                 self.log.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
                 continue
 
-            cell = vbs.get_cell(ue.pci)
-
-            if not cell:
+            if ue.pci not in vbs.cells:
                 self.log.info("PCI %u not found", ue.pci)
                 continue
 
+            cell = vbs.cells[ue.pci]
             ue_id = uuid.uuid4()
 
-            ue = UE(ue_id, ue.imsi, ue.rnti, cell, plmn_id, tenant)
+            ue = UE(ue_id, ue.rnti, cell, plmn_id, tenant)
             ue.set_active()
 
             RUNTIME.ues[ue.ue_id] = ue
@@ -373,12 +353,7 @@ class VBSPConnection:
 
             self.server.send_ue_join_message_to_self(ue)
 
-        # incoming ues
-        incoming = []
-        for inc_ue in ue_report.ues:
-            ue = RUNTIME.find_ue_by_rnti(inc_ue.rnti, inc_ue.pci, vbs)
-            if not ue:
-                continue
+            # save the new ue id
             incoming.append(ue.ue_id)
 
         # check for leaving UEs
@@ -394,30 +369,6 @@ class VBSPConnection:
                 continue
             # ue has left
             RUNTIME.remove_ue(ue_id)
-
-    def send_ue_ho_request(self, ue, cell):
-        """Send a UE_HO_REQUEST message.
-        Args:
-            None
-        Returns:
-            None
-        Raises:
-            None
-        """
-
-        ue_ho_request = Container(type=E_TYPE_SINGLE,
-                                  cellid=ue.cell.pci,
-                                  modid=get_xid(),
-                                  length=UE_HO_REQUEST.sizeof(),
-                                  action=EP_ACT_HANDOVER,
-                                  dir=EP_DIR_REQUEST,
-                                  op=EP_OPERATION_UNSPECIFIED,
-                                  rnti=ue.rnti,
-                                  target_enb=cell.vbs.enb_id,
-                                  target_pci=cell.pci,
-                                  cause=1)
-
-        self.send_message(ue_ho_request, UE_HO_REQUEST)
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.
@@ -472,3 +423,54 @@ class VBSPConnection:
 
         # error at target, removing UE
         RUNTIME.remove_ue(ue.ue_id)
+
+    def send_caps_request(self):
+        """Send a CAPS_REQUEST message.
+        Args:
+            vbs: an VBS object
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        msg = Container(dummy=0)
+        self.send_message(msg, E_TYPE_SINGLE, EP_ACT_CAPS, CAPS_REQUEST)
+    
+    def send_ue_reports_request(self):
+        """Send a UE Reports message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            TypeError: if vap is not an VAP object
+        """
+
+        msg = Container(dummy=0)
+        self.send_message(msg, E_TYPE_TRIG, EP_ACT_UE_REPORT, UE_REPORT_REQUEST, opcode=EP_OPERATION_ADD)
+
+
+    def send_ue_ho_request(self, ue, cell):
+        """Send a UE_HO_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        ue_ho_request = Container(type=E_TYPE_SINGLE,
+                                  cellid=ue.cell.pci,
+                                  modid=get_xid(),
+                                  length=UE_HO_REQUEST.sizeof(),
+                                  action=EP_ACT_HANDOVER,
+                                  dir=EP_DIR_REQUEST,
+                                  op=EP_OPERATION_UNSPECIFIED,
+                                  rnti=ue.rnti,
+                                  target_enb=cell.vbs.enb_id,
+                                  target_pci=cell.pci,
+                                  cause=1)
+
+        self.send_message(ue_ho_request, UE_HO_REQUEST)

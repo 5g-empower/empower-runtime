@@ -31,12 +31,11 @@ from construct import Bit
 
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
-from empower.core.vbs import Cell
+from empower.core.cellpool import Cell
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModuleTrigger
 from empower.vbsp import PT_VERSION
 from empower.vbsp import E_TYPE_TRIG
-from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_ADD
 
 from empower.main import RUNTIME
@@ -44,24 +43,24 @@ from empower.main import RUNTIME
 
 EP_ACT_MAC_REPORTS = 0x06
 
-MAC_REPORTS_REQ = Struct("mac_reports_req",
+MAC_REPORTS_REQ = Struct("rrc_request",
                          UBInt8("type"),
                          UBInt8("version"),
-                         UBInt32("enbid"),
+                         Bytes("enbid", 8),
                          UBInt16("cellid"),
-                         UBInt32("modid"),
-                         UBInt16("length"),
+                         UBInt32("xid"),
+                         BitStruct("flags", Padding(15), Bit("dir")),
                          UBInt32("seq"),
-                         UBInt8("action"),
-                         UBInt8("dir"),
-                         UBInt8("op"),
+                         UBInt16("length"),
+                         UBInt16("action"),
+                         UBInt8("opcode"), 
                          UBInt16("deadline"))
 
 MAC_REPORTS_RESP = Struct("mac_reports_resp",
-                          UBInt8("DL_prbs_total"),
-                          UBInt32("DL_prbs_used"),
-                          UBInt8("UL_prbs_total"),
-                          UBInt32("UL_prbs_used"))
+                          UBInt8("dl_prbs_total"),
+                          UBInt32("dl_prbs_used"),
+                          UBInt8("ul_prbs_total"),
+                          UBInt32("ul_prbs_used"))
 
 
 class MACReports(ModuleTrigger):
@@ -79,8 +78,8 @@ class MACReports(ModuleTrigger):
         self._deadline = None
 
         # stats
-        self.DL_prbs_last = 0
-        self.UL_prbs_last = 0
+        self.dl_prbs_last = 0
+        self.ul_prbs_last = 0
         self.results = {}
 
         # set this for auto-cleanup
@@ -117,11 +116,11 @@ class MACReports(ModuleTrigger):
             self._cell = vbs.get_cell(pci)
 
             if not self._cell:
-                raise ValueError("Invalid pci %u", pci)
+                raise ValueError("Invalid pci %u" % pci)
 
         else:
 
-            raise Exception("Invalid cell value %s", value)
+            raise Exception("Invalid cell value %s" % value)
 
     @property
     def deadline(self):
@@ -163,16 +162,15 @@ class MACReports(ModuleTrigger):
 
         self.vbs = self.cell.vbs
 
-        mac_reports_req = Container(type=E_TYPE_TRIG,
-                                    cellid=self.cell.pci,
-                                    modid=self.module_id,
-                                    length=MAC_REPORTS_REQ.sizeof(),
-                                    action=EP_ACT_MAC_REPORTS,
-                                    dir=EP_DIR_REQUEST,
-                                    op=EP_OPERATION_ADD,
-                                    deadline=self.deadline)
+        msg = Container(deadline=self.deadline)
 
-        self.vbs.connection.send_message(mac_reports_req, MAC_REPORTS_REQ)
+        self.vbs.connection.send_message(msg,
+                                         E_TYPE_TRIG, 
+                                         EP_ACT_MAC_REPORTS, 
+                                         MAC_REPORTS_REQ, 
+                                         cellid=self.cell.pci,
+                                         xid=self.module_id, 
+                                         opcode=EP_OPERATION_ADD)
 
     def handle_response(self, meas):
         """Handle an incoming MAC_REPORTS_RESP message.
@@ -182,19 +180,19 @@ class MACReports(ModuleTrigger):
             None
         """
 
-        self.results['DL_prbs_total'] = meas.DL_prbs_total
-        self.results['DL_prbs_used'] = meas.DL_prbs_used
-        self.results['DL_prbs_last'] = meas.DL_prbs_used - self.DL_prbs_last
-        self.DL_prbs_last = meas.DL_prbs_used
-        self.results['DL_util_last'] = float(self.results['DL_prbs_last']) / \
-            (meas.DL_prbs_total * self.deadline)
+        self.results['dl_prbs_total'] = meas.dl_prbs_total
+        self.results['dl_prbs_used'] = meas.dl_prbs_used
+        self.results['dl_prbs_last'] = meas.dl_prbs_used - self.dl_prbs_last
+        self.dl_prbs_last = meas.dl_prbs_used
+        self.results['dl_util_last'] = float(self.results['dl_prbs_last']) / \
+            (meas.dl_prbs_total * self.deadline)
 
-        self.results['UL_prbs_total'] = meas.UL_prbs_total
-        self.results['UL_prbs_used'] = meas.UL_prbs_used
-        self.results['UL_prbs_last'] = meas.UL_prbs_used - self.UL_prbs_last
-        self.UL_prbs_last = meas.UL_prbs_used
-        self.results['UL_util_last'] = float(self.results['UL_prbs_last']) / \
-            (meas.UL_prbs_total * self.deadline)
+        self.results['ul_prbs_total'] = meas.ul_prbs_total
+        self.results['ul_prbs_used'] = meas.ul_prbs_used
+        self.results['ul_prbs_last'] = meas.ul_prbs_used - self.ul_prbs_last
+        self.ul_prbs_last = meas.ul_prbs_used
+        self.results['ul_util_last'] = float(self.results['ul_prbs_last']) / \
+            (meas.ul_prbs_total * self.deadline)
 
         self.cell.mac_reports = self.results
 

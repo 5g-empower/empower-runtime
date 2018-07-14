@@ -79,6 +79,8 @@ class Cell:
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 
+        rrc = {str(k): v for k, v in self.rrc_measurements.items()}
+
         out = {}
 
         out['addr'] = self.vbs.addr
@@ -89,5 +91,6 @@ class Cell:
         out['ul_earfcn'] = self.ul_earfcn
         out['ul_prbs'] = self.ul_prbs
         out['mac_reports'] = self.mac_reports
+        out['rrc_measurements'] = rrc
 
         return out
