@@ -43,12 +43,12 @@ class EmpowerApp:
             setattr(self, param, kwargs[param])
             self.params.append(param)
 
-    def ue_leave(self, lvap):
+    def ue_leave(self, ue):
         """Called when a UE leaves a tenant."""
 
         pass
 
-    def ue_join(self, lvap):
+    def ue_join(self, ue):
         """Called when a UE joins a tenant."""
 
         pass
