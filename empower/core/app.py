@@ -45,6 +45,16 @@ class EmpowerApp:
             setattr(self, param, kwargs[param])
             self.params.append(param)
 
+    def ue_leave(self, lvap):
+        """Called when a UE leaves a tenant."""
+
+        pass
+
+    def ue_join(self, lvap):
+        """Called when a UE joins a tenant."""
+
+        pass
+
     def lvnf_leave(self, lvap):
         """Called when an LVNF leaves a tenant."""
 
@@ -70,7 +80,7 @@ class EmpowerApp:
 
         pass
 
-    def vns_up(self, vbs):
+    def vbs_up(self, vbs):
         """Called when a VBS connects from the controller."""
 
         pass
