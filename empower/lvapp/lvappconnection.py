@@ -433,8 +433,8 @@ class LVAPPConnection:
             if self.wtp.addr not in tenant.wtps:
                 continue
 
-            for rule in tenant.traffic_rule_queues:
-                tenant.dispach_traffic_rule_queue(rule)
+            for slc in tenant.slices:
+                tenant.set_traffic_rule_queues(slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.

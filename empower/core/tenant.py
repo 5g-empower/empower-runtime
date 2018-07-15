@@ -22,14 +22,13 @@ import json
 from sqlalchemy.exc import IntegrityError
 
 from empower.persistence.persistence import TblBelongs
-from empower.persistence.persistence import TblTrafficRuleQueue
+from empower.persistence.persistence import TblSlice
 from empower.persistence.persistence import TblTrafficRule
 from empower.core.lvnf import LVNF
 from empower.persistence import Session
 from empower.core.utils import get_module
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.trafficrulequeue import TrafficRuleQueue
-
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
@@ -48,8 +47,6 @@ class Tenant:
         owner: The username of the user that requested this pool
         desc: Human readable description
         bssid_type: shared (VAP) or unique (LVAP)
-        traffic_rules: dictionary mapping dscp values to traffic rules. 0 is
-            the default traffic rule created when the WTP connects.
     """
 
     TO_DICT = ['tenant_id',
@@ -65,7 +62,7 @@ class Tenant:
                'cpps',
                'vbses',
                'components',
-               'traffic_rule_queues',
+               'slices',
                'traffic_rules']
 
     def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type,
@@ -189,11 +186,11 @@ class Tenant:
         return results
 
     def add_traffic_rule(self, match, dscp, label):
-        """Add a new TR to the Tenant.
+        """Add a new traffic rule to the Tenant.
 
         Args:
             match, a Match object
-            trq, a TrafficRuleQueue object
+            dscp, a slice DSCP code
             label, a humand readable description of the rule
         Returns:
             None
@@ -202,12 +199,12 @@ class Tenant:
             Nones
         """
 
-        trq = TblTrafficRule(tenant_id=self.tenant_id, match=match,
-                             dscp=dscp, label=label)
+        rule = TblTrafficRule(tenant_id=self.tenant_id, match=match,
+                              dscp=dscp, label=label)
 
         try:
             session = Session()
-            session.add(trq)
+            session.add(rule)
             session.commit()
         except IntegrityError:
             session.rollback()
@@ -242,26 +239,26 @@ class Tenant:
         session.commit()
 
     @property
-    def traffic_rule_queues(self):
-        """Fetch traffic rule queues in this tenant."""
+    def slices(self):
+        """Fetch slices in this tenant."""
 
-        trqs = \
-            Session().query(TblTrafficRuleQueue) \
-                     .filter(TblTrafficRuleQueue.tenant_id == self.tenant_id) \
+        slices = \
+            Session().query(TblSlice) \
+                     .filter(TblSlice.tenant_id == self.tenant_id) \
                      .all()
 
         results = {}
 
-        for trq in trqs:
-            amsdu_aggregation = trq.amsdu_aggregation
-            results[trq.dscp] = {'quantum': trq.quantum,
+        for slc in slices:
+            amsdu_aggregation = slc.amsdu_aggregation
+            results[slc.dscp] = {'quantum': slc.quantum,
                                  'amsdu_aggregation': amsdu_aggregation,
-                                 'dscp': trq.dscp}
+                                 'dscp': slc.dscp}
 
         return results
 
-    def add_traffic_rule_queue(self, dscp, quantum, amsdu_aggregation):
-        """Add a new TRQ to the Tenant.
+    def add_slice(self, dscp, quantum, amsdu_aggregation):
+        """Add a new slice to the Tenant.
 
         Args:
             dscp, a DSCP object
@@ -277,23 +274,23 @@ class Tenant:
 
         amsdu_aggregation = json.loads(amsdu_aggregation.lower())
 
-        trq = TblTrafficRuleQueue(tenant_id=self.tenant_id,
-                                  dscp=dscp,
-                                  quantum=int(quantum),
-                                  amsdu_aggregation=amsdu_aggregation)
+        slc = TblSlice(tenant_id=self.tenant_id,
+                       dscp=dscp,
+                       quantum=int(quantum),
+                       amsdu_aggregation=amsdu_aggregation)
 
         try:
             session = Session()
-            session.add(trq)
+            session.add(slc)
             session.commit()
         except IntegrityError:
             session.rollback()
             raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, dscp))
 
-        self.dispach_traffic_rule_queue(dscp)
+        self.set_traffic_rule_queues(dscp)
 
-    def set_traffic_rule_queue(self, dscp, quantum, amsdu_aggregation):
-        """Add a new TRQ to the Tenant.
+    def set_slice(self, dscp, quantum, amsdu_aggregation):
+        """Update a slice.
 
         Args:
             dscp, a DSCP object
@@ -307,23 +304,25 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        trq = Session().query(TblTrafficRuleQueue) \
-                       .filter(TblTrafficRuleQueue.dscp == dscp) \
+        amsdu_aggregation = json.loads(amsdu_aggregation.lower())
+
+        slc = Session().query(TblSlice) \
+                       .filter(TblSlice.dscp == dscp) \
                        .first()
-        if not trq:
+        if not slc:
             raise KeyError(dscp)
 
         session = Session()
 
-        trq.quantum = quantum
-        trq.amsdu_aggregation = amsdu_aggregation
+        slc.quantum = quantum
+        slc.amsdu_aggregation = amsdu_aggregation
 
         session.commit()
 
-        self.dispach_traffic_rule_queue(dscp)
+        self.set_traffic_rule_queues(dscp)
 
-    def del_traffic_rule_queue(self, dscp):
-        """Add a new TRQ to the Tenant.
+    def del_slice(self, dscp):
+        """Del slice from all blocks.
 
         Args:
             dscp, a DSCP object
@@ -335,47 +334,47 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        trq = Session().query(TblTrafficRuleQueue) \
+        slc = Session().query(TblSlice) \
                        .filter(TblBelongs.tenant_id == self.tenant_id,
-                               TblTrafficRuleQueue.dscp == dscp) \
+                               TblSlice.dscp == dscp) \
                        .first()
-        if not trq:
+        if not slc:
             raise KeyError(dscp)
 
         for wtp in self.wtps.values():
             for block in wtp.supports:
-                msg = \
+                trq = \
                     TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=trq.dscp,
+                                     dscp=slc.dscp,
                                      block=block,
-                                     quantum=trq.quantum,
-                                     amsdu_aggregation=trq.amsdu_aggregation)
-                block.radio.connection.send_del_traffic_rule_queue(msg)
+                                     quantum=slc.quantum,
+                                     amsdu_aggregation=slc.amsdu_aggregation)
+                block.radio.connection.send_del_traffic_rule_queue(trq)
 
         session = Session()
-        session.delete(trq)
+        session.delete(slc)
         session.commit()
 
-    def dispach_traffic_rule_queue(self, dscp):
-        """Send the trq tto all the wtps in this tenant."""
+    def set_traffic_rule_queues(self, dscp):
+        """Add slice to all blocks."""
 
-        trq = Session().query(TblTrafficRuleQueue) \
+        slc = Session().query(TblSlice) \
                        .filter(TblBelongs.tenant_id == self.tenant_id,
-                               TblTrafficRuleQueue.dscp == dscp) \
+                               TblSlice.dscp == dscp) \
                        .first()
 
         for wtp in self.wtps.values():
 
             for block in wtp.supports:
 
-                msg = \
+                trq = \
                     TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=trq.dscp,
+                                     dscp=slc.dscp,
                                      block=block,
-                                     quantum=trq.quantum,
-                                     amsdu_aggregation=trq.amsdu_aggregation)
+                                     quantum=slc.quantum,
+                                     amsdu_aggregation=slc.amsdu_aggregation)
 
-                block.radio.connection.send_set_traffic_rule_queue(msg)
+                block.radio.connection.send_set_traffic_rule_queue(trq)
 
     def add_pnfdev(self, pnfdev):
         """Add a new PNF Dev to the Tenant.
