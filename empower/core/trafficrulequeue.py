@@ -66,9 +66,14 @@ class TrafficRuleQueue(object):
     def amsdu_aggregation(self, amsdu_aggregation):
         """ Set amsdu_aggregation. """
 
-        self._amsdu_aggregation = bool(amsdu_aggregation)
+        self.set_amsdu_aggregation(amsdu_aggregation)
 
         self.block.radio.connection.send_set_traffic_rule(self)
+
+    def set_amsdu_aggregation(self, amsdu_aggregation):
+        """ Set amsdu_aggregation without sending out anything. """
+
+        self._amsdu_aggregation = bool(amsdu_aggregation)
 
     @property
     def quantum(self):
@@ -80,6 +85,11 @@ class TrafficRuleQueue(object):
     def quantum(self, quantum):
         """ Set quantum . """
 
-        self._quantum = int(quantum)
+        self.set_quantum(quantum)
 
         self.block.radio.connection.send_set_traffic_rule(self)
+
+    def set_quantum(self, quantum):
+        """ Set quantum without sending anything. """
+
+        self._quantum = int(quantum)

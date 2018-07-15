@@ -94,9 +94,14 @@ class TxPolicy:
     def ur_count(self, ur_count):
         """ Set ur_count . """
 
-        self._ur_count = int(ur_count)
+        self.set_ur_count(ur_count)
 
         self.block.radio.connection.send_set_port(self)
+
+    def set_ur_count(self, ur_count):
+        """ Set ur_count without sending anything. """
+
+        self._ur_count = int(ur_count)
 
     @property
     def mcast(self):
@@ -108,9 +113,14 @@ class TxPolicy:
     def mcast(self, mcast):
         """ Set the mcast mode. """
 
-        self._mcast = mcast if mcast in TX_MCAST else TX_MCAST_LEGACY
+        self.set_mcast(mcast)
 
         self.block.radio.connection.send_set_port(self)
+
+    def set_mcast(self, mcast):
+        """ Set the mcast mode without sending anything. """
+
+        self._mcast = int(mcast) if int(mcast) in TX_MCAST else TX_MCAST_LEGACY
 
     @property
     def mcs(self):
@@ -122,12 +132,17 @@ class TxPolicy:
     def mcs(self, mcs):
         """ Set the list of MCS. """
 
+        self.set_mcs(mcs)
+
+        self.block.radio.connection.send_set_port(self)
+
+    def set_mcs(self, mcs):
+        """ Set the list of MCS without sending anything. """
+
         self._mcs = self.block.supports & set(mcs)
 
         if not self._mcs:
             self._mcs = self.block.supports
-
-        self.block.radio.connection.send_set_port(self)
 
     @property
     def ht_mcs(self):
@@ -139,12 +154,17 @@ class TxPolicy:
     def ht_mcs(self, ht_mcs):
         """ Set the list of MCS. """
 
+        self.set_ht_mcs(ht_mcs)
+
+        self.block.radio.connection.send_set_port(self)
+
+    def set_ht_mcs(self, ht_mcs):
+        """ Set the list of HT MCS without sending anything. """
+
         self._ht_mcs = self.block.ht_supports & set(ht_mcs)
 
         if not self._ht_mcs:
             self._ht_mcs = self.block.ht_supports
-
-        self.block.radio.connection.send_set_port(self)
 
     @property
     def no_ack(self):
@@ -156,9 +176,14 @@ class TxPolicy:
     def no_ack(self, no_ack):
         """ Set the no ack flag. """
 
-        self._no_ack = True if no_ack else False
+        self.set_no_ack(no_ack)
 
         self.block.radio.connection.send_set_port(self)
+
+    def set_no_ack(self, no_ack):
+        """ Set the no ack flag without sending anything. """
+
+        self._no_ack = True if bool(no_ack) else False
 
     @property
     def rts_cts(self):
@@ -170,6 +195,11 @@ class TxPolicy:
     def rts_cts(self, rts_cts):
         """ Set rts_cts . """
 
-        self._rts_cts = int(rts_cts)
+        self.set_rts_cts(rts_cts)
 
         self.block.radio.connection.send_set_port(self)
+
+    def set_rts_cts(self, rts_cts):
+        """ Set rts_cts without sending anything. """
+
+        self._rts_cts = int(rts_cts)

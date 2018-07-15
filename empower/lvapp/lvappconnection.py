@@ -686,18 +686,17 @@ class LVAPPConnection:
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
             return
 
         sta = EtherAddress(status.sta)
         tx_policy = valid[0].tx_policies[sta]
 
-        tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
-        tx_policy._ht_mcs = set([int(x) for x in status.ht_mcs])
-        tx_policy._rts_cts = int(status.rts_cts)
-        tx_policy._mcast = int(status.tx_mcast)
-        tx_policy._ur_count = int(status.ur_mcast_count)
-        tx_policy._no_ack = bool(status.flags.no_ack)
+        tx_policy.set_mcs([float(x) / 2 for x in status.mcs])
+        tx_policy.set_ht_mcs([int(x) for x in status.ht_mcs])
+        tx_policy.set_rts_cts(status.rts_cts)
+        tx_policy.set_mcast(status.tx_mcast)
+        tx_policy.set_ur_count(status.ur_mcast_count)
+        tx_policy.set_no_ack(status.flags.no_ack)
 
         self.log.info("Port status %s", tx_policy)
 
@@ -725,13 +724,12 @@ class LVAPPConnection:
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
             return
 
         trq = valid[0].traffic_rule_queues[(ssid, dscp)]
 
-        trq._quantum = quantum
-        trq._amsdu_aggregation = amsdu_aggregation
+        trq.set_quantum(quantum)
+        trq.set_amsdu_aggregation(amsdu_aggregation)
 
         self.log.info("Transmission rule status %s", trq)
 
