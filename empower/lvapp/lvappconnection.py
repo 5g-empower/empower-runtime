@@ -473,20 +473,18 @@ class LVAPPConnection:
             self.log.info("No SSIDs available at this WTP")
             return
 
-        # check if block is valid
-        net_bssid = generate_bssid(BASE_MAC, sta)
-        lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap._ssids = list(ssids)
-
-        # set supported band
-        lvap._supported_band = request.supported_band
-
         # Check if block is valid
         valid = wtp.get_block(request.hwaddr, request.channel, request.band)
 
         if not valid:
             self.log.warning("No valid intersection found. Ignoring request.")
             return
+
+        # generate new net_bssid
+        net_bssid = generate_bssid(BASE_MAC, sta)
+        
+        # create new lvap object
+        lvap = LVAP(sta, net_bssid, net_bssid, list(ssids), request.supported_band)
 
         # spawn new LVAP
         self.log.info("Spawning new LVAP %s on %s", sta, wtp.addr)
