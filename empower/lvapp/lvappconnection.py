@@ -233,7 +233,7 @@ class LVAPPConnection:
                 RUNTIME.remove_lvap(lvap.addr)
 
         # remove hosted vaps
-        for tenant_id in RUNTIME.tenants.keys():
+        for tenant_id in list(RUNTIME.tenants.keys()):
             for vap_id in list(RUNTIME.tenants[tenant_id].vaps.keys()):
                 vap = RUNTIME.tenants[tenant_id].vaps[vap_id]
                 if vap.wtp == self.wtp:
@@ -389,6 +389,14 @@ class LVAPPConnection:
         self.send_transmission_policy_status_request()
 
         # send vaps
+        self.update_vaps()
+
+        # send slices
+        self.update_slices()
+
+    def update_vaps(self):
+        """Update active VAPs."""
+
         for tenant in RUNTIME.tenants.values():
 
             # tenant does not use shared VAPs
@@ -416,8 +424,15 @@ class LVAPPConnection:
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
 
-        # send traffic rule queues
+    def update_slices(self):
+        """Update active Slices."""
+
         for tenant in RUNTIME.tenants.values():
+
+            # wtp not in this tenant
+            if self.wtp.addr not in tenant.wtps:
+                continue
+
             for rule in tenant.traffic_rule_queues:
                 tenant.dispach_traffic_rule_queue(rule)
 
@@ -532,7 +547,7 @@ class LVAPPConnection:
 
         self.send_auth_response(lvap)
 
-    def _handle_assoc_request(self, wtp, request):
+    def _handle_assoc_request(self, _, request):
         """Handle an incoming ASSOC_REQUEST message.
         Args:
             request, a ASSOC_REQUEST message
