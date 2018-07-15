@@ -36,7 +36,6 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
-from empower.lvapp import PT_REGISTER
 from empower.core.resourcepool import ResourceBlock
 from empower.core.module import ModuleScheduled
 
@@ -226,6 +225,11 @@ class Summary(ModuleScheduled):
             self.unload()
             return
 
+        if not wtp.connection or wtp.connection.stream.closed():
+            self.log.info("WTP %s not connected", wtp.addr)
+            self.unload()
+            return
+
         req = Container(version=PT_VERSION,
                         type=PT_ADD_SUMMARY,
                         length=32,
@@ -341,13 +345,7 @@ class Summary(ModuleScheduled):
 class SummaryWorker(ModuleLVAPPWorker):
     """ Summary worker. """
 
-    def handle_caps(self, wtp):
-        """Handle WTP CAPS message."""
-
-        for module in self.modules:
-            block = self.modules[module].block
-            if block in wtp.supports:
-                self.modules[module].run_once()
+    pass
 
 
 def summary(**kwargs):
@@ -369,7 +367,4 @@ setattr(EmpowerApp, Summary.MODULE_NAME, bound_summary)
 def launch():
     """ Initialize the module. """
 
-    summary_worker = SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
-    summary_worker.pnfp_server.register_message(PT_REGISTER, None,
-                                                summary_worker.handle_caps)
-    return summary_worker
+    return SummaryWorker(Summary, PT_SUMMARY, SUMMARY_TRIGGER)
