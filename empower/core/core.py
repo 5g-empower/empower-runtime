@@ -42,8 +42,7 @@ from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
 
 import empower.logger
-import empower.lvapp
-import empower.apps
+
 
 DEFAULT_PERIOD = 5000
 
@@ -212,6 +211,8 @@ class EmpowerRuntime:
 
         self.__walk_module(empower, results)
         self.__walk_module(empower.lvapp, results)
+        self.__walk_module(empower.lvnfp, results)
+        self.__walk_module(empower.vbsp, results)
         self.__walk_module(empower.apps, results)
 
         return results
@@ -222,6 +223,8 @@ class EmpowerRuntime:
         pkgs = pkgutil.walk_packages(package.__path__)
 
         for _, module_name, is_pkg in pkgs:
+
+            __import__(package.__name__ + "." + module_name)
 
             if not is_pkg:
                 continue
