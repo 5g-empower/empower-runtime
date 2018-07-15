@@ -482,7 +482,7 @@ class LVAPPConnection:
 
         # generate new net_bssid
         net_bssid = generate_bssid(BASE_MAC, sta)
-        
+
         # create new lvap object
         lvap = LVAP(sta, net_bssid, net_bssid, list(ssids), request.supported_band)
 
