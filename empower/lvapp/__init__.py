@@ -47,10 +47,10 @@ PT_ASSOC_RESPONSE = 0x10
 PT_ADD_LVAP = 0x11
 PT_DEL_LVAP = 0x12
 PT_STATUS_LVAP = 0x13
-PT_SET_PORT = 0x14
-PT_DEL_PORT = 0x80
-PT_STATUS_PORT = 0x15
-PT_PORT_STATUS_REQUEST = 0x62
+PT_SET_TRANSMISSION_POLICY = 0x14
+PT_DEL_TRANSMISSION_POLICY = 0x80
+PT_STATUS_TRANSMISSION_POLICY = 0x15
+PT_TRANSMISSION_POLICY_STATUS_REQUEST = 0x62
 PT_CAPS_REQUEST = 0x16
 PT_CAPS_RESPONSE = 0x17
 PT_ADD_VAP = 0x32
@@ -219,8 +219,8 @@ TRAFFIC_RULE_QUEUE_STATUS_REQUEST = \
            UBInt32("length"),
            UBInt32("seq"))
 
-PORT_STATUS_REQUEST = \
-    Struct("port_status_request", UBInt8("version"),
+TRANSMISSION_POLICY_STATUS_REQUEST = \
+    Struct("transmission_policy_status_request", UBInt8("version"),
            UBInt8("type"),
            UBInt32("length"),
            UBInt32("seq"))
@@ -230,51 +230,54 @@ VAP_STATUS_REQUEST = Struct("vap_status_request", UBInt8("version"),
                             UBInt32("length"),
                             UBInt32("seq"))
 
-SET_PORT = Struct("set_port", UBInt8("version"),
-                  UBInt8("type"),
-                  UBInt32("length"),
-                  UBInt32("seq"),
-                  BitStruct("flags", Padding(15),
-                            Bit("no_ack")),
-                  Bytes("hwaddr", 6),
-                  UBInt8("channel"),
-                  UBInt8("band"),
-                  Bytes("sta", 6),
-                  UBInt16("rts_cts"),
-                  UBInt8("tx_mcast"),
-                  UBInt8("ur_mcast_count"),
-                  UBInt8("nb_mcses"),
-                  UBInt8("nb_ht_mcses"),
-                  Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
-                  Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
+SET_TRANSMISSION_POLICY = \
+    Struct("set_transmission_policy", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           BitStruct("flags", Padding(15),
+                     Bit("no_ack")),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           Bytes("sta", 6),
+           UBInt16("rts_cts"),
+           UBInt8("tx_mcast"),
+           UBInt8("ur_mcast_count"),
+           UBInt8("nb_mcses"),
+           UBInt8("nb_ht_mcses"),
+           Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+           Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
-DEL_PORT = Struct("del_port", UBInt8("version"),
-                  UBInt8("type"),
-                  UBInt32("length"),
-                  UBInt32("seq"),
-                  Bytes("hwaddr", 6),
-                  UBInt8("channel"),
-                  UBInt8("band"),
-                  Bytes("sta", 6))
+DEL_TRANSMISSION_POLICY = \
+    Struct("del_transmission_policy", UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           Bytes("sta", 6))
 
-STATUS_PORT = Struct("status_port", UBInt8("version"),
-                     UBInt8("type"),
-                     UBInt32("length"),
-                     UBInt32("seq"),
-                     BitStruct("flags", Padding(15),
-                               Bit("no_ack")),
-                     Bytes("wtp", 6),
-                     Bytes("sta", 6),
-                     Bytes("hwaddr", 6),
-                     UBInt8("channel"),
-                     UBInt8("band"),
-                     UBInt16("rts_cts"),
-                     UBInt8("tx_mcast"),
-                     UBInt8("ur_mcast_count"),
-                     UBInt8("nb_mcses"),
-                     UBInt8("nb_ht_mcses"),
-                     Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
-                     Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
+STATUS_TRANSMISSION_POLICY = Struct("status_transmission_policy", 
+                                    UBInt8("version"),
+                                    UBInt8("type"),
+                                    UBInt32("length"),
+                                    UBInt32("seq"),
+                                    BitStruct("flags", Padding(15),
+                                              Bit("no_ack")),
+                                    Bytes("wtp", 6),
+                                    Bytes("sta", 6),
+                                    Bytes("hwaddr", 6),
+                                    UBInt8("channel"),
+                                    UBInt8("band"),
+                                    UBInt16("rts_cts"),
+                                    UBInt8("tx_mcast"),
+                                    UBInt8("ur_mcast_count"),
+                                    UBInt8("nb_mcses"),
+                                    UBInt8("nb_ht_mcses"),
+                                    Array(lambda ctx: ctx.nb_mcses, UBInt8("mcs")),
+                                    Array(lambda ctx: ctx.nb_ht_mcses, UBInt8("ht_mcs")))
 
 ADD_VAP = Struct("add_vap", UBInt8("version"),
                  UBInt8("type"),
@@ -379,10 +382,10 @@ PT_TYPES = {PT_BYE: None,
             PT_STATUS_LVAP: STATUS_LVAP,
             PT_CAPS_RESPONSE: CAPS_RESPONSE,
             PT_CAPS_REQUEST: CAPS_REQUEST,
-            PT_PORT_STATUS_REQUEST: PORT_STATUS_REQUEST,
-            PT_SET_PORT: SET_PORT,
-            PT_DEL_PORT: DEL_PORT,
-            PT_STATUS_PORT: STATUS_PORT,
+            PT_TRANSMISSION_POLICY_STATUS_REQUEST: TRANSMISSION_POLICY_STATUS_REQUEST,
+            PT_SET_TRANSMISSION_POLICY: SET_TRANSMISSION_POLICY,
+            PT_DEL_TRANSMISSION_POLICY: DEL_TRANSMISSION_POLICY,
+            PT_STATUS_TRANSMISSION_POLICY: STATUS_TRANSMISSION_POLICY,
             PT_STATUS_VAP: STATUS_VAP,
             PT_LVAP_STATUS_REQUEST: LVAP_STATUS_REQUEST,
             PT_VAP_STATUS_REQUEST: VAP_STATUS_REQUEST,

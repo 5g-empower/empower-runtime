@@ -38,17 +38,17 @@ from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
-from empower.lvapp import PT_SET_PORT
+from empower.lvapp import PT_SET_TRANSMISSION_POLICY
 from empower.lvapp import PT_ADD_LVAP
 from empower.lvapp import PT_DEL_LVAP
-from empower.lvapp import PT_DEL_PORT
+from empower.lvapp import PT_DEL_TRANSMISSION_POLICY
 from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
 from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
 from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
-from empower.lvapp import PT_PORT_STATUS_REQUEST
+from empower.lvapp import PT_TRANSMISSION_POLICY_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_DEL_VAP
@@ -385,8 +385,8 @@ class LVAPPConnection:
         # fetch active traffic rules
         self.send_traffic_rule_queue_status_request()
 
-        # fetch active transmission rules
-        self.send_port_status_request()
+        # fetch active tramission policies
+        self.send_transmission_policy_status_request()
 
         # send vaps
         for tenant in RUNTIME.tenants.values():
@@ -673,10 +673,10 @@ class LVAPPConnection:
 
         self.log.info("LVAP status %s", lvap)
 
-    def _handle_status_port(self, wtp, status):
-        """Handle an incoming PORT message.
+    def _handle_status_transmission_policy(self, wtp, status):
+        """Handle an incoming TRANSMISSION_POLICY message.
         Args:
-            status, a STATUS_PORT message
+            status, a TRANSMISSION_POLICY message
         Returns:
             None
         """
@@ -698,7 +698,7 @@ class LVAPPConnection:
         tx_policy.set_ur_count(status.ur_mcast_count)
         tx_policy.set_no_ack(status.flags.no_ack)
 
-        self.log.info("Port status %s", tx_policy)
+        self.log.info("Tranmission policy status %s", tx_policy)
 
     def _handle_status_traffic_rule_queue(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE_QUEUE message.
@@ -791,11 +791,11 @@ class LVAPPConnection:
         msg = Container(length=10)
         return self.send_message(PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST, msg)
 
-    def send_port_status_request(self):
-        """Send a PORT_STATUS_REQUEST message."""
+    def send_transmission_policy_status_request(self):
+        """Send a TRANSMISSION_POLICY_STATUS_REQUEST message."""
 
         msg = Container(length=10)
-        return self.send_message(PT_PORT_STATUS_REQUEST, msg)
+        return self.send_message(PT_TRANSMISSION_POLICY_STATUS_REQUEST, msg)
 
     def send_add_vap(self, vap):
         """Send a ADD_VAP message."""
@@ -851,8 +851,8 @@ class LVAPPConnection:
 
         return self.send_message(PT_DEL_LVAP, msg)
 
-    def send_set_port(self, tx_policy):
-        """Send a SET_PORT message."""
+    def send_set_transmission_policy(self, tx_policy):
+        """Send a SET_TRANSMISSION_POLICY message."""
 
         flags = Container(no_ack=tx_policy.no_ack)
         rates = sorted([int(x * 2) for x in tx_policy.mcs])
@@ -872,10 +872,10 @@ class LVAPPConnection:
                         mcs=rates,
                         ht_mcs=ht_rates)
 
-        return self.send_message(PT_SET_PORT, msg)
+        return self.send_message(PT_SET_TRANSMISSION_POLICY, msg)
 
-    def send_del_port(self, tx_policy):
-        """Send a DEL_PORT message."""
+    def send_del_transmission_policy(self, tx_policy):
+        """Send a DEL_TRANSMISSION_POLICY message."""
 
         msg = Container(length=24,
                         sta=tx_policy.addr.to_raw(),
@@ -883,7 +883,7 @@ class LVAPPConnection:
                         channel=tx_policy.block.channel,
                         band=tx_policy.block.band)
 
-        return self.send_message(PT_DEL_PORT, msg)
+        return self.send_message(PT_DEL_TRANSMISSION_POLICY, msg)
 
     def send_add_lvap(self, lvap, block, set_mask):
         """Send a ADD_LVAP message."""

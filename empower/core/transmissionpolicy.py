@@ -41,16 +41,13 @@ class TxPolicy:
     control algorithm to select the actual transmission rate.
 
     Attributes:
+        addr: the destination address to which this policy applies
         block: the actual block to which this tx policy refers to
-        hwaddr: the mac address of the wireless interface
-        channel: The channel id
-        band: The band type (0=L20, 1=HT20)
-        ucqm: User interference matrix group. Rssi values to LVAPs.
-        ncqm: Network interference matrix group. Rssi values to WTPs.
-        supports: list of MCS supported in this Resource Block as
-          reported by the device, that is if the device is an 11a
-          device it will report [6, 12, 18, 36, 54]. If the device is
-          an 11n device it will report [0, 1, 2, 3, 4, 5, 6, 7]
+        no_ack: do not wait for acks
+        rts_cts: the rts/cts threshold in bytes
+        mcast: the multicast mode (DMS, LEGACY, UR)
+        mcs: the list of legacy MCSes
+        ht_mcs: the list of HT MCSes
     """
 
     def __init__(self, addr, block):
@@ -86,58 +83,58 @@ class TxPolicy:
 
     @property
     def ur_count(self):
-        """ Get ur_count . """
+        """Get ur_count."""
 
         return self._ur_count
 
     @ur_count .setter
     def ur_count(self, ur_count):
-        """ Set ur_count . """
+        """Set ur_count."""
 
         self.set_ur_count(ur_count)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_ur_count(self, ur_count):
-        """ Set ur_count without sending anything. """
+        """Set ur_count without sending anything."""
 
         self._ur_count = int(ur_count)
 
     @property
     def mcast(self):
-        """ Get mcast mode. """
+        """Get mcast mode."""
 
         return self._mcast
 
     @mcast.setter
     def mcast(self, mcast):
-        """ Set the mcast mode. """
+        """Set the mcast mode."""
 
         self.set_mcast(mcast)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_mcast(self, mcast):
-        """ Set the mcast mode without sending anything. """
+        """Set the mcast mode without sending anything."""
 
         self._mcast = int(mcast) if int(mcast) in TX_MCAST else TX_MCAST_LEGACY
 
     @property
     def mcs(self):
-        """ Get set of MCS. """
+        """Get set of MCS."""
 
         return self._mcs
 
     @mcs.setter
     def mcs(self, mcs):
-        """ Set the list of MCS. """
+        """Set the list of MCS."""
 
         self.set_mcs(mcs)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_mcs(self, mcs):
-        """ Set the list of MCS without sending anything. """
+        """Set the list of MCS without sending anything."""
 
         self._mcs = self.block.supports & set(mcs)
 
@@ -146,20 +143,20 @@ class TxPolicy:
 
     @property
     def ht_mcs(self):
-        """ Get set of HT MCS. """
+        """Get set of HT MCS."""
 
         return self._ht_mcs
 
     @ht_mcs.setter
     def ht_mcs(self, ht_mcs):
-        """ Set the list of MCS. """
+        """Set the list of MCS."""
 
         self.set_ht_mcs(ht_mcs)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_ht_mcs(self, ht_mcs):
-        """ Set the list of HT MCS without sending anything. """
+        """Set the list of HT MCS without sending anything."""
 
         self._ht_mcs = self.block.ht_supports & set(ht_mcs)
 
@@ -168,38 +165,38 @@ class TxPolicy:
 
     @property
     def no_ack(self):
-        """ Get no ack flag. """
+        """Get no ack flag."""
 
         return self._no_ack
 
     @no_ack.setter
     def no_ack(self, no_ack):
-        """ Set the no ack flag. """
+        """Set the no ack flag."""
 
         self.set_no_ack(no_ack)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_no_ack(self, no_ack):
-        """ Set the no ack flag without sending anything. """
+        """Set the no ack flag without sending anything."""
 
         self._no_ack = True if bool(no_ack) else False
 
     @property
     def rts_cts(self):
-        """ Get rts_cts . """
+        """Get rts_cts."""
 
         return self._rts_cts
 
     @rts_cts.setter
     def rts_cts(self, rts_cts):
-        """ Set rts_cts . """
+        """Set rts_cts."""
 
         self.set_rts_cts(rts_cts)
 
-        self.block.radio.connection.send_set_port(self)
+        self.block.radio.connection.send_set_transmission_policy(self)
 
     def set_rts_cts(self, rts_cts):
-        """ Set rts_cts without sending anything. """
+        """Set rts_cts without sending anything."""
 
         self._rts_cts = int(rts_cts)
