@@ -75,7 +75,9 @@ class ResourcePool(list):
     def sort_by_rssi(self, addr):
         """Return list sorted by rssi for the spcified address."""
 
-        blocks = sorted(self,
+        filtered = [x for x in self if addr in x.ucqm]
+
+        blocks = sorted(filtered,
                         key=lambda x: x.ucqm[addr]['mov_rssi'],
                         reverse=True)
 
@@ -106,14 +108,20 @@ class ResourcePool(list):
     def first(self):
         """Return first entry in the list."""
 
-        block = list.__getitem__(self, 0)
-        return ResourcePool([block])
+        if self:
+            block = list.__getitem__(self, 0)
+            return ResourcePool([block])
+
+        return ResourcePool()
 
     def last(self):
         """Return last entry in the list."""
 
-        block = list.__getitem__(self, -1)
-        return ResourcePool([block])
+        if self:
+            block = list.__getitem__(self, -1)
+            return ResourcePool([block])
+
+        return ResourcePool() 
 
 
 class ResourceBlock:
