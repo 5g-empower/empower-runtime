@@ -392,7 +392,7 @@ class LVAPPConnection:
         self.update_vaps()
 
         # send slices
-        self.update_slices()
+        self.update_traffic_rule_queues()
 
     def update_vaps(self):
         """Update active VAPs."""
@@ -424,7 +424,7 @@ class LVAPPConnection:
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
 
-    def update_slices(self):
+    def update_traffic_rule_queues(self):
         """Update active Slices."""
 
         for tenant in RUNTIME.tenants.values():
