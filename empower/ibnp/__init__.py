@@ -31,13 +31,13 @@ PT_REMOVE_RULE = "remove_rule"
 # the manifest
 MANIFEST = {
     "name": "empower.ibnp.ibnpserver",
-    "desc": "The EmPOWER intent-based server.", 
+    "desc": "The EmPOWER intent-based server.",
     "params": {
-    	"port": {
-    		"desc": "The port on which the server will listen.",
-    		"mandatory": "false",
-    		"default": 4444,
-    		"type": "int"
-    	}
+        "port": {
+            "desc": "The port on which the server will listen.",
+            "mandatory": False,
+            "default": 4444,
+            "type": "int"
+        }
     }
 }
