@@ -262,7 +262,7 @@ class RSSI(ModuleTrigger):
         match = [block for block in wtp.supports if block == incoming]
 
         self.event = \
-            {'block': matches[0],
+            {'block': match[0],
              'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
              'current': message.current}
 
@@ -272,8 +272,8 @@ class RSSI(ModuleTrigger):
 class RssiWorker(ModuleLVAPPWorker):
     """ Rssi worker. """
 
-    def handle_caps(self, _):
-        """Handle WTP CAPS message."""
+    def handle_register(self, _):
+        """Handle WTP REGISTER message."""
 
         for module in self.modules.values():
             module.run_once()
@@ -305,10 +305,4 @@ setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)
 def launch():
     """ Initialize the module. """
 
-    rssi_worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
-    rssi_worker.pnfp_server.register_message(PT_REGISTER, None,
-                                             rssi_worker.handle_caps)
-    rssi_worker.pnfp_server.register_message(PT_BYE, None,
-                                             rssi_worker.handle_bye)
-
-    return rssi_worker
+    return RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)

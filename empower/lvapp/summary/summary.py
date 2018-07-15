@@ -38,7 +38,7 @@ from empower.lvapp import PT_VERSION
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_REGISTER
 from empower.core.resourcepool import ResourceBlock
-from empower.core.module import ModuleTrigger
+from empower.core.module import ModuleScheduled
 
 from empower.main import RUNTIME
 
@@ -89,7 +89,7 @@ DEL_SUMMARY = Struct("del_summary", UBInt8("version"),
                      UBInt32("module_id"))
 
 
-class Summary(ModuleTrigger):
+class Summary(ModuleScheduled):
     """ Summary object. """
 
     MODULE_NAME = "summary"

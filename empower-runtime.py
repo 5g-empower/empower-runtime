@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
              'lvapp.lvap_stats.lvap_stats',
              'lvapp.bin_counter.bin_counter',
-             'lvapp.wtp_bin_counter.wtp_bin_counter',
              'lvapp.txp_bin_counter.txp_bin_counter',
              'lvapp.trq_bin_counter.trq_bin_counter',
              'lvapp.cqm.ucqm',
