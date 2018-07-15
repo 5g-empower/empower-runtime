@@ -106,7 +106,7 @@ class LVAPPConnection:
 
     Attributes:
         stream: The stream object used to talk with the WTP.
-        address: The connection source address, i.e. the WTP IP address.
+        addr: The connection source address, i.e. the WTP IP address.
         server: Pointer to the server object.
         wtp: Pointer to a WTP object.
     """
