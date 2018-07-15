@@ -515,6 +515,43 @@ class AccountsHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
+class MarketplaceHandler(EmpowerAPIHandler):
+    """Marketplace handler. 
+
+    Used to list available apps."""
+
+    HANDLERS = [r"/api/v1/marketplace?",
+                r"/api/v1/marketplace/([a-zA-Z0-9:_\-.]*)/?"]
+
+    def get(self, *args):
+        """Lists the available system-wide apps.
+
+        Args:
+            component_id: the id of a component istance
+
+        Example URLs:
+            GET /api/v1/marketplace
+            GET /api/v1/marketplace/<app>
+        """
+
+        try:
+
+            if len(args) > 1:
+                raise ValueError("Invalid url")
+
+            apps = RUNTIME.load_apps()
+
+            if not args:
+                self.write_as_json(apps)
+            else:
+                self.write_as_json(apps[args[0]])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+
 class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
@@ -1904,7 +1941,8 @@ class RESTServer(Service, tornado.web.Application):
                            PendingTenantHandler, TenantHandler,
                            AllowHandler, TenantTrafficRuleQueueHandler,
                            TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficHandler]
+                           TenantEndpointPortHandler, TenantTrafficHandler,
+                           MarketplaceHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

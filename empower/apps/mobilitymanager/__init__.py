@@ -16,3 +16,23 @@
 # under the License.
 
 """Basic mobility manager."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.apps.mobilitymanager.mobilitymanager",
+    "desc": "A simple Wi-Fi Mobility manager.", 
+    "params": {
+    	"tenant_id": {
+    		"desc": "The tenant on which this app must be loaded.",
+    		"mandatory": "true",
+    		"type": "UUID"
+    	},
+    	"every": {
+    		"desc": "The control loop period (in ms).",
+    		"mandatory": "false",
+    		"default": 2000,
+    		"type": "int"
+    	}
+    }
+}
+

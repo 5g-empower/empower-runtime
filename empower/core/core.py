@@ -17,6 +17,7 @@
 
 """EmPOWER Runtime."""
 
+import pkgutil
 import socket
 import fcntl
 import struct
@@ -40,8 +41,9 @@ from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
 
-
 import empower.logger
+import empower.lvapp
+import empower.apps
 
 DEFAULT_PERIOD = 5000
 
@@ -187,6 +189,55 @@ class EmpowerRuntime:
 
             acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
+
+    def load_apps(self):
+        """Fetch the available apps.
+
+        An app is a standard python module defining in the init file
+        a python dictionary  named MANIFEST.
+
+        The MANIFEST provides:
+          - name: the name of the module
+          - desc: a human readable description of the app
+          - params: the list of parameters defined by the app. 
+
+        For each parameter the following info are provided:
+          - label: the name of the parameters
+          - desc: a description of the parameter
+          - mandatory (optional): true/false (default: false)
+          - default: the default value of the parameter
+        """
+
+        results = {}
+
+        self.__walk_module(empower, results)
+        self.__walk_module(empower.lvapp, results)
+        self.__walk_module(empower.apps, results)
+
+        return results
+
+    @classmethod
+    def __walk_module(cls, package, results):
+
+        pkgs = pkgutil.walk_packages(package.__path__)
+
+        for _, module_name, is_pkg in pkgs:
+
+            if not is_pkg:
+                continue
+
+            if not hasattr(package, module_name):
+                continue
+
+            module = getattr(package, module_name)
+
+            if not hasattr(module, "MANIFEST"):
+                continue
+
+            manifest = getattr(module, "MANIFEST")
+
+            name = manifest['name']
+            results[name] = manifest
 
     def add_allowed(self, sta_addr, label):
         """ Add entry to ACL. """
