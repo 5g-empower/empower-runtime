@@ -210,7 +210,11 @@ class Tenant:
             session.rollback()
             raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, match))
 
-        # TODO: send command to IBN
+        # Send command to IBN
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        if ibnp_server and ibnp_server.connection:
+            ibnp_server.add_traffic_rule(match, dscp, self.tenant_id)
 
     def del_traffic_rule(self, match):
         """Delete a traffic rule from this tenant.
@@ -232,7 +236,11 @@ class Tenant:
         if not rule:
             raise KeyError(rule)
 
-        # TODO: send command to IBN
+        # Send command to IBN
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        if ibnp_server and ibnp_server.connection:
+            ibnp_server.del_traffic_rule(match, self.tenant_id)
 
         session = Session()
         session.delete(rule)

@@ -53,6 +53,16 @@ class IBNPServer(tornado.web.Application):
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
 
+        self.__load_traffic_rules()
+
+    def __load_traffic_rules(self):
+        """Fetch traffic rule queues in this tenant."""
+
+        trs = Session().query(TblTrafficRule).all()
+
+        for rule in trs:
+            pass
+
     @property
     def seq(self):
         """Return new sequence id."""
