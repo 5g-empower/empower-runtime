@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic LTE handover manager."""
+"""A basic LTE handover manager."""

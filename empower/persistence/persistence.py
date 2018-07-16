@@ -333,10 +333,10 @@ class TblAllow(Base):
     label = Column(String)
 
 
-class TblTrafficRuleQueue(Base):
-    """ Traffic Rule Queue table. """
+class TblSlice(Base):
+    """ Slice table. """
 
-    __tablename__ = 'traffic_rule_queue'
+    __tablename__ = 'slice'
 
     dscp = Column("dscp", DSCP(), primary_key=True, default=0x0)
     tenant_id = Column(UUID(),

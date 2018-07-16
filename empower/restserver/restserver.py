@@ -515,6 +515,43 @@ class AccountsHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
+class MarketplaceHandler(EmpowerAPIHandler):
+    """Marketplace handler. 
+
+    Used to list available apps."""
+
+    HANDLERS = [r"/api/v1/marketplace?",
+                r"/api/v1/marketplace/([a-zA-Z0-9:_\-.]*)/?"]
+
+    def get(self, *args):
+        """Lists the available system-wide apps.
+
+        Args:
+            component_id: the id of a component istance
+
+        Example URLs:
+            GET /api/v1/marketplace
+            GET /api/v1/marketplace/<app>
+        """
+
+        try:
+
+            if len(args) > 1:
+                raise ValueError("Invalid url")
+
+            apps = RUNTIME.load_apps()
+
+            if not args:
+                self.write_as_json(apps)
+            else:
+                self.write_as_json(apps[args[0]])
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+
+
 class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
@@ -1155,23 +1192,23 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
 
-class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
-    """Tenat traffic rule queue handler."""
+class TenantSliceHandler(EmpowerAPIHandlerUsers):
+    """Tenat slice handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trqs/([a-zA-Z0-9-]*)/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/slices/?",
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/slices/([a-zA-Z0-9-]*)/?"]
 
     def get(self, *args, **kwargs):
-        """List traffic rules queues.
+        """List slices.
 
         Args:
             tenant_id: network name of a tenant
-            dscp: the traffic rule queue DSCP
+            dscp: the slice DSCP
 
         Example URLs:
 
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/ \
               0x40
         """
 
@@ -1184,10 +1221,10 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
             tenant = RUNTIME.tenants[tenant_id]
 
             if len(args) == 1:
-                self.write_as_json(tenant.traffic_rule_queues.values())
+                self.write_as_json(tenant.slices.values())
             else:
                 dscp = DSCP(args[1])
-                self.write_as_json(tenant.traffic_rule_queues[dscp])
+                self.write_as_json(tenant.slices[dscp])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1195,15 +1232,15 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
             self.send_error(404, message=ex)
 
     def post(self, *args, **kwargs):
-        """Add traffic rule.
+        """Add a new slice.
 
         Args:
             tenant_id: network name of a tenant
-            dscp: the traffic rule queue DSCP (optional)
+            dscp: the slice DSCP (optional)
 
         Example URLs:
 
-            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
             {
                 "version" : 1.0,
                 "aggregation" : true,
@@ -1237,10 +1274,10 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(request["dscp"])
 
-            tenant.add_traffic_rule_queue(dscp, request["quantum"],
-                                          request["amsdu_aggregation"])
+            tenant.add_slice(dscp, request["quantum"],
+                             request["amsdu_aggregation"])
 
-            url = "/api/v1/tenants/%s/trqs/%s" % (tenant_id, dscp)
+            url = "/api/v1/tenants/%s/slices/%s" % (tenant_id, dscp)
             self.set_header("Location", url)
 
         except TypeError as ex:
@@ -1253,15 +1290,15 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
     def put(self, *args, **kwargs):
-        """modify traffic rule.
+        """Modify slice.
 
         Args:
             tenant_id: network name of a tenant
-            dscp: the traffic rule queue DSCP (optional)
+            dscp: the slice DSCP (optional)
 
         Example URLs:
 
-            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/0x40
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/0x40
             {
                 "version" : 1.0,
                 "aggregation" : true,
@@ -1291,8 +1328,8 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(args[1])
 
-            tenant.set_traffic_rule_queue(dscp, request["quantum"],
-                                          request["amsdu_aggregation"])
+            tenant.set_slice(dscp, request["quantum"],
+                             request["amsdu_aggregation"])
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1304,15 +1341,15 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
         self.set_status(201, None)
 
     def delete(self, *args, **kwargs):
-        """Delete traffic rule queues.
+        """Delete slice.
 
         Args:
             tenant_id: network name of a tenant
-            dscp: the traffic rule queue DSCP
+            dscp: the slice DSCP
 
         Example URLs:
 
-            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs/ \
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/ \
               0x40
 
         """
@@ -1327,7 +1364,7 @@ class TenantTrafficRuleQueueHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(args[1])
 
-            tenant.del_traffic_rule_queue(dscp)
+            tenant.del_slice(dscp)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1783,10 +1820,10 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
 
         Example URLs:
 
-            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trqs
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
             {
                 "version" : 1.0,
-                "trq" : 0x40,
+                "dscp" : 0x40,
                 "label" : "video traffic (high priority)",
                 "match" : "dl_vlan=100;tp_dst=80",
             }
@@ -1902,9 +1939,10 @@ class RESTServer(Service, tornado.web.Application):
                            ManageTenantHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
                            PendingTenantHandler, TenantHandler,
-                           AllowHandler, TenantTrafficRuleQueueHandler,
+                           AllowHandler, TenantSliceHandler,
                            TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficHandler]
+                           TenantEndpointPortHandler, TenantTrafficHandler,
+                           MarketplaceHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

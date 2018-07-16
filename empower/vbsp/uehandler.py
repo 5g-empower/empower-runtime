@@ -46,7 +46,7 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
         try:
             if len(args) > 1:
                 raise ValueError("Invalid URL")
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(RUNTIME.ues.values())
             else:
                 ue = uuid.UUID(args[0])
@@ -94,8 +94,7 @@ class UEHandler(EmpowerAPIHandlerAdminUsers):
                 vbs_addr = EtherAddress(request['cell']['vbs'])
                 vbs = RUNTIME.vbses[vbs_addr]
                 pci = int(request['cell']['pci'])
-                cell = vbs.get_cell(pci)
-                ue.cell = cell
+                ue.cell = vbs.cells[pci]
 
         except KeyError as ex:
             self.send_error(404, message=ex)

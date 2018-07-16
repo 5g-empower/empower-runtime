@@ -66,28 +66,6 @@ class TrafficRuleQueueProp(dict):
             return dict.__getitem__(self, key)
 
 
-class CQM(dict):
-    """Override getitem behaviour by returning -inf instead of KeyError
-    when the key is missing."""
-
-    def __getitem__(self, key):
-
-        try:
-
-            return dict.__getitem__(self, key)
-
-        except KeyError:
-
-            inf = {'addr': key,
-                   'last_rssi_std': -float("inf"),
-                   'last_rssi_avg': -float("inf"),
-                   'last_packets': 0,
-                   'hist_packets': 0,
-                   'mov_rssi': -float("inf")}
-
-            return inf
-
-
 class ResourcePool(list):
     """ EmPOWER resource pool.
 
@@ -97,7 +75,9 @@ class ResourcePool(list):
     def sort_by_rssi(self, addr):
         """Return list sorted by rssi for the spcified address."""
 
-        blocks = sorted(self,
+        filtered = [x for x in self if addr in x.ucqm]
+
+        blocks = sorted(filtered,
                         key=lambda x: x.ucqm[addr]['mov_rssi'],
                         reverse=True)
 
@@ -128,14 +108,20 @@ class ResourcePool(list):
     def first(self):
         """Return first entry in the list."""
 
-        block = list.__getitem__(self, 0)
-        return ResourcePool([block])
+        if self:
+            block = list.__getitem__(self, 0)
+            return ResourcePool([block])
+
+        return ResourcePool()
 
     def last(self):
         """Return last entry in the list."""
 
-        block = list.__getitem__(self, -1)
-        return ResourcePool([block])
+        if self:
+            block = list.__getitem__(self, -1)
+            return ResourcePool([block])
+
+        return ResourcePool() 
 
 
 class ResourceBlock:
@@ -165,8 +151,8 @@ class ResourceBlock:
         self._hwaddr = hwaddr
         self._channel = channel
         self._band = band
-        self.ucqm = CQM()
-        self.ncqm = CQM()
+        self.ucqm = {}
+        self.ncqm = {}
         self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
         self.traffic_rule_queues = TrafficRuleQueueProp(self)
@@ -304,5 +290,5 @@ class ResourceBlock:
                 other.band == self.band)
 
     def __repr__(self):
-        return "(%s, %s, %u, %s)" % (self.radio.addr, self.hwaddr,
-                                     self.channel, BANDS[self.band])
+        return "wtp %s block %s, %u, %s" % \
+            (self.radio.addr, self.hwaddr, self.channel, BANDS[self.band])

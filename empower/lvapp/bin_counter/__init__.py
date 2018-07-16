@@ -16,3 +16,9 @@
 # under the License.
 
 """Packets and bytes counters module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.bin_counter",
+    "desc": "Aggregates TX/RX in bins per LVAP.",
+}

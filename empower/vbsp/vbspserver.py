@@ -24,7 +24,6 @@ from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
 from empower.core.module import ModuleWorker
-from empower.core.module import ModuleEventWorker
 from empower.vbsp.vbspconnection import VBSPConnection
 from empower.persistence.persistence import TblVBS
 from empower.core.vbs import VBS
@@ -35,7 +34,6 @@ from empower.vbsp import PT_UE_JOIN
 from empower.vbsp import PT_TYPES
 from empower.vbsp import PT_TYPES_HANDLERS
 from empower.vbsp.uehandler import UEHandler
-from empower.vbsp.tenantuehandler import TenantUEHandler
 from empower.vbsp.tenantuehandler import TenantUEHandler
 
 from empower.main import RUNTIME
@@ -84,15 +82,15 @@ class ModuleVBSPWorker(ModuleWorker):
     def handle_packet(self, vbs, hdr, event, msg):
         """Handle response message."""
 
-        if hdr.modid not in self.modules:
+        if hdr.xid not in self.modules:
             return
 
-        module = self.modules[hdr.modid]
+        module = self.modules[hdr.xid]
 
-        self.log.info("Received %s response (id=%u, op=%u)",
-                      self.module.MODULE_NAME, hdr.modid, event.op)
+        self.log.info("Received %s response xid=%u seq=%u)",
+                      self.module.MODULE_NAME, hdr.xid, hdr.seq)
 
-        if event.op == 1:
+        if event.opcode == 1:
             module.handle_response(msg)
 
 
@@ -118,14 +116,20 @@ class VBSPServer(PNFPServer, TCPServer):
     def send_ue_leave_message_to_self(self, ue):
         """Send an UE_LEAVE message to self."""
 
-        self.log.info("UE LEAVE %s (%s)", ue.ue_id, ue.plmn_id)
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.ue_leave(ue)
+
         for handler in self.pt_types_handlers[PT_UE_LEAVE]:
             handler(ue)
 
     def send_ue_join_message_to_self(self, ue):
         """Send an UE_JOIN message to self."""
 
-        self.log.info("UE JOIN %s (%s)", ue.ue_id, ue.plmn_id)
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.ue_join(ue)
+
         for handler in self.pt_types_handlers[PT_UE_JOIN]:
             handler(ue)
 

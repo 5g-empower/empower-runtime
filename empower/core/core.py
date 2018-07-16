@@ -17,6 +17,7 @@
 
 """EmPOWER Runtime."""
 
+import pkgutil
 import socket
 import fcntl
 import struct
@@ -40,8 +41,8 @@ from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
 
-
 import empower.logger
+
 
 DEFAULT_PERIOD = 5000
 
@@ -187,6 +188,59 @@ class EmpowerRuntime:
 
             acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
+
+    def load_apps(self):
+        """Fetch the available apps.
+
+        An app is a standard python module defining in the init file
+        a python dictionary  named MANIFEST.
+
+        The MANIFEST provides:
+          - name: the name of the module
+          - desc: a human readable description of the app
+          - params: the list of parameters defined by the app. 
+
+        For each parameter the following info are provided:
+          - label: the name of the parameters
+          - desc: a description of the parameter
+          - mandatory (optional): true/false (default: false)
+          - default: the default value of the parameter
+        """
+
+        results = {}
+
+        self.__walk_module(empower, results)
+        self.__walk_module(empower.lvapp, results)
+        self.__walk_module(empower.lvnfp, results)
+        self.__walk_module(empower.vbsp, results)
+        self.__walk_module(empower.apps, results)
+
+        return results
+
+    @classmethod
+    def __walk_module(cls, package, results):
+
+        pkgs = pkgutil.walk_packages(package.__path__)
+
+        for _, module_name, is_pkg in pkgs:
+
+            __import__(package.__name__ + "." + module_name)
+
+            if not is_pkg:
+                continue
+
+            if not hasattr(package, module_name):
+                continue
+
+            module = getattr(package, module_name)
+
+            if not hasattr(module, "MANIFEST"):
+                continue
+
+            manifest = getattr(module, "MANIFEST")
+
+            name = manifest['name']
+            results[name] = manifest
 
     def add_allowed(self, sta_addr, label):
         """ Add entry to ACL. """
@@ -583,32 +637,31 @@ class EmpowerRuntime:
         if ue_id not in self.ues:
             return
 
-        uequip = self.ues[ue_id]
+        ue = self.ues[ue_id]
 
-        if uequip.tenant:
+        if ue.tenant:
 
             # removing UE from tenant, need first to look for right tenant
-            if uequip.ue_id in uequip.tenant.ues:
-                self.log.info("Removing %s from tenant %s", uequip.ue_id,
-                              uequip.plmn_id)
-                del uequip.tenant.ues[uequip.ue_id]
+            if ue.ue_id in ue.tenant.ues:
+                self.log.info("Removing %s from tenant %s", ue.ue_id, ue.tenant.plmn_id)
+                del ue.tenant.ues[ue.ue_id]
 
             # Raise UE leave event
             from empower.vbsp.vbspserver import VBSPServer
             vbsp_server = self.components[VBSPServer.__module__]
-            vbsp_server.send_ue_leave_message_to_self(uequip)
+            vbsp_server.send_ue_leave_message_to_self(ue)
 
-        del self.ues[uequip.ue_id]
+        del self.ues[ue.ue_id]
 
     def find_ue_by_rnti(self, rnti, pci, vbs):
         """Find a UE using the tuple rnti, pci, vbs."""
 
-        for uequip in self.ues.values():
+        for ue in self.ues.values():
 
-            if uequip.rnti == rnti and \
-               uequip.cell.pci == pci and \
-               uequip.cell.vbs == vbs:
+            if ue.rnti == rnti and \
+               ue.cell.pci == pci and \
+               ue.cell.vbs == vbs:
 
-                return uequip
+                return ue
 
         return None

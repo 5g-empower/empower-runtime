@@ -103,7 +103,7 @@ class LVAP:
         uplink: zero or more uplink only blocks
     """
 
-    def __init__(self, addr, net_bssid_addr, lvap_bssid_addr):
+    def __init__(self, addr, net_bssid_addr, lvap_bssid_addr, ssids=None, supported_band=None):
 
         # read only params
         self.addr = addr
@@ -122,7 +122,10 @@ class LVAP:
         # the following parameters are only updated by the controller, which
         # will then dispatch an add lvap message in order to propagate the
         # change to the agent
-        self._ssids = []
+        if not ssids:
+            self._ssids = []
+        else:
+            self._ssids = ssids
         self._encap = None
 
         # the following parameters can be updated by both agent and
@@ -132,20 +135,17 @@ class LVAP:
         self._tenant = None
 
         # supported band
-        self._supported_band = None
+        self._supported_band = supported_band
 
         # current blocks (i.e. tthe interfaces on which the lvap is running)
         self._downlink = None
         self._uplink = []
 
-        # target block for handover
-        self.target_blocks = None
-
         # the lvap state
         self._state = None
 
         # target block to be used for handover
-        self._target_blocks = None
+        self.target_blocks = None
 
         # migration sats
         self._timer = None
@@ -481,22 +481,22 @@ class LVAP:
     def __assign_downlink(self, dl_block):
         """Set the downlink block."""
 
-        # assign default port policy to the downlink resource block
+        # assign default transmission policy to the downlink resource block
         txp = dl_block.tx_policies[self.addr]
 
         if dl_block.channel > 14:
-            txp._mcs = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
+            txp.set_mcs([6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0])
         else:
-            txp._mcs = [1.0, 2.0, 5.5, 11.0,
-                        6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
+            txp.set_mcs([1.0, 2.0, 5.5, 11.0,
+                         6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0])
 
         if self.supported_band == BT_HT20:
-            txp._ht_mcs = \
-                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            txp.set_ht_mcs([0, 1, 2, 3, 4, 5, 6, 7,
+                            8, 9, 10, 11, 12, 13, 14, 15])
         else:
-            txp._ht_mcs = []
+            txp.set_ht_mcs = ([])
 
-        dl_block.radio.connection.send_set_port(txp)
+        dl_block.radio.connection.send_set_transmission_policy(txp)
 
         # send add_lvap message
         xid = dl_block.radio.connection.send_add_lvap(self, dl_block, True)

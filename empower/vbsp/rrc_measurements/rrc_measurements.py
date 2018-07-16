@@ -24,7 +24,6 @@ from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
-from construct import Sequence
 from construct import Container
 from construct import Struct
 from construct import Array
@@ -34,12 +33,9 @@ from construct import Bit
 
 from empower.core.app import EmpowerApp
 from empower.core.ue import UE
-from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModulePeriodic
-from empower.vbsp import PT_VERSION
 from empower.vbsp import E_TYPE_TRIG
-from empower.vbsp import EP_DIR_REQUEST
 from empower.vbsp import EP_OPERATION_ADD
 
 from empower.main import RUNTIME
@@ -50,14 +46,14 @@ EP_ACT_RRC_MEASUREMENT = 0x05
 RRC_REQUEST = Struct("rrc_request",
                      UBInt8("type"),
                      UBInt8("version"),
-                     UBInt32("enbid"),
+                     Bytes("enbid", 8),
                      UBInt16("cellid"),
-                     UBInt32("modid"),
-                     UBInt16("length"),
+                     UBInt32("xid"),
+                     BitStruct("flags", Padding(15), Bit("dir")),
                      UBInt32("seq"),
-                     UBInt8("action"),
-                     UBInt8("dir"),
-                     UBInt8("op"),
+                     UBInt16("length"),
+                     UBInt16("action"),
+                     UBInt8("opcode"),
                      UBInt8("meas_id"),
                      UBInt16("rnti"),
                      UBInt16("earfcn"),
@@ -144,7 +140,7 @@ class RRCMeasurements(ModulePeriodic):
 
         else:
 
-            raise Exception("Invalid ue value %s", value)
+            raise Exception("Invalid ue value %s" % value)
 
     def to_dict(self):
         """ Return a JSON-serializable."""
@@ -187,21 +183,20 @@ class RRCMeasurements(ModulePeriodic):
 
             measurement = self.measurements[i]
 
-            rrc_request = Container(type=E_TYPE_TRIG,
-                                    cellid=self.ue.cell.pci,
-                                    modid=self.module_id,
-                                    length=RRC_REQUEST.sizeof(),
-                                    action=EP_ACT_RRC_MEASUREMENT,
-                                    dir=EP_DIR_REQUEST,
-                                    op=EP_OPERATION_ADD,
-                                    meas_id=i,
-                                    rnti=self.ue.rnti,
-                                    earfcn=measurement["earfcn"],
-                                    interval=measurement["interval"],
-                                    max_cells=measurement["max_cells"],
-                                    max_meas=measurement["max_meas"])
+            msg = Container(meas_id=i,
+                            rnti=self.ue.rnti,
+                            earfcn=measurement["earfcn"],
+                            interval=measurement["interval"],
+                            max_cells=measurement["max_cells"],
+                            max_meas=measurement["max_meas"])
 
-            self.vbs.connection.send_message(rrc_request, RRC_REQUEST)
+            self.vbs.connection.send_message(msg,
+                                             E_TYPE_TRIG, 
+                                             EP_ACT_RRC_MEASUREMENT, 
+                                             RRC_REQUEST, 
+                                             cellid=self.ue.cell.pci, 
+                                             xid=self.module_id, 
+                                             opcode=EP_OPERATION_ADD)
 
     def handle_response(self, meas):
         """Handle an incoming RRC_MEASUREMENTS message.
@@ -213,14 +208,7 @@ class RRCMeasurements(ModulePeriodic):
 
         for entry in meas.rrc_entries:
 
-            selected = None
-            earfcn = self.measurements[entry.meas_id]["earfcn"]
-
-            for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
-                for cell in vbs.cells:
-                    if cell.pci == entry.pci and cell.DL_earfcn == earfcn:
-                        selected = cell
-
+            # save measurements in this object
             if entry.meas_id not in self.results:
                 self.results[entry.meas_id] = {}
 
@@ -231,13 +219,16 @@ class RRCMeasurements(ModulePeriodic):
                 "rsrq": entry.rsrq
             }
 
-            if selected:
-                self.ue.rrc_measurements[selected] = {
-                    "enb_id": cell.vbs.enb_id,
-                    "pci": cell.pci,
-                    "rsrp": entry.rsrp,
-                    "rsrq": entry.rsrq
-                }
+            # check if this measurement refers to a cell that is in this tenant
+            earfcn = self.measurements[entry.meas_id]["earfcn"]
+
+            for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
+                for cell in vbs.cells.values():
+                    if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
+                        cell.rrc_measurements[self.ue.ue_id] = {
+                            "rsrp": entry.rsrp,
+                            "rsrq": entry.rsrq
+                        }
 
         # call callback
         self.handle_callback(self)

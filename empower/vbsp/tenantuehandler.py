@@ -17,9 +17,9 @@
 
 """Tenant/UE Handler."""
 
+import uuid
 import tornado.web
 import tornado.httpserver
-import uuid
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
@@ -107,8 +107,7 @@ class TenantUEHandler(EmpowerAPIHandlerUsers):
                 vbs_addr = EtherAddress(request['cell']['vbs'])
                 vbs = tenant.vbses[vbs_addr]
                 pci = int(request['cell']['pci'])
-                cell = vbs.get_cell(pci)
-                ue.cell = cell
+                ue.cell = vbs.cells[pci]
 
         except KeyError as ex:
             self.send_error(404, message=ex)

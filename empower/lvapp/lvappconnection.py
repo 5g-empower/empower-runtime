@@ -38,17 +38,17 @@ from empower.lvapp import PT_BYE
 from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_AUTH_RESPONSE
 from empower.lvapp import PT_ASSOC_RESPONSE
-from empower.lvapp import PT_SET_PORT
+from empower.lvapp import PT_SET_TRANSMISSION_POLICY
 from empower.lvapp import PT_ADD_LVAP
 from empower.lvapp import PT_DEL_LVAP
-from empower.lvapp import PT_DEL_PORT
+from empower.lvapp import PT_DEL_TRANSMISSION_POLICY
 from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
 from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
 from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
-from empower.lvapp import PT_PORT_STATUS_REQUEST
+from empower.lvapp import PT_TRANSMISSION_POLICY_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_DEL_VAP
@@ -106,7 +106,7 @@ class LVAPPConnection:
 
     Attributes:
         stream: The stream object used to talk with the WTP.
-        address: The connection source address, i.e. the WTP IP address.
+        addr: The connection source address, i.e. the WTP IP address.
         server: Pointer to the server object.
         wtp: Pointer to a WTP object.
     """
@@ -233,7 +233,7 @@ class LVAPPConnection:
                 RUNTIME.remove_lvap(lvap.addr)
 
         # remove hosted vaps
-        for tenant_id in RUNTIME.tenants.keys():
+        for tenant_id in list(RUNTIME.tenants.keys()):
             for vap_id in list(RUNTIME.tenants[tenant_id].vaps.keys()):
                 vap = RUNTIME.tenants[tenant_id].vaps[vap_id]
                 if vap.wtp == self.wtp:
@@ -385,10 +385,18 @@ class LVAPPConnection:
         # fetch active traffic rules
         self.send_traffic_rule_queue_status_request()
 
-        # fetch active transmission rules
-        self.send_port_status_request()
+        # fetch active tramission policies
+        self.send_transmission_policy_status_request()
 
         # send vaps
+        self.update_vaps()
+
+        # send slices
+        self.update_traffic_rule_queues()
+
+    def update_vaps(self):
+        """Update active VAPs."""
+
         for tenant in RUNTIME.tenants.values():
 
             # tenant does not use shared VAPs
@@ -416,10 +424,17 @@ class LVAPPConnection:
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
 
-        # send traffic rule queues
+    def update_traffic_rule_queues(self):
+        """Update active Slices."""
+
         for tenant in RUNTIME.tenants.values():
-            for rule in tenant.traffic_rule_queues:
-                tenant.dispach_traffic_rule_queue(rule)
+
+            # wtp not in this tenant
+            if self.wtp.addr not in tenant.wtps:
+                continue
+
+            for slc in tenant.slices:
+                tenant.set_traffic_rule_queues(slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -458,20 +473,18 @@ class LVAPPConnection:
             self.log.info("No SSIDs available at this WTP")
             return
 
-        # check if block is valid
-        net_bssid = generate_bssid(BASE_MAC, sta)
-        lvap = LVAP(sta, net_bssid, net_bssid)
-        lvap._ssids = list(ssids)
-
-        # set supported band
-        lvap._supported_band = request.supported_band
-
         # Check if block is valid
         valid = wtp.get_block(request.hwaddr, request.channel, request.band)
 
         if not valid:
             self.log.warning("No valid intersection found. Ignoring request.")
             return
+
+        # generate new net_bssid
+        net_bssid = generate_bssid(BASE_MAC, sta)
+
+        # create new lvap object
+        lvap = LVAP(sta, net_bssid, net_bssid, list(ssids), request.supported_band)
 
         # spawn new LVAP
         self.log.info("Spawning new LVAP %s on %s", sta, wtp.addr)
@@ -532,7 +545,7 @@ class LVAPPConnection:
 
         self.send_auth_response(lvap)
 
-    def _handle_assoc_request(self, wtp, request):
+    def _handle_assoc_request(self, _, request):
         """Handle an incoming ASSOC_REQUEST message.
         Args:
             request, a ASSOC_REQUEST message
@@ -673,10 +686,10 @@ class LVAPPConnection:
 
         self.log.info("LVAP status %s", lvap)
 
-    def _handle_status_port(self, wtp, status):
-        """Handle an incoming PORT message.
+    def _handle_status_transmission_policy(self, wtp, status):
+        """Handle an incoming TRANSMISSION_POLICY message.
         Args:
-            status, a STATUS_PORT message
+            status, a TRANSMISSION_POLICY message
         Returns:
             None
         """
@@ -686,20 +699,19 @@ class LVAPPConnection:
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
             return
 
         sta = EtherAddress(status.sta)
         tx_policy = valid[0].tx_policies[sta]
 
-        tx_policy._mcs = set([float(x) / 2 for x in status.mcs])
-        tx_policy._ht_mcs = set([int(x) for x in status.ht_mcs])
-        tx_policy._rts_cts = int(status.rts_cts)
-        tx_policy._mcast = int(status.tx_mcast)
-        tx_policy._ur_count = int(status.ur_mcast_count)
-        tx_policy._no_ack = bool(status.flags.no_ack)
+        tx_policy.set_mcs([float(x) / 2 for x in status.mcs])
+        tx_policy.set_ht_mcs([int(x) for x in status.ht_mcs])
+        tx_policy.set_rts_cts(status.rts_cts)
+        tx_policy.set_mcast(status.tx_mcast)
+        tx_policy.set_ur_count(status.ur_mcast_count)
+        tx_policy.set_no_ack(status.flags.no_ack)
 
-        self.log.info("Port status %s", tx_policy)
+        self.log.info("Tranmission policy status %s", tx_policy)
 
     def _handle_status_traffic_rule_queue(self, wtp, status):
         """Handle an incoming STATUS_TRAFFIC_RULE_QUEUE message.
@@ -725,13 +737,12 @@ class LVAPPConnection:
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
             return
 
         trq = valid[0].traffic_rule_queues[(ssid, dscp)]
 
-        trq._quantum = quantum
-        trq._amsdu_aggregation = amsdu_aggregation
+        trq.set_quantum(quantum)
+        trq.set_amsdu_aggregation(amsdu_aggregation)
 
         self.log.info("Transmission rule status %s", trq)
 
@@ -793,11 +804,11 @@ class LVAPPConnection:
         msg = Container(length=10)
         return self.send_message(PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST, msg)
 
-    def send_port_status_request(self):
-        """Send a PORT_STATUS_REQUEST message."""
+    def send_transmission_policy_status_request(self):
+        """Send a TRANSMISSION_POLICY_STATUS_REQUEST message."""
 
         msg = Container(length=10)
-        return self.send_message(PT_PORT_STATUS_REQUEST, msg)
+        return self.send_message(PT_TRANSMISSION_POLICY_STATUS_REQUEST, msg)
 
     def send_add_vap(self, vap):
         """Send a ADD_VAP message."""
@@ -853,8 +864,8 @@ class LVAPPConnection:
 
         return self.send_message(PT_DEL_LVAP, msg)
 
-    def send_set_port(self, tx_policy):
-        """Send a SET_PORT message."""
+    def send_set_transmission_policy(self, tx_policy):
+        """Send a SET_TRANSMISSION_POLICY message."""
 
         flags = Container(no_ack=tx_policy.no_ack)
         rates = sorted([int(x * 2) for x in tx_policy.mcs])
@@ -874,10 +885,10 @@ class LVAPPConnection:
                         mcs=rates,
                         ht_mcs=ht_rates)
 
-        return self.send_message(PT_SET_PORT, msg)
+        return self.send_message(PT_SET_TRANSMISSION_POLICY, msg)
 
-    def send_del_port(self, tx_policy):
-        """Send a DEL_PORT message."""
+    def send_del_transmission_policy(self, tx_policy):
+        """Send a DEL_TRANSMISSION_POLICY message."""
 
         msg = Container(length=24,
                         sta=tx_policy.addr.to_raw(),
@@ -885,7 +896,7 @@ class LVAPPConnection:
                         channel=tx_policy.block.channel,
                         band=tx_policy.block.band)
 
-        return self.send_message(PT_DEL_PORT, msg)
+        return self.send_message(PT_DEL_TRANSMISSION_POLICY, msg)
 
     def send_add_lvap(self, lvap, block, set_mask):
         """Send a ADD_LVAP message."""

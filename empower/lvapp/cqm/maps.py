@@ -29,7 +29,6 @@ from construct import Array
 
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModulePeriodic
-from empower.core.resourcepool import CQM
 from empower.core.resourcepool import ResourceBlock
 from empower.lvapp import PT_VERSION
 
@@ -80,7 +79,7 @@ class Maps(ModulePeriodic):
         self._block = None
 
         # data structures
-        self.maps = CQM()
+        self.maps = {}
 
     def __eq__(self, other):
         return super().__eq__(other) and self.block == other.block
@@ -196,7 +195,7 @@ class Maps(ModulePeriodic):
                 del map_entry_block[key]
 
         # update this object
-        self.maps = CQM()
+        self.maps = {}
 
         for entry in response.img_entries:
 
