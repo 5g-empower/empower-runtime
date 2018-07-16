@@ -21,6 +21,7 @@ import tornado.ioloop
 import empower.logger
 
 from empower.core.resourcepool import ResourcePool
+from empower.core.cellpool import CellPool
 
 from empower.main import RUNTIME
 
@@ -228,6 +229,18 @@ class EmpowerApp:
             return None
 
         return RUNTIME.tenants[self.tenant_id].ues[ue_id]
+
+    def cells(self):
+
+        # Initialize the Resource Pool
+        pool = CellPool()
+
+        # Update the pool with all the available Cells
+        for vbs in self.vbses():
+            for cell in vbs.cells.values():
+                pool.append(cell)
+
+        return pool
 
     def blocks(self):
         """Return all ResourseBlocks in this Tenant."""
