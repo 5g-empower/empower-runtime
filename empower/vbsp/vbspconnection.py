@@ -387,7 +387,7 @@ class VBSPConnection:
             None
         """
         
-        origin_enbid = EtherAddress(b'\x00\x00' + ho.origin_enbid)
+        origin_enbid = EtherAddress(ho.origin_enbid[2:8])
 
         if origin_enbid not in RUNTIME.vbses:
             self.log.warning("HO response from unknown VBS %s", RUNTIME.vbses)
@@ -403,7 +403,7 @@ class VBSPConnection:
             return
 
         ue.handle_ue_handover_response(origin_vbs, self.vbs, ho.origin_rnti, ho.target_rnti, 
-                                       ho.origin_pci, hdr.cellid, hdr.xid, event.opcode)
+                                       ho.origin_pci, hdr.cellid, event.opcode)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.

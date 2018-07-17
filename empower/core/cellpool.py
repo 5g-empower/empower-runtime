@@ -35,23 +35,34 @@ class CellPool(list):
 
         return CellPool(cells)
 
+    def sort_by_rsrq(self, ue_id):
+        """Return list sorted by rsrq for the specified address."""
+
+        filtered = [x for x in self if ue_id in x.rrc_measurements]
+
+        cells = sorted(filtered,
+                       key=lambda x: x.rrc_measurements[ue_id]['rsrq'],
+                       reverse=True)
+
+        return CellPool(cells)
+
     def first(self):
         """Return first entry in the list."""
 
         if self:
             cell = list.__getitem__(self, 0)
-            return CellPool([cell])
+            return cell
 
-        return CellPool()
+        return None
 
     def last(self):
         """Return last entry in the list."""
 
         if self:
             cell = list.__getitem__(self, -1)
-            return CellPool([cell])
+            return cell
 
-        return CellPool()
+        return None
 
 
 class Cell:

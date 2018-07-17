@@ -51,7 +51,15 @@ class MobilityManager(EmpowerApp):
         """ Periodic job. """
 
         for ueq in self.ues():
-            ueq.cell = self.cells().sort_by_rsrp(ueq.ue_id).first()
+            for cell in self.cells():
+                if ueq.ue_id not in cell.rrc_measurements:
+                    continue
+                print("Cell %s UE %s -> RSRQ %d" % (cell, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+            target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
+            if target_cell == ueq.cell:
+                continue
+            print("Handover from VBS %s to VBS %s" %(ueq.cell, target_cell))
+            ueq.cell = target_cell
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
