@@ -20,6 +20,9 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.core.lvap import PROCESS_REMOVING
+from empower.main import RUNTIME
+from empower.vbsp.rrc_measurements.rrc_measurements import RRCMeasurementsWorker
 
 
 class MobilityManager(EmpowerApp):
@@ -47,6 +50,7 @@ class MobilityManager(EmpowerApp):
 
         self.rrc_measurements(ue=ue, measurements=measurements)
 
+
     def loop(self):
         """ Periodic job. """
 
@@ -54,12 +58,10 @@ class MobilityManager(EmpowerApp):
             for cell in self.cells():
                 if ueq.ue_id not in cell.rrc_measurements:
                     continue
-                print("Cell %s UE %s -> RSRQ %d" % (cell, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
-            target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
-            if target_cell == ueq.cell:
-                continue
-            print("Handover from VBS %s to VBS %s" %(ueq.cell, target_cell))
-            ueq.cell = target_cell
+                print("Cell %s UE %s -> RSRQ %d" % (cell.vbs.addr, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+
+            ueq.cell  = self.cells().sort_by_rsrq(ueq.ue_id).first()
+
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """

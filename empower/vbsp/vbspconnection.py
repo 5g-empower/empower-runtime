@@ -254,7 +254,7 @@ class VBSPConnection:
         msg.action = action
         msg.opcode = opcode
 
-        self.log.info("Sending %s to %s", parser.name, self.vbs)
+        self.log.info("Sending %s xid=%u seq=%u to %s", parser.name, msg.xid, msg.seq, self.vbs)
         self.stream.write(parser.build(msg))
 
         return msg.xid

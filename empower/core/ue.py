@@ -71,7 +71,7 @@ class UE:
             return
 
         self.log.info("UE %s handover opcode %u %s (%u) -> %s (%u)", 
-                      self.ue_id, opcode, origin_vbs.addr, origin_pci, 
+                      self.ue_id, opcode, origin_vbs.addr, origin_pci,
                       target_vbs.addr, target_pci)
 
         # handover was a success
