@@ -20,6 +20,9 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
+from empower.core.lvap import PROCESS_REMOVING
+from empower.main import RUNTIME
+from empower.vbsp.rrc_measurements.rrc_measurements import RRCMeasurementsWorker
 
 
 class MobilityManager(EmpowerApp):
@@ -47,6 +50,30 @@ class MobilityManager(EmpowerApp):
 
         self.rrc_measurements(ue=ue, measurements=measurements)
 
+
+    def delete_ue_meas_worker(self, ue):
+        """ Delete the worker for the UE measurements. """
+
+        worker = RUNTIME.components[RRCMeasurementsWorker.__module__]
+
+        for module_id in list(worker.modules.keys()):
+            ue_meas_mod = worker.modules[module_id]
+            if ue == ue_meas_mod.ue:
+                worker.remove_module(module_id)
+
+
+    def update_rrc_measurements(self, ue):
+        """ Update the measurements for the updated RNTI. """
+
+        measurements = \
+            [{"earfcn": ue.cell.dl_earfcn,
+              "interval": 2000,
+              "max_cells": 2,
+              "max_meas": 2}]
+
+        self.rrc_measurements(ue=ue, measurements=measurements)
+
+
     def loop(self):
         """ Periodic job. """
 
@@ -54,12 +81,24 @@ class MobilityManager(EmpowerApp):
             for cell in self.cells():
                 if ueq.ue_id not in cell.rrc_measurements:
                     continue
-                print("Cell %s UE %s -> RSRQ %d" % (cell, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+                print("Cell %s UE %s -> RSRQ %d" % (cell.vbs.addr, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+
             target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
+
             if target_cell == ueq.cell:
                 continue
-            print("Handover from VBS %s to VBS %s" %(ueq.cell, target_cell))
+
+            if ueq.ue_id not in ueq.cell.rrc_measurements:
+                continue
+
+            if ueq.state == PROCESS_REMOVING:
+                continue
+
+            print("Handover from VBS %s to VBS %s for UE %s" %(ueq.cell, target_cell, ueq.ue_id))
+            self.delete_ue_meas_worker(ueq)
+            self.update_rrc_measurements(ueq)
             ueq.cell = target_cell
+
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
