@@ -87,8 +87,9 @@ class ModuleVBSPWorker(ModuleWorker):
 
         module = self.modules[hdr.xid]
 
-        self.log.info("Received %s response xid=%u seq=%u)",
-                      self.module.MODULE_NAME, hdr.xid, hdr.seq)
+        self.log.info("Received %s response xid=%u seq=%u opcode=%u)",
+                      self.module.MODULE_NAME, hdr.xid, hdr.seq,
+                      event.opcode)
 
         if event.opcode == 1:
             module.handle_response(msg)
