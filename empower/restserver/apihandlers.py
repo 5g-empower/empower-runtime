@@ -104,9 +104,8 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
                         account = RUNTIME.accounts[match.group(1)]
                         if self.account.username == account.username:
                             return
-                        else:
-                            self.send_error(401)
-                            return
+                        self.send_error(401)
+                        return
 
                 return
 

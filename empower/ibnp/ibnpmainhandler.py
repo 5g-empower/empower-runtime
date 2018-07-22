@@ -121,7 +121,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         self.server.last_seen = hello['seq']
         self.server.last_seen_ts = time.time()
 
-    def _handle_cleanup(self, cleanup):
+    def _handle_cleanup(self, _):
 
         return
 

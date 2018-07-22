@@ -70,7 +70,8 @@ class ModuleLVAPPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
 
-        self.pnfp_server.register_message(PT_REGISTER, None, self.handle_register)
+        self.pnfp_server.register_message(PT_REGISTER, None,
+                                          self.handle_register)
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
 
     def handle_register(self, wtp):
@@ -83,18 +84,18 @@ class ModuleLVAPPWorker(ModuleWorker):
 
         pass
 
-    def handle_packet(self, wtp, msg):
+    def handle_packet(self, pnfdev, message):
         """Handle response message."""
 
-        if msg.module_id not in self.modules:
+        if message.module_id not in self.modules:
             return
 
-        module = self.modules[msg.module_id]
+        module = self.modules[message.module_id]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      msg.module_id)
+                      message.module_id)
 
-        module.handle_response(msg)
+        module.handle_response(message)
 
 
 class LVAPPServer(PNFPServer, TCPServer):

@@ -234,7 +234,7 @@ class ACLHandler(EmpowerAPIHandler):
 
             acl = getattr(RUNTIME, self.STRUCT)
 
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(acl.values())
             else:
                 if EtherAddress(args[0]) in acl:
@@ -263,7 +263,7 @@ class ACLHandler(EmpowerAPIHandler):
         """
         try:
 
-            if len(args) != 0:
+            if not args:
                 raise ValueError("Invalid URL")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -354,7 +354,7 @@ class AccountsHandler(EmpowerAPIHandler):
             accounts = {}
             for account in RUNTIME.accounts:
                 accounts[account] = RUNTIME.accounts[account].to_dict()
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(accounts)
             else:
                 self.write_as_json(accounts[args[0]])
@@ -392,7 +392,7 @@ class AccountsHandler(EmpowerAPIHandler):
 
         try:
 
-            if len(args) != 0:
+            if not args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -516,7 +516,7 @@ class AccountsHandler(EmpowerAPIHandler):
 
 
 class MarketplaceHandler(EmpowerAPIHandler):
-    """Marketplace handler. 
+    """Marketplace handler.
 
     Used to list available apps."""
 
@@ -588,7 +588,7 @@ class ComponentsHandler(EmpowerAPIHandler):
                 else:
                     componets[component] = {}
 
-            if len(args) == 0:
+            if not args:
                 self.write_as_json(componets)
             else:
                 self.write_as_json(componets[args[0]])
@@ -695,7 +695,7 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         try:
 
-            if len(args) != 0:
+            if not args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -747,7 +747,7 @@ class PendingTenantHandler(EmpowerAPIHandler):
         try:
             if len(args) > 1:
                 raise ValueError("Invalid url")
-            if len(args) == 0:
+            if not args:
                 user = self.get_argument("user", default=None)
                 if user:
                     pendings = RUNTIME.load_pending_tenants(user)
@@ -844,7 +844,7 @@ class PendingTenantHandler(EmpowerAPIHandler):
 
         try:
 
-            if len(args) == 0:
+            if not args:
 
                 pendings = RUNTIME.load_pending_tenants()
 
@@ -891,7 +891,7 @@ class TenantHandler(EmpowerAPIHandler):
         try:
             if len(args) > 1:
                 raise ValueError("Invalid url")
-            if len(args) == 0:
+            if not args:
                 tenants = RUNTIME.tenants.values()
                 user = self.get_argument("user", default=None)
                 if user:
@@ -997,7 +997,7 @@ class TenantHandler(EmpowerAPIHandler):
         """
         try:
 
-            if len(args) == 0:
+            if not args:
 
                 for tenant in list(RUNTIME.tenants.keys()):
                     RUNTIME.remove_tenant(tenant)
@@ -1298,7 +1298,8 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
         Example URLs:
 
-            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/0x40
+            PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/
+              0x40
             {
                 "version" : 1.0,
                 "aggregation" : true,
@@ -1349,7 +1350,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
         Example URLs:
 
-            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/ \
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/
               0x40
 
         """
@@ -1459,7 +1460,7 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
             if "ports" not in request:
                 raise ValueError("missing ports element")
 
-            if type(request["ports"]) is not dict:
+            if not isinstance(request["ports"], dict):
                 raise ValueError("ports is not a dictionary")
 
             for port in request["ports"].values():

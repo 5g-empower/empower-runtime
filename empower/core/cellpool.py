@@ -29,7 +29,7 @@ class CellPool(list):
 
         filtered = [x for x in self if ue_id in x.rrc_measurements]
 
-        cells = sorted(filtered, 
+        cells = sorted(filtered,
                        key=lambda x: x.rrc_measurements[ue_id]['rsrp'],
                        reverse=True)
 

@@ -211,14 +211,14 @@ class RRCMeasurements(ModulePeriodic):
                             max_meas=measurement["max_meas"])
 
             self.vbs.connection.send_message(msg,
-                                             E_TYPE_TRIG, 
-                                             EP_ACT_RRC_MEASUREMENT, 
-                                             RRC_REQUEST, 
-                                             cellid=self.ue.cell.pci, 
-                                             xid=self.module_id, 
+                                             E_TYPE_TRIG,
+                                             EP_ACT_RRC_MEASUREMENT,
+                                             RRC_REQUEST,
+                                             cellid=self.ue.cell.pci,
+                                             xid=self.module_id,
                                              opcode=EP_OPERATION_ADD)
 
-    def handle_response(self, meas):
+    def handle_response(self, response):
         """Handle an incoming RRC_MEASUREMENTS message.
         Args:
             meas, a RRC_MEASUREMENTS message
@@ -226,7 +226,7 @@ class RRCMeasurements(ModulePeriodic):
             None
         """
 
-        for entry in meas.rrc_entries:
+        for entry in response.rrc_entries:
 
             # save measurements in this object
             if entry.meas_id not in self.results:

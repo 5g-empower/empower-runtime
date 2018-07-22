@@ -231,6 +231,7 @@ class EmpowerApp:
         return RUNTIME.tenants[self.tenant_id].ues[ue_id]
 
     def cells(self):
+        """Return all available cells in this tenant."""
 
         # Initialize the Resource Pool
         pool = CellPool()
