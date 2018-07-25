@@ -20,6 +20,7 @@
 import json
 import uuid
 import types
+import ipaddress
 
 import empower.datatypes.etheraddress
 import empower.datatypes.ssid
@@ -49,6 +50,7 @@ class EmpowerEncoder(IterEncoder):
             return obj.__name__
 
         instances = (uuid.UUID,
+                     ipaddress.IPv4Address,
                      empower.datatypes.dscp.DSCP,
                      empower.datatypes.ssid.SSID,
                      empower.datatypes.plmnid.PLMNID,

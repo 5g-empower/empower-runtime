@@ -587,3 +587,25 @@ class ModuleWorker(Service):
         module.stop()
 
         del self.modules[module_id]
+
+
+class ModuleEventWorker(ModuleWorker):
+    """Module event worker.
+    Keeps track of the currently defined modules for each tenant (events only)
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def handle_packet(self, pnfdev, message):
+        """Handle response message."""
+
+        for module in self.modules.values():
+
+            if module.tenant_id not in RUNTIME.tenants:
+                continue
+
+            self.log.info("New event %s from %s: (id=%u)", pnfdev.addr,
+                          self.module.MODULE_NAME, module.module_id)
+
+            module.handle_response(message)

@@ -263,9 +263,6 @@ class ACLHandler(EmpowerAPIHandler):
         """
         try:
 
-            if not args:
-                raise ValueError("Invalid URL")
-
             request = tornado.escape.json_decode(self.request.body)
 
             if "version" not in request:
