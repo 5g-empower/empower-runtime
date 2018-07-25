@@ -30,32 +30,10 @@ from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
 from empower.core.module import ModuleTrigger
-from empower.core.utils import multicast_ip_to_ether
-from empower.core.utils import ip_bytes_to_str
 
 from empower.main import RUNTIME
 
-PT_INCOM_MCAST_REQUEST = 0x46
-PT_INCOM_MCAST_RESPONSE = 0x47
 PT_IGMP_REPORT = 0x48
-PT_DEL_MCAST_ADDR = 0x49
-PT_DEL_MCAST_RECEIVER = 0x50
-
-
-INCOM_MCAST_REQUEST = Struct("incom_mcast_addr", UBInt8("version"),
-                             UBInt8("type"),
-                             UBInt32("length"),
-                             UBInt32("seq"),
-                             Bytes("wtp", 6),
-                             Bytes("mcast_addr", 6),
-                             UBInt8("iface"))
-
-INCOM_MCAST_RESPONSE = Struct("incom_mcast_addr_response", UBInt8("version"),
-                              UBInt8("type"),
-                              UBInt32("length"),
-                              UBInt32("seq"),
-                              Bytes("mcast_addr", 6),
-                              UBInt8("iface"))
 
 IGMP_REPORT = Struct("igmp_report", UBInt8("version"),
                      UBInt8("type"),
@@ -65,24 +43,6 @@ IGMP_REPORT = Struct("igmp_report", UBInt8("version"),
                      Bytes("sta", 6),
                      Bytes("mcast_addr", 4),
                      UBInt8("igmp_type"))
-
-DEL_MCAST_ADDR = Struct("del_mcast_addr", UBInt8("version"),
-                        UBInt8("type"),
-                        UBInt32("length"),
-                        UBInt32("seq"),
-                        Bytes("mcast_addr", 6),
-                        Bytes("hwaddr", 6),
-                        UBInt8("channel"),
-                        UBInt8("band"))
-
-DEL_MCAST_RECEIVER = Struct("del_mcast_receiver", UBInt8("version"),
-                            UBInt8("type"),
-                            UBInt32("length"),
-                            UBInt32("seq"),
-                            Bytes("sta", 6),
-                            Bytes("hwaddr", 6),
-                            UBInt8("channel"),
-                            UBInt8("band"))
 
 
 class IGMPReport(ModuleTrigger):
