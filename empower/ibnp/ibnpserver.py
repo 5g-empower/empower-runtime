@@ -21,15 +21,7 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from empower.persistence import Session
-from empower.persistence.persistence import TblTrafficRule
-
-from empower.datatypes.match import Match
-
 from empower.core.trafficrule import TrafficRule
-from empower.core.utils import get_module
-from empower.lvapp import PT_LVAP_JOIN
-from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
 from empower.persistence import Session
@@ -74,8 +66,6 @@ class IBNPServer(tornado.web.Application):
 
         for rule_db in trs:
 
-            #match = Match(rule_db.match)
-
             tr = TrafficRule(ssid=rule_db.tenant_id,
                              match=rule_db.match,
                              label=rule_db.label,
@@ -96,9 +86,9 @@ class IBNPServer(tornado.web.Application):
         if self.connection:
             self.connection.add_tr(tr)
 
-    def remove_tr(self, tenant_id, match):
+    def del_traffic_rule(self, tenant_id, match):
 
-        if match in self.trs:
+        if match in self.trs[tenant_id]:
             del self.trs[tenant_id][match]
 
         if self.connection:

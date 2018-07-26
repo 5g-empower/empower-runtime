@@ -22,7 +22,6 @@ import json
 
 import tornado.websocket
 
-from uuid import UUID
 from uuid import uuid4
 
 from empower.datatypes.dpid import DPID
@@ -38,8 +37,6 @@ from empower.ibnp import PT_UPDATE_ENDPOINT
 from empower.ibnp import PT_REMOVE_ENDPOINT
 from empower.ibnp import PT_ADD_RULE
 from empower.ibnp import PT_REMOVE_RULE
-from empower.ibnp import PT_DP_JOIN
-from empower.ibnp import PT_DP_LEAVE
 
 from empower.core.utils import get_module
 from empower.lvapp.lvappserver import LVAPPServer
@@ -91,7 +88,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         for tr_rule_id in tr_rule_ids:
 
             of_rule_id = tenant_rules[tr_rule_id]
-            print('REMOVING RULE %s' % of_rule_id)
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
 
@@ -118,9 +114,9 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
                 continue
 
             self._add_tr_rule(tenant=tenant,
-                                           lvap=lvap,
-                                           match=tr.match,
-                                           dscp=tr.dscp)
+                              lvap=lvap,
+                              match=tr.match,
+                              dscp=tr.dscp)
 
     def _lvap_leave(self, lvap):
 
@@ -130,12 +126,11 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         tenant_rules = self.tr_rules[lvap.tenant.tenant_id]
 
         tr_rule_ids = [(_, _lvap_addr) for _, _lvap_addr in tenant_rules
-                            if _lvap_addr == lvap.addr]
+                       if _lvap_addr == lvap.addr]
 
         for tr_rule_id in tr_rule_ids:
 
             of_rule_id = tenant_rules[tr_rule_id]
-            print('REMOVING RULE %s' % of_rule_id)
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
 
@@ -187,7 +182,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
                 'match': match.match}
 
         self.send_add_rule(rule)
-        print('ADDING RULE FOR LVAP %s, MATCH %s, tenant %s' % (lvap.addr, match, tenant.tenant_id))
 
         tr_id = (match, lvap.addr)
 
@@ -195,13 +189,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             self.tr_rules[tenant.tenant_id] = {}
 
         self.tr_rules[tenant.tenant_id][tr_id] = of_rule_id
-
-
-
-
-
-
-
 
     def open(self):
         """On socket opened."""

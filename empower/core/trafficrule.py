@@ -40,7 +40,7 @@ class TrafficRule:
     def __init__(self, ssid, match, dscp, label):
 
         self.ssid = ssid
-        self.match = Match(match)
+        self.match = match
         self.dscp = dscp
         self.label = label
 
