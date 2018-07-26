@@ -1825,7 +1825,7 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
                 "version" : 1.0,
                 "dscp" : 0x40,
                 "label" : "video traffic (high priority)",
-                "match" : "dl_vlan=100;tp_dst=80",
+                "match" : "dl_vlan=100,tp_dst=80",
             }
 
         """

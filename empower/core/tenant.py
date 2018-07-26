@@ -28,6 +28,7 @@ from empower.core.lvnf import LVNF
 from empower.persistence import Session
 from empower.core.utils import get_module
 from empower.datatypes.etheraddress import EtherAddress
+from empower.core.trafficrule import TrafficRule
 from empower.core.trafficrulequeue import TrafficRuleQueue
 
 T_TYPE_SHARED = "shared"
@@ -210,7 +211,14 @@ class Tenant:
             session.rollback()
             raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, match))
 
-        # TODO: send command to IBN
+        tr = TrafficRule(ssid=self.tenant_id,
+                         match=match,
+                         dscp=dscp,
+                         label=label)
+
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        ibnp_server.add_tr(tr)
 
     def del_traffic_rule(self, match):
         """Delete a traffic rule from this tenant.
@@ -232,7 +240,9 @@ class Tenant:
         if not rule:
             raise KeyError(rule)
 
-        # TODO: send command to IBN
+        from empower.ibnp.ibnpserver import IBNPServer
+        ibnp_server = get_module(IBNPServer.__module__)
+        ibnp_server.remove_tr(self.tenant_id, match)
 
         session = Session()
         session.delete(rule)
