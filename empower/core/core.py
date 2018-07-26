@@ -198,7 +198,7 @@ class EmpowerRuntime:
         The MANIFEST provides:
           - name: the name of the module
           - desc: a human readable description of the app
-          - params: the list of parameters defined by the app. 
+          - params: the list of parameters defined by the app.
 
         For each parameter the following info are provided:
           - label: the name of the parameters
@@ -643,7 +643,8 @@ class EmpowerRuntime:
 
             # removing UE from tenant, need first to look for right tenant
             if ue.ue_id in ue.tenant.ues:
-                self.log.info("Removing %s from tenant %s", ue.ue_id, ue.tenant.plmn_id)
+                self.log.info("Removing %s from tenant %s", ue.ue_id,
+                              ue.tenant.plmn_id)
                 del ue.tenant.ues[ue.ue_id]
 
             # Raise UE leave event

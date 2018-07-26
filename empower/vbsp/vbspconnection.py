@@ -43,11 +43,9 @@ from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
-from empower.vbsp import EP_OPERATION_SUCCESS
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.vbsp import CAPS_TYPES
 from empower.vbsp import EP_CAPS_CELL
-from empower.core.utils import hex_to_ether
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
@@ -235,7 +233,7 @@ class VBSPConnection:
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.vbs)
 
-    def send_message(self, msg, msg_type, action, parser, cellid=0, 
+    def send_message(self, msg, msg_type, action, parser, cellid=0,
                      xid=0, opcode=EP_OPERATION_UNSPECIFIED):
         """Send message and set common parameters."""
 
@@ -386,8 +384,8 @@ class VBSPConnection:
         Returns:
             None
         """
-        
-        origin_enbid = EtherAddress(b'\x00\x00' + ho.origin_enbid)
+
+        origin_enbid = EtherAddress(ho.origin_enbid[2:8])
 
         if origin_enbid not in RUNTIME.vbses:
             self.log.warning("HO response from unknown VBS %s", RUNTIME.vbses)
@@ -402,8 +400,9 @@ class VBSPConnection:
                              ho.origin_rnti, ho.origin_pci, origin_vbs)
             return
 
-        ue.handle_ue_handover_response(origin_vbs, self.vbs, ho.origin_rnti, ho.target_rnti, 
-                                       ho.origin_pci, hdr.cellid, hdr.xid, event.opcode)
+        ue.handle_ue_handover_response(origin_vbs, self.vbs, ho.origin_rnti,
+                                       ho.target_rnti, ho.origin_pci,
+                                       hdr.cellid, event.opcode)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
@@ -416,12 +415,12 @@ class VBSPConnection:
         """
 
         msg = Container(dummy=0)
-        
-        self.send_message(msg, 
-                          E_TYPE_SINGLE, 
-                          EP_ACT_CAPS, 
+
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_CAPS,
                           CAPS_REQUEST)
-    
+
     def send_ue_reports_request(self):
         """Send a UE Reports message.
         Args:
@@ -434,10 +433,10 @@ class VBSPConnection:
 
         msg = Container(dummy=0)
 
-        self.send_message(msg, 
-                          E_TYPE_TRIG, 
-                          EP_ACT_UE_REPORT, 
-                          UE_REPORT_REQUEST, 
+        self.send_message(msg,
+                          E_TYPE_TRIG,
+                          EP_ACT_UE_REPORT,
+                          UE_REPORT_REQUEST,
                           opcode=EP_OPERATION_ADD)
 
     def send_ue_ho_request(self, ue, cell):
@@ -455,4 +454,5 @@ class VBSPConnection:
                         target_pci=cell.pci,
                         cause=1)
 
-        return self.send_message(msg, E_TYPE_SINGLE, EP_ACT_HANDOVER, UE_HO_REQUEST, cellid=ue.cell.pci)
+        return self.send_message(msg, E_TYPE_SINGLE, EP_ACT_HANDOVER,
+                                 UE_HO_REQUEST, cellid=ue.cell.pci)

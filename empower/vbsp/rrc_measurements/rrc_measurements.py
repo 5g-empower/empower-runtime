@@ -37,7 +37,7 @@ from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModulePeriodic
 from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import EP_OPERATION_ADD
-
+from empower.vbsp import EP_OPERATION_REM
 from empower.main import RUNTIME
 
 
@@ -177,6 +177,26 @@ class RRCMeasurements(ModulePeriodic):
         if self.vbs == self.ue.vbs:
             return
 
+        if self.vbs:
+
+            for i in self.measurements:
+                msg = Container(meas_id=i,
+                                rnti=0,
+                                earfcn=0,
+                                interval=0,
+                                max_cells=0,
+                                max_meas=0)
+
+                self.vbs.connection.send_message(msg,
+                                                 E_TYPE_TRIG,
+                                                 EP_ACT_RRC_MEASUREMENT,
+                                                 RRC_REQUEST,
+                                                 cellid=self.ue.cell.pci,
+                                                 xid=self.module_id,
+                                                 opcode=EP_OPERATION_REM)
+
+        self.results = {}
+
         self.vbs = self.ue.vbs
 
         for i in self.measurements:
@@ -191,14 +211,14 @@ class RRCMeasurements(ModulePeriodic):
                             max_meas=measurement["max_meas"])
 
             self.vbs.connection.send_message(msg,
-                                             E_TYPE_TRIG, 
-                                             EP_ACT_RRC_MEASUREMENT, 
-                                             RRC_REQUEST, 
-                                             cellid=self.ue.cell.pci, 
-                                             xid=self.module_id, 
+                                             E_TYPE_TRIG,
+                                             EP_ACT_RRC_MEASUREMENT,
+                                             RRC_REQUEST,
+                                             cellid=self.ue.cell.pci,
+                                             xid=self.module_id,
                                              opcode=EP_OPERATION_ADD)
 
-    def handle_response(self, meas):
+    def handle_response(self, response):
         """Handle an incoming RRC_MEASUREMENTS message.
         Args:
             meas, a RRC_MEASUREMENTS message
@@ -206,7 +226,7 @@ class RRCMeasurements(ModulePeriodic):
             None
         """
 
-        for entry in meas.rrc_entries:
+        for entry in response.rrc_entries:
 
             # save measurements in this object
             if entry.meas_id not in self.results:

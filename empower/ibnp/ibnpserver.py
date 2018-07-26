@@ -22,6 +22,8 @@ import tornado.ioloop
 import tornado.websocket
 
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
+from empower.persistence import Session
+from empower.persistence.persistence import TblTrafficRule
 
 
 DEFAULT_PORT = 4444
@@ -52,6 +54,16 @@ class IBNPServer(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers)
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
+
+        self.__load_traffic_rules()
+
+    def __load_traffic_rules(self):
+        """Fetch traffic rule queues in this tenant."""
+
+        trs = Session().query(TblTrafficRule).all()
+
+        for rule in trs:
+            pass
 
     @property
     def seq(self):

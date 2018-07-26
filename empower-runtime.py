@@ -38,6 +38,7 @@ if __name__ == "__main__":
              'lvapp.wifi_stats.wifi_stats',
              'lvapp.rssi.rssi',
              'lvapp.summary.summary',
+             'lvapp.igmp_report.igmp_report',
 
              'vbsp.rrc_measurements.rrc_measurements',
              'vbsp.mac_reports.mac_reports',
