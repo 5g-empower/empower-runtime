@@ -21,6 +21,8 @@ import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
+from empower.core.trafficrule import TrafficRule
+
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
 from empower.persistence import Session
 from empower.persistence.persistence import TblTrafficRule
@@ -42,8 +44,11 @@ class IBNPServer(tornado.web.Application):
         self.period = None
         self.last_seen = None
         self.last_seen_ts = None
-
         self.__seq = 0
+
+        self.trs = {}
+
+        self.__load_traffic_rules()
 
         handlers = []
 
@@ -55,15 +60,39 @@ class IBNPServer(tornado.web.Application):
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
 
-        self.__load_traffic_rules()
-
     def __load_traffic_rules(self):
-        """Fetch traffic rule queues in this tenant."""
 
         trs = Session().query(TblTrafficRule).all()
 
-        for rule in trs:
-            pass
+        for rule_db in trs:
+
+            tr = TrafficRule(ssid=rule_db.tenant_id,
+                             match=rule_db.match,
+                             label=rule_db.label,
+                             dscp=rule_db.dscp)
+
+            self.add_traffic_rule(tr)
+
+    def add_traffic_rule(self, tr):
+
+        tenant_id = tr.ssid
+        match = tr.match
+
+        if tenant_id not in self.trs:
+            self.trs[tenant_id] = {}
+
+        self.trs[tenant_id][match] = tr
+
+        if self.connection:
+            self.connection.add_tr(tr)
+
+    def del_traffic_rule(self, tenant_id, match):
+
+        if match in self.trs[tenant_id]:
+            del self.trs[tenant_id][match]
+
+        if self.connection:
+            self.connection.remove_tr(tenant_id, match)
 
     @property
     def seq(self):

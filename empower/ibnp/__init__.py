@@ -19,10 +19,10 @@
 
 PT_VERSION = 0
 
-# cpp to ctrl
+# ryu to ctrl
 PT_HELLO = "hello"
 
-# ctrl to cpp
+# ctrl to ryu
 PT_UPDATE_ENDPOINT = "update_endpoint"
 PT_REMOVE_ENDPOINT = "remove_endpoint"
 PT_ADD_RULE = "add_rule"

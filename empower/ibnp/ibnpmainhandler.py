@@ -22,16 +22,26 @@ import json
 
 import tornado.websocket
 
+from uuid import uuid4
+
 from empower.datatypes.dpid import DPID
+from empower.datatypes.etheraddress import EtherAddress
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.core.networkport import NetworkPort
 from empower.core.datapath import Datapath
+from empower.core.endpoint import Endpoint
+from empower.core.virtualport import VirtualPort
 
 from empower.ibnp import PT_VERSION
 from empower.ibnp import PT_UPDATE_ENDPOINT
 from empower.ibnp import PT_REMOVE_ENDPOINT
 from empower.ibnp import PT_ADD_RULE
 from empower.ibnp import PT_REMOVE_RULE
+
+from empower.core.utils import get_module
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.lvapp import PT_LVAP_JOIN
+from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.main import RUNTIME
 
@@ -44,7 +54,141 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
     HANDLERS = [r"/"]
 
     def initialize(self, server):
+
         self.server = server
+
+        self.of_dpid = []
+        self.tr_rules = {}
+
+        lvapp_server = get_module(LVAPPServer.__module__)
+        lvapp_server.register_message(PT_LVAP_JOIN, None, self._lvap_join)
+        lvapp_server.register_message(PT_LVAP_LEAVE, None, self._lvap_leave)
+
+    def add_tr(self, tr):
+
+        tenant_id = tr.ssid
+        tenant = RUNTIME.tenants[tenant_id]
+
+        for lvap in tenant.lvaps.values():
+
+            self._add_tr_rule(tenant, lvap, tr.match, tr.dscp)
+
+    def remove_tr(self, tenant_id, match):
+
+        tenant = RUNTIME.tenants[tenant_id]
+
+        if tenant_id not in self.tr_rules:
+            return
+
+        tenant_rules = self.tr_rules[tenant.tenant_id]
+
+        tr_rule_ids = [(match, _) for _match, _ in tenant_rules
+                       if _match == match]
+
+        for tr_rule_id in tr_rule_ids:
+
+            of_rule_id = tenant_rules[tr_rule_id]
+            self.send_remove_rule(of_rule_id)
+            del tenant_rules[tr_rule_id]
+
+    def _lvap_join(self, lvap):
+
+        tenant = lvap.tenant
+
+        if not tenant:
+            return
+
+        if tenant.tenant_id not in self.server.trs:
+            return
+
+        tenant_trs = self.server.trs[tenant.tenant_id]
+
+        if lvap.tenant.tenant_id not in self.tr_rules:
+            self.tr_rules[tenant.tenant_id] = {}
+
+        tenant_rules = self.tr_rules[tenant.tenant_id]
+
+        for tr in tenant_trs.values():
+
+            if (tr.match, lvap.addr) in tenant_rules:
+                continue
+
+            self._add_tr_rule(tenant=tenant,
+                              lvap=lvap,
+                              match=tr.match,
+                              dscp=tr.dscp)
+
+    def _lvap_leave(self, lvap):
+
+        if lvap.tenant.tenant_id not in self.tr_rules:
+            return
+
+        tenant_rules = self.tr_rules[lvap.tenant.tenant_id]
+
+        tr_rule_ids = [(_, _lvap_addr) for _, _lvap_addr in tenant_rules
+                       if _lvap_addr == lvap.addr]
+
+        for tr_rule_id in tr_rule_ids:
+
+            of_rule_id = tenant_rules[tr_rule_id]
+            self.send_remove_rule(of_rule_id)
+            del tenant_rules[tr_rule_id]
+
+    def _of_dp_join(self, dp):
+
+        wtp_addr = EtherAddress(str(dp.dpid)[6:])
+
+        if wtp_addr not in RUNTIME.wtps:
+            return
+
+        for lvap in RUNTIME.lvaps.values():
+
+            if lvap.wtp.addr != wtp_addr:
+                continue
+
+            self._lvap_join(lvap)
+
+    def _add_tr_rule(self, tenant, lvap, match, dscp):
+
+        dp = lvap.wtp.datapath
+
+        if dp.dpid not in self.of_dpid:
+            return None
+
+        tr_ep_label = '_tr_%s' % lvap.wtp.addr
+
+        if tr_ep_label not in [ep.label for ep in tenant.endpoints.values()]:
+
+            tr_ep = Endpoint(uuid4(), tr_ep_label, dp)
+            tenant.endpoints[tr_ep.uuid] = tr_ep
+
+            src_vport = VirtualPort(tr_ep, dp.network_ports[1], 0)
+            dst_vport = VirtualPort(tr_ep, dp.network_ports[2], 1)
+
+            tr_ep.ports[src_vport.virtual_port_id] = src_vport
+            tr_ep.ports[dst_vport.virtual_port_id] = dst_vport
+
+        tr_ep = [ep for ep in tenant.endpoints.values()
+                 if ep.label == tr_ep_label][0]
+
+        of_rule_id = uuid4()
+
+        rule = {'version': '1.0',
+                'rule_uuid': of_rule_id,
+                'ttp_uuid': tr_ep.uuid,
+                'ttp_vport': tr_ep.ports[1].virtual_port_id,
+                'stp_uuid': tr_ep.uuid,
+                'stp_vport': tr_ep.ports[0].virtual_port_id,
+                'match': match.match}
+
+        self.send_add_rule(rule)
+
+        tr_id = (match, lvap.addr)
+
+        if tenant.tenant_id not in self.tr_rules:
+            self.tr_rules[tenant.tenant_id] = {}
+
+        self.tr_rules[tenant.tenant_id][tr_id] = of_rule_id
 
     def open(self):
         """On socket opened."""
@@ -64,6 +208,11 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             self.handle_message(msg)
         except ValueError:
             LOG.error("Invalid input: %s", message)
+
+    def handle_tr_events(self, event_type, data):
+
+        if not self.server.connection:
+            return
 
     def handle_message(self, msg):
         """Handle incoming message."""
@@ -147,6 +296,11 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
                                            iface=port['name'])
 
                 datapath.network_ports[port_id] = network_port
+
+        if dpid not in self.of_dpid:
+            self.of_dpid.append(dpid)
+
+        self._of_dp_join(datapath)
 
     def _handle_new_link(self, of_link):
 
