@@ -55,32 +55,24 @@ class UE:
         # migration sats
         self._timer = None
 
-        # pending module ids (transions happen when list is empty)
-        self.pending = []
-
         # the rrc measurement, this is set by an rrc_measurement module
         self.rrc_measurements = {}
 
         # logger :)
         self.log = empower.logger.get_logger()
 
-
-    def handle_ue_handover_response(self, origin_vbs, target_vbs, origin_rnti, target_rnti, origin_pci, target_pci, xid, opcode):
+    def handle_ue_handover_response(self, origin_vbs, target_vbs, origin_rnti,
+                                    target_rnti, origin_pci, target_pci,
+                                    opcode):
         """Received as result of a del lvap command."""
 
-        if xid not in self.pending:
-            self.log.error("Xid %u not in pending list, ignoring", xid)
-            return
-
         if self.state != PROCESS_REMOVING:
-            self.log.error("UE Handover response received in state %s, ignoring",
+            self.log.error("UE Handover response received in state %s",
                            self.state)
             return
 
-        self.pending.remove(xid)
-
-        self.log.info("UE %s handover opcode %u %s (%u) -> %s (%u)", 
-                      self.ue_id, opcode, origin_vbs.addr, origin_pci, 
+        self.log.info("UE %s handover opcode %u %s (%u) -> %s (%u)",
+                      self.ue_id, opcode, origin_vbs.addr, origin_pci,
                       target_vbs.addr, target_pci)
 
         # handover was a success
@@ -155,10 +147,7 @@ class UE:
         self._state = PROCESS_REMOVING
 
         # send ho request message
-        xid = self.vbs.connection.send_ue_ho_request(self, self.target_cell)
-
-        # track xid
-        self.pending.append(xid)
+        self.vbs.connection.send_ue_ho_request(self, self.target_cell)
 
     @property
     def cell(self):
@@ -170,7 +159,7 @@ class UE:
     def cell(self, cell):
         """ Set the cell. """
 
-        if self.pending:
+        if self.state != PROCESS_RUNNING:
             raise ValueError("Handover in progress")
 
         if not cell:
@@ -219,7 +208,6 @@ class UE:
         """Return string representation."""
 
         return "UE %s (%u) @ %s" % (self.ue_id, self.rnti, self.cell)
-
 
     def __hash__(self):
         return hash(self.ue_id)

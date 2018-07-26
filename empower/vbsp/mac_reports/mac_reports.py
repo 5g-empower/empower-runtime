@@ -21,10 +21,8 @@ from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
-from construct import Sequence
 from construct import Container
 from construct import Struct
-from construct import Array
 from construct import BitStruct
 from construct import Padding
 from construct import Bit
@@ -34,7 +32,6 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.core.cellpool import Cell
 from empower.vbsp.vbspserver import ModuleVBSPWorker
 from empower.core.module import ModuleTrigger
-from empower.vbsp import PT_VERSION
 from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import EP_OPERATION_ADD
 
@@ -53,7 +50,7 @@ MAC_REPORTS_REQ = Struct("rrc_request",
                          UBInt32("seq"),
                          UBInt16("length"),
                          UBInt16("action"),
-                         UBInt8("opcode"), 
+                         UBInt8("opcode"),
                          UBInt16("deadline"))
 
 MAC_REPORTS_RESP = Struct("mac_reports_resp",
@@ -165,14 +162,14 @@ class MACReports(ModuleTrigger):
         msg = Container(deadline=self.deadline)
 
         self.vbs.connection.send_message(msg,
-                                         E_TYPE_TRIG, 
-                                         EP_ACT_MAC_REPORTS, 
-                                         MAC_REPORTS_REQ, 
+                                         E_TYPE_TRIG,
+                                         EP_ACT_MAC_REPORTS,
+                                         MAC_REPORTS_REQ,
                                          cellid=self.cell.pci,
-                                         xid=self.module_id, 
+                                         xid=self.module_id,
                                          opcode=EP_OPERATION_ADD)
 
-    def handle_response(self, meas):
+    def handle_response(self, response):
         """Handle an incoming MAC_REPORTS_RESP message.
         Args:
             meas, a MAC_REPORTS_RESP message
@@ -180,19 +177,21 @@ class MACReports(ModuleTrigger):
             None
         """
 
-        self.results['dl_prbs_total'] = meas.dl_prbs_total
-        self.results['dl_prbs_used'] = meas.dl_prbs_used
-        self.results['dl_prbs_last'] = meas.dl_prbs_used - self.dl_prbs_last
-        self.dl_prbs_last = meas.dl_prbs_used
+        self.results['dl_prbs_total'] = response.dl_prbs_total
+        self.results['dl_prbs_used'] = response.dl_prbs_used
+        self.results['dl_prbs_last'] = response.dl_prbs_used - \
+            self.dl_prbs_last
+        self.dl_prbs_last = response.dl_prbs_used
         self.results['dl_util_last'] = float(self.results['dl_prbs_last']) / \
-            (meas.dl_prbs_total * self.deadline)
+            (response.dl_prbs_total * self.deadline)
 
-        self.results['ul_prbs_total'] = meas.ul_prbs_total
-        self.results['ul_prbs_used'] = meas.ul_prbs_used
-        self.results['ul_prbs_last'] = meas.ul_prbs_used - self.ul_prbs_last
-        self.ul_prbs_last = meas.ul_prbs_used
+        self.results['ul_prbs_total'] = response.ul_prbs_total
+        self.results['ul_prbs_used'] = response.ul_prbs_used
+        self.results['ul_prbs_last'] = response.ul_prbs_used - \
+            self.ul_prbs_last
+        self.ul_prbs_last = response.ul_prbs_used
         self.results['ul_util_last'] = float(self.results['ul_prbs_last']) / \
-            (meas.ul_prbs_total * self.deadline)
+            (response.ul_prbs_total * self.deadline)
 
         self.cell.mac_reports = self.results
 

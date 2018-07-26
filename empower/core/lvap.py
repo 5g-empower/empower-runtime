@@ -103,7 +103,8 @@ class LVAP:
         uplink: zero or more uplink only blocks
     """
 
-    def __init__(self, addr, net_bssid_addr, lvap_bssid_addr, ssids=None, supported_band=None):
+    def __init__(self, addr, net_bssid_addr, lvap_bssid_addr, ssids=None,
+                 supported_band=None, state=None):
 
         # read only params
         self.addr = addr
@@ -126,6 +127,7 @@ class LVAP:
             self._ssids = []
         else:
             self._ssids = ssids
+
         self._encap = None
 
         # the following parameters can be updated by both agent and
@@ -137,12 +139,12 @@ class LVAP:
         # supported band
         self._supported_band = supported_band
 
-        # current blocks (i.e. tthe interfaces on which the lvap is running)
+        # current blocks (i.e. the interfaces on which the lvap is running)
         self._downlink = None
         self._uplink = []
 
         # the lvap state
-        self._state = None
+        self._state = state
 
         # target block to be used for handover
         self.target_blocks = None
@@ -155,6 +157,59 @@ class LVAP:
 
         # logger :)
         self.log = empower.logger.get_logger()
+
+    def handle_lvap_status(self, assoc_id, encap, ssids, valid, set_mask,
+                           authenticated, associated, tenant):
+        """Update LVAP status."""
+
+        # received downlink block but a different downlink block is already
+        # present, delete before going any further
+        if set_mask and self.blocks[0] and self.blocks[0] != valid[0]:
+            self.blocks[0].radio.connection.send_del_lvap(self)
+
+        if set_mask:
+            self._downlink = valid[0]
+        else:
+            self._uplink.append(valid[0])
+
+        # update LVAP params
+        self.authentication_state = authenticated
+        self.association_state = associated
+        self._assoc_id = assoc_id
+        self._encap = encap
+
+        # if an SSID is set and the incoming SSID is different from the
+        # current one then raise an LVAP leave event and remove LVAP from the
+        # current SSID (notice how ssids has always at least one entry, which
+        # can be None is the LVAP is not associated)
+        if self.ssid and ssids[0] != self.ssid:
+
+            from empower.main import RUNTIME
+            from empower.lvapp.lvappserver import LVAPPServer
+            lvapp_server = RUNTIME.components[LVAPPServer.__module__]
+            lvapp_server.send_lvap_leave_message_to_self(self)
+
+            del self.tenant.lvaps[self.addr]
+
+            self._tenant = None
+
+        # update remaining ssids
+        self._ssids = ssids[1:]
+
+        # set new ssid (if any)
+        if ssids[0]:
+
+            # setting tenant
+            self._tenant = tenant
+
+            # adding LVAP to tenant
+            self.tenant.lvaps[self.addr] = self
+
+            # Raise LVAP join event
+            from empower.main import RUNTIME
+            from empower.lvapp.lvappserver import LVAPPServer
+            lvapp_server = RUNTIME.components[LVAPPServer.__module__]
+            lvapp_server.send_lvap_join_message_to_self(self)
 
     def handle_del_lvap_response(self, xid, _):
         """Received as result of a del lvap command."""

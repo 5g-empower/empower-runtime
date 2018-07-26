@@ -31,8 +31,6 @@ from empower.core.resourcepool import ResourceBlock
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
-from empower.lvapp import PT_REGISTER
-from empower.lvapp import PT_BYE
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleTrigger
 
@@ -236,7 +234,7 @@ class RSSI(ModuleTrigger):
         msg = DEL_RSSI_TRIGGER.build(req)
         wtp.connection.stream.write(msg)
 
-    def handle_response(self, message):
+    def handle_response(self, response):
         """ Handle an incoming RSSI_TRIGGER message.
         Args:
             message, a RSSI_TRIGGER message
@@ -244,7 +242,7 @@ class RSSI(ModuleTrigger):
             None
         """
 
-        wtp_addr = EtherAddress(message.wtp)
+        wtp_addr = EtherAddress(response.wtp)
 
         if wtp_addr not in RUNTIME.wtps:
             return
@@ -254,9 +252,9 @@ class RSSI(ModuleTrigger):
         if wtp_addr not in RUNTIME.tenants[self.tenant_id].wtps:
             return
 
-        hwaddr = EtherAddress(message.hwaddr)
-        channel = message.channel
-        band = message.band
+        hwaddr = EtherAddress(response.hwaddr)
+        channel = response.channel
+        band = response.band
         incoming = ResourceBlock(wtp, hwaddr, channel, band)
 
         match = [block for block in wtp.supports if block == incoming]
@@ -264,7 +262,7 @@ class RSSI(ModuleTrigger):
         self.event = \
             {'block': match[0],
              'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-             'current': message.current}
+             'current': response.current}
 
         self.handle_callback(self)
 

@@ -484,7 +484,8 @@ class LVAPPConnection:
         net_bssid = generate_bssid(BASE_MAC, sta)
 
         # create new lvap object
-        lvap = LVAP(sta, net_bssid, net_bssid, list(ssids), request.supported_band)
+        lvap = LVAP(sta, net_bssid, net_bssid, list(ssids),
+                    request.supported_band)
 
         # spawn new LVAP
         self.log.info("Spawning new LVAP %s on %s", sta, wtp.addr)
@@ -609,8 +610,12 @@ class LVAPPConnection:
 
             net_bssid_addr = EtherAddress(status.net_bssid)
             lvap_bssid_addr = EtherAddress(status.lvap_bssid)
-            lvap = LVAP(sta, net_bssid_addr, lvap_bssid_addr)
-            lvap._state = PROCESS_RUNNING
+            ssids = [SSID(x.ssid) for x in status.ssids]
+            supported_band = status.supported_band
+
+            lvap = LVAP(sta, net_bssid_addr, lvap_bssid_addr,
+                        ssids=ssids, supported_band=supported_band,
+                        state=PROCESS_RUNNING)
 
             RUNTIME.lvaps[sta] = lvap
 
@@ -624,65 +629,27 @@ class LVAPPConnection:
             wtp.connection.send_del_lvap(lvap)
             return
 
-        set_mask = bool(status.flags.set_mask)
-
-        # received downlink block but a different downlink block is already
-        # present, delete before going any further
-        if set_mask and lvap._downlink and lvap._downlink != valid[0]:
-            lvap._downlink.radio.connection.send_del_lvap(lvap)
-
-        if set_mask:
-            lvap._downlink = valid[0]
-        else:
-            lvap._uplink.append(valid[0])
-
-        # set supported band
-        lvap._supported_band = status.supported_band
-
-        # update LVAP params
-        lvap.authentication_state = bool(status.flags.authenticated)
-        lvap.association_state = bool(status.flags.associated)
-
-        lvap._assoc_id = status.assoc_id
-        lvap._encap = EtherAddress(status.encap)
         ssids = [SSID(x.ssid) for x in status.ssids]
+        tenant = RUNTIME.load_tenant(ssids[0])
 
-        # update ssid
-        if lvap.ssid:
+        if ssids[0] and not tenant:
+            self.log.info("Unknown tenant %s", ssids[0])
+            RUNTIME.remove_lvap(lvap.addr)
+            return
 
-            # Raise LVAP leave event
-            self.server.send_lvap_leave_message_to_self(lvap)
+        # start processing the new state
+        new_status = {
+            "assoc_id": status.assoc_id,
+            "encap": EtherAddress(status.encap),
+            "ssids": [SSID(x.ssid) for x in status.ssids],
+            "valid": valid,
+            "set_mask": bool(status.flags.set_mask),
+            "authenticated": bool(status.flags.authenticated),
+            "associated": bool(status.flags.associated),
+            "tenant": tenant
+        }
 
-            # removing LVAP from tenant, need first to look for right tenant
-            if lvap.addr in lvap.tenant.lvaps:
-                self.log.info("Removing %s from tenant %s",
-                              lvap.addr, lvap.ssid)
-                del lvap.tenant.lvaps[lvap.addr]
-
-            lvap._tenant = None
-
-        # update remaining ssids
-        lvap._ssids = ssids[1:]
-
-        if ssids[0]:
-
-            tenant = RUNTIME.load_tenant(ssids[0])
-
-            if not tenant:
-                self.log.info("LVAP %s from unknown tenant %s",
-                              lvap.addr, ssids[0])
-                RUNTIME.remove_lvap(lvap.addr)
-                return
-
-            # setting tenant without seding out add lvap message
-            lvap._tenant = tenant
-
-            # adding LVAP to tenant
-            self.log.info("Adding %s to tenant %s", lvap.addr, ssids[0])
-            lvap.tenant.lvaps[lvap.addr] = lvap
-
-            # Raise LVAP join event
-            self.server.send_lvap_join_message_to_self(lvap)
+        lvap.handle_lvap_status(**new_status)
 
         self.log.info("LVAP status %s", lvap)
 

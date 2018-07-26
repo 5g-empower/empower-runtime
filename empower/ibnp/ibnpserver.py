@@ -32,6 +32,8 @@ from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_LVAP_LEAVE
 
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
+from empower.persistence import Session
+from empower.persistence.persistence import TblTrafficRule
 
 
 DEFAULT_PORT = 4444
@@ -54,7 +56,7 @@ class IBNPServer(tornado.web.Application):
 
         self.trs = {}
 
-        self.__load_trs()
+        self.__load_traffic_rules()
 
         handlers = []
 
@@ -66,7 +68,7 @@ class IBNPServer(tornado.web.Application):
         http_server = tornado.httpserver.HTTPServer(self)
         http_server.listen(self.port)
 
-    def __load_trs(self):
+    def __load_traffic_rules(self):
 
         trs = Session().query(TblTrafficRule).all()
 
@@ -79,9 +81,9 @@ class IBNPServer(tornado.web.Application):
                              label=rule_db.label,
                              dscp=rule_db.dscp)
 
-            self.add_tr(tr)
+            self.add_traffic_rule(tr)
 
-    def add_tr(self, tr):
+    def add_traffic_rule(self, tr):
 
         tenant_id = tr.ssid
         match = tr.match

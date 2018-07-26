@@ -22,12 +22,12 @@ import json
 import types
 import xmlrpc.client
 
+from uuid import UUID
+from multiprocessing.pool import ThreadPool
+
 import tornado.web
 import tornado.httpserver
 from tornado.ioloop import IOLoop
-
-from uuid import UUID
-from multiprocessing.pool import ThreadPool
 
 import empower.logger
 
@@ -50,7 +50,7 @@ def exec_xmlrpc(callback, args=()):
     run_background(func, on_complete, args)
 
 
-def run_background(func, callback, args=(), kwds={}):
+def run_background(func, callback, args=(), kwds=None):
     """Run callback in background."""
 
     def _callback(result):
@@ -59,7 +59,7 @@ def run_background(func, callback, args=(), kwds={}):
     _WORKERS.apply_async(func, args, kwds, _callback)
 
 
-def on_complete(res):
+def on_complete(_):
     """XML RPC Callback."""
 
     pass
@@ -232,8 +232,7 @@ class Module:
             as_dict = serializable.to_dict()
             as_json = json.dumps(as_dict, cls=EmpowerEncoder)
 
-            if isinstance(callback, types.FunctionType) or \
-               isinstance(callback, types.MethodType):
+            if isinstance(callback, (types.FunctionType, types.MethodType)):
 
                 callback(serializable)
 
@@ -274,7 +273,7 @@ class Module:
     def as_json(self):
         """Return a JSON representation of the object."""
 
-        return json.dumps(self.to_dict(), 
+        return json.dumps(self.to_dict(),
                           cls=EmpowerEncoder,
                           indent=4)
 
@@ -297,8 +296,7 @@ class Module:
             self.__callback = None
             return
 
-        if isinstance(callback, types.FunctionType) or \
-           isinstance(callback, types.MethodType):
+        if isinstance(callback, (types.FunctionType, types.MethodType)):
 
             self.__callback = callback
 
@@ -498,7 +496,7 @@ class ModuleWorker(Service):
             handler[1][:] = \
                 [x for x in handler[1] if determine(x, regex, ModuleHandler)]
 
-    def handle_packet(self, response):
+    def handle_packet(self, pnfdev, message):
         """Handle response message."""
 
         pass
@@ -593,15 +591,13 @@ class ModuleWorker(Service):
 
 class ModuleEventWorker(ModuleWorker):
     """Module event worker.
-
     Keeps track of the currently defined modules for each tenant (events only)
-
     Attributes:
         module_id: Next module id
         modules: dictionary of modules currently active in this tenant
     """
 
-    def handle_packet(self, event):
+    def handle_packet(self, pnfdev, message):
         """Handle response message."""
 
         for module in self.modules.values():
@@ -609,10 +605,7 @@ class ModuleEventWorker(ModuleWorker):
             if module.tenant_id not in RUNTIME.tenants:
                 continue
 
-            self.log.info("New event %s: (id=%u)", self.module.MODULE_NAME,
-                          module.module_id)
+            self.log.info("New event %s from %s: (id=%u)", pnfdev.addr,
+                          self.module.MODULE_NAME, module.module_id)
 
-            try:
-                module.handle_response(event)
-            except Exception as ex:
-                self.log.exception(ex)
+            module.handle_response(message)

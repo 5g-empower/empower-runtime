@@ -156,7 +156,7 @@ UE_HO_REQUEST = Struct("ue_ho_request",
                        UBInt8("cause"))
 
 UE_HO_RESPONSE = Struct("ue_ho_response",
-                        Bytes("origin_enbid", 4),
+                        Bytes("origin_enbid", 8),
                         UBInt16("origin_pci"),
                         UBInt16("origin_rnti"),
                         UBInt16("target_rnti"))

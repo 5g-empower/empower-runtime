@@ -23,6 +23,7 @@ from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
+from empower.core.module import ModuleEventWorker
 from empower.core.module import ModuleWorker
 from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
@@ -56,6 +57,19 @@ class WTPHandler(BasePNFDevHandler):
                 (r"/api/v1/wtps/([a-zA-Z0-9:]*)/?")]
 
 
+class ModuleLVAPPEventWorker(ModuleEventWorker):
+    """Module worker (LVAP Server version).
+    Keeps track of the currently defined modules for each tenant (events only)
+    Attributes:
+        module_id: Next module id
+        modules: dictionary of modules currently active in this tenant
+    """
+
+    def __init__(self, module, pt_type, pt_packet=None):
+        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
+                                   pt_type, pt_packet)
+
+
 class ModuleLVAPPWorker(ModuleWorker):
     """Module worker (LVAP Server version).
 
@@ -70,7 +84,8 @@ class ModuleLVAPPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
 
-        self.pnfp_server.register_message(PT_REGISTER, None, self.handle_register)
+        self.pnfp_server.register_message(PT_REGISTER, None,
+                                          self.handle_register)
         self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
 
     def handle_register(self, wtp):
@@ -83,18 +98,18 @@ class ModuleLVAPPWorker(ModuleWorker):
 
         pass
 
-    def handle_packet(self, wtp, msg):
+    def handle_packet(self, pnfdev, message):
         """Handle response message."""
 
-        if msg.module_id not in self.modules:
+        if message.module_id not in self.modules:
             return
 
-        module = self.modules[msg.module_id]
+        module = self.modules[message.module_id]
 
         self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      msg.module_id)
+                      message.module_id)
 
-        module.handle_response(msg)
+        module.handle_response(message)
 
 
 class LVAPPServer(PNFPServer, TCPServer):

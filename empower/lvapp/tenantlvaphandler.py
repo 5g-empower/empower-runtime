@@ -17,6 +17,7 @@
 
 """LVAPs Handerler."""
 
+import uuid
 import tornado.web
 import tornado.httpserver
 
@@ -25,8 +26,6 @@ from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.core.resourcepool import ResourceBlock
 
 from empower.main import RUNTIME
-
-import uuid
 
 
 class TenantLVAPHandler(EmpowerAPIHandlerUsers):

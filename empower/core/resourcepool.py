@@ -121,7 +121,7 @@ class ResourcePool(list):
             block = list.__getitem__(self, -1)
             return ResourcePool([block])
 
-        return ResourcePool() 
+        return ResourcePool()
 
 
 class ResourceBlock:

@@ -216,9 +216,11 @@ class Tenant:
                          dscp=dscp,
                          label=label)
 
+        # Send command to IBN
         from empower.ibnp.ibnpserver import IBNPServer
         ibnp_server = get_module(IBNPServer.__module__)
-        ibnp_server.add_tr(tr)
+        if ibnp_server:
+            ibnp_server.add_traffic_rule(tr)
 
     def del_traffic_rule(self, match):
         """Delete a traffic rule from this tenant.
@@ -240,9 +242,11 @@ class Tenant:
         if not rule:
             raise KeyError(rule)
 
+        # Send command to IBN
         from empower.ibnp.ibnpserver import IBNPServer
         ibnp_server = get_module(IBNPServer.__module__)
-        ibnp_server.remove_tr(self.tenant_id, match)
+        if ibnp_server:
+            ibnp_server.del_traffic_rule(self.tenant_id, match)
 
         session = Session()
         session.delete(rule)

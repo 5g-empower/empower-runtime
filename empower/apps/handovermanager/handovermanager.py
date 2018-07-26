@@ -20,7 +20,6 @@
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
-from empower.core.cellpool import CellPool
 
 
 class MobilityManager(EmpowerApp):
@@ -48,25 +47,17 @@ class MobilityManager(EmpowerApp):
 
         self.rrc_measurements(ue=ue, measurements=measurements)
 
-    def cells(self):
-
-        # Initialize the Resource Pool
-        pool = CellPool()
-
-        # Update the pool with all the a
-        # Initialize the Resource Poolvailable ResourseBlocks
-        for vbs in self.vbses():
-            for cell in vbs.cells.values():
-                pool.append(cell)
-
-        return pool
-
     def loop(self):
         """ Periodic job. """
 
-        for ue in self.ues():
-        	ue.cell = self.cells().sort_by_rsrp(ue.ue_id).first()
+        for ueq in self.ues():
+            for cell in self.cells():
+                if ueq.ue_id not in cell.rrc_measurements:
+                    continue
+                print("Cell %s UE %s -> RSRQ %d" % (cell.vbs.addr, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+            target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
 
+            ueq.cell = target_cell
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """
