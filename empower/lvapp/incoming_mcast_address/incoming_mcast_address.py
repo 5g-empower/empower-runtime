@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""IGMP traffic module."""
+"""Incoming mcast address traffic module."""
 
 import ipaddress
 
@@ -26,6 +26,7 @@ from construct import UBInt32
 from construct import Bytes
 from construct import Struct
 
+from empower.core.resourcepool import ResourceBlock
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPEventWorker
@@ -33,46 +34,36 @@ from empower.core.module import ModuleTrigger
 
 from empower.main import RUNTIME
 
-PT_IGMP_REPORT = 0x48
+PT_INCOMING_MCAST_ADDR = 0x46
 
-IGMP_REPORT = Struct("igmp_report", UBInt8("version"),
-                     UBInt8("type"),
-                     UBInt32("length"),
-                     UBInt32("seq"),
-                     Bytes("wtp", 6),
-                     Bytes("sta", 6),
-                     Bytes("mcast_addr", 4),
-                     UBInt8("igmp_type"))
-
-V3_MODE_IS_INCLUDE = 0x0
-V3_MODE_IS_EXCLUDE = 0x1
-V3_CHANGE_TO_INCLUDE_MODE = 0x2
-V3_CHANGE_TO_EXCLUDE_MODE = 0x3
-V3_ALLOW_NEW_SOURCES = 0x4
-V3_BLOCK_OLD_SOURCES = 0x5
-V2_JOIN_GROUP = 0x6
-V2_LEAVE_GROUP = 0x7
-V1_MEMBERSHIP_REPORT = 0x8
-V1_V2_MEMBERSHIP_QUERY = 0x9
+INCOMING_MCAST_ADDR = Struct("incoming_mcast_address", UBInt8("version"),
+                             UBInt8("type"),
+                             UBInt32("length"),
+                             UBInt32("seq"),
+                             Bytes("wtp", 6),
+                             Bytes("mcast_addr", 6),
+                             Bytes("hwaddr", 6),
+                             UBInt8("channel"),
+                             UBInt8("band"))
 
 
-class IGMPReport(ModuleTrigger):
+class IncomingMcastAddress(ModuleTrigger):
     """ IGMPReport trigger object. """
 
-    MODULE_NAME = "igmp_report"
+    MODULE_NAME = "incoming_mcast_address"
     REQUIRED = ['module_type', 'worker', 'tenant_id']
 
     def __init__(self):
         super().__init__()
 
         # data structures
-        self.events = []
+        self.mcast_addrs = {}
 
     def to_dict(self):
         """Return a JSON-serializable object."""
 
         out = super().to_dict()
-        out['events'] = self.events
+        out['mcast_addrs'] = {str(k): v for k, v in self.mcast_addrs.items()}
         return out
 
     def handle_response(self, response):
@@ -83,41 +74,52 @@ class IGMPReport(ModuleTrigger):
             None
         """
 
-        event = \
-            {'wtp': EtherAddress(response.wtp),
-             'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-             'sta': EtherAddress(response.sta),
-             'mcast_addr': ipaddress.IPv4Address(response.mcast_addr),
-             'igmp_type': response.igmp_type}
+        wtp_addr = EtherAddress(response.wtp)
 
-        self.events.append(event)
+        if wtp_addr not in RUNTIME.wtps:
+            return
+
+        wtp = RUNTIME.wtps[wtp_addr]
+
+        if wtp_addr not in RUNTIME.tenants[self.tenant_id].wtps:
+            return
+
+        hwaddr = EtherAddress(response.hwaddr)
+        channel = response.channel
+        band = response.band
+
+        block = ResourceBlock(wtp, hwaddr, channel, band)
+        self.mcast_addrs[EtherAddress(response.mcast_addr)] = block
 
         self.handle_callback(self)
 
 
-class IgmpReportWorker(ModuleLVAPPEventWorker):
+class IncomingMcastAddressWorker(ModuleLVAPPEventWorker):
     """ Counter worker. """
 
     pass
 
 
-def igmp_report(**kwargs):
+def incoming_mcast_address(**kwargs):
     """Create a new module."""
 
-    return RUNTIME.components[IgmpReportWorker.__module__].add_module(**kwargs)
+    module = RUNTIME.components[IncomingMcastAddressWorker.__module__]
+    return module.add_module(**kwargs)
 
 
 def app_igmp_report(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return igmp_report(**kwargs)
+    return incoming_mcast_address(**kwargs)
 
 
-setattr(EmpowerApp, IGMPReport.MODULE_NAME, app_igmp_report)
+setattr(EmpowerApp, IncomingMcastAddress.MODULE_NAME, app_igmp_report)
 
 
 def launch():
     """Initialize the module."""
 
-    return IgmpReportWorker(IGMPReport, PT_IGMP_REPORT, IGMP_REPORT)
+    return IncomingMcastAddressWorker(IncomingMcastAddress,
+                                      PT_INCOMING_MCAST_ADDR,
+                                      INCOMING_MCAST_ADDR)

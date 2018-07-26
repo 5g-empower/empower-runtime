@@ -39,6 +39,7 @@ if __name__ == "__main__":
              'lvapp.rssi.rssi',
              'lvapp.summary.summary',
              'lvapp.igmp_report.igmp_report',
+             'lvapp.incoming_mcast_address.incoming_mcast_address',
 
              'vbsp.rrc_measurements.rrc_measurements',
              'vbsp.mac_reports.mac_reports',
