@@ -211,16 +211,16 @@ class Tenant:
             session.rollback()
             raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, match))
 
-        tr = TrafficRule(ssid=self.tenant_id,
-                         match=match,
-                         dscp=dscp,
-                         label=label)
+        trule = TrafficRule(ssid=self.tenant_id,
+                            match=match,
+                            dscp=dscp,
+                            label=label)
 
         # Send command to IBN
         from empower.ibnp.ibnpserver import IBNPServer
         ibnp_server = get_module(IBNPServer.__module__)
         if ibnp_server:
-            ibnp_server.add_traffic_rule(tr)
+            ibnp_server.add_traffic_rule(trule)
 
     def del_traffic_rule(self, match):
         """Delete a traffic rule from this tenant.
@@ -301,7 +301,19 @@ class Tenant:
             session.rollback()
             raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, dscp))
 
-        self.set_traffic_rule_queues(dscp)
+        # add slice to wifi nodes
+        for wtp in self.wtps.values():
+
+            for block in wtp.supports:
+
+                trq = \
+                    TrafficRuleQueue(ssid=self.tenant_name,
+                                     dscp=slc.dscp,
+                                     block=block,
+                                     quantum=slc.quantum,
+                                     amsdu_aggregation=slc.amsdu_aggregation)
+
+                block.radio.connection.send_set_traffic_rule_queue(trq)
 
     def set_slice(self, dscp, quantum, amsdu_aggregation):
         """Update a slice.
@@ -333,7 +345,19 @@ class Tenant:
 
         session.commit()
 
-        self.set_traffic_rule_queues(dscp)
+        # set slice on wifi nodes
+        for wtp in self.wtps.values():
+
+            for block in wtp.supports:
+
+                trq = \
+                    TrafficRuleQueue(ssid=self.tenant_name,
+                                     dscp=slc.dscp,
+                                     block=block,
+                                     quantum=slc.quantum,
+                                     amsdu_aggregation=slc.amsdu_aggregation)
+
+                block.radio.connection.send_set_traffic_rule_queue(trq)
 
     def del_slice(self, dscp):
         """Del slice from all blocks.
@@ -355,40 +379,23 @@ class Tenant:
         if not slc:
             raise KeyError(dscp)
 
+        # delete slice from wifi nodes
         for wtp in self.wtps.values():
+
             for block in wtp.supports:
+
                 trq = \
                     TrafficRuleQueue(ssid=self.tenant_name,
                                      dscp=slc.dscp,
                                      block=block,
                                      quantum=slc.quantum,
                                      amsdu_aggregation=slc.amsdu_aggregation)
+
                 block.radio.connection.send_del_traffic_rule_queue(trq)
 
         session = Session()
         session.delete(slc)
         session.commit()
-
-    def set_traffic_rule_queues(self, dscp):
-        """Add slice to all blocks."""
-
-        slc = Session().query(TblSlice) \
-                       .filter(TblBelongs.tenant_id == self.tenant_id,
-                               TblSlice.dscp == dscp) \
-                       .first()
-
-        for wtp in self.wtps.values():
-
-            for block in wtp.supports:
-
-                trq = \
-                    TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=slc.dscp,
-                                     block=block,
-                                     quantum=slc.quantum,
-                                     amsdu_aggregation=slc.amsdu_aggregation)
-
-                block.radio.connection.send_set_traffic_rule_queue(trq)
 
     def add_pnfdev(self, pnfdev):
         """Add a new PNF Dev to the Tenant.
