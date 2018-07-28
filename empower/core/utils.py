@@ -34,7 +34,7 @@ def get_module(module):
 
 
 def get_xid():
-    """Return randon 32bits integers to be used as mod_id."""
+    """Return randon 32bits integers to be used as xid."""
 
     return random.getrandbits(32)
 

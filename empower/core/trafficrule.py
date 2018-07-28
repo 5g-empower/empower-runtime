@@ -17,8 +17,6 @@
 
 """EmPOWER traffic rule class."""
 
-from empower.datatypes.match import Match
-
 
 class TrafficRule:
     """TrafficRule class
