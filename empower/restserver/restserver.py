@@ -24,8 +24,9 @@ import tornado.web
 import tornado.httpserver
 
 from tornado.web import MissingArgumentError
+
+import empower.logger
 from empower import settings
-from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
@@ -389,7 +390,7 @@ class AccountsHandler(EmpowerAPIHandler):
 
         try:
 
-            if not args:
+            if args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -1900,7 +1901,7 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
-class RESTServer(Service, tornado.web.Application):
+class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
     parms = {
@@ -1913,11 +1914,10 @@ class RESTServer(Service, tornado.web.Application):
 
     def __init__(self, port, cert, key):
 
-        Service.__init__(self, every=-1)
-
         self.port = int(port)
         self.cert = cert
         self.key = key
+        self.log = empower.logger.get_logger()
 
         tornado.web.Application.__init__(self, [], **self.parms)
 
@@ -1959,7 +1959,8 @@ class RESTServer(Service, tornado.web.Application):
     def to_dict(self):
         """Return a dict representation of the object."""
 
-        out = Service.to_dict(self)
+        out = {}
+
         out['port'] = self.port
         out['certfile'] = self.cert
         out['keyfile'] = self.key

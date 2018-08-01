@@ -23,9 +23,9 @@ import empower.logger
 DEFAULT_PERIOD = 5000
 
 
-class Service:
+class ServiceWorker:
     """Service class.
-s
+
     This is the basic service class. EmPOWER loosely follows the RFC7426.
     Services implements generics functions that offer open interfaces to other
     applications and services. Apps are a special class of services that do not

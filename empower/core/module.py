@@ -31,7 +31,7 @@ from tornado.ioloop import IOLoop
 
 import empower.logger
 
-from empower.core.service import Service
+from empower.core.service import ServiceWorker
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.restserver.restserver import RESTServer
@@ -425,7 +425,7 @@ class ModulePeriodic(Module):
         return False
 
 
-class ModuleWorker(Service):
+class ModuleWorker(ServiceWorker):
     """Module worker.
 
     Keeps track of the currently defined modules for each tenant
