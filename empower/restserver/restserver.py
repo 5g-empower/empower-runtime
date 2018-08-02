@@ -1243,8 +1243,13 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
             {
                 "version" : 1.0,
-                "aggregation" : true,
-                "quantum" : 1500,
+                "wifi-props": {
+                    "aggregation" : true,
+                    "quantum" : 1500
+                },
+                "lte-props": {
+                    "prbs" : 2
+                },
                 "dscp": "0x42"
             }
 
@@ -1299,11 +1304,17 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
         Example URLs:
 
             PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/
-              0x40
+                0x42
             {
                 "version" : 1.0,
-                "aggregation" : true,
-                "quantum" : 1500
+                "wifi-props": {
+                    "aggregation" : true,
+                    "quantum" : 1500
+                },
+                "lte-props": {
+                    "prbs" : 2,
+                    "ue": []
+                }
             }
 
         """
@@ -1774,7 +1785,7 @@ class TenantEndpointPortHandler(EmpowerAPIHandlerUsers):
             self.send_error(404, message=ex)
 
 
-class TenantTrafficHandler(EmpowerAPIHandlerUsers):
+class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/?",
@@ -1906,8 +1917,9 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
 class ModuleHandler(EmpowerAPIHandlerAdminUsers):
     """Tenat traffic rule queue handler."""
 
-    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/([a-zA-Z_.]*)/?",
-                r"/api/v1/tenants/([a-zA-Z0-9:-]*)/([a-zA-Z_.]*)/([0-9]*)/?"]
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/?",
+                r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/"
+                "([0-9]*)/?"]
 
     def __get_worker(self, module_name):
         """Look for the worker associated to the specified module_name."""
@@ -2098,7 +2110,7 @@ class RESTServer(tornado.web.Application):
                            PendingTenantHandler, TenantHandler,
                            AllowHandler, TenantSliceHandler,
                            TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficHandler,
+                           TenantEndpointPortHandler, TenantTrafficRuleHandler,
                            MarketplaceHandler, ModuleHandler]
 
         for handler_class in handler_classes:
