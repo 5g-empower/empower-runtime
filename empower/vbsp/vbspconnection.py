@@ -234,17 +234,14 @@ class VBSPConnection:
             handler(self.vbs)
 
     def send_message(self, msg, msg_type, action, parser, cellid=0,
-                     xid=0, opcode=EP_OPERATION_UNSPECIFIED):
+                     opcode=EP_OPERATION_UNSPECIFIED):
         """Send message and set common parameters."""
 
         msg.type = msg_type
         msg.version = PT_VERSION
         msg.enbid = b'\x00\x00' + self.vbs.addr.to_raw()
         msg.cellid = cellid
-        if xid != 0:
-            msg.xid = xid
-        else:
-            msg.xid = get_xid()
+        msg.xid = get_xid()
         msg.flags = Container(dir=1)
         msg.seq = self.vbs.seq
         msg.length = parser.sizeof()
@@ -454,5 +451,8 @@ class VBSPConnection:
                         target_pci=cell.pci,
                         cause=1)
 
-        return self.send_message(msg, E_TYPE_SINGLE, EP_ACT_HANDOVER,
-                                 UE_HO_REQUEST, cellid=ue.cell.pci)
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_HANDOVER,
+                          UE_HO_REQUEST,
+                          cellid=ue.cell.pci)

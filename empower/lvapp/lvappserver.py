@@ -106,8 +106,8 @@ class ModuleLVAPPWorker(ModuleWorker):
 
         module = self.modules[message.module_id]
 
-        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      message.module_id)
+        self.log.info("Received %s response (id=%u) from %s",
+                      self.module.MODULE_NAME, message.module_id, pnfdev.addr)
 
         module.handle_response(message)
 

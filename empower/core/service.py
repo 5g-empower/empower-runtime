@@ -38,7 +38,7 @@ class ServiceWorker:
 
     def __init__(self, **kwargs):
 
-        self.__every = DEFAULT_PERIOD
+        #self.__every = DEFAULT_PERIOD
         self.params = []
         self.log = empower.logger.get_logger()
         self.worker = None
@@ -48,29 +48,29 @@ class ServiceWorker:
             setattr(self, param, kwargs[param])
             self.params.append(param)
 
-    def start(self):
-        """Start control loop."""
+    #def start(self):
+    #    """Start control loop."""
 
-        if self.every == -1:
-            return
+    #    if self.every == -1:
+    #        return
 
-        self.worker = \
-            tornado.ioloop.PeriodicCallback(self.loop, self.every)
-        self.worker.start()
+    #    self.worker = \
+    #        tornado.ioloop.PeriodicCallback(self.loop, self.every)
+    #    self.worker.start()
 
-    def stop(self):
-        """Stop control loop."""
+    #def stop(self):
+    #    """Stop control loop."""
 
-        if self.every == -1:
-            return
+    #    if self.every == -1:
+    #        return
 
-        self.worker.stop()
+    #    self.worker.stop()
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
         params = {}
-        params['every'] = self.every
+        #params['every'] = self.every
         params['params'] = self.params
 
         for param in self.params:
@@ -78,7 +78,7 @@ class ServiceWorker:
 
         return params
 
-    def loop(self):
-        """Control loop."""
+    #def loop(self):
+    #    """Control loop."""
 
-        pass
+    #    pass

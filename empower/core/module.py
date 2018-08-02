@@ -17,12 +17,10 @@
 
 """EmPOWER Primitive Base Class."""
 
-import re
 import json
 import types
 import xmlrpc.client
 
-from uuid import UUID
 from multiprocessing.pool import ThreadPool
 
 import tornado.web
@@ -33,8 +31,6 @@ import empower.logger
 
 from empower.core.service import ServiceWorker
 from empower.core.jsonserializer import EmpowerEncoder
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
-from empower.restserver.restserver import RESTServer
 
 from empower.main import RUNTIME
 
@@ -65,124 +61,6 @@ def on_complete(_):
     pass
 
 
-class ModuleHandler(EmpowerAPIHandlerAdminUsers):
-    """ModuleHandler. Used to view and manipulate modules."""
-
-    def get(self, *args, **kwargs):
-        """List all modules or just the specified one.
-
-        Args:
-            [0]: tenant_id
-            [1]: module
-
-        Example URLs:
-
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<module>
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<module>/1
-        """
-
-        try:
-
-            if len(args) > 2 or len(args) < 1:
-                raise ValueError("Invalid URL")
-
-            tenant_id = UUID(args[0])
-
-            resp = {k: v for k, v in self.server.modules.items()
-                    if v.tenant_id == tenant_id}
-
-            if len(args) == 1:
-                self.write_as_json(resp.values())
-            else:
-                module_id = int(args[1])
-                self.write_as_json(resp[module_id])
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-    def post(self, *args, **kwargs):
-        """Create a new module.
-
-        Args:
-            [0]: tenant_id
-
-        Request:
-            version: the protocol version (1.0)
-
-        Example URLs:
-
-            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/<module>
-        """
-
-        try:
-
-            if len(args) != 1:
-                raise ValueError("Invalid URL")
-
-            tenant_id = UUID(args[0])
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            del request['version']
-            request['tenant_id'] = tenant_id
-            request['module_type'] = self.server.module.MODULE_NAME
-            request['worker'] = self.server
-
-            module = self.server.add_module(**request)
-
-            self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
-                            (module.tenant_id,
-                             self.server.module.MODULE_NAME,
-                             module.module_id))
-
-            self.set_status(201, None)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-    def delete(self, *args, **kwargs):
-        """Delete a module.
-
-        Args:
-            [0]: tenant_id
-            [1]: module
-
-        Example URLs:
-
-            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-              <module>/1
-        """
-
-        try:
-
-            if len(args) != 2:
-                raise ValueError("Invalid URL")
-
-            tenant_id = UUID(args[0])
-            module_id = int(args[1])
-
-            module = self.server.modules[module_id]
-
-            if module.tenant_id != tenant_id:
-                raise KeyError("Module %u not found" % module_id)
-
-            module.unload()
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        self.set_status(204, None)
-
-
 class Module:
     """Module object.
 
@@ -194,6 +72,7 @@ class Module:
         callback: Module callback (FunctionType)
     """
 
+    MODULE_NAME = None
     REQUIRED = ['module_type', 'worker', 'tenant_id']
 
     def __init__(self):
@@ -273,13 +152,12 @@ class Module:
     def as_json(self):
         """Return a JSON representation of the object."""
 
-        return json.dumps(self.to_dict(),
-                          cls=EmpowerEncoder,
-                          indent=4)
+        return json.dumps(self.to_dict(), cls=EmpowerEncoder, indent=4)
 
     @property
     def callback(self):
         """ Return this triger callback. """
+
         return self.__callback
 
     @callback.setter
@@ -435,9 +313,6 @@ class ModuleWorker(ServiceWorker):
         modules: dictionary of modules currently active in this tenant
     """
 
-    MODULE_NAME = None
-    MODULE_TYPE = None
-
     def __init__(self, server, module, pt_type, pt_packet):
 
         super().__init__(every=-1)
@@ -448,53 +323,10 @@ class ModuleWorker(ServiceWorker):
         self.pt_packet = pt_packet
         self.module = module
         self.pnfp_server = RUNTIME.components[server]
-        self.rest_server = RUNTIME.components[RESTServer.__module__]
-
-        module_name = self.module.MODULE_NAME
-
-        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?"
-        handler = (url % module_name, ModuleHandler, dict(server=self))
-        self.rest_server.add_handler(handler)
-
-        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?"
-        handler = (url % module_name, ModuleHandler, dict(server=self))
-        self.rest_server.add_handler(handler)
 
         self.pnfp_server.register_message(self.pt_type,
                                           self.pt_packet,
                                           self.handle_packet)
-
-    def to_dict(self):
-        """Return json representation."""
-
-        out = super().to_dict()
-        out['modules'] = self.modules
-        return out
-
-    def remove_handlers(self):
-        """Remove primitive handlers."""
-
-        def determine(spec, regex, module_handler):
-            """Match url."""
-
-            if spec.handler_class == module_handler and spec.regex == regex:
-                return False
-
-            return True
-
-        module_name = self.module.MODULE_NAME
-
-        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/?$"
-        regex = re.compile(url % module_name)
-        for handler in self.rest_server.handlers:
-            handler[1][:] = \
-                [x for x in handler[1] if determine(x, regex, ModuleHandler)]
-
-        url = r"/api/v1/tenants/([a-zA-Z0-9:-]*)/%s/([0-9]*)/?$"
-        regex = re.compile(url % module_name)
-        for handler in self.rest_server.handlers:
-            handler[1][:] = \
-                [x for x in handler[1] if determine(x, regex, ModuleHandler)]
 
     def handle_packet(self, pnfdev, message):
         """Handle response message."""
@@ -576,7 +408,7 @@ class ModuleWorker(ServiceWorker):
         """
 
         if module_id not in self.modules:
-            self.log.info("Unable to find module (id=%u)", self.module_id)
+            self.log.info("Unable to find module (id=%u)", module_id)
             return
 
         module = self.modules[module_id]
