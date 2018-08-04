@@ -37,7 +37,6 @@ class VBS(BasePNFDev):
     """
 
     ALIAS = "vbses"
-    SOLO = "vbs"
 
     def __init__(self, addr, label):
         super().__init__(addr, label)

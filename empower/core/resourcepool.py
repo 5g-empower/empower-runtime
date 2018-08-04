@@ -18,7 +18,6 @@
 """EmPOWER resouce pool and resource block classes."""
 
 from empower.core.transmissionpolicy import TxPolicy
-from empower.core.trafficrulequeue import TrafficRuleQueue
 
 BT_L20 = 0
 BT_HT20 = 1
@@ -45,23 +44,6 @@ class TxPolicyProp(dict):
             return dict.__getitem__(self, key)
         except KeyError:
             value = TxPolicy(key, self.block)
-            dict.__setitem__(self, key, value)
-            return dict.__getitem__(self, key)
-
-
-class TrafficRuleQueueProp(dict):
-    """Override getitem behaviour by a default TrafficRuleQueue."""
-
-    def __init__(self, block, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.block = block
-
-    def __getitem__(self, key):
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            value = \
-                TrafficRuleQueue(ssid=key[0], dscp=key[1], block=self.block)
             dict.__setitem__(self, key, value)
             return dict.__getitem__(self, key)
 
@@ -155,7 +137,6 @@ class ResourceBlock:
         self.ncqm = {}
         self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
-        self.traffic_rule_queues = TrafficRuleQueueProp(self)
         self._supports = set()
         self._ht_supports = set()
 
@@ -260,7 +241,6 @@ class ResourceBlock:
         Pool """
 
         txps = {str(k): v for k, v in self.tx_policies.items()}
-        trqs = {"%s-%s" % k: v for k, v in self.traffic_rule_queues.items()}
 
         return {'addr': self.radio.addr,
                 'hwaddr': self.hwaddr,
@@ -269,7 +249,6 @@ class ResourceBlock:
                 'ht_supports': sorted(self.ht_supports),
                 'tx_policies': txps,
                 'band': BANDS[self.band],
-                'traffic_rule_queues': trqs,
                 'wifi_stats': self.wifi_stats,
                 'ucqm': {str(k): v for k, v in self.ucqm.items()},
                 'ncqm': {str(k): v for k, v in self.ncqm.items()}}

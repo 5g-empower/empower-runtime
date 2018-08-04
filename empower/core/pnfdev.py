@@ -48,7 +48,6 @@ class BasePNFDev:
     """
 
     ALIAS = "pnfdevs"
-    SOLO = "pnfdev"
 
     def __init__(self, addr, label):
 

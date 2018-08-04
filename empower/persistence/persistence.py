@@ -156,19 +156,14 @@ class DSCP(TypeDecorator):
 
     def process_bind_param(self, value, dialect=None):
 
-        if value and isinstance(value, dscp.DSCP):
+        if isinstance(value, dscp.DSCP):
             return value.to_str()
-        elif value and not isinstance(value, dscp.DSCP):
-            raise ValueError('value %s is not a valid DSCP' % value)
-        else:
-            return None
+
+        raise ValueError('value %s is not a valid DSCP' % value)
 
     def process_result_value(self, value, dialect=None):
 
-        if value:
-            return dscp.DSCP(value)
-        else:
-            return None
+        return dscp.DSCP(value)
 
     def is_mutable(self):
         return False
@@ -288,6 +283,8 @@ class TblBelongs(Base):
                        ForeignKey('tenant.tenant_id'),
                        primary_key=True)
 
+    parent = Column(String)
+
 
 class TblCPP(TblPNFDev):
     """ Programmable network fabric device table. """
@@ -338,12 +335,34 @@ class TblSlice(Base):
 
     __tablename__ = 'slice'
 
-    dscp = Column("dscp", DSCP(), primary_key=True, default=0x0)
+    dscp = Column("dscp", DSCP(), primary_key=True)
+
     tenant_id = Column(UUID(),
                        ForeignKey('tenant.tenant_id'),
-                       primary_key=True,)
-    quantum = Column(Integer)
-    amsdu_aggregation = Column(Boolean)
+                       primary_key=True)
+
+    wifi_properties = Column(String)
+
+    lte_properties = Column(String)
+
+
+class TblSliceBelongs(Base):
+    """Link PNFDevs with Tenants"""
+
+    __tablename__ = 'slice_belongs'
+
+    dscp = Column(DSCP(),
+                  primary_key=True)
+
+    addr = Column(EtherAddress(),
+                  ForeignKey('pnfdev.addr'),
+                  primary_key=True)
+
+    tenant_id = Column(UUID(),
+                       ForeignKey('tenant.tenant_id'),
+                       primary_key=True)
+
+    properties = Column(String)
 
 
 class TblTrafficRule(Base):

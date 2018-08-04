@@ -40,7 +40,6 @@ class WTP(BasePNFDev):
     """
 
     ALIAS = "wtps"
-    SOLO = "wtp"
 
     def __init__(self, addr, label):
         super().__init__(addr, label)

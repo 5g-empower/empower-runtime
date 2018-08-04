@@ -25,11 +25,6 @@ class TrafficRule:
     points to one and only one Traffic Rule Queue. However different traffic
     rules can point to the same Traffic Rule Queue.
 
-    Notice how TrafficRule and TrafficRuleQueue are two different concept. The
-    TrafficRuleQueue exists within a certain ResourceBlock. This means that
-    each interface in a WTP can have many TrafficRuleQueue instances, one for
-    each type of traffic.
-
     Conversely, the TrafficRule is a way to match a portion of the traffic to
     a certain traffic rule queue. Developers can create new TrafficRule
     instance within a Tenant.

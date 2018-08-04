@@ -46,14 +46,14 @@ from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
-from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
-from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
+from empower.lvapp import PT_SET_SLICE
+from empower.lvapp import PT_DEL_SLICE
 from empower.lvapp import PT_TRANSMISSION_POLICY_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_DEL_VAP
 from empower.lvapp import PT_CAPS_RESPONSE
-from empower.lvapp import PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST
+from empower.lvapp import PT_SLICE_STATUS_REQUEST
 from empower.core.lvap import LVAP
 from empower.core.lvap import PROCESS_RUNNING
 from empower.core.vap import VAP
@@ -383,7 +383,7 @@ class LVAPPConnection:
         self.send_vap_status_request()
 
         # fetch active traffic rules
-        self.send_traffic_rule_queue_status_request()
+        self.send_slice_status_request()
 
         # fetch active tramission policies
         self.send_transmission_policy_status_request()
@@ -392,7 +392,7 @@ class LVAPPConnection:
         self.update_vaps()
 
         # send slices
-        self.update_traffic_rule_queues()
+        self.update_slices()
 
     def update_vaps(self):
         """Update active VAPs."""
@@ -424,7 +424,7 @@ class LVAPPConnection:
                 self.send_add_vap(vap)
                 RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
 
-    def update_traffic_rule_queues(self):
+    def update_slices(self):
         """Update active Slices."""
 
         for tenant in RUNTIME.tenants.values():
@@ -433,8 +433,12 @@ class LVAPPConnection:
             if self.wtp.addr not in tenant.wtps:
                 continue
 
-            for slc in tenant.slices:
-                tenant.set_traffic_rule_queues(slc)
+            # send slices configuration
+            for slc in tenant.slices.values():
+                if self.wtp.addr not in slc.wtps:
+                    continue
+                for block in self.wtp.supports:
+                    self.wtp.connection.send_set_slice(block, slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -680,16 +684,15 @@ class LVAPPConnection:
 
         self.log.info("Tranmission policy status %s", tx_policy)
 
-    def _handle_status_traffic_rule_queue(self, wtp, status):
-        """Handle an incoming STATUS_TRAFFIC_RULE_QUEUE message.
+    def _handle_status_slice(self, wtp, status):
+        """Handle an incoming STATUS_SLICE message.
         Args:
-            status, a STATUS_TRAFFIC_RULE_QUEUE message
+            status, a STATUS_SLICE message
         Returns:
             None
         """
 
         quantum = status.quantum
-        amsdu_aggregation = bool(status.flags.amsdu_aggregation)
         dscp = DSCP(status.dscp)
         ssid = SSID(status.ssid)
 
@@ -703,15 +706,26 @@ class LVAPPConnection:
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
-            self.log.warning("No valid intersection found. Removing block.")
+            self.log.warning("No valid intersection found.")
             return
 
-        trq = valid[0].traffic_rule_queues[(ssid, dscp)]
+        # check if slice is valid
+        if dscp not in tenant.slices:
+            self.log.warning("DSCP %s not found. Removing slice.", dscp)
+            self.send_del_slice(valid[0], ssid, dscp)
+            return
 
-        trq.set_quantum(quantum)
-        trq.set_amsdu_aggregation(amsdu_aggregation)
+        slc = tenant.slices[dscp]
 
-        self.log.info("Transmission rule status %s", trq)
+        if wtp.addr not in slc.wtps:
+            slc.wtps[wtp.addr] = {'properties': {}, 'blocks': {}}
+
+        slc.wtps[wtp.addr]['properties']['quantum'] = quantum
+
+        block = "%s-%s-%s" % (valid[0].hwaddr, valid[0].channel, valid[0].band)
+        slc.wtps[wtp.addr]['blocks'][block] = {}
+
+        self.log.info("Transmission rule status updated")
 
     def _handle_status_vap(self, wtp, status):
         """Handle an incoming STATUS_VAP message.
@@ -765,11 +779,11 @@ class LVAPPConnection:
         msg = Container(length=10)
         return self.send_message(PT_VAP_STATUS_REQUEST, msg)
 
-    def send_traffic_rule_queue_status_request(self):
-        """Send a PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST message."""
+    def send_slice_status_request(self):
+        """Send a PT_SLICE_STATUS_REQUEST message."""
 
         msg = Container(length=10)
-        return self.send_message(PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST, msg)
+        return self.send_message(PT_SLICE_STATUS_REQUEST, msg)
 
     def send_transmission_policy_status_request(self):
         """Send a TRANSMISSION_POLICY_STATUS_REQUEST message."""
@@ -928,30 +942,35 @@ class LVAPPConnection:
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.wtp)
 
-    def send_set_traffic_rule_queue(self, traffic_rule):
+    def send_set_slice(self, block, slc):
         """Send an SET_TRAFFIC_RULE message."""
 
-        flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
+        ssid = slc.tenant.tenant_name
+        amsdu_aggregation = slc.wifi_properties['amsdu_aggregation']
 
-        msg = Container(length=25 + len(traffic_rule.ssid),
+        flags = Container(amsdu_aggregation=amsdu_aggregation)
+
+        quantum = slc.wtps[self.wtp.addr]['properties']['quantum']
+
+        msg = Container(length=25 + len(ssid),
                         flags=flags,
-                        hwaddr=traffic_rule.block.hwaddr.to_raw(),
-                        channel=traffic_rule.block.channel,
-                        band=traffic_rule.block.band,
-                        quantum=traffic_rule.quantum,
-                        dscp=traffic_rule.dscp.to_raw(),
-                        ssid=traffic_rule.ssid.to_raw())
+                        hwaddr=block.hwaddr.to_raw(),
+                        channel=block.channel,
+                        band=block.band,
+                        quantum=quantum,
+                        dscp=slc.dscp.to_raw(),
+                        ssid=ssid.to_raw())
 
-        return self.send_message(PT_SET_TRAFFIC_RULE_QUEUE, msg)
+        return self.send_message(PT_SET_SLICE, msg)
 
-    def send_del_traffic_rule_queue(self, traffic_rule):
+    def send_del_slice(self, block, ssid, dscp):
         """Send an DEL_TRAFFIC_RULE message. """
 
-        msg = Container(length=19 + len(traffic_rule.ssid),
-                        hwaddr=traffic_rule.block.hwaddr.to_raw(),
-                        channel=traffic_rule.block.channel,
-                        band=traffic_rule.block.band,
-                        dscp=traffic_rule.dscp.to_raw(),
-                        ssid=traffic_rule.ssid.to_raw())
+        msg = Container(length=19 + len(ssid),
+                        hwaddr=block.hwaddr.to_raw(),
+                        channel=block.channel,
+                        band=block.band,
+                        dscp=dscp.to_raw(),
+                        ssid=ssid.to_raw())
 
-        return self.send_message(PT_DEL_TRAFFIC_RULE_QUEUE, msg)
+        return self.send_message(PT_DEL_SLICE, msg)

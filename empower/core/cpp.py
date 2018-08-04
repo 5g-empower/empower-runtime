@@ -37,4 +37,3 @@ class CPP(BasePNFDev):
     """
 
     ALIAS = "cpps"
-    SOLO = "cpp"

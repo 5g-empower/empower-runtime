@@ -23,13 +23,14 @@ from sqlalchemy.exc import IntegrityError
 
 from empower.persistence.persistence import TblBelongs
 from empower.persistence.persistence import TblSlice
+from empower.persistence.persistence import TblSliceBelongs
 from empower.persistence.persistence import TblTrafficRule
 from empower.core.lvnf import LVNF
+from empower.core.slice import Slice
 from empower.persistence import Session
 from empower.core.utils import get_module
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.trafficrule import TrafficRule
-from empower.core.trafficrulequeue import TrafficRuleQueue
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
@@ -83,6 +84,7 @@ class Tenant:
         self.ues = {}
         self.lvnfs = {}
         self.vaps = {}
+        self.slices = {}
         self.components = {}
 
     def spawn_lvnf(self, uuid, image, cpp):
@@ -252,32 +254,13 @@ class Tenant:
         session.delete(rule)
         session.commit()
 
-    @property
-    def slices(self):
-        """Fetch slices in this tenant."""
-
-        slices = \
-            Session().query(TblSlice) \
-                     .filter(TblSlice.tenant_id == self.tenant_id) \
-                     .all()
-
-        results = {}
-
-        for slc in slices:
-            amsdu_aggregation = slc.amsdu_aggregation
-            results[slc.dscp] = {'quantum': slc.quantum,
-                                 'amsdu_aggregation': amsdu_aggregation,
-                                 'dscp': slc.dscp}
-
-        return results
-
-    def add_slice(self, dscp, quantum, amsdu_aggregation):
+    def add_slice(self, dscp, request):
         """Add a new slice to the Tenant.
 
         Args:
             dscp, a DSCP object
-            quatum, the quanum in usec
-            aggregaion, enabled/disable aggregation
+            properties, the network-wide slice properties
+            request, the slice descriptor in json format
 
         Returns:
             None
@@ -286,42 +269,63 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        amsdu_aggregation = json.loads(amsdu_aggregation.lower())
+        slc = Slice(dscp, self, request)
 
-        slc = TblSlice(tenant_id=self.tenant_id,
-                       dscp=dscp,
-                       quantum=int(quantum),
-                       amsdu_aggregation=amsdu_aggregation)
+        tbl_slc = TblSlice(tenant_id=self.tenant_id,
+                           dscp=slc.dscp,
+                           wifi_properties=json.dumps(slc.wifi_properties),
+                           lte_properties=json.dumps(slc.lte_properties))
 
         try:
+
             session = Session()
-            session.add(slc)
+            session.add(tbl_slc)
+
+            for wtp_addr in slc.wtps:
+
+                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+
+                belongs = TblSliceBelongs(tenant_id=self.tenant_id,
+                                          dscp=tbl_slc.dscp,
+                                          addr=wtp_addr,
+                                          properties=properties)
+
+                session.add(belongs)
+
             session.commit()
+
         except IntegrityError:
             session.rollback()
-            raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, dscp))
+            raise ValueError()
 
-        # add slice to wifi nodes
-        for wtp in self.wtps.values():
+        self.slices[dscp] = slc
 
+        self.commit_slice(dscp)
+
+    def commit_slice(self, dscp):
+        """Create slice on WTPs and VBSes"""
+
+        slc = self.slices[dscp]
+        for wtp_addr in slc.wtps:
+            wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
+                wtp.connection.send_set_slice(block, slc)
 
-                trq = \
-                    TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=slc.dscp,
-                                     block=block,
-                                     quantum=slc.quantum,
-                                     amsdu_aggregation=slc.amsdu_aggregation)
+    def uncommit_slice(self, dscp):
+        """Remove slice from WTPs"""
 
-                block.radio.connection.send_set_traffic_rule_queue(trq)
+        for wtp_addr in self.slices[dscp].wtps:
+            wtp = self.wtps[wtp_addr]
+            for block in wtp.supports:
+                wtp.connection.send_del_slice(block, self.tenant_name, dscp)
 
     def set_slice(self, dscp, quantum, amsdu_aggregation):
-        """Update a slice.
+        """Update a slice in the Tenant.
 
         Args:
             dscp, a DSCP object
-            quatum, the quanum in usec
-            aggregaion, enabled/disable aggregation
+            properties, the network-wide slice properties
+            request, the slice descriptor in json format
 
         Returns:
             None
@@ -330,37 +334,10 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        amsdu_aggregation = json.loads(amsdu_aggregation.lower())
-
-        slc = Session().query(TblSlice) \
-                       .filter(TblSlice.dscp == dscp) \
-                       .first()
-        if not slc:
-            raise KeyError(dscp)
-
-        session = Session()
-
-        slc.quantum = quantum
-        slc.amsdu_aggregation = amsdu_aggregation
-
-        session.commit()
-
-        # set slice on wifi nodes
-        for wtp in self.wtps.values():
-
-            for block in wtp.supports:
-
-                trq = \
-                    TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=slc.dscp,
-                                     block=block,
-                                     quantum=slc.quantum,
-                                     amsdu_aggregation=slc.amsdu_aggregation)
-
-                block.radio.connection.send_set_traffic_rule_queue(trq)
+        pass
 
     def del_slice(self, dscp):
-        """Del slice from all blocks.
+        """Del slice from.
 
         Args:
             dscp, a DSCP object
@@ -372,30 +349,40 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        slc = Session().query(TblSlice) \
-                       .filter(TblBelongs.tenant_id == self.tenant_id,
-                               TblSlice.dscp == dscp) \
-                       .first()
-        if not slc:
-            raise KeyError(dscp)
+        slc = self.slices[dscp]
+        tenant_id = self.tenant_id
 
-        # delete slice from wifi nodes
-        for wtp in self.wtps.values():
+        try:
 
-            for block in wtp.supports:
+            session = Session()
 
-                trq = \
-                    TrafficRuleQueue(ssid=self.tenant_name,
-                                     dscp=slc.dscp,
-                                     block=block,
-                                     quantum=slc.quantum,
-                                     amsdu_aggregation=slc.amsdu_aggregation)
+            rem = Session().query(TblSlice) \
+                           .filter(TblSlice.tenant_id == self.tenant_id) \
+                           .filter(TblSlice.dscp == dscp) \
+                           .first()
 
-                block.radio.connection.send_del_traffic_rule_queue(trq)
+            session.delete(rem)
 
-        session = Session()
-        session.delete(slc)
-        session.commit()
+            for wtp_addr in slc.wtps:
+
+                rem = \
+                    Session().query(TblSliceBelongs) \
+                             .filter(TblSliceBelongs.tenant_id == tenant_id) \
+                             .filter(TblSliceBelongs.dscp == slc.dscp) \
+                             .filter(TblSliceBelongs.addr == wtp_addr) \
+                             .first()
+
+                session.delete(rem)
+
+            session.commit()
+
+        except IntegrityError:
+            session.rollback()
+            raise ValueError()
+
+        self.uncommit_slice(dscp)
+
+        del self.slices[dscp]
 
     def add_pnfdev(self, pnfdev):
         """Add a new PNF Dev to the Tenant.
@@ -417,7 +404,9 @@ class Tenant:
 
         pnfdevs[pnfdev.addr] = pnfdev
 
-        belongs = TblBelongs(tenant_id=self.tenant_id, addr=pnfdev.addr)
+        belongs = TblBelongs(tenant_id=self.tenant_id,
+                             addr=pnfdev.addr,
+                             parent=pnfdev.ALIAS)
 
         session = Session()
         session.add(belongs)

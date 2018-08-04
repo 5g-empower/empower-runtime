@@ -31,6 +31,7 @@ from construct import Bytes
 from sqlalchemy.exc import IntegrityError
 
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.dscp import DSCP
 from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
@@ -469,6 +470,22 @@ class EmpowerRuntime:
                    request.bssid_type,
                    request.plmn_id)
 
+        # create default queue
+        dscp = DSCP()
+
+        descriptor = {
+            "version": 1.0,
+            "dscp": "0x0",
+            "wifi-properties": {
+                "amsdu_aggregation": False
+            },
+            "wtps": {},
+            "lte-properties": {},
+            "vbses": {}
+        }
+
+        self.tenants[request.tenant_id].add_slice(dscp, descriptor)
+
         return request.tenant_id
 
     @classmethod
@@ -550,6 +567,10 @@ class EmpowerRuntime:
             raise KeyError(tenant_id)
 
         tenant = self.tenants[tenant_id]
+
+        # remove slices in this tenant
+        for dscp in list(tenant.slices):
+            tenant.del_slice(dscp)
 
         # remove pnfdev in this tenant
         devs = Session().query(TblBelongs) \

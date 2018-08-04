@@ -1243,16 +1243,22 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
             {
                 "version" : 1.0,
-                "wifi-props": {
-                    "aggregation" : true,
-                    "quantum" : 1500
-                },
-                "lte-props": {
-                    "prbs" : 2
-                },
                 "dscp": "0x42"
+                "wifi-properties": {
+                    "amsdu_aggregation": true
+                },
+                "wtps": {
+                    "00:01:02:03:04:05": {
+                        "quantum": 12000
+                    }
+                },
+                "lte-properties": {},
+                "vbses": {
+                    "aa:bb:cc:dd:ee:ff": {
+                        "prbs": 4
+                    }
+                }
             }
-
         """
 
         try:
@@ -1265,12 +1271,6 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "amsdu_aggregation" not in request:
-                raise ValueError("missing amsdu_aggregation element")
-
-            if "quantum" not in request:
-                raise ValueError("missing quantum element")
-
             if "dscp" not in request:
                 raise ValueError("missing dscp element")
 
@@ -1279,8 +1279,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(request["dscp"])
 
-            tenant.add_slice(dscp, request["quantum"],
-                             request["amsdu_aggregation"])
+            tenant.add_slice(dscp, request)
 
             url = "/api/v1/tenants/%s/slices/%s" % (tenant_id, dscp)
             self.set_header("Location", url)
@@ -1307,13 +1306,19 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
                 0x42
             {
                 "version" : 1.0,
-                "wifi-props": {
-                    "aggregation" : true,
-                    "quantum" : 1500
+                "wifi-properties": {
+                    "amsdu_aggregation": true
                 },
-                "lte-props": {
-                    "prbs" : 2,
-                    "ue": []
+                "wtps": {
+                    "00:01:02:03:04:05": {
+                        "quantum": 12000
+                    }
+                },
+                "lte-properties": {},
+                "vbses": {
+                    "aa:bb:cc:dd:ee:ff": {
+                        "prbs": 4
+                    }
                 }
             }
 
@@ -1329,19 +1334,15 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "amsdu_aggregation" not in request:
-                raise ValueError("missing amsdu_aggregation element")
-
-            if "quantum" not in request:
-                raise ValueError("missing quantum element")
+            if "dscp" not in request:
+                raise ValueError("missing dscp element")
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
             dscp = DSCP(args[1])
 
-            tenant.set_slice(dscp, request["quantum"],
-                             request["amsdu_aggregation"])
+            tenant.add_slice(dscp, request)
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1362,7 +1363,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
         Example URLs:
 
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/
-              0x40
+              0x42
 
         """
 

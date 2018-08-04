@@ -32,7 +32,7 @@ if __name__ == "__main__":
              'lvapp.lvap_stats.lvap_stats',
              'lvapp.bin_counter.bin_counter',
              'lvapp.txp_bin_counter.txp_bin_counter',
-             'lvapp.trq_bin_counter.trq_bin_counter',
+             'lvapp.slice_stats.slice_stats',
              'lvapp.cqm.ucqm',
              'lvapp.cqm.ncqm',
              'lvapp.wifi_stats.wifi_stats',

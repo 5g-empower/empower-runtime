@@ -60,10 +60,10 @@ PT_ADD_LVAP_RESPONSE = 0x51
 PT_DEL_LVAP_RESPONSE = 0x52
 PT_LVAP_STATUS_REQUEST = 0x53
 PT_VAP_STATUS_REQUEST = 0x54
-PT_SET_TRAFFIC_RULE_QUEUE = 0x56
-PT_DEL_TRAFFIC_RULE_QUEUE = 0x57
-PT_STATUS_TRAFFIC_RULE_QUEUE = 0x58
-PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST = 0x61
+PT_SET_SLICE = 0x56
+PT_DEL_SLICE = 0x57
+PT_STATUS_SLICE = 0x58
+PT_SLICE_STATUS_REQUEST = 0x61
 
 
 HEADER = Struct("header", UBInt8("version"),
@@ -213,8 +213,8 @@ LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt32("length"),
                              UBInt32("seq"))
 
-TRAFFIC_RULE_QUEUE_STATUS_REQUEST = \
-    Struct("traffic_rule_queue_status_request", UBInt8("version"),
+SLICE_STATUS_REQUEST = \
+    Struct("slice_status_request", UBInt8("version"),
            UBInt8("type"),
            UBInt32("length"),
            UBInt32("seq"))
@@ -325,45 +325,48 @@ DEL_LVAP_RESPONSE = Struct("del_lvap_response", UBInt8("version"),
                            UBInt32("module_id"),
                            UBInt32("status"))
 
-SET_TRAFFIC_RULE_QUEUE = Struct("set_traffic_rule_queue",
-                                UBInt8("version"),
-                                UBInt8("type"),
-                                UBInt32("length"),
-                                UBInt32("seq"),
-                                BitStruct("flags", Padding(15),
-                                          Bit("amsdu_aggregation")),
-                                Bytes("hwaddr", 6),
-                                UBInt8("channel"),
-                                UBInt8("band"),
-                                UBInt32("quantum"),
-                                UBInt8("dscp"),
-                                Bytes("ssid", lambda ctx: ctx.length - 25))
+SET_SLICE = \
+    Struct("set_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           BitStruct("flags", Padding(15),
+                     Bit("amsdu_aggregation")),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt32("quantum"),
+           UBInt8("dscp"),
+           Bytes("ssid", lambda ctx: ctx.length - 25))
 
-DEL_TRAFFIC_RULE_QUEUE = Struct("del_traffic_rule_queue",
-                                UBInt8("version"),
-                                UBInt8("type"),
-                                UBInt32("length"),
-                                UBInt32("seq"),
-                                Bytes("hwaddr", 6),
-                                UBInt8("channel"),
-                                UBInt8("band"),
-                                UBInt8("dscp"),
-                                Bytes("ssid", lambda ctx: ctx.length - 19))
+DEL_SLICE = \
+    Struct("del_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt8("dscp"),
+           Bytes("ssid", lambda ctx: ctx.length - 19))
 
-STATUS_TRAFFIC_RULE_QUEUE = Struct("status_traffic_rule_queue",
-                                   UBInt8("version"),
-                                   UBInt8("type"),
-                                   UBInt32("length"),
-                                   UBInt32("seq"),
-                                   Bytes("wtp", 6),
-                                   BitStruct("flags", Padding(15),
-                                             Bit("amsdu_aggregation")),
-                                   Bytes("hwaddr", 6),
-                                   UBInt8("channel"),
-                                   UBInt8("band"),
-                                   UBInt32("quantum"),
-                                   UBInt8("dscp"),
-                                   Bytes("ssid", lambda ctx: ctx.length - 31))
+STATUS_SLICE = \
+    Struct("status_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           Bytes("wtp", 6),
+           BitStruct("flags", Padding(15),
+                     Bit("amsdu_aggregation")),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt32("quantum"),
+           UBInt8("dscp"),
+           Bytes("ssid", lambda ctx: ctx.length - 31))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -393,11 +396,10 @@ PT_TYPES = {PT_BYE: None,
             PT_VAP_STATUS_REQUEST: VAP_STATUS_REQUEST,
             PT_ADD_LVAP_RESPONSE: ADD_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: DEL_LVAP_RESPONSE,
-            PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST:
-                TRAFFIC_RULE_QUEUE_STATUS_REQUEST,
-            PT_STATUS_TRAFFIC_RULE_QUEUE: STATUS_TRAFFIC_RULE_QUEUE,
-            PT_SET_TRAFFIC_RULE_QUEUE: SET_TRAFFIC_RULE_QUEUE,
-            PT_DEL_TRAFFIC_RULE_QUEUE: DEL_TRAFFIC_RULE_QUEUE}
+            PT_SLICE_STATUS_REQUEST: SLICE_STATUS_REQUEST,
+            PT_STATUS_SLICE: STATUS_SLICE,
+            PT_SET_SLICE: SET_SLICE,
+            PT_DEL_SLICE: DEL_SLICE}
 
 
 PT_TYPES_HANDLERS = {}

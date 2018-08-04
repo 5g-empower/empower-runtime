@@ -15,20 +15,20 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""TRQ Statistics Poller Apps."""
+"""Slice Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 
 
-class TRQStatsPoller(EmpowerApp):
-    """TR Stats Poller App.
+class SliceStatsPoller(EmpowerApp):
+    """Slice Stats Poller App.
 
     Command Line Parameters:
         tenant_id: tenant id
         every: loop period in ms (optional, default 5000ms)
 
     Example:
-        ./empower-runtime.py apps.pollers.trqstatspoller \
+        ./empower-runtime.py apps.pollers.slice_stats \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 
@@ -36,10 +36,10 @@ class TRQStatsPoller(EmpowerApp):
         """New WTP."""
 
         for block in wtp.supports:
-            self.trq_bin_counter(block=block)
+            self.slice_stats(block=block)
 
 
 def launch(tenant_id):
     """ Initialize the module. """
 
-    return TRQStatsPoller(tenant_id=tenant_id)
+    return SliceStatsPoller(tenant_id=tenant_id)
