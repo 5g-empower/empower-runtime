@@ -48,8 +48,6 @@ class Slice:
             }
         }
     }
-
-    Attributes:
     """
 
     def __init__(self, dscp, tenant, descriptor):

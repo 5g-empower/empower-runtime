@@ -1234,31 +1234,14 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
     def post(self, *args, **kwargs):
         """Add a new slice.
 
+        Check Slice object documentation for descriptors examples.
+
         Args:
             tenant_id: network name of a tenant
             dscp: the slice DSCP (optional)
 
         Example URLs:
-
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
-            {
-                "version" : 1.0,
-                "dscp": "0x42"
-                "wifi-properties": {
-                    "amsdu_aggregation": true
-                },
-                "wtps": {
-                    "00:01:02:03:04:05": {
-                        "quantum": 12000
-                    }
-                },
-                "lte-properties": {},
-                "vbses": {
-                    "aa:bb:cc:dd:ee:ff": {
-                        "prbs": 4
-                    }
-                }
-            }
         """
 
         try:
@@ -1296,32 +1279,15 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
     def put(self, *args, **kwargs):
         """Modify slice.
 
+        Check Slice object documentation for descriptors examples.
+
         Args:
             tenant_id: network name of a tenant
             dscp: the slice DSCP (optional)
 
         Example URLs:
-
             PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/
                 0x42
-            {
-                "version" : 1.0,
-                "wifi-properties": {
-                    "amsdu_aggregation": true
-                },
-                "wtps": {
-                    "00:01:02:03:04:05": {
-                        "quantum": 12000
-                    }
-                },
-                "lte-properties": {},
-                "vbses": {
-                    "aa:bb:cc:dd:ee:ff": {
-                        "prbs": 4
-                    }
-                }
-            }
-
         """
 
         try:
@@ -1361,10 +1327,8 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             dscp: the slice DSCP
 
         Example URLs:
-
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/
               0x42
-
         """
 
         try:
