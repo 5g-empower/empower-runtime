@@ -1342,7 +1342,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(args[1])
 
-            tenant.add_slice(dscp, request)
+            tenant.set_slice(dscp, request)
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1351,7 +1351,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-        self.set_status(201, None)
+        self.set_status(204, None)
 
     def delete(self, *args, **kwargs):
         """Delete slice.

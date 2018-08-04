@@ -26,17 +26,19 @@ from empower.datatypes.etheraddress import EtherAddress
 class Slice:
     """The base EmPOWER slice class.
 
-    A slice is defined starting from the following descriptor (in JSON format)
+    A slice is defined starting from the following descriptor (in JSON format).
+    Notice how any slice properties can be overridded on a per node-basis.
 
     {
-        "version" : 1.0,
-        "dscp": "0x42"
+        "version": 1.0,
+        "dscp": "0x42",
         "wifi-properties": {
-            "amsdu_aggregation": true
+            "amsdu_aggregation": true,
+            "quantum": 12000
         },
         "wtps": {
-            "00:01:02:03:04:05": {
-                "quantum": 12000
+            "00:0D:B9:2F:56:64": {
+                "quantum": 15000
             }
         },
         "lte-properties": {},
@@ -55,48 +57,79 @@ class Slice:
         self.dscp = DSCP(dscp)
         self.tenant = tenant
 
-        self.wifi_properties = {}
+        self.wifi_properties = {
+            'amsdu_aggregation': False,
+            'quantum': 12000
+        }
 
         if 'wifi-properties' in descriptor:
-
-            if 'amsdu_aggregation' in descriptor['wifi-properties']:
-
-                amsdu_aggregation = \
-                    descriptor['wifi-properties']['amsdu_aggregation']
-
-                if isinstance(amsdu_aggregation, bool):
-                    self.wifi_properties['amsdu_aggregation'] = \
-                        amsdu_aggregation
-                else:
-                    self.wifi_properties['amsdu_aggregation'] = \
-                        json.loads(amsdu_aggregation.lower())
+            self.__parse_wifi_descriptor(descriptor)
 
         self.lte_properties = {}
 
         self.wtps = {}
 
         if 'wtps' in descriptor:
-
-            for addr in descriptor['wtps']:
-
-                wtp_addr = EtherAddress(addr)
-
-                if wtp_addr not in self.tenant.wtps:
-                    raise KeyError("Unable to find WTP %s" % addr)
-
-                self.wtps[wtp_addr] = {'properties': {}, 'blocks': {}}
-
-                if 'quantum' in descriptor['wtps'][addr]:
-
-                    quantum = descriptor['wtps'][addr]['quantum']
-
-                    if isinstance(amsdu_aggregation, int):
-                        self.wtps[wtp_addr]['properties']['quantum'] = quantum
-                    else:
-                        self.wtps[wtp_addr]['properties']['quantum'] = \
-                            int(quantum)
+            self.__parse_wtps_descriptor(descriptor)
 
         self.vbses = {}
+
+    def __parse_wifi_descriptor(self, descriptor):
+
+        if 'amsdu_aggregation' in descriptor['wifi-properties']:
+
+            amsdu_aggregation = \
+                descriptor['wifi-properties']['amsdu_aggregation']
+
+            if isinstance(amsdu_aggregation, bool):
+                self.wifi_properties['amsdu_aggregation'] = \
+                    amsdu_aggregation
+            else:
+                self.wifi_properties['amsdu_aggregation'] = \
+                    json.loads(amsdu_aggregation.lower())
+
+        if 'quantum' in descriptor['wifi-properties']:
+
+            quantum = descriptor['wifi-properties']['quantum']
+
+            if isinstance(amsdu_aggregation, int):
+                self.wifi_properties['quantum'] = quantum
+            else:
+                self.wifi_properties['quantum'] = int(quantum)
+
+    def __parse_wtps_descriptor(self, descriptor):
+
+        for addr in descriptor['wtps']:
+
+            wtp_addr = EtherAddress(addr)
+
+            if wtp_addr not in self.tenant.wtps:
+                raise KeyError("Unable to find WTP %s" % addr)
+
+            self.wtps[wtp_addr] = {'properties': {}, 'blocks': {}}
+
+            if 'amsdu_aggregation' in descriptor['wtps'][addr]:
+
+                amsdu_aggregation = \
+                    descriptor['wtps'][addr]['amsdu_aggregation']
+
+                props = self.wtps[wtp_addr]['properties']
+
+                if isinstance(amsdu_aggregation, bool):
+                    props['amsdu_aggregation'] = amsdu_aggregation
+                else:
+                    props['amsdu_aggregation'] = \
+                        json.loads(amsdu_aggregation.lower())
+
+            if 'quantum' in descriptor['wtps'][addr]:
+
+                quantum = descriptor['wtps'][addr]['quantum']
+
+                if isinstance(quantum, int):
+                    self.wtps[wtp_addr]['properties']['quantum'] = quantum
+                else:
+                    self.wtps[wtp_addr]['properties']['quantum'] = \
+                        int(quantum)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Slice """

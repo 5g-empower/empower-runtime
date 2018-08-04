@@ -259,7 +259,6 @@ class Tenant:
 
         Args:
             dscp, a DSCP object
-            properties, the network-wide slice properties
             request, the slice descriptor in json format
 
         Returns:
@@ -269,16 +268,19 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
+        # create new instance
         slc = Slice(dscp, self, request)
 
-        tbl_slc = TblSlice(tenant_id=self.tenant_id,
-                           dscp=slc.dscp,
-                           wifi_properties=json.dumps(slc.wifi_properties),
-                           lte_properties=json.dumps(slc.lte_properties))
-
+        # descriptors has been parsed, now it is safe to write to the db
         try:
 
             session = Session()
+
+            tbl_slc = TblSlice(tenant_id=self.tenant_id,
+                               dscp=slc.dscp,
+                               wifi_properties=json.dumps(slc.wifi_properties),
+                               lte_properties=json.dumps(slc.lte_properties))
+
             session.add(tbl_slc)
 
             for wtp_addr in slc.wtps:
@@ -298,33 +300,20 @@ class Tenant:
             session.rollback()
             raise ValueError()
 
+        # store slice
         self.slices[dscp] = slc
 
-        self.commit_slice(dscp)
-
-    def commit_slice(self, dscp):
-        """Create slice on WTPs and VBSes"""
-
-        slc = self.slices[dscp]
+        # create slice on WTPs
         for wtp_addr in slc.wtps:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
 
-    def uncommit_slice(self, dscp):
-        """Remove slice from WTPs"""
-
-        for wtp_addr in self.slices[dscp].wtps:
-            wtp = self.wtps[wtp_addr]
-            for block in wtp.supports:
-                wtp.connection.send_del_slice(block, self.tenant_name, dscp)
-
-    def set_slice(self, dscp, quantum, amsdu_aggregation):
+    def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
 
         Args:
             dscp, a DSCP object
-            properties, the network-wide slice properties
             request, the slice descriptor in json format
 
         Returns:
@@ -334,7 +323,60 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
-        pass
+        # create new instance
+        slc = Slice(dscp, self, request)
+        tenant_id = self.tenant_id
+
+        # update db
+        try:
+
+            session = Session()
+
+            tbl_slice = Session().query(TblSlice) \
+                                 .filter(TblSlice.tenant_id == tenant_id) \
+                                 .filter(TblSlice.dscp == slc.dscp) \
+                                 .first()
+
+            tbl_slice.wifi_properties = json.dumps(slc.wifi_properties)
+            tbl_slice.lte_properties = json.dumps(slc.lte_properties)
+
+            for wtp_addr in slc.wtps:
+
+                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+
+                tbl_belongs = \
+                    Session().query(TblSliceBelongs) \
+                             .filter(TblSliceBelongs.tenant_id == tenant_id) \
+                             .filter(TblSliceBelongs.dscp == slc.dscp) \
+                             .filter(TblSliceBelongs.addr == wtp_addr) \
+                             .first()
+
+                if not tbl_belongs:
+
+                    belongs = TblSliceBelongs(tenant_id=self.tenant_id,
+                                              dscp=slc.dscp,
+                                              addr=wtp_addr,
+                                              properties=properties)
+
+                    session.add(belongs)
+
+                else:
+                    tbl_belongs.properties = properties
+
+            session.commit()
+
+        except IntegrityError:
+            session.rollback()
+            raise ValueError()
+
+        # store slice
+        self.slices[dscp] = slc
+
+        # create slice on WTPs
+        for wtp_addr in slc.wtps:
+            wtp = self.wtps[wtp_addr]
+            for block in wtp.supports:
+                wtp.connection.send_set_slice(block, slc)
 
     def del_slice(self, dscp):
         """Del slice from.
@@ -349,9 +391,11 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
+        # fetch slice
         slc = self.slices[dscp]
         tenant_id = self.tenant_id
 
+        # delete it from the db
         try:
 
             session = Session()
@@ -380,8 +424,13 @@ class Tenant:
             session.rollback()
             raise ValueError()
 
-        self.uncommit_slice(dscp)
+        # delete it from the WTPs
+        for wtp_addr in self.slices[dscp].wtps:
+            wtp = self.wtps[wtp_addr]
+            for block in wtp.supports:
+                wtp.connection.send_del_slice(block, self.tenant_name, dscp)
 
+        # remove slice
         del self.slices[dscp]
 
     def add_pnfdev(self, pnfdev):

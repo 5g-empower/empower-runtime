@@ -946,11 +946,21 @@ class LVAPPConnection:
         """Send an SET_TRAFFIC_RULE message."""
 
         ssid = slc.tenant.tenant_name
+
         amsdu_aggregation = slc.wifi_properties['amsdu_aggregation']
+        quantum = slc.wifi_properties['quantum']
+
+        if self.wtp.addr in slc.wtps:
+
+            if 'amsdu_aggregation' in slc.wtps[self.wtp.addr]['properties']:
+                amsdu_aggregation = \
+                    slc.wtps[self.wtp.addr]['properties']['amsdu_aggregation']
+
+            if 'quantum' in slc.wtps[self.wtp.addr]['properties']:
+                quantum = \
+                    slc.wtps[self.wtp.addr]['properties']['quantum']
 
         flags = Container(amsdu_aggregation=amsdu_aggregation)
-
-        quantum = slc.wtps[self.wtp.addr]['properties']['quantum']
 
         msg = Container(length=25 + len(ssid),
                         flags=flags,
