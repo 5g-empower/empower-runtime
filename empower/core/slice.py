@@ -42,11 +42,13 @@ class Slice:
             }
         },
         "lte-properties": {
-            "prbs": 4
+            "prbs": 4,
+            "rntis": [12345, 22233]
         },
         "vbses": {
             "aa:bb:cc:dd:ee:ff": {
-                "prbs": 2
+                "prbs": 2,
+                "rntis": [555555]
             }
         }
     }
