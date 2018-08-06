@@ -125,7 +125,7 @@ class RSSI(ModuleTrigger):
 
     @period.setter
     def period(self, value):
-        "Set period parameter."
+        """ Set period parameter. """
 
         if value < 1000:
             raise ValueError("Invalid limit value (%u)" % value)

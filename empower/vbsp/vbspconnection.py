@@ -31,6 +31,7 @@ from empower.vbsp import PT_BYE
 from empower.vbsp import PT_REGISTER
 from empower.vbsp import EP_ACT_HELLO
 from empower.vbsp import EP_ACT_CAPS
+from empower.vbsp import EP_ACT_RAN_SETUP
 from empower.vbsp import E_TYPE_SINGLE
 from empower.vbsp import E_TYPE_SCHED
 from empower.vbsp import E_TYPE_TRIG
@@ -39,6 +40,7 @@ from empower.vbsp import E_SCHED
 from empower.vbsp import E_TRIG
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
+from empower.vbsp import RAN_SETUP_REQUEST
 from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
@@ -46,6 +48,7 @@ from empower.vbsp import UE_REPORT_REQUEST
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.vbsp import CAPS_TYPES
 from empower.vbsp import EP_CAPS_CELL
+from empower.vbsp import EP_CAPS_RAN_MAC_SCHED
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
@@ -280,9 +283,9 @@ class VBSPConnection:
         vbs.last_seen_ts = time.time()
 
     def _handle_caps_response(self, vbs, hdr, event, caps):
-        """Handle an incoming HELLO message.
+        """Handle an incoming CAPS RESPONSE message.
         Args:
-            hello, a CAPS messagge
+            caps, a CAPS messagge
         Returns:
             None
         """
@@ -297,6 +300,9 @@ class VBSPConnection:
                 cell = Cell(vbs, cap.pci, cap.cap, cap.dl_earfcn, cap.dl_prbs,
                             cap.ul_earfcn, cap.ul_prbs)
                 vbs.cells[cap.pci] = cell
+                # if the cell supports ran slicing, send ran setup request
+                if cap.cap.ran_slicing == 1:
+                    self.send_ran_setup_request(cap.pci)
 
         # transition to the online state
         vbs.set_online()
@@ -304,6 +310,22 @@ class VBSPConnection:
         # if UE reports are supported then activate them
         if bool(caps.flags.ue_report):
             self.send_ue_reports_request()
+
+    def _handle_ran_setup_response(self, vbs, hdr, event, setup):
+        """Handle an incoming RAN SETUP message.
+        Args:
+            setup, a RAN_SETUP messagge
+        Returns:
+            None
+        """
+
+        for raw_cap in setup.options:
+            cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
+
+            if raw_cap.type != EP_CAPS_RAN_MAC_SCHED:
+                continue
+
+            self.vbs.cells[hdr.cellid].ran_mac_sched = cap.sched_id
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -407,8 +429,6 @@ class VBSPConnection:
             vbs: an VBS object
         Returns:
             None
-        Raises:
-            TypeError: if vap is not an VAP object
         """
 
         msg = Container(dummy=0)
@@ -417,6 +437,22 @@ class VBSPConnection:
                           E_TYPE_SINGLE,
                           EP_ACT_CAPS,
                           CAPS_REQUEST)
+
+    def send_ran_setup_request(self, cell_id):
+        """Send a RAN_SETUP_REQUEST message.
+        Args:
+            cell_id: the id of the cell
+        Returns:
+            None
+        """
+
+        msg = Container(dummy=0)
+
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_RAN_SETUP,
+                          RAN_SETUP_REQUEST,
+                          cellid=cell_id)
 
     def send_ue_reports_request(self):
         """Send a UE Reports message.

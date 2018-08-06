@@ -58,8 +58,10 @@ EP_ACT_CAPS = 2
 EP_ACT_UE_REPORT = 4
 EP_ACT_UE_MEASURE = 5
 EP_ACT_HANDOVER = 7
+EP_ACT_RAN_SETUP = 9
 
 EP_CAPS_CELL = 0x0100
+EP_CAPS_RAN_MAC_SCHED = 0x0500
 
 E_TYPE_SINGLE = 0x01
 E_TYPE_SCHED = 0x02
@@ -116,6 +118,26 @@ CAPS_RESPONSE = Struct("caps_response",
                                  Bit("ue_report")),
                        Rename("options", OptionalGreedyRange(OPTIONS)))
 
+RAN_SETUP_REQUEST = Struct("ran_setup_request",
+                      UBInt8("type"),
+                      UBInt8("version"),
+                      Bytes("enbid", 8),
+                      UBInt16("cellid"),
+                      UBInt32("xid"),
+                      BitStruct("flags", Padding(15), Bit("dir")),
+                      UBInt32("seq"),
+                      UBInt16("length"),
+                      UBInt16("action"),
+                      UBInt8("opcode"),
+                      UBInt32("dummy"))
+
+RAN_SETUP_RESPONSE = Struct("ran_setup_response",
+                       BitStruct("layer1", Padding(32)),
+                       BitStruct("layer2", Padding(31),
+                                 Bit("prb_slicing")),
+                       BitStruct("layer3", Padding(32)),
+                       Rename("options", OptionalGreedyRange(OPTIONS)))
+
 UE_REPORT_REQUEST = Struct("ue_report_request",
                            UBInt8("type"),
                            UBInt8("version"),
@@ -163,14 +185,21 @@ UE_HO_RESPONSE = Struct("ue_ho_response",
 
 CAPS_CELL = Struct("caps_tlv_cell",
                    UBInt16("pci"),
-                   UBInt32("cap"),
+                   BitStruct("cap", Padding(29),
+                    Bit("ran_slicing"),
+                    Bit("mac_report"),
+                    Bit("phy_report")),
                    UBInt16("dl_earfcn"),
                    UBInt8("dl_prbs"),
                    UBInt16("ul_earfcn"),
                    UBInt8("ul_prbs"))
 
+CAPS_RAN_MAC_SCHED = Struct("caps_ran_mac_sched",
+                   UBInt32("sched_id"))
+
 CAPS_TYPES = {
-    EP_CAPS_CELL: CAPS_CELL
+    EP_CAPS_CELL: CAPS_CELL,
+    EP_CAPS_RAN_MAC_SCHED: CAPS_RAN_MAC_SCHED
 }
 
 PT_TYPES = {PT_BYE: None,
@@ -179,6 +208,7 @@ PT_TYPES = {PT_BYE: None,
             PT_UE_LEAVE: None,
             EP_ACT_HELLO: HELLO,
             EP_ACT_CAPS: CAPS_RESPONSE,
+            EP_ACT_RAN_SETUP: RAN_SETUP_RESPONSE,
             EP_ACT_UE_REPORT: UE_REPORT_RESPONSE,
             EP_ACT_HANDOVER: UE_HO_RESPONSE}
 
@@ -188,5 +218,6 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      PT_UE_LEAVE: [],
                      EP_ACT_HELLO: [],
                      EP_ACT_CAPS: [],
+                     EP_ACT_RAN_SETUP: [],
                      EP_ACT_UE_REPORT: [],
                      EP_ACT_HANDOVER: []}

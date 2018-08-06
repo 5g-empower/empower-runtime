@@ -133,7 +133,7 @@ class Summary(ModuleScheduled):
 
     @block.setter
     def block(self, value):
-
+        """Return block."""
         if isinstance(value, ResourceBlock):
 
             self._block = value
