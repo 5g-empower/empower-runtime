@@ -41,10 +41,12 @@ class Slice:
                 "quantum": 15000
             }
         },
-        "lte-properties": {},
+        "lte-properties": {
+            "prbs": 4
+        },
         "vbses": {
             "aa:bb:cc:dd:ee:ff": {
-                "prbs": 4
+                "prbs": 2
             }
         }
     }
