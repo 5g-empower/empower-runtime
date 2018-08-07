@@ -293,15 +293,16 @@ class VBSPConnection:
         # clear cells
         vbs.cells = {}
 
-        # add new cells
+        # parse capabilities TLVs
         for raw_cap in caps.options:
             cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
+            # handle new cells
             if raw_cap.type == EP_CAPS_CELL:
                 cell = Cell(vbs, cap.pci, cap.cap, cap.dl_earfcn, cap.dl_prbs,
                             cap.ul_earfcn, cap.ul_prbs)
                 vbs.cells[cap.pci] = cell
                 # if the cell supports ran slicing, send ran setup request
-                if cap.cap.ran_slicing == 1:
+                if bool(cap.cap.ran_slicing):
                     self.send_ran_setup_request(cap.pci)
 
         # transition to the online state
@@ -319,13 +320,12 @@ class VBSPConnection:
             None
         """
 
+        # parse capabilities TLVs
         for raw_cap in setup.options:
             cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
-
-            if raw_cap.type != EP_CAPS_RAN_MAC_SCHED:
-                continue
-
-            self.vbs.cells[hdr.cellid].ran_mac_sched = cap.sched_id
+            # handle mac scheduler type
+            if raw_cap.type == EP_CAPS_RAN_MAC_SCHED:
+                self.vbs.cells[hdr.cellid].ran_mac_sched = cap.sched_id
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
