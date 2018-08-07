@@ -692,7 +692,6 @@ class LVAPPConnection:
             None
         """
 
-        quantum = status.quantum
         dscp = DSCP(status.dscp)
         ssid = SSID(status.ssid)
 
@@ -720,12 +719,11 @@ class LVAPPConnection:
         if wtp.addr not in slc.wtps:
             slc.wtps[wtp.addr] = {'properties': {}, 'blocks': {}}
 
-        slc.wtps[wtp.addr]['properties']['quantum'] = quantum
+        slc.wtps[wtp.addr]['properties']['quantum'] = status.quantum
+        slc.wtps[wtp.addr]['properties']['amsdu_aggregation'] = \
+            bool(status.flags.amsdu_aggregation)
 
-        block = "%s-%s-%s" % (valid[0].hwaddr, valid[0].channel, valid[0].band)
-        slc.wtps[wtp.addr]['blocks'][block] = {}
-
-        self.log.info("Transmission rule status updated")
+        self.log.info("Slice %s updated", slc)
 
     def _handle_status_vap(self, wtp, status):
         """Handle an incoming STATUS_VAP message.

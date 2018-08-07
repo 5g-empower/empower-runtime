@@ -133,6 +133,9 @@ class Slice:
                     self.wtps[wtp_addr]['properties']['quantum'] = \
                         int(quantum)
 
+    def __repr__(self):
+        return "%s:%s" % (self.tenant.tenant_name, self.dscp)
+
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Slice """
 

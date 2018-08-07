@@ -18,10 +18,8 @@
 """Slice statistics module."""
 
 from construct import UBInt8
-from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
-from construct import Sequence
 from construct import Container
 from construct import Struct
 
