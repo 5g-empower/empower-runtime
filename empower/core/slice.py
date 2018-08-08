@@ -42,7 +42,8 @@ class Slice:
             }
         },
         "lte-properties": {
-            "prbs": 4,
+            "prbs": 5,
+            "sched_id": 1,
             "rntis": [12345, 22233]
         },
         "vbses": {
@@ -67,7 +68,13 @@ class Slice:
         if 'wifi-properties' in descriptor:
             self.__parse_wifi_descriptor(descriptor)
 
-        self.lte_properties = {}
+        self.lte_properties = {
+            'sched_id': 0,
+            'prbs': 1
+        }
+
+        if 'lte-properties' in descriptor:
+            self.__parse_lte_descriptor(descriptor)
 
         self.wtps = {}
 
@@ -75,6 +82,9 @@ class Slice:
             self.__parse_wtps_descriptor(descriptor)
 
         self.vbses = {}
+
+        if 'vbses' in descriptor:
+            self.__parse_vbses_descriptor(descriptor)
 
     def __parse_wifi_descriptor(self, descriptor):
 
@@ -132,6 +142,59 @@ class Slice:
                 else:
                     self.wtps[wtp_addr]['properties']['quantum'] = \
                         int(quantum)
+
+    def __parse_lte_descriptor(self, descriptor):
+
+        if 'sched_id' in descriptor['lte-properties']:
+
+            sched_id = descriptor['lte-properties']['sched_id']
+
+            if isinstance(sched_id, int):
+                self.lte_properties['sched_id'] = sched_id
+            else:
+                self.lte_properties['sched_id'] = int(sched_id)
+
+        if 'prbs' in descriptor['lte-properties']:
+
+            prbs = descriptor['lte-properties']['prbs']
+
+            if isinstance(prbs, int):
+                self.lte_properties['prbs'] = prbs
+            else:
+                self.lte_properties['prbs'] = int(prbs)
+
+    def __parse_vbses_descriptor(self, descriptor):
+
+        for addr in descriptor['vbses']:
+
+            vbs_addr = EtherAddress(addr)
+
+            if vbs_addr not in self.tenant.vbses:
+                raise KeyError("Unable to find VBS %s" % addr)
+
+            self.vbses[vbs_addr] = {'properties': {}, 'cells': {}}
+
+            if 'sched_id' in descriptor['vbses'][addr]:
+
+                sched_id = \
+                    descriptor['vbses'][addr]['sched_id']
+
+                props = self.vbses[vbs_addr]['properties']
+
+                if isinstance(sched_id, int):
+                    props['sched_id'] = sched_id
+                else:
+                    props['sched_id'] = int(sched_id)
+
+            if 'prbs' in descriptor['vbses'][addr]:
+
+                prbs = descriptor['vbses'][addr]['prbs']
+
+                if isinstance(prbs, int):
+                    self.vbses[vbs_addr]['properties']['prbs'] = prbs
+                else:
+                    self.vbses[vbs_addr]['properties']['prbs'] = \
+                        int(prbs)
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)

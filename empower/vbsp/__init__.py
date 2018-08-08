@@ -37,6 +37,7 @@ from construct import Switch
 from construct import Pass
 from construct import Field
 from construct import OptionalGreedyRange
+from construct import GreedyRange
 
 PT_VERSION = 0x01
 
@@ -51,6 +52,7 @@ EP_OPERATION_FAIL = 2
 EP_OPERATION_NOT_SUPPORTED = 3
 EP_OPERATION_ADD = 4
 EP_OPERATION_REM = 5
+EP_OPERATION_SET = 6
 
 EP_ACT_INVALID = 0
 EP_ACT_HELLO = 1
@@ -59,9 +61,7 @@ EP_ACT_UE_REPORT = 4
 EP_ACT_UE_MEASURE = 5
 EP_ACT_HANDOVER = 7
 EP_ACT_RAN_SETUP = 9
-
-EP_CAPS_CELL = 0x0100
-EP_CAPS_RAN_MAC_SCHED = 0x0500
+EP_ACT_RAN_MAC_SLICE = 10
 
 E_TYPE_SINGLE = 0x01
 E_TYPE_SCHED = 0x02
@@ -112,7 +112,7 @@ CAPS_REQUEST = Struct("caps_request",
                       UBInt32("dummy"))
 
 CAPS_RESPONSE = Struct("caps_response",
-                       BitStruct("flags", Padding(28),
+                       BitStruct("flags", Padding(29),
                                  Bit("handover"),
                                  Bit("ue_measure"),
                                  Bit("ue_report")),
@@ -137,6 +137,26 @@ RAN_SETUP_RESPONSE = Struct("ran_setup_response",
                                       Bit("prb_slicing")),
                             BitStruct("layer3", Padding(32)),
                             Rename("options", OptionalGreedyRange(OPTIONS)))
+
+RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
+                               UBInt8("type"),
+                               UBInt8("version"),
+                               Bytes("enbid", 8),
+                               UBInt16("cellid"),
+                               UBInt32("xid"),
+                               BitStruct("flags", Padding(15), Bit("dir")),
+                               UBInt32("seq"),
+                               UBInt16("length"),
+                               UBInt16("action"),
+                               UBInt8("opcode"),
+                               UBInt64("slice_id"),
+                               Rename("options",
+                                      OptionalGreedyRange(OPTIONS)))
+
+RAN_MAC_SLICE_RESPONSE = Struct("ran_mac_slice_response",
+                                UBInt64("slice_id"),
+                                Rename("options",
+                                       OptionalGreedyRange(OPTIONS)))
 
 UE_REPORT_REQUEST = Struct("ue_report_request",
                            UBInt8("type"),
@@ -183,9 +203,10 @@ UE_HO_RESPONSE = Struct("ue_ho_response",
                         UBInt16("origin_rnti"),
                         UBInt16("target_rnti"))
 
+# Cell capabilities. This is a valid TLV for the CAPS_RESPONSE message.
 CAPS_CELL = Struct("caps_tlv_cell",
                    UBInt16("pci"),
-                   BitStruct("cap", Padding(28),
+                   BitStruct("cap", Padding(29),
                              Bit("ran_slicing"),
                              Bit("mac_report"),
                              Bit("phy_report")),
@@ -194,11 +215,35 @@ CAPS_CELL = Struct("caps_tlv_cell",
                    UBInt16("ul_earfcn"),
                    UBInt8("ul_prbs"))
 
-CAPS_RAN_MAC_SCHED = Struct("caps_ran_mac_sched", UBInt32("sched_id"))
+# PRBs to allocate to a slice. This is a valid TLV for the
+# RAN_MAC_SLICE_REQUEST message.
+RAN_MAC_SLICE_PRBS = Struct("ran_mac_slice_prbs", UBInt16("prbs"))
+
+# Scheduler to be used for a a slice. This is a valid TLV for the
+# RAN_MAC_SLICE_REQUEST message.
+RAN_MAC_SLICE_SCHED_ID = Struct("ran_mac_slice_sched_id", UBInt32("sched_id"))
+
+# RNTIs to be mappeted to a a slice. This is a valid TLV for the
+# RAN_MAC_SLICE_REQUEST message.
+RAN_MAC_SLICE_RNTI_LIST = Struct("ran_mac_slice_rntis",
+                                 GreedyRange(UBInt16("rntis")))
+
+# TLV dictionaries
+
+EP_CAPS_CELL = 0x0100
 
 CAPS_TYPES = {
-    EP_CAPS_CELL: CAPS_CELL,
-    EP_CAPS_RAN_MAC_SCHED: CAPS_RAN_MAC_SCHED
+    EP_CAPS_CELL: CAPS_CELL
+}
+
+EP_RAN_MAC_SLICE_PRBS = 0x0
+EP_RAN_MAC_SLICE_SCHED_ID = 0x0
+EP_RAN_MAC_SLICE_RNTI_LIST = 0x0
+
+RAN_MAC_SLICE_TYPES = {
+    EP_RAN_MAC_SLICE_PRBS: RAN_MAC_SLICE_PRBS,
+    EP_RAN_MAC_SLICE_SCHED_ID: RAN_MAC_SLICE_SCHED_ID,
+    EP_RAN_MAC_SLICE_RNTI_LIST: RAN_MAC_SLICE_RNTI_LIST
 }
 
 PT_TYPES = {PT_BYE: None,
@@ -208,6 +253,7 @@ PT_TYPES = {PT_BYE: None,
             EP_ACT_HELLO: HELLO,
             EP_ACT_CAPS: CAPS_RESPONSE,
             EP_ACT_RAN_SETUP: RAN_SETUP_RESPONSE,
+            EP_ACT_RAN_MAC_SLICE: RAN_MAC_SLICE_RESPONSE,
             EP_ACT_UE_REPORT: UE_REPORT_RESPONSE,
             EP_ACT_HANDOVER: UE_HO_RESPONSE}
 
@@ -218,5 +264,6 @@ PT_TYPES_HANDLERS = {PT_BYE: [],
                      EP_ACT_HELLO: [],
                      EP_ACT_CAPS: [],
                      EP_ACT_RAN_SETUP: [],
+                     EP_ACT_RAN_MAC_SLICE: [],
                      EP_ACT_UE_REPORT: [],
                      EP_ACT_HANDOVER: []}

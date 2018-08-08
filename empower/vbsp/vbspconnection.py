@@ -48,7 +48,14 @@ from empower.vbsp import UE_REPORT_REQUEST
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.vbsp import CAPS_TYPES
 from empower.vbsp import EP_CAPS_CELL
-from empower.vbsp import EP_CAPS_RAN_MAC_SCHED
+from empower.vbsp import RAN_MAC_SLICE_REQUEST
+from empower.vbsp import EP_ACT_RAN_MAC_SLICE
+from empower.vbsp import RAN_MAC_SLICE_PRBS
+from empower.vbsp import RAN_MAC_SLICE_SCHED_ID
+from empower.vbsp import RAN_MAC_SLICE_RNTI_LIST
+from empower.vbsp import EP_RAN_MAC_SLICE_PRBS
+from empower.vbsp import EP_RAN_MAC_SLICE_SCHED_ID
+from empower.vbsp import EP_RAN_MAC_SLICE_RNTI_LIST
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
@@ -247,7 +254,6 @@ class VBSPConnection:
         msg.xid = get_xid()
         msg.flags = Container(dir=1)
         msg.seq = self.vbs.seq
-        msg.length = parser.sizeof()
 
         msg.action = action
         msg.opcode = opcode
@@ -295,15 +301,20 @@ class VBSPConnection:
 
         # parse capabilities TLVs
         for raw_cap in caps.options:
-            cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
+
             # handle new cells
             if raw_cap.type == EP_CAPS_CELL:
+
+                cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
                 cell = Cell(vbs, cap.pci, cap.cap, cap.dl_earfcn, cap.dl_prbs,
                             cap.ul_earfcn, cap.ul_prbs)
                 vbs.cells[cap.pci] = cell
-                # if the cell supports ran slicing, send ran setup request
-                if bool(cap.cap.ran_slicing):
-                    self.send_ran_setup_request(cap.pci)
+
+                # send ran setup request
+                self.send_ran_setup_request(cap.pci)
+
+                # send slice request
+                self.send_ran_mac_slice_request(cap.pci)
 
         # transition to the online state
         vbs.set_online()
@@ -320,12 +331,7 @@ class VBSPConnection:
             None
         """
 
-        # parse capabilities TLVs
-        for raw_cap in setup.options:
-            cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
-            # handle mac scheduler type
-            if raw_cap.type == EP_CAPS_RAN_MAC_SCHED:
-                self.vbs.cells[hdr.cellid].ran_mac_sched = cap.sched_id
+        pass
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -431,7 +437,7 @@ class VBSPConnection:
             None
         """
 
-        msg = Container(dummy=0)
+        msg = Container(length=CAPS_REQUEST.sizeof(), dummy=0)
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
@@ -446,7 +452,7 @@ class VBSPConnection:
             None
         """
 
-        msg = Container(dummy=0)
+        msg = Container(length=RAN_SETUP_REQUEST.sizeof(), dummy=0)
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
@@ -464,7 +470,7 @@ class VBSPConnection:
             TypeError: if vap is not an VAP object
         """
 
-        msg = Container(dummy=0)
+        msg = Container(length=UE_REPORT_REQUEST.sizeof(), dummy=0)
 
         self.send_message(msg,
                           E_TYPE_TRIG,
@@ -482,7 +488,8 @@ class VBSPConnection:
             None
         """
 
-        msg = Container(rnti=ue.rnti,
+        msg = Container(length=UE_HO_REQUEST.sizeof(),
+                        rnti=ue.rnti,
                         target_enbid=b'\x00\x00' + cell.vbs.addr.to_raw(),
                         target_pci=cell.pci,
                         cause=1)
@@ -492,3 +499,86 @@ class VBSPConnection:
                           EP_ACT_HANDOVER,
                           UE_HO_REQUEST,
                           cellid=ue.cell.pci)
+
+    def send_ran_mac_slice_request(self, cell_id):
+        """Send a STATUS_SLICE_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        """
+
+        msg = Container(length=RAN_MAC_SLICE_REQUEST.sizeof(), dummy=0)
+
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_RAN_MAC_SLICE,
+                          RAN_MAC_SLICE_REQUEST,
+                          cellid=cell_id)
+
+    def send_add_ran_mac_slice_request(self, cell, slc):
+        """Send an ADD_RAN_MAC_SLICE_REQUEST message.
+        Args:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+
+        slice_id = (slc.tenant.plmn_id.to_hex() << 8) | slc.dscp.to_raw()
+
+        sched_id = slc.lte_properties['sched_id']
+        prbs = slc.lte_properties['prbs']
+        rntis = slc.lte_properties['rntis']
+
+        if self.vbs.addr in slc.vbses:
+
+            if 'sched_id' in slc.vbses[self.vbs.addr]['properties']:
+                sched_id = \
+                    slc.vbses[self.vbs.addr]['properties']['sched_id']
+
+            if 'prbs' in slc.vbses[self.vbs.addr]['properties']:
+                prbs = \
+                    slc.vbses[self.vbs.addr]['properties']['prbs']
+
+            if 'rntis' in slc.vbses[self.vbs.addr]['properties']:
+                rntis = \
+                    slc.vbses[self.vbs.addr]['properties']['rntis']
+
+        msg = Container(slice_id=slice_id, options=[])
+
+        # PRBs
+        slice_prbs = Container(prbs=prbs)
+        s_prbs = RAN_MAC_SLICE_PRBS.build(slice_prbs)
+        opt_prbs = Container(type=EP_RAN_MAC_SLICE_PRBS,
+                             length=RAN_MAC_SLICE_PRBS.sizeof(),
+                             data=s_prbs)
+
+        # Scheduler id
+        slice_sched_id = Container(sched_id=sched_id)
+        s_sched_id = RAN_MAC_SLICE_SCHED_ID.build(slice_sched_id)
+        opt_sched_id = Container(type=EP_RAN_MAC_SLICE_PRBS,
+                                 length=RAN_MAC_SLICE_SCHED_ID.sizeof(),
+                                 data=s_sched_id)
+
+        # RNTIs
+        slice_rntis = Container(rntis=rntis)
+        s_rntis = RAN_MAC_SLICE_RNTI_LIST.build(slice_rntis)
+        opt_rntis = Container(type=EP_RAN_MAC_SLICE_RNTI_LIST,
+                              length=2*len(slice_rntis),
+                              data=s_rntis)
+
+        msg.options = [opt_prbs, opt_sched_id, opt_rntis]
+
+        msg.length = RAN_MAC_SLICE_REQUEST.sizeof() + \
+            opt_prbs.length + \
+            opt_sched_id.length + \
+            opt_rntis.length
+
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_RAN_MAC_SLICE,
+                          RAN_MAC_SLICE_REQUEST,
+                          opcode=EP_OPERATION_ADD,
+                          cellid=cell.pci)

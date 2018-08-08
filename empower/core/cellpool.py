@@ -78,13 +78,12 @@ class Cell:
         self.dl_prbs = dl_prbs
         self.ul_earfcn = ul_earfcn
         self.ul_prbs = ul_prbs
-        self.ran_mac_sched = None
 
     def __repr__(self):
         """Return string representation."""
 
-        return "vbs %s pci %u dl_earfcn %u dl_earfcn %u ran_mac_sched %d" % \
-            (self.vbs.addr, self.pci, self.dl_earfcn, self.ul_earfcn, self.ran_mac_sched)
+        return "vbs %s pci %u dl_earfcn %u dl_earfcn %u" % \
+            (self.vbs.addr, self.pci, self.dl_earfcn, self.ul_earfcn)
 
     def __hash__(self):
         return hash(self.vbs) + hash(self.pci)
@@ -112,7 +111,6 @@ class Cell:
         out['ul_earfcn'] = self.ul_earfcn
         out['ul_prbs'] = self.ul_prbs
         out['mac_reports'] = self.mac_reports
-        out['ran_mac_sched'] = self.ran_mac_sched
         out['rrc_measurements'] = rrc
 
         return out

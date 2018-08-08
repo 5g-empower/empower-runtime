@@ -941,7 +941,7 @@ class LVAPPConnection:
             handler(self.wtp)
 
     def send_set_slice(self, block, slc):
-        """Send an SET_TRAFFIC_RULE message."""
+        """Send an SET_SLICE message."""
 
         ssid = slc.tenant.tenant_name
 
@@ -972,7 +972,7 @@ class LVAPPConnection:
         return self.send_message(PT_SET_SLICE, msg)
 
     def send_del_slice(self, block, ssid, dscp):
-        """Send an DEL_TRAFFIC_RULE message. """
+        """Send an DEL_SLICEs message. """
 
         msg = Container(length=19 + len(ssid),
                         hwaddr=block.hwaddr.to_raw(),

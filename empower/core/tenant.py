@@ -294,6 +294,17 @@ class Tenant:
 
                 session.add(belongs)
 
+            for vbs_addr in slc.vbses:
+
+                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+
+                belongs = TblSliceBelongs(tenant_id=self.tenant_id,
+                                          dscp=tbl_slc.dscp,
+                                          addr=vbs_addr,
+                                          properties=properties)
+
+                session.add(belongs)
+
             session.commit()
 
         except IntegrityError:
@@ -308,6 +319,12 @@ class Tenant:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
+
+        # create slice on VBSes
+        for vbs_addr in slc.vbses:
+            vbs = self.vbses[vbs_addr]
+            for cell in vbs.cells:
+                vbs.connection.send_add_ran_mac_slice_request(cell, slc)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
@@ -361,6 +378,31 @@ class Tenant:
                     session.add(belongs)
 
                 else:
+
+                    tbl_belongs.properties = properties
+
+            for vbs_addr in slc.vbses:
+
+                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+
+                tbl_belongs = \
+                    Session().query(TblSliceBelongs) \
+                             .filter(TblSliceBelongs.tenant_id == tenant_id) \
+                             .filter(TblSliceBelongs.dscp == slc.dscp) \
+                             .filter(TblSliceBelongs.addr == vbs_addr) \
+                             .first()
+
+                if not tbl_belongs:
+
+                    belongs = TblSliceBelongs(tenant_id=self.tenant_id,
+                                              dscp=slc.dscp,
+                                              addr=vbs_addr,
+                                              properties=properties)
+
+                    session.add(belongs)
+
+                else:
+
                     tbl_belongs.properties = properties
 
             session.commit()
@@ -377,6 +419,12 @@ class Tenant:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
+
+        # create slice on VBSes
+        for vbs_addr in slc.vbses:
+            vbs = self.vbses[vbs_addr]
+            for cell in vbs.cells:
+                vbs.connection.send_set_ran_mac_slice_request(cell, slc)
 
     def del_slice(self, dscp):
         """Del slice from.
@@ -418,6 +466,17 @@ class Tenant:
 
                 session.delete(rem)
 
+            for vbs_addr in slc.vbses:
+
+                rem = \
+                    Session().query(TblSliceBelongs) \
+                             .filter(TblSliceBelongs.tenant_id == tenant_id) \
+                             .filter(TblSliceBelongs.dscp == slc.dscp) \
+                             .filter(TblSliceBelongs.addr == vbs_addr) \
+                             .first()
+
+                session.delete(rem)
+
             session.commit()
 
         except IntegrityError:
@@ -429,6 +488,14 @@ class Tenant:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_del_slice(block, self.tenant_name, dscp)
+
+        # delete it from the VBSes
+        for vbs_addr in self.slices[dscp].vbses:
+            vbs = self.vbses[vbs_addr]
+            for cell in vbs.cells:
+                vbs.connection.send_del_ran_mac_slice_request(cell,
+                                                              self.plmn_id,
+                                                              dscp)
 
         # remove slice
         del self.slices[dscp]
