@@ -24,6 +24,7 @@ import tornado.ioloop
 from construct import Container
 
 from empower.datatypes.plmnid import PLMNID
+from empower.datatypes.dscp import DSCP
 from empower.datatypes.etheraddress import EtherAddress
 from empower.vbsp import HEADER
 from empower.vbsp import PT_VERSION
@@ -50,12 +51,13 @@ from empower.vbsp import CAPS_TYPES
 from empower.vbsp import EP_CAPS_CELL
 from empower.vbsp import RAN_MAC_SLICE_REQUEST
 from empower.vbsp import EP_ACT_RAN_MAC_SLICE
-from empower.vbsp import RAN_MAC_SLICE_PRBS
+from empower.vbsp import RAN_MAC_SLICE_RBGS
 from empower.vbsp import RAN_MAC_SLICE_SCHED_ID
 from empower.vbsp import RAN_MAC_SLICE_RNTI_LIST
-from empower.vbsp import EP_RAN_MAC_SLICE_PRBS
+from empower.vbsp import EP_RAN_MAC_SLICE_RBGS
 from empower.vbsp import EP_RAN_MAC_SLICE_SCHED_ID
 from empower.vbsp import EP_RAN_MAC_SLICE_RNTI_LIST
+from empower.vbsp import RAN_MAC_SLICE_TYPES
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
@@ -429,6 +431,63 @@ class VBSPConnection:
                                        ho.target_rnti, ho.origin_pci,
                                        hdr.cellid, event.opcode)
 
+    def _handle_ran_mac_slice_response(self, vbs, hdr, event, msg):
+        """Handle an incoming RAN_MAC_SLICE message.
+        Args:
+            status, a RAN_MAC_SLICE messagge
+        Returns:
+            None
+        """
+
+        dscp = DSCP(msg.dscp)
+        plmn_id = PLMNID(msg.plmn_id[1:].hex())
+
+        tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
+
+        # check if tenant is valid
+        if not tenant:
+            self.log.info("Unknown tenant %s", plmn_id)
+            return
+
+        # check if slice is valid
+        if dscp not in tenant.slices:
+            self.log.warning("DSCP %s not found. Removing slice.", dscp)
+            # self.send_del_slice(valid[0], ssid, dscp)
+            return
+
+        slc = tenant.slices[dscp]
+
+        if vbs.addr not in slc.vbses:
+            slc.vbses[vbs.addr] = {'properties': {}, 'cells': {}}
+
+        if hdr.cellid not in slc.vbses[vbs.addr]['cells']:
+            slc.vbses[vbs.addr]['cells'][hdr.cellid] = {}
+
+        for raw_cap in msg.options:
+
+            if raw_cap.type not in RAN_MAC_SLICE_TYPES:
+                self.log.warning("Unknown options %u", raw_cap.type)
+                continue
+
+            prop = RAN_MAC_SLICE_TYPES[raw_cap.type].name
+            option = RAN_MAC_SLICE_TYPES[raw_cap.type].parse(raw_cap.data)
+
+            self.log.warning("Processing options %s", prop)
+
+            if raw_cap.type == EP_RAN_MAC_SLICE_SCHED_ID:
+                slc.vbses[self.vbs.addr]['properties']['sched_id'] = \
+                    option.sched_id
+
+            if raw_cap.type == EP_RAN_MAC_SLICE_RBGS:
+                slc.vbses[self.vbs.addr]['properties']['rbgs'] = \
+                    option.rbgs
+
+            if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
+                slc.vbses[self.vbs.addr]['properties']['rntis'] = \
+                    option.rntis
+
+        self.log.info("Slice %s updated", slc)
+
     def send_caps_request(self):
         """Send a CAPS_REQUEST message.
         Args:
@@ -500,7 +559,7 @@ class VBSPConnection:
                           UE_HO_REQUEST,
                           cellid=ue.cell.pci)
 
-    def send_ran_mac_slice_request(self, cell_id):
+    def send_ran_mac_slice_request(self, cell_id, slice_id=0):
         """Send a STATUS_SLICE_REQUEST message.
         Args:
             None
@@ -508,7 +567,9 @@ class VBSPConnection:
             None
         """
 
-        msg = Container(length=RAN_MAC_SLICE_REQUEST.sizeof(), dummy=0)
+        msg = Container(length=RAN_MAC_SLICE_REQUEST.sizeof(),
+                        slice_id=slice_id,
+                        dummy=0)
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
@@ -529,7 +590,7 @@ class VBSPConnection:
         slice_id = (slc.tenant.plmn_id.to_hex() << 8) | slc.dscp.to_raw()
 
         sched_id = slc.lte_properties['sched_id']
-        prbs = slc.lte_properties['prbs']
+        rbgs = slc.lte_properties['rbgs']
         rntis = slc.lte_properties['rntis']
 
         if self.vbs.addr in slc.vbses:
@@ -538,9 +599,9 @@ class VBSPConnection:
                 sched_id = \
                     slc.vbses[self.vbs.addr]['properties']['sched_id']
 
-            if 'prbs' in slc.vbses[self.vbs.addr]['properties']:
-                prbs = \
-                    slc.vbses[self.vbs.addr]['properties']['prbs']
+            if 'rbgs' in slc.vbses[self.vbs.addr]['properties']:
+                rbgs = \
+                    slc.vbses[self.vbs.addr]['properties']['rbgs']
 
             if 'rntis' in slc.vbses[self.vbs.addr]['properties']:
                 rntis = \
@@ -548,17 +609,17 @@ class VBSPConnection:
 
         msg = Container(slice_id=slice_id, options=[])
 
-        # PRBs
-        slice_prbs = Container(prbs=prbs)
-        s_prbs = RAN_MAC_SLICE_PRBS.build(slice_prbs)
-        opt_prbs = Container(type=EP_RAN_MAC_SLICE_PRBS,
-                             length=RAN_MAC_SLICE_PRBS.sizeof(),
-                             data=s_prbs)
+        # RBGs
+        slice_rbgs = Container(rbgs=rbgs)
+        s_rbgs = RAN_MAC_SLICE_RBGS.build(slice_rbgs)
+        opt_rbgs = Container(type=EP_RAN_MAC_SLICE_RBGS,
+                             length=RAN_MAC_SLICE_RBGS.sizeof(),
+                             data=s_rbgs)
 
         # Scheduler id
         slice_sched_id = Container(sched_id=sched_id)
         s_sched_id = RAN_MAC_SLICE_SCHED_ID.build(slice_sched_id)
-        opt_sched_id = Container(type=EP_RAN_MAC_SLICE_PRBS,
+        opt_sched_id = Container(type=EP_RAN_MAC_SLICE_SCHED_ID,
                                  length=RAN_MAC_SLICE_SCHED_ID.sizeof(),
                                  data=s_sched_id)
 
@@ -569,10 +630,10 @@ class VBSPConnection:
                               length=2*len(slice_rntis),
                               data=s_rntis)
 
-        msg.options = [opt_prbs, opt_sched_id, opt_rntis]
+        msg.options = [opt_rbgs, opt_sched_id, opt_rntis]
 
         msg.length = RAN_MAC_SLICE_REQUEST.sizeof() + \
-            opt_prbs.length + \
+            opt_rbgs.length + \
             opt_sched_id.length + \
             opt_rntis.length
 

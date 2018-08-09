@@ -37,7 +37,7 @@ class PLMNID:
         elif isinstance(plmnid, PLMNID):
             self.plmnid = str(plmnid)
         else:
-            raise ValueError("PLMNID must be a string or an array of bytes")
+            raise ValueError("PLMNID must be a string")
 
     def to_raw(self):
         """ Return the bytes represenation of the PLMNID """

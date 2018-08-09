@@ -149,12 +149,27 @@ RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                UBInt16("length"),
                                UBInt16("action"),
                                UBInt8("opcode"),
-                               UBInt64("slice_id"),
-                               Rename("options",
-                                      OptionalGreedyRange(OPTIONS)))
+                               UBInt64("slice_id"))
+
+ADD_RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
+                                   UBInt8("type"),
+                                   UBInt8("version"),
+                                   Bytes("enbid", 8),
+                                   UBInt16("cellid"),
+                                   UBInt32("xid"),
+                                   BitStruct("flags", Padding(15), Bit("dir")),
+                                   UBInt32("seq"),
+                                   UBInt16("length"),
+                                   UBInt16("action"),
+                                   UBInt8("opcode"),
+                                   UBInt64("slice_id"),
+                                   Rename("options",
+                                          OptionalGreedyRange(OPTIONS)))
 
 RAN_MAC_SLICE_RESPONSE = Struct("ran_mac_slice_response",
-                                UBInt64("slice_id"),
+                                Bytes("plmn_id", 4),
+                                UBInt8("dscp"),
+                                Bytes("padding", 3),
                                 Rename("options",
                                        OptionalGreedyRange(OPTIONS)))
 
@@ -215,9 +230,9 @@ CAPS_CELL = Struct("caps_tlv_cell",
                    UBInt16("ul_earfcn"),
                    UBInt8("ul_prbs"))
 
-# PRBs to allocate to a slice. This is a valid TLV for the
+# RBGs to allocate to a slice. This is a valid TLV for the
 # RAN_MAC_SLICE_REQUEST message.
-RAN_MAC_SLICE_PRBS = Struct("ran_mac_slice_prbs", UBInt16("prbs"))
+RAN_MAC_SLICE_RBGS = Struct("ran_mac_slice_rbgs", UBInt16("rbgs"))
 
 # Scheduler to be used for a a slice. This is a valid TLV for the
 # RAN_MAC_SLICE_REQUEST message.
@@ -236,12 +251,12 @@ CAPS_TYPES = {
     EP_CAPS_CELL: CAPS_CELL
 }
 
-EP_RAN_MAC_SLICE_PRBS = 0x0
-EP_RAN_MAC_SLICE_SCHED_ID = 0x0
-EP_RAN_MAC_SLICE_RNTI_LIST = 0x0
+EP_RAN_MAC_SLICE_SCHED_ID = 0x0502
+EP_RAN_MAC_SLICE_RBGS = 0x0501
+EP_RAN_MAC_SLICE_RNTI_LIST = 0x0001
 
 RAN_MAC_SLICE_TYPES = {
-    EP_RAN_MAC_SLICE_PRBS: RAN_MAC_SLICE_PRBS,
+    EP_RAN_MAC_SLICE_RBGS: RAN_MAC_SLICE_RBGS,
     EP_RAN_MAC_SLICE_SCHED_ID: RAN_MAC_SLICE_SCHED_ID,
     EP_RAN_MAC_SLICE_RNTI_LIST: RAN_MAC_SLICE_RNTI_LIST
 }

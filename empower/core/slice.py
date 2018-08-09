@@ -42,13 +42,13 @@ class Slice:
             }
         },
         "lte-properties": {
-            "prbs": 5,
+            "rbgs": 5,
             "sched_id": 1,
             "rntis": [12345, 22233]
         },
         "vbses": {
             "aa:bb:cc:dd:ee:ff": {
-                "prbs": 2,
+                "rbgs": 2,
                 "rntis": [555555]
             }
         }
@@ -70,7 +70,7 @@ class Slice:
 
         self.lte_properties = {
             'sched_id': 0,
-            'prbs': 1
+            'rbgs': 1
         }
 
         if 'lte-properties' in descriptor:
@@ -154,14 +154,14 @@ class Slice:
             else:
                 self.lte_properties['sched_id'] = int(sched_id)
 
-        if 'prbs' in descriptor['lte-properties']:
+        if 'rbgs' in descriptor['lte-properties']:
 
-            prbs = descriptor['lte-properties']['prbs']
+            rbgs = descriptor['lte-properties']['rbgs']
 
-            if isinstance(prbs, int):
-                self.lte_properties['prbs'] = prbs
+            if isinstance(rbgs, int):
+                self.lte_properties['rbgs'] = rbgs
             else:
-                self.lte_properties['prbs'] = int(prbs)
+                self.lte_properties['rbgs'] = int(rbgs)
 
     def __parse_vbses_descriptor(self, descriptor):
 
@@ -186,15 +186,15 @@ class Slice:
                 else:
                     props['sched_id'] = int(sched_id)
 
-            if 'prbs' in descriptor['vbses'][addr]:
+            if 'rbgs' in descriptor['vbses'][addr]:
 
-                prbs = descriptor['vbses'][addr]['prbs']
+                rbgs = descriptor['vbses'][addr]['rbgs']
 
-                if isinstance(prbs, int):
-                    self.vbses[vbs_addr]['properties']['prbs'] = prbs
+                if isinstance(rbgs, int):
+                    self.vbses[vbs_addr]['properties']['rbgs'] = rbgs
                 else:
-                    self.vbses[vbs_addr]['properties']['prbs'] = \
-                        int(prbs)
+                    self.vbses[vbs_addr]['properties']['rbgs'] = \
+                        int(rbgs)
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
