@@ -34,6 +34,8 @@ class PLMNID:
             if allowed.match(plmnid) is None:
                 raise ValueError("Invalid PLMNID name")
             self.plmnid = plmnid
+        elif isinstance(plmnid, bytes):
+            self.plmnid = plmnid[1:].hex()
         elif isinstance(plmnid, PLMNID):
             self.plmnid = str(plmnid)
         else:
@@ -41,7 +43,7 @@ class PLMNID:
 
     def to_raw(self):
         """ Return the bytes represenation of the PLMNID """
-        return self.plmnid.encode('UTF-8')
+        return int(self.plmnid, 16).to_bytes(4, byteorder='big')
 
     def to_str(self):
         """ Return the ASCII represenation of the PLMNID """

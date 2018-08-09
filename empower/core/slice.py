@@ -70,7 +70,8 @@ class Slice:
 
         self.lte_properties = {
             'sched_id': 0,
-            'rbgs': 1
+            'rbgs': 1,
+            'rntis': []
         }
 
         if 'lte-properties' in descriptor:
@@ -163,6 +164,15 @@ class Slice:
             else:
                 self.lte_properties['rbgs'] = int(rbgs)
 
+        if 'rntis' in descriptor['lte-properties']:
+
+            rntis = descriptor['lte-properties']['rntis']
+
+            if isinstance(rntis, list):
+                self.lte_properties['rntis'] = [int(x) for x in rntis]
+            else:
+                self.lte_properties['rntis'] = [int(rbgs)]
+
     def __parse_vbses_descriptor(self, descriptor):
 
         for addr in descriptor['vbses']:
@@ -195,6 +205,17 @@ class Slice:
                 else:
                     self.vbses[vbs_addr]['properties']['rbgs'] = \
                         int(rbgs)
+
+            if 'rntis' in descriptor['vbses'][addr]:
+
+                rntis = descriptor['vbses'][addr]['rntis']
+
+                if isinstance(rntis, list):
+                    self.vbses[vbs_addr]['properties']['rntis'] = \
+                        [int(x) for x in rntis]
+                else:
+                    self.vbses[vbs_addr]['properties']['rntis'] = \
+                        [int(rntis)]
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)

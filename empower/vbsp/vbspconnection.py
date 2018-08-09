@@ -58,6 +58,9 @@ from empower.vbsp import EP_RAN_MAC_SLICE_RBGS
 from empower.vbsp import EP_RAN_MAC_SLICE_SCHED_ID
 from empower.vbsp import EP_RAN_MAC_SLICE_RNTI_LIST
 from empower.vbsp import RAN_MAC_SLICE_TYPES
+from empower.vbsp import EP_OPERATION_REM
+from empower.vbsp import REM_RAN_MAC_SLICE_REQUEST
+from empower.vbsp import SET_RAN_MAC_SLICE_REQUEST
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
@@ -352,7 +355,7 @@ class VBSPConnection:
                 continue
 
             # otherwise check if we can add it
-            plmn_id = PLMNID(ue.plmn_id[1:].hex())
+            plmn_id = PLMNID(ue.plmn_id)
             tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
             if not tenant:
@@ -440,7 +443,7 @@ class VBSPConnection:
         """
 
         dscp = DSCP(msg.dscp)
-        plmn_id = PLMNID(msg.plmn_id[1:].hex())
+        plmn_id = PLMNID(msg.plmn_id)
 
         tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
@@ -577,8 +580,8 @@ class VBSPConnection:
                           RAN_MAC_SLICE_REQUEST,
                           cellid=cell_id)
 
-    def send_add_ran_mac_slice_request(self, cell, slc):
-        """Send an ADD_RAN_MAC_SLICE_REQUEST message.
+    def send_add_set_ran_mac_slice_request(self, cell, slc, opcode):
+        """Send an SET_RAN_MAC_SLICE_REQUEST message.
         Args:
             None
         Returns:
@@ -586,8 +589,6 @@ class VBSPConnection:
         Raises:
             None
         """
-
-        slice_id = (slc.tenant.plmn_id.to_hex() << 8) | slc.dscp.to_raw()
 
         sched_id = slc.lte_properties['sched_id']
         rbgs = slc.lte_properties['rbgs']
@@ -607,7 +608,10 @@ class VBSPConnection:
                 rntis = \
                     slc.vbses[self.vbs.addr]['properties']['rntis']
 
-        msg = Container(slice_id=slice_id, options=[])
+        msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
+                        dscp=slc.dscp.to_raw(),
+                        padding=b'\x00\x00\x00',
+                        options=[])
 
         # RBGs
         slice_rbgs = Container(rbgs=rbgs)
@@ -627,19 +631,34 @@ class VBSPConnection:
         slice_rntis = Container(rntis=rntis)
         s_rntis = RAN_MAC_SLICE_RNTI_LIST.build(slice_rntis)
         opt_rntis = Container(type=EP_RAN_MAC_SLICE_RNTI_LIST,
-                              length=2*len(slice_rntis),
+                              length=2*len(rntis),
                               data=s_rntis)
 
         msg.options = [opt_rbgs, opt_sched_id, opt_rntis]
 
         msg.length = RAN_MAC_SLICE_REQUEST.sizeof() + \
-            opt_rbgs.length + \
-            opt_sched_id.length + \
-            opt_rntis.length
+            opt_rbgs.length + 4 + \
+            opt_sched_id.length + 4 + \
+            opt_rntis.length + 4
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
                           EP_ACT_RAN_MAC_SLICE,
-                          RAN_MAC_SLICE_REQUEST,
-                          opcode=EP_OPERATION_ADD,
+                          SET_RAN_MAC_SLICE_REQUEST,
+                          opcode=opcode,
+                          cellid=cell.pci)
+
+    def send_del_ran_mac_slice_request(self, cell, plmn_id, dscp):
+        """Send an DEL_SLICE message. """
+
+        msg = Container(plmn_id=plmn_id.to_raw(),
+                        dscp=dscp.to_raw(),
+                        padding=b'\x00\x00\x00',
+                        length=REM_RAN_MAC_SLICE_REQUEST.sizeof())
+
+        self.send_message(msg,
+                          E_TYPE_SINGLE,
+                          EP_ACT_RAN_MAC_SLICE,
+                          REM_RAN_MAC_SLICE_REQUEST,
+                          opcode=EP_OPERATION_REM,
                           cellid=cell.pci)

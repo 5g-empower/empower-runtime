@@ -1300,9 +1300,6 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "dscp" not in request:
-                raise ValueError("missing dscp element")
-
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 

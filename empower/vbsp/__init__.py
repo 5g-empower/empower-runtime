@@ -151,7 +151,7 @@ RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                UBInt8("opcode"),
                                UBInt64("slice_id"))
 
-ADD_RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
+SET_RAN_MAC_SLICE_REQUEST = Struct("set_ran_mac_slice_request",
                                    UBInt8("type"),
                                    UBInt8("version"),
                                    Bytes("enbid", 8),
@@ -162,9 +162,26 @@ ADD_RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                    UBInt16("length"),
                                    UBInt16("action"),
                                    UBInt8("opcode"),
-                                   UBInt64("slice_id"),
+                                   Bytes("plmn_id", 4),
+                                   UBInt8("dscp"),
+                                   Bytes("padding", 3),
                                    Rename("options",
                                           OptionalGreedyRange(OPTIONS)))
+
+REM_RAN_MAC_SLICE_REQUEST = Struct("rem_ran_mac_slice_request",
+                                   UBInt8("type"),
+                                   UBInt8("version"),
+                                   Bytes("enbid", 8),
+                                   UBInt16("cellid"),
+                                   UBInt32("xid"),
+                                   BitStruct("flags", Padding(15), Bit("dir")),
+                                   UBInt32("seq"),
+                                   UBInt16("length"),
+                                   UBInt16("action"),
+                                   UBInt8("opcode"),
+                                   Bytes("plmn_id", 4),
+                                   UBInt8("dscp"),
+                                   Bytes("padding", 3))
 
 RAN_MAC_SLICE_RESPONSE = Struct("ran_mac_slice_response",
                                 Bytes("plmn_id", 4),
@@ -241,7 +258,7 @@ RAN_MAC_SLICE_SCHED_ID = Struct("ran_mac_slice_sched_id", UBInt32("sched_id"))
 # RNTIs to be mappeted to a a slice. This is a valid TLV for the
 # RAN_MAC_SLICE_REQUEST message.
 RAN_MAC_SLICE_RNTI_LIST = Struct("ran_mac_slice_rntis",
-                                 GreedyRange(UBInt16("rntis")))
+                                 OptionalGreedyRange(UBInt16("rntis")))
 
 # TLV dictionaries
 

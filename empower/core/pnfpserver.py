@@ -315,7 +315,17 @@ class PNFPServer:
                 pnfdevs = getattr(t_slice, pnfdev.ALIAS)
 
                 if pnfdev.addr not in pnfdevs:
-                    pnfdevs[belong.addr] = {'properties': {}, 'blocks': {}}
+
+                    if pnfdev.ALIAS == "vbses":
+
+                        pnfdevs[belong.addr] = {'properties': {},
+                                                'cells': {}}
+
+                    else:
+
+                        pnfdevs[belong.addr] = {'properties': {},
+                                                'blocks': {}}
+
                     pnfdevs[belong.addr]['properties'] = \
                         json.loads(belong.properties)
 

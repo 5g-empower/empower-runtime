@@ -31,6 +31,8 @@ from empower.persistence import Session
 from empower.core.utils import get_module
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.trafficrule import TrafficRule
+from empower.vbsp import EP_OPERATION_SET
+from empower.vbsp import EP_OPERATION_ADD
 
 T_TYPE_SHARED = "shared"
 T_TYPE_UNIQUE = "unique"
@@ -317,14 +319,21 @@ class Tenant:
         # create slice on WTPs
         for wtp_addr in slc.wtps:
             wtp = self.wtps[wtp_addr]
+            if not wtp.is_online():
+                continue
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
         for vbs_addr in slc.vbses:
             vbs = self.vbses[vbs_addr]
-            for cell in vbs.cells:
-                vbs.connection.send_add_ran_mac_slice_request(cell, slc)
+            if not vbs.is_online():
+                continue
+            for cell in vbs.cells.values():
+                vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_ADD)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
@@ -417,14 +426,21 @@ class Tenant:
         # create slice on WTPs
         for wtp_addr in slc.wtps:
             wtp = self.wtps[wtp_addr]
+            if not wtp.is_online():
+                continue
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
         for vbs_addr in slc.vbses:
             vbs = self.vbses[vbs_addr]
-            for cell in vbs.cells:
-                vbs.connection.send_set_ran_mac_slice_request(cell, slc)
+            if not vbs.is_online():
+                continue
+            for cell in vbs.cells.values():
+                vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_SET)
 
     def del_slice(self, dscp):
         """Del slice from.
@@ -492,7 +508,7 @@ class Tenant:
         # delete it from the VBSes
         for vbs_addr in self.slices[dscp].vbses:
             vbs = self.vbses[vbs_addr]
-            for cell in vbs.cells:
+            for cell in vbs.cells.values():
                 vbs.connection.send_del_ran_mac_slice_request(cell,
                                                               self.plmn_id,
                                                               dscp)
