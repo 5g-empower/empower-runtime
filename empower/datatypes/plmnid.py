@@ -33,7 +33,7 @@ class PLMNID:
             allowed = re.compile(r'^[f0-9]+$', re.VERBOSE | re.IGNORECASE)
             if allowed.match(plmnid) is None:
                 raise ValueError("Invalid PLMNID name")
-            self.plmnid = plmnid
+            self.plmnid = plmnid.lower()
         elif isinstance(plmnid, bytes):
             self.plmnid = plmnid[1:].hex()
         elif isinstance(plmnid, PLMNID):

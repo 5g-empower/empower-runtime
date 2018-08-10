@@ -486,8 +486,7 @@ class VBSPConnection:
                     option.rbgs
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
-                slc.vbses[self.vbs.addr]['properties']['rntis'] = \
-                    option.rntis
+                slc.lte_runtime['rntis'] = option.rntis
 
         self.log.info("Slice %s updated", slc)
 
@@ -592,7 +591,7 @@ class VBSPConnection:
 
         sched_id = slc.lte_properties['sched_id']
         rbgs = slc.lte_properties['rbgs']
-        rntis = slc.lte_properties['rntis']
+        rntis = slc.lte_runtime['rntis']
 
         if self.vbs.addr in slc.vbses:
 
@@ -604,9 +603,8 @@ class VBSPConnection:
                 rbgs = \
                     slc.vbses[self.vbs.addr]['properties']['rbgs']
 
-            if 'rntis' in slc.vbses[self.vbs.addr]['properties']:
-                rntis = \
-                    slc.vbses[self.vbs.addr]['properties']['rntis']
+        if 'rntis' in slc.lte_runtime['rntis']:
+            rntis = slc.lte_runtime['rntis']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),
