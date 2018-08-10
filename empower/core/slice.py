@@ -70,12 +70,18 @@ class Slice:
 
         self.lte_properties = {
             'sched_id': 0,
-            'rbgs': 1,
-            'rntis': []
+            'rbgs': 1
         }
 
         if 'lte-properties' in descriptor:
             self.__parse_lte_descriptor(descriptor)
+
+        self.lte_runtime = {
+            'rntis': []
+        }
+
+        if 'lte-runtime' in descriptor:
+            self.__parse_lte_runtime_descriptor(descriptor)
 
         self.wtps = {}
 
@@ -164,14 +170,16 @@ class Slice:
             else:
                 self.lte_properties['rbgs'] = int(rbgs)
 
-        if 'rntis' in descriptor['lte-properties']:
+    def __parse_lte_runtime_descriptor(self, descriptor):
 
-            rntis = descriptor['lte-properties']['rntis']
+        if 'rntis' in descriptor['lte-runtime']:
+
+            rntis = descriptor['lte-runtime']['rntis']
 
             if isinstance(rntis, list):
-                self.lte_properties['rntis'] = [int(x) for x in rntis]
+                self.lte_runtime['rntis'] = [int(x) for x in rntis]
             else:
-                self.lte_properties['rntis'] = [int(rbgs)]
+                self.lte_runtime['rntis'] = [int(rntis)]
 
     def __parse_vbses_descriptor(self, descriptor):
 
@@ -184,38 +192,27 @@ class Slice:
 
             self.vbses[vbs_addr] = {'properties': {}, 'cells': {}}
 
-            if 'sched_id' in descriptor['vbses'][addr]:
+            if 'sched_id' in descriptor['vbses'][addr]['properties']:
 
                 sched_id = \
-                    descriptor['vbses'][addr]['sched_id']
-
-                props = self.vbses[vbs_addr]['properties']
+                    descriptor['vbses'][addr]['properties']['sched_id']
 
                 if isinstance(sched_id, int):
-                    props['sched_id'] = sched_id
+                    self.vbses[vbs_addr]['properties']['sched_id'] = \
+                        sched_id
                 else:
-                    props['sched_id'] = int(sched_id)
+                    self.vbses[vbs_addr]['properties']['sched_id'] = \
+                        int(sched_id)
 
-            if 'rbgs' in descriptor['vbses'][addr]:
+            if 'rbgs' in descriptor['vbses'][addr]['properties']:
 
-                rbgs = descriptor['vbses'][addr]['rbgs']
+                rbgs = descriptor['vbses'][addr]['properties']['rbgs']
 
                 if isinstance(rbgs, int):
                     self.vbses[vbs_addr]['properties']['rbgs'] = rbgs
                 else:
                     self.vbses[vbs_addr]['properties']['rbgs'] = \
                         int(rbgs)
-
-            if 'rntis' in descriptor['vbses'][addr]:
-
-                rntis = descriptor['vbses'][addr]['rntis']
-
-                if isinstance(rntis, list):
-                    self.vbses[vbs_addr]['properties']['rntis'] = \
-                        [int(x) for x in rntis]
-                else:
-                    self.vbses[vbs_addr]['properties']['rntis'] = \
-                        [int(rntis)]
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
@@ -228,6 +225,7 @@ class Slice:
             'tenant_id': self.tenant.tenant_id,
             'wifi-properties': self.wifi_properties,
             'lte-properties': self.lte_properties,
+            'lte-runtime': self.lte_runtime,
             'wtps': {str(k): v for k, v in self.wtps.items()},
             'vbses': {str(k): v for k, v in self.vbses.items()},
         }
