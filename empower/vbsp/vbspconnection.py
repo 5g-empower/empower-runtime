@@ -59,6 +59,7 @@ from empower.vbsp import EP_RAN_MAC_SLICE_SCHED_ID
 from empower.vbsp import EP_RAN_MAC_SLICE_RNTI_LIST
 from empower.vbsp import RAN_MAC_SLICE_TYPES
 from empower.vbsp import EP_OPERATION_REM
+from empower.vbsp import EP_OPERATION_SET
 from empower.vbsp import REM_RAN_MAC_SLICE_REQUEST
 from empower.vbsp import SET_RAN_MAC_SLICE_REQUEST
 from empower.core.utils import get_xid
@@ -327,6 +328,36 @@ class VBSPConnection:
         # if UE reports are supported then activate them
         if bool(caps.flags.ue_report):
             self.send_ue_reports_request()
+
+        # send slices
+        self.update_slices()
+
+    def update_slices(self):
+        """Update active Slices."""
+
+        for tenant in RUNTIME.tenants.values():
+
+            # vbs not in this tenant
+            if self.vbs.addr not in tenant.vbses:
+                continue
+
+            # send slices configuration
+            for slc in tenant.slices.values():
+
+                if self.vbs.addr not in slc.vbses:
+                    continue
+
+                for cell in self.vbs.cells.values():
+                    if not slc.vbses[self.vbs.addr]['cells']:
+                        self.vbs.connection.\
+                            send_add_set_ran_mac_slice_request(cell,
+                                                               slc,
+                                                               EP_OPERATION_ADD)
+                    else:
+                        self.vbs.connection.\
+                            send_add_set_ran_mac_slice_request(cell,
+                                                               slc,
+                                                               EP_OPERATION_SET)
 
     def _handle_ran_setup_response(self, vbs, hdr, event, setup):
         """Handle an incoming RAN SETUP message.
