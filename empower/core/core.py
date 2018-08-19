@@ -17,6 +17,8 @@
 
 """EmPOWER Runtime."""
 
+from random import randint
+
 import pkgutil
 import socket
 import fcntl
@@ -687,3 +689,10 @@ class EmpowerRuntime:
                 return ue
 
         return None
+
+    def assoc_id(self):
+        """Generate new assoc id."""
+
+        assoc_id = randint(1, 2007)
+
+        return assoc_id

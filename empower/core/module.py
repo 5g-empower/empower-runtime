@@ -20,7 +20,6 @@
 import tornado.web
 import tornado.httpserver
 
-from empower.core.utils import get_xid
 from empower.core.service import ServiceWorker
 from empower.core.service import Service
 

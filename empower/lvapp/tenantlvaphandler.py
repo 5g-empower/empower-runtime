@@ -49,18 +49,19 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
 
         try:
 
-            if len(args) > 2 or len(args) < 1:
+            print(args)
+
+            if len(args) not in (1, 2):
                 raise ValueError("Invalid URL")
 
             tenant_id = uuid.UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
-            lvaps = tenant.lvaps
 
             if len(args) == 1:
-                self.write_as_json(lvaps.values())
+                self.write_as_json(tenant.lvaps.values())
             else:
                 lvap = EtherAddress(args[1])
-                self.write_as_json(lvaps[lvap])
+                self.write_as_json(tenant.lvaps[lvap])
 
         except KeyError as ex:
             self.send_error(404, message=ex)

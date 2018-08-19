@@ -19,6 +19,8 @@
 
 import re
 
+WIFI_NWID_MAXSIZE = 32
+
 
 class SSID:
     """SSID object representing an alphanumeric SSID
@@ -28,12 +30,12 @@ class SSID:
               are accepted (a - z, A - Z, 0 - 9)
     """
 
-    def __init__(self, ssid):
+    def __init__(self, ssid=""):
 
         if isinstance(ssid, bytes):
-            self.ssid = ssid.decode('UTF-8')
+            self.ssid = ssid.decode('UTF-8').rstrip('\0')
         elif isinstance(ssid, str):
-            allowed = re.compile(r'^[a-zA-Z0-9_]+$',
+            allowed = re.compile(r'^[a-zA-Z0-9_]*$',
                                  re.VERBOSE | re.IGNORECASE)
             if allowed.match(ssid) is None:
                 raise ValueError("Invalid SSID name")
@@ -46,7 +48,9 @@ class SSID:
 
     def to_raw(self):
         """ Return the bytes represenation of the SSID """
-        return self.ssid.encode('UTF-8')
+
+        bytes_ssid = self.ssid.encode('UTF-8')
+        return bytes_ssid + b'\0' * (WIFI_NWID_MAXSIZE + 1 - len(bytes_ssid))
 
     def to_str(self):
         """ Return the ASCII represenation of the SSID """
@@ -71,3 +75,6 @@ class SSID:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        return self.__class__.__name__ + "('" + self.to_str() + "')"

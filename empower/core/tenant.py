@@ -136,6 +136,18 @@ class Tenant:
         tokens = [self.tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
         return EtherAddress(':'.join(tokens))
 
+    def generate_bssid(self, mac):
+        """ Generate a new BSSID address. """
+
+        base_mac = self.get_prefix()
+
+        base = str(base_mac).split(":")[0:3]
+        unicast_addr_mask = int(base[0], 16) & 0xFE
+        base[0] = str(format(unicast_addr_mask, 'X'))
+        suffix = str(mac).split(":")[3:6]
+
+        return EtherAddress(":".join(base + suffix))
+
     def add_endpoint(self, endpoint_id, endpoint_name, datapath, ports):
         """Add Endpoint."""
 
@@ -480,7 +492,8 @@ class Tenant:
                              .filter(TblSliceBelongs.addr == wtp_addr) \
                              .first()
 
-                session.delete(rem)
+                if rem:
+                    session.delete(rem)
 
             for vbs_addr in slc.vbses:
 
@@ -491,7 +504,8 @@ class Tenant:
                              .filter(TblSliceBelongs.addr == vbs_addr) \
                              .first()
 
-                session.delete(rem)
+                if rem:
+                    session.delete(rem)
 
             session.commit()
 
