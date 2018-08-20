@@ -81,21 +81,17 @@ class LVNF(Endpoint):
             stopped, done)
     """
 
-    def __init__(self, uuid, tenant, image, cpp=None, state=None):
+    def __init__(self, uuid, tenant, image, state=None):
 
-        datapath = None
-        if cpp:
-            datapath = cpp.datapath
-
-        super(LVNF, self).__init__(uuid, "lvnf_ep %s" % uuid, datapath)
+        super().__init__(uuid, "LVNF (%s) Endpoint" % uuid)
 
         self.tenant = tenant
         self.image = image
-        self.__state = state
-        self.__cpp = cpp
-        self.__target_cpp = None
-        self.__context = None
-        self.__timer = None
+        self._state = state
+        self._cpp = None
+        self._target_cpp = None
+        self._context = None
+        self._timer = None
         self.pending = []
         self.log = empower.logger.get_logger()
 
@@ -116,7 +112,7 @@ class LVNF(Endpoint):
         # all pending processed
         if not self.pending:
             if self.target_cpp:
-                self.__context = context
+                self._context = context
                 self.state = PROCESS_SPAWNING
             else:
                 self.state = PROCESS_TERMINATED
@@ -143,7 +139,7 @@ class LVNF(Endpoint):
     def state(self):
         """Return the state."""
 
-        return self.__state
+        return self._state
 
     @state.setter
     def state(self, state):
@@ -167,94 +163,94 @@ class LVNF(Endpoint):
     def _none_spawning(self):
 
         # set timer
-        self.__timer = time.time()
+        self._timer = time.time()
 
         # set new state
-        self.__state = PROCESS_SPAWNING
+        self._state = PROCESS_SPAWNING
 
         # Send add lvnf message
-        xid = self.__target_cpp.connection.send_add_lvnf(self.image,
-                                                         self.uuid,
-                                                         self.tenant.tenant_id,
-                                                         self.__context)
+        xid = self._target_cpp.connection.send_add_lvnf(self.image,
+                                                        self.uuid,
+                                                        self.tenant.tenant_id,
+                                                        self._context)
         self.pending.append(xid)
 
-        self.__context = None
+        self._context = None
 
     def _removing_spawning(self):
 
         # set new state
-        self.__state = PROCESS_SPAWNING
+        self._state = PROCESS_SPAWNING
 
         # Send add lvnf message
-        xid = self.__target_cpp.connection.send_add_lvnf(self.image,
-                                                         self.uuid,
-                                                         self.tenant.tenant_id,
-                                                         self.__context)
+        xid = self._target_cpp.connection.send_add_lvnf(self.image,
+                                                        self.uuid,
+                                                        self.tenant.tenant_id,
+                                                        self._context)
 
         self.pending.append(xid)
 
-        self.__context = None
+        self._context = None
 
     def _removing_terminated(self):
 
         # compute stats
-        delta = int((time.time() - self.__timer) * 1000)
-        self.__timer = None
+        delta = int((time.time() - self._timer) * 1000)
+        self._timer = None
         self.log.info("LVNF %s removal took %sms", self.uuid, delta)
 
     def _spawning_running(self):
 
         # set new state
-        self.__state = PROCESS_RUNNING
+        self._state = PROCESS_RUNNING
 
         # compute stats
-        delta = int((time.time() - self.__timer) * 1000)
-        self.__timer = None
+        delta = int((time.time() - self._timer) * 1000)
+        self._timer = None
         self.log.info("LVNF %s spawning took %sms", self.uuid, delta)
 
         # set cpp
-        self.__cpp = self.__target_cpp
+        self._cpp = self._target_cpp
 
         # set datapath
-        self.datapath = self.__cpp.datapath
+        self.datapath = self._cpp.datapath
 
         # reset target cCPP
-        self.__target_cpp = None
+        self._target_cpp = None
 
     def _running_removing(self):
 
         # set timer
-        self.__timer = time.time()
+        self._timer = time.time()
 
         # set new state
-        self.__state = PROCESS_REMOVING
+        self._state = PROCESS_REMOVING
 
         # send del lvnf message
         xid = self.cpp.connection.send_del_lvnf(self.uuid)
         self.pending.append(xid)
 
         # reset uplink and downlink
-        self.__cpp = None
+        self._cpp = None
 
     @property
     def target_cpp(self):
         """Return the CPP on which this LVNF must move"""
 
-        return self.__target_cpp
+        return self._target_cpp
 
     @property
     def cpp(self):
         """Return the CPP on which this LVNF is running"""
 
-        return self.__cpp
+        return self._cpp
 
     @cpp.setter
     def cpp(self, cpp):
         """Assigns LVNF to new CPP."""
 
         # save target CPP
-        self.__target_cpp = cpp
+        self._target_cpp = cpp
 
         if self.state is None:
             self.state = PROCESS_SPAWNING
