@@ -89,33 +89,6 @@ class Tenant:
         self.slices = {}
         self.components = {}
 
-    def spawn_lvnf(self, uuid, image, cpp):
-        """Spawn a new LVNF on the specified CPP."""
-
-        if uuid in self.lvnfs:
-            raise KeyError("LVNF found %s" % uuid)
-
-        lvnf = LVNF(uuid=uuid, tenant=self, image=image)
-        lvnf.cpp = cpp
-
-        self.lvnfs[uuid] = lvnf
-
-    def remove_lvnf(self, uuid):
-        """Remove LVAP from the network"""
-
-        if uuid not in self.lvnfs:
-            return
-
-        lvnf = self.lvnfs[uuid]
-
-        # Raise LVAP leave event
-        from empower.lvnfp.lvnfpserver import LVNFPServer
-        lvnfp_server = get_module(LVNFPServer.__module__)
-        lvnfp_server.send_lvnf_leave_message_to_self(lvnf)
-
-        # removing LVNF from tenant
-        del self.lvnfs[uuid]
-
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """
 
