@@ -33,16 +33,17 @@ class PLMNID:
             allowed = re.compile(r'^[f0-9]+$', re.VERBOSE | re.IGNORECASE)
             if allowed.match(plmnid) is None:
                 raise ValueError("Invalid PLMNID name")
-            self.plmnid = plmnid
+            self.plmnid = plmnid.lower()
+        elif isinstance(plmnid, bytes):
+            self.plmnid = plmnid[1:].hex()
         elif isinstance(plmnid, PLMNID):
             self.plmnid = str(plmnid)
         else:
-            raise ValueError("PLMNID must be a string or an array of UTF-8 "
-                             "encoded bytes array of UTF-8 encoded bytes")
+            raise ValueError("PLMNID must be a string")
 
     def to_raw(self):
         """ Return the bytes represenation of the PLMNID """
-        return self.plmnid.encode('UTF-8')
+        return int(self.plmnid, 16).to_bytes(4, byteorder='big')
 
     def to_str(self):
         """ Return the ASCII represenation of the PLMNID """

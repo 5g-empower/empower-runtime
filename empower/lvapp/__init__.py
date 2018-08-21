@@ -28,6 +28,9 @@ from construct import Range
 from construct import BitStruct
 from construct import Bit
 from construct import Padding
+from construct import OptionalGreedyRange
+from construct import Rename
+from empower.datatypes.ssid import WIFI_NWID_MAXSIZE
 
 
 PT_VERSION = 0x00
@@ -60,18 +63,15 @@ PT_ADD_LVAP_RESPONSE = 0x51
 PT_DEL_LVAP_RESPONSE = 0x52
 PT_LVAP_STATUS_REQUEST = 0x53
 PT_VAP_STATUS_REQUEST = 0x54
-PT_SET_TRAFFIC_RULE_QUEUE = 0x56
-PT_DEL_TRAFFIC_RULE_QUEUE = 0x57
-PT_STATUS_TRAFFIC_RULE_QUEUE = 0x58
-PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST = 0x61
+PT_SET_SLICE = 0x56
+PT_DEL_SLICE = 0x57
+PT_STATUS_SLICE = 0x58
+PT_SLICE_STATUS_REQUEST = 0x61
 
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
                 UBInt32("length"))
-
-SSIDS = Range(1, 10, Struct("ssids", UBInt8("length"),
-                            Bytes("ssid", lambda ctx: ctx.length)))
 
 HELLO = Struct("hello", UBInt8("version"),
                UBInt8("type"),
@@ -90,14 +90,14 @@ PROBE_REQUEST = Struct("probe_request", UBInt8("version"),
                        UBInt8("channel"),
                        UBInt8("band"),
                        UBInt8("supported_band"),
-                       Bytes("ssid", lambda ctx: ctx.length - 31))
+                       Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 PROBE_RESPONSE = Struct("probe_response", UBInt8("version"),
                         UBInt8("type"),
                         UBInt32("length"),
                         UBInt32("seq"),
                         Bytes("sta", 6),
-                        Bytes("ssid", lambda ctx: ctx.length - 16))
+                        Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 AUTH_REQUEST = Struct("auth_request", UBInt8("version"),
                       UBInt8("type"),
@@ -125,13 +125,17 @@ ASSOC_REQUEST = \
            UBInt8("channel"),
            UBInt8("band"),
            UBInt8("supported_band"),
-           Bytes("ssid", lambda ctx: ctx.length - 37))
+           Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 ASSOC_RESPONSE = Struct("assoc_response", UBInt8("version"),
                         UBInt8("type"),
                         UBInt32("length"),
                         UBInt32("seq"),
                         Bytes("sta", 6))
+
+NETWORKS = Struct("networks",
+                  Bytes("bssid", 6),
+                  Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   UBInt8("type"),
@@ -149,9 +153,9 @@ ADD_LVAP = Struct("add_lvap", UBInt8("version"),
                   UBInt8("supported_band"),
                   Bytes("sta", 6),
                   Bytes("encap", 6),
-                  Bytes("net_bssid", 6),
-                  Bytes("lvap_bssid", 6),
-                  SSIDS)
+                  Bytes("bssid", 6),
+                  Bytes("ssid", WIFI_NWID_MAXSIZE + 1),
+                  Rename("networks", OptionalGreedyRange(NETWORKS)))
 
 DEL_LVAP = Struct("del_lvap", UBInt8("version"),
                   UBInt8("type"),
@@ -179,9 +183,9 @@ STATUS_LVAP = Struct("status_lvap", UBInt8("version"),
                      UBInt8("channel"),
                      UBInt8("band"),
                      UBInt8("supported_band"),
-                     Bytes("net_bssid", 6),
-                     Bytes("lvap_bssid", 6),
-                     SSIDS)
+                     Bytes("bssid", 6),
+                     Bytes("ssid", WIFI_NWID_MAXSIZE + 1),
+                     Rename("networks", OptionalGreedyRange(NETWORKS)))
 
 CAPS_R = Sequence("blocks",
                   Bytes("hwaddr", 6),
@@ -213,8 +217,8 @@ LVAP_STATUS_REQUEST = Struct("lvap_status_request", UBInt8("version"),
                              UBInt32("length"),
                              UBInt32("seq"))
 
-TRAFFIC_RULE_QUEUE_STATUS_REQUEST = \
-    Struct("traffic_rule_queue_status_request", UBInt8("version"),
+SLICE_STATUS_REQUEST = \
+    Struct("slice_status_request", UBInt8("version"),
            UBInt8("type"),
            UBInt32("length"),
            UBInt32("seq"))
@@ -287,14 +291,14 @@ ADD_VAP = Struct("add_vap", UBInt8("version"),
                  Bytes("hwaddr", 6),
                  UBInt8("channel"),
                  UBInt8("band"),
-                 Bytes("net_bssid", 6),
-                 Bytes("ssid", lambda ctx: ctx.length - 24))
+                 Bytes("bssid", 6),
+                 Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 DEL_VAP = Struct("del_vap", UBInt8("version"),
                  UBInt8("type"),
                  UBInt32("length"),
                  UBInt32("seq"),
-                 Bytes("net_bssid", 6))
+                 Bytes("bssid", 6))
 
 STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     UBInt8("type"),
@@ -304,8 +308,8 @@ STATUS_VAP = Struct("status_vap", UBInt8("version"),
                     Bytes("hwaddr", 6),
                     UBInt8("channel"),
                     UBInt8("band"),
-                    Bytes("net_bssid", 6),
-                    Bytes("ssid", lambda ctx: ctx.length - 30))
+                    Bytes("bssid", 6),
+                    Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 ADD_LVAP_RESPONSE = Struct("add_lvap_response", UBInt8("version"),
                            UBInt8("type"),
@@ -325,45 +329,48 @@ DEL_LVAP_RESPONSE = Struct("del_lvap_response", UBInt8("version"),
                            UBInt32("module_id"),
                            UBInt32("status"))
 
-SET_TRAFFIC_RULE_QUEUE = Struct("set_traffic_rule_queue",
-                                UBInt8("version"),
-                                UBInt8("type"),
-                                UBInt32("length"),
-                                UBInt32("seq"),
-                                BitStruct("flags", Padding(15),
-                                          Bit("amsdu_aggregation")),
-                                Bytes("hwaddr", 6),
-                                UBInt8("channel"),
-                                UBInt8("band"),
-                                UBInt32("quantum"),
-                                UBInt8("dscp"),
-                                Bytes("ssid", lambda ctx: ctx.length - 25))
+SET_SLICE = \
+    Struct("set_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           BitStruct("flags", Padding(15),
+                     Bit("amsdu_aggregation")),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt32("quantum"),
+           UBInt8("dscp"),
+           Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
-DEL_TRAFFIC_RULE_QUEUE = Struct("del_traffic_rule_queue",
-                                UBInt8("version"),
-                                UBInt8("type"),
-                                UBInt32("length"),
-                                UBInt32("seq"),
-                                Bytes("hwaddr", 6),
-                                UBInt8("channel"),
-                                UBInt8("band"),
-                                UBInt8("dscp"),
-                                Bytes("ssid", lambda ctx: ctx.length - 19))
+DEL_SLICE = \
+    Struct("del_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt8("dscp"),
+           Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
-STATUS_TRAFFIC_RULE_QUEUE = Struct("status_traffic_rule_queue",
-                                   UBInt8("version"),
-                                   UBInt8("type"),
-                                   UBInt32("length"),
-                                   UBInt32("seq"),
-                                   Bytes("wtp", 6),
-                                   BitStruct("flags", Padding(15),
-                                             Bit("amsdu_aggregation")),
-                                   Bytes("hwaddr", 6),
-                                   UBInt8("channel"),
-                                   UBInt8("band"),
-                                   UBInt32("quantum"),
-                                   UBInt8("dscp"),
-                                   Bytes("ssid", lambda ctx: ctx.length - 31))
+STATUS_SLICE = \
+    Struct("status_slice",
+           UBInt8("version"),
+           UBInt8("type"),
+           UBInt32("length"),
+           UBInt32("seq"),
+           Bytes("wtp", 6),
+           BitStruct("flags", Padding(15),
+                     Bit("amsdu_aggregation")),
+           Bytes("hwaddr", 6),
+           UBInt8("channel"),
+           UBInt8("band"),
+           UBInt32("quantum"),
+           UBInt8("dscp"),
+           Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
@@ -393,11 +400,10 @@ PT_TYPES = {PT_BYE: None,
             PT_VAP_STATUS_REQUEST: VAP_STATUS_REQUEST,
             PT_ADD_LVAP_RESPONSE: ADD_LVAP_RESPONSE,
             PT_DEL_LVAP_RESPONSE: DEL_LVAP_RESPONSE,
-            PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST:
-                TRAFFIC_RULE_QUEUE_STATUS_REQUEST,
-            PT_STATUS_TRAFFIC_RULE_QUEUE: STATUS_TRAFFIC_RULE_QUEUE,
-            PT_SET_TRAFFIC_RULE_QUEUE: SET_TRAFFIC_RULE_QUEUE,
-            PT_DEL_TRAFFIC_RULE_QUEUE: DEL_TRAFFIC_RULE_QUEUE}
+            PT_SLICE_STATUS_REQUEST: SLICE_STATUS_REQUEST,
+            PT_STATUS_SLICE: STATUS_SLICE,
+            PT_SET_SLICE: SET_SLICE,
+            PT_DEL_SLICE: DEL_SLICE}
 
 
 PT_TYPES_HANDLERS = {}

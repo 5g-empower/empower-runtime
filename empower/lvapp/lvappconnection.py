@@ -28,6 +28,7 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
 from empower.datatypes.ssid import SSID
 from empower.datatypes.dscp import DSCP
+from empower.datatypes.ssid import WIFI_NWID_MAXSIZE
 from empower.core.resourcepool import ResourceBlock
 from empower.core.datapath import Datapath
 from empower.core.networkport import NetworkPort
@@ -46,26 +47,35 @@ from empower.lvapp import PT_PROBE_RESPONSE
 from empower.lvapp import PT_CAPS_REQUEST
 from empower.lvapp import PT_LVAP_STATUS_REQUEST
 from empower.lvapp import PT_VAP_STATUS_REQUEST
-from empower.lvapp import PT_SET_TRAFFIC_RULE_QUEUE
-from empower.lvapp import PT_DEL_TRAFFIC_RULE_QUEUE
+from empower.lvapp import PT_SET_SLICE
+from empower.lvapp import PT_DEL_SLICE
 from empower.lvapp import PT_TRANSMISSION_POLICY_STATUS_REQUEST
 from empower.lvapp import PT_HELLO
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_DEL_VAP
 from empower.lvapp import PT_CAPS_RESPONSE
-from empower.lvapp import PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST
+from empower.lvapp import PT_SLICE_STATUS_REQUEST
+from empower.lvapp import PT_ADD_VAP
 from empower.core.lvap import LVAP
 from empower.core.lvap import PROCESS_RUNNING
 from empower.core.vap import VAP
-from empower.lvapp import PT_ADD_VAP
+from empower.lvapp import ADD_VAP
+from empower.lvapp import DEL_VAP
+from empower.lvapp import DEL_LVAP
+from empower.lvapp import SET_SLICE
+from empower.lvapp import CAPS_REQUEST
+from empower.lvapp import LVAP_STATUS_REQUEST
+from empower.lvapp import VAP_STATUS_REQUEST
+from empower.lvapp import SLICE_STATUS_REQUEST
+from empower.lvapp import TRANSMISSION_POLICY_STATUS_REQUEST
+from empower.lvapp import PROBE_RESPONSE
+from empower.lvapp import AUTH_RESPONSE
+from empower.lvapp import ASSOC_RESPONSE
+from empower.lvapp import DEL_SLICE
 from empower.core.tenant import T_TYPE_SHARED
 from empower.core.tenant import T_TYPE_UNIQUE
-from empower.core.utils import generate_bssid
 
 from empower.main import RUNTIME
-
-
-BASE_MAC = EtherAddress("02:ca:fe:00:00:00")
 
 
 class LVAPPConnection:
@@ -236,9 +246,9 @@ class LVAPPConnection:
         for tenant_id in list(RUNTIME.tenants.keys()):
             for vap_id in list(RUNTIME.tenants[tenant_id].vaps.keys()):
                 vap = RUNTIME.tenants[tenant_id].vaps[vap_id]
-                if vap.wtp == self.wtp:
-                    self.log.info("Deleting VAP: %s", vap.net_bssid)
-                    del RUNTIME.tenants[tenant_id].vaps[vap.net_bssid]
+                if vap.block.radio == self.wtp:
+                    self.log.info("Deleting VAP: %s", vap.bssid)
+                    del RUNTIME.tenants[tenant_id].vaps[vap.bssid]
 
         # reset state
         self.wtp.set_disconnected()
@@ -383,7 +393,7 @@ class LVAPPConnection:
         self.send_vap_status_request()
 
         # fetch active traffic rules
-        self.send_traffic_rule_queue_status_request()
+        self.send_slice_status_request()
 
         # fetch active tramission policies
         self.send_transmission_policy_status_request()
@@ -392,7 +402,7 @@ class LVAPPConnection:
         self.update_vaps()
 
         # send slices
-        self.update_traffic_rule_queues()
+        self.update_slices()
 
     def update_vaps(self):
         """Update active VAPs."""
@@ -407,24 +417,20 @@ class LVAPPConnection:
             if self.wtp.addr not in tenant.wtps:
                 continue
 
-            tenant_id = tenant.tenant_id
-            tokens = [tenant_id.hex[0:12][i:i + 2] for i in range(0, 12, 2)]
-            base_bssid = EtherAddress(':'.join(tokens))
-
             for block in self.wtp.supports:
 
-                net_bssid = generate_bssid(base_bssid, block.hwaddr)
+                bssid = tenant.generate_bssid(block.hwaddr)
 
                 # vap has already been created
-                if net_bssid in RUNTIME.tenants[tenant_id].vaps:
+                if bssid in tenant.vaps:
                     continue
 
-                vap = VAP(net_bssid, block, self.wtp, tenant)
+                vap = VAP(bssid, block, tenant)
 
                 self.send_add_vap(vap)
-                RUNTIME.tenants[tenant_id].vaps[net_bssid] = vap
+                tenant.vaps[bssid] = vap
 
-    def update_traffic_rule_queues(self):
+    def update_slices(self):
         """Update active Slices."""
 
         for tenant in RUNTIME.tenants.values():
@@ -433,8 +439,12 @@ class LVAPPConnection:
             if self.wtp.addr not in tenant.wtps:
                 continue
 
-            for slc in tenant.slices:
-                tenant.set_traffic_rule_queues(slc)
+            # send slices configuration
+            for slc in tenant.slices.values():
+                if self.wtp.addr not in slc.wtps:
+                    continue
+                for block in self.wtp.supports:
+                    self.wtp.connection.send_set_slice(block, slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -444,35 +454,6 @@ class LVAPPConnection:
             None
         """
 
-        sta = EtherAddress(request.sta)
-
-        if sta in RUNTIME.lvaps:
-            return
-
-        if not RUNTIME.is_allowed(sta):
-            return
-
-        ssid = SSID(request.ssid)
-
-        if request.ssid == b'':
-            self.log.info("Probe request from %s ssid %s", sta, "Broadcast")
-        else:
-            self.log.info("Probe request from %s ssid %s", sta, ssid)
-
-        # generate list of available SSIDs
-        ssids = set()
-
-        for tenant in RUNTIME.tenants.values():
-            if tenant.bssid_type == T_TYPE_SHARED:
-                continue
-            for wtp_in_tenant in tenant.wtps.values():
-                if wtp.addr == wtp_in_tenant.addr:
-                    ssids.add(tenant.tenant_name)
-
-        if not ssids:
-            self.log.info("No SSIDs available at this WTP")
-            return
-
         # Check if block is valid
         valid = wtp.get_block(request.hwaddr, request.channel, request.band)
 
@@ -480,21 +461,67 @@ class LVAPPConnection:
             self.log.warning("No valid intersection found. Ignoring request.")
             return
 
-        # generate new net_bssid
-        net_bssid = generate_bssid(BASE_MAC, sta)
+        # check is station is in ACL
+        sta = EtherAddress(request.sta)
 
-        # create new lvap object
-        lvap = LVAP(sta, net_bssid, net_bssid, list(ssids),
-                    request.supported_band)
+        if not RUNTIME.is_allowed(sta):
+            return
 
-        # spawn new LVAP
-        self.log.info("Spawning new LVAP %s on %s", sta, wtp.addr)
+        # Requested BSSID
+        incoming_ssid = SSID(request.ssid)
 
-        # this will trigger an LVAP ADD message
-        lvap.blocks = valid[0]
+        if incoming_ssid == b'':
+            self.log.info("Probe request from %s ssid %s", sta, "Broadcast")
+        else:
+            self.log.info("Probe request from %s ssid %s", sta, incoming_ssid)
 
-        # save LVAP in the runtime
-        RUNTIME.lvaps[sta] = lvap
+        # generate list of available networks
+        networks = list()
+
+        for tenant in RUNTIME.tenants.values():
+            if tenant.bssid_type == T_TYPE_SHARED:
+                continue
+            for wtp_in_tenant in tenant.wtps.values():
+                if wtp.addr == wtp_in_tenant.addr:
+                    bssid = tenant.generate_bssid(sta)
+                    ssid = tenant.tenant_name
+                    networks.append((bssid, ssid))
+
+        if not networks:
+            self.log.info("No Networks available at this WTP")
+            return
+
+        # If lvap does not exist then create it. Otherwise just refresh list
+        # of networks
+        if sta not in RUNTIME.lvaps:
+
+            # spawn new LVAP
+            self.log.info("Spawning new LVAP %s on %s", sta, wtp.addr)
+
+            assoc_id = RUNTIME.assoc_id()
+
+            lvap = LVAP(sta, assoc_id=assoc_id)
+            lvap.networks = networks
+            lvap.supported_band = request.supported_band
+
+            # this will trigger an LVAP ADD message
+            lvap.blocks = valid[0]
+
+            # save LVAP in the runtime
+            RUNTIME.lvaps[sta] = lvap
+
+            # Send probe response
+            self.send_probe_response(lvap, incoming_ssid)
+
+        else:
+
+            # Update networks
+            lvap = RUNTIME.lvaps[sta]
+            lvap.networks = networks
+            lvap.commit()
+
+            # Send probe response
+            self.send_probe_response(lvap, incoming_ssid)
 
     def _handle_auth_request(self, wtp, request):
         """Handle an incoming AUTH_REQUEST message.
@@ -504,8 +531,8 @@ class LVAPPConnection:
             None
         """
 
+        print(request)
         sta = EtherAddress(request.sta)
-        bssid = EtherAddress(request.bssid)
 
         if sta not in RUNTIME.lvaps:
             self.log.info("Auth request from unknown LVAP %s", sta)
@@ -513,40 +540,53 @@ class LVAPPConnection:
 
         lvap = RUNTIME.lvaps[sta]
 
-        if not RUNTIME.is_allowed(sta):
+        incoming_bssid = EtherAddress(request.bssid)
+
+        # The request bssid is the lvap current bssid, then just reply
+        if lvap.bssid == incoming_bssid:
+            lvap.bssid = incoming_bssid
+            lvap.authentication_state = True
+            lvap.association_state = False
+            lvap.ssid = None
+            lvap.commit()
+            self.send_auth_response(lvap)
             return
 
-        lvap_bssid = None
+        # Otherwise check if the requested BSSID belongs to a unique tenant
+        for tenant in RUNTIME.tenants.values():
 
-        # the request bssid is the lvap's unique bssid
-        if lvap.net_bssid == bssid:
+            if tenant.bssid_type == T_TYPE_SHARED:
+                continue
 
-            lvap_bssid = lvap.net_bssid
+            bssid = tenant.generate_bssid(lvap.addr)
 
-        # else if is a shared bssid
-        else:
+            if bssid == incoming_bssid:
+                lvap.bssid = incoming_bssid
+                lvap.authentication_state = True
+                lvap.association_state = False
+                lvap.ssid = None
+                lvap.commit()
+                self.send_auth_response(lvap)
+                return
 
-            shared_tenants = [x for x in RUNTIME.tenants.values()
-                              if x.bssid_type == T_TYPE_SHARED]
+        # Finally check if this is a shared bssid
+        for tenant in RUNTIME.tenants.values():
 
-            wtp = RUNTIME.wtps[wtp.addr]
+            if tenant.bssid_type == T_TYPE_UNIQUE:
+                continue
 
-            # look for bssid in shared tenants
-            for tenant in shared_tenants:
-                if bssid in tenant.vaps and tenant.vaps[bssid].wtp == wtp:
-                    lvap_bssid = bssid
-                    break
+            if incoming_bssid in tenant.vaps:
+                lvap.bssid = incoming_bssid
+                lvap.authentication_state = True
+                lvap.association_state = False
+                lvap.ssid = None
+                lvap.commit()
+                self.send_auth_response(lvap)
+                return
 
-        # invalid bssid, ignore request
-        if not lvap_bssid:
-            return
+        self.log.info("Auth request from unknown BSSID %s", incoming_bssid)
 
-        # this will trigger an add lvap message to update the bssid
-        lvap.lvap_bssid = lvap_bssid
-
-        self.send_auth_response(lvap)
-
-    def _handle_assoc_request(self, _, request):
+    def _handle_assoc_request(self, wtp, request):
         """Handle an incoming ASSOC_REQUEST message.
         Args:
             request, a ASSOC_REQUEST message
@@ -562,38 +602,59 @@ class LVAPPConnection:
 
         lvap = RUNTIME.lvaps[sta]
 
-        if not RUNTIME.is_allowed(sta):
+        incoming_bssid = EtherAddress(request.bssid)
+
+        if lvap.bssid != incoming_bssid:
+            self.log.info("Assoc request for invalid BSSID %s", incoming_bssid)
             return
 
-        ssid = SSID(request.ssid.decode('UTF-8'))
-        bssid = EtherAddress(request.bssid)
+        incoming_ssid = SSID(request.ssid)
 
-        tenant_name = None
+        # Check if the requested SSID is from a unique tenant
+        for tenant in RUNTIME.tenants.values():
 
-        # look for ssid in shared tenants
-        for tenant_id in RUNTIME.tenants:
+            if tenant.bssid_type == T_TYPE_SHARED:
+                continue
 
-            tenant = RUNTIME.tenants[tenant_id]
+            bssid = tenant.generate_bssid(lvap.addr)
+
+            if bssid != incoming_bssid:
+                self.log.info("Invalid BSSID %s", incoming_bssid)
+                continue
+
+            if tenant.tenant_name == incoming_ssid:
+                lvap.bssid = incoming_bssid
+                lvap.authentication_state = True
+                lvap.association_state = True
+                lvap.ssid = incoming_ssid
+                lvap.supported_band = request.supported_band
+                lvap.commit()
+                self.send_assoc_response(lvap)
+                return
+
+        # Check if the requested SSID is from a unique tenant
+        for tenant in RUNTIME.tenants.values():
 
             if tenant.bssid_type == T_TYPE_UNIQUE:
                 continue
 
-            if bssid in tenant.vaps and ssid == tenant.tenant_name:
-                tenant_name = tenant.tenant_name
+            if incoming_bssid not in tenant.vaps:
+                self.log.info("Invalid BSSID %s", incoming_bssid)
+                continue
 
-        # otherwise this must be the lvap unique bssid
-        if lvap.net_bssid == bssid and ssid in lvap.ssids:
-            tenant_name = ssid
+            ssid = tenant.vaps[incoming_bssid].ssid
 
-        if not tenant_name:
-            return
+            if ssid == incoming_ssid:
+                lvap.bssid = incoming_bssid
+                lvap.authentication_state = True
+                lvap.association_state = True
+                lvap.ssid = incoming_ssid
+                lvap.supported_band = request.supported_band
+                lvap.commit()
+                self.send_assoc_response(lvap)
+                return
 
-        # update some LVAP fields
-        lvap.tenant = RUNTIME.load_tenant(tenant_name)
-        lvap.assoc_id = self.server.assoc_id
-        lvap.supported_band = request.supported_band
-
-        self.send_assoc_response(lvap)
+        self.log.info("Unable to find SSID %s", incoming_ssid)
 
     def _handle_status_lvap(self, wtp, status):
         """Handle an incoming STATUS_LVAP message.
@@ -605,51 +666,76 @@ class LVAPPConnection:
 
         sta = EtherAddress(status.sta)
 
-        # If the LVAP does not exists, then create a new one
-        if sta not in RUNTIME.lvaps:
-
-            net_bssid_addr = EtherAddress(status.net_bssid)
-            lvap_bssid_addr = EtherAddress(status.lvap_bssid)
-            ssids = [SSID(x.ssid) for x in status.ssids]
-            supported_band = status.supported_band
-
-            lvap = LVAP(sta, net_bssid_addr, lvap_bssid_addr,
-                        ssids=ssids, supported_band=supported_band,
-                        state=PROCESS_RUNNING)
-
-            RUNTIME.lvaps[sta] = lvap
-
-        lvap = RUNTIME.lvaps[sta]
-
         # Check if block is valid
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
             self.log.warning("No valid intersection found. Removing block.")
-            wtp.connection.send_del_lvap(lvap)
+            wtp.connection.send_del_lvap(sta)
             return
 
-        ssids = [SSID(x.ssid) for x in status.ssids]
-        tenant = RUNTIME.load_tenant(ssids[0])
+        # If the LVAP does not exists, then create a new one
+        if sta not in RUNTIME.lvaps:
+            RUNTIME.lvaps[sta] = LVAP(sta,
+                                      assoc_id=status.assoc_id,
+                                      state=PROCESS_RUNNING)
 
-        if ssids[0] and not tenant:
-            self.log.info("Unknown tenant %s", ssids[0])
-            RUNTIME.remove_lvap(lvap.addr)
+        lvap = RUNTIME.lvaps[sta]
+
+        # update LVAP params
+        lvap.supported_band = status.supported_band
+        lvap.encap = EtherAddress(status.encap)
+        lvap.authenticated = bool(status.flags.authenticated)
+        lvap.associated = bool(status.flags.associated)
+
+        ssid = SSID(status.ssid)
+        if ssid == SSID():
+            ssid = None
+
+        bssid = EtherAddress(status.bssid)
+        if bssid == EtherAddress("00:00:00:00:00:00"):
+            bssid = None
+
+        lvap.bssid = bssid
+
+        set_mask = status.flags.set_mask
+
+        # received downlink block but a different downlink block is already
+        # present, delete before going any further
+        if set_mask and lvap.blocks[0] and lvap.blocks[0] != valid[0]:
+            lvap.blocks[0].radio.connection.send_del_lvap(sta)
+
+        if set_mask:
+            lvap._downlink = valid[0]
+        else:
+            lvap._uplink.append(valid[0])
+
+        # if this is not a DL+UL block then stop here
+        if not set_mask:
             return
 
-        # start processing the new state
-        new_status = {
-            "assoc_id": status.assoc_id,
-            "encap": EtherAddress(status.encap),
-            "ssids": [SSID(x.ssid) for x in status.ssids],
-            "valid": valid,
-            "set_mask": bool(status.flags.set_mask),
-            "authenticated": bool(status.flags.authenticated),
-            "associated": bool(status.flags.associated),
-            "tenant": tenant
-        }
+        # if an SSID is set and the incoming SSID is different from the
+        # current one then raise an LVAP leave event and remove LVAP from the
+        # current SSID
+        if lvap.ssid and ssid != lvap.ssid:
+            self.server.send_lvap_leave_message_to_self(lvap)
+            del lvap.tenant.lvaps[lvap.addr]
+            lvap.ssid = None
 
-        lvap.handle_lvap_status(**new_status)
+        # if the incoming ssid is not none then raise an lvap join event
+        if ssid:
+            lvap.ssid = ssid
+            lvap.tenant.lvaps[lvap.addr] = lvap
+            self.server.send_lvap_join_message_to_self(lvap)
+
+        # udpate networks
+        networks = list()
+
+        for network in status.networks:
+            incoming = (EtherAddress(network.bssid), SSID(network.ssid))
+            networks.append(incoming)
+
+        lvap.networks = networks
 
         self.log.info("LVAP status %s", lvap)
 
@@ -680,16 +766,14 @@ class LVAPPConnection:
 
         self.log.info("Tranmission policy status %s", tx_policy)
 
-    def _handle_status_traffic_rule_queue(self, wtp, status):
-        """Handle an incoming STATUS_TRAFFIC_RULE_QUEUE message.
+    def _handle_status_slice(self, wtp, status):
+        """Handle an incoming STATUS_SLICE message.
         Args:
-            status, a STATUS_TRAFFIC_RULE_QUEUE message
+            status, a STATUS_SLICE message
         Returns:
             None
         """
 
-        quantum = status.quantum
-        amsdu_aggregation = bool(status.flags.amsdu_aggregation)
         dscp = DSCP(status.dscp)
         ssid = SSID(status.ssid)
 
@@ -703,15 +787,25 @@ class LVAPPConnection:
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
         if not valid:
-            self.log.warning("No valid intersection found. Removing block.")
+            self.log.warning("No valid intersection found.")
             return
 
-        trq = valid[0].traffic_rule_queues[(ssid, dscp)]
+        # check if slice is valid
+        if dscp not in tenant.slices:
+            self.log.warning("DSCP %s not found. Removing slice.", dscp)
+            self.send_del_slice(valid[0], ssid, dscp)
+            return
 
-        trq.set_quantum(quantum)
-        trq.set_amsdu_aggregation(amsdu_aggregation)
+        slc = tenant.slices[dscp]
 
-        self.log.info("Transmission rule status %s", trq)
+        if wtp.addr not in slc.wtps:
+            slc.wtps[wtp.addr] = {'properties': {}, 'blocks': {}}
+
+        slc.wtps[wtp.addr]['properties']['quantum'] = status.quantum
+        slc.wtps[wtp.addr]['properties']['amsdu_aggregation'] = \
+            bool(status.flags.amsdu_aggregation)
+
+        self.log.info("Slice %s updated", slc)
 
     def _handle_status_vap(self, wtp, status):
         """Handle an incoming STATUS_VAP message.
@@ -721,13 +815,12 @@ class LVAPPConnection:
             None
         """
 
-        net_bssid_addr = EtherAddress(status.net_bssid)
+        bssid = EtherAddress(status.bssid)
         ssid = SSID(status.ssid)
         tenant = RUNTIME.load_tenant(ssid)
 
         if not tenant:
-            self.log.info("VAP %s from unknown tenant %s",
-                          net_bssid_addr, ssid)
+            self.log.info("VAP %s from unknown tenant %s", bssid, ssid)
             return
 
         # Check if block is valid
@@ -735,96 +828,98 @@ class LVAPPConnection:
 
         if not valid:
             self.log.warning("No valid intersection found. Removing VAP.")
-            wtp.connection.send_del_vap(net_bssid_addr)
+            wtp.connection.send_del_vap(bssid)
             return
 
         # If the VAP does not exists, then create a new one
-        if net_bssid_addr not in tenant.vaps:
-            vap = VAP(net_bssid_addr, valid, wtp, tenant)
-            tenant.vaps[net_bssid_addr] = vap
+        if bssid not in tenant.vaps:
+            vap = VAP(bssid, valid, tenant)
+            tenant.vaps[bssid] = vap
 
-        vap = tenant.vaps[net_bssid_addr]
+        vap = tenant.vaps[bssid]
 
         self.log.info("VAP status %s", vap)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message."""
 
-        msg = Container(length=10)
+        msg = Container(length=CAPS_REQUEST.sizeof())
         return self.send_message(PT_CAPS_REQUEST, msg)
 
     def send_lvap_status_request(self):
         """Send a LVAP_STATUS_REQUEST message."""
 
-        msg = Container(length=10)
+        msg = Container(length=LVAP_STATUS_REQUEST.sizeof())
         return self.send_message(PT_LVAP_STATUS_REQUEST, msg)
 
     def send_vap_status_request(self):
         """Send a VAP_STATUS_REQUEST message."""
 
-        msg = Container(length=10)
+        msg = Container(length=VAP_STATUS_REQUEST.sizeof())
         return self.send_message(PT_VAP_STATUS_REQUEST, msg)
 
-    def send_traffic_rule_queue_status_request(self):
-        """Send a PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST message."""
+    def send_slice_status_request(self):
+        """Send a PT_SLICE_STATUS_REQUEST message."""
 
-        msg = Container(length=10)
-        return self.send_message(PT_TRAFFIC_RULE_QUEUE_STATUS_REQUEST, msg)
+        msg = Container(length=SLICE_STATUS_REQUEST.sizeof())
+        return self.send_message(PT_SLICE_STATUS_REQUEST, msg)
 
     def send_transmission_policy_status_request(self):
         """Send a TRANSMISSION_POLICY_STATUS_REQUEST message."""
 
-        msg = Container(length=10)
+        msg = Container(length=TRANSMISSION_POLICY_STATUS_REQUEST.sizeof())
         return self.send_message(PT_TRANSMISSION_POLICY_STATUS_REQUEST, msg)
 
     def send_add_vap(self, vap):
         """Send a ADD_VAP message."""
 
-        msg = Container(length=24 + len(vap.ssid),
+        msg = Container(length=ADD_VAP.sizeof(),
                         hwaddr=vap.block.hwaddr.to_raw(),
                         channel=vap.block.channel,
                         band=vap.block.band,
-                        net_bssid=vap.net_bssid.to_raw(),
+                        bssid=vap.bssid.to_raw(),
                         ssid=vap.ssid.to_raw())
 
         return self.send_message(PT_ADD_VAP, msg)
 
-    def send_del_vap(self, net_bssid):
+    def send_del_vap(self, bssid):
         """Send a DEL_VAP message."""
 
-        msg = Container(length=16, net_bssid=net_bssid.to_raw())
+        msg = Container(length=DEL_VAP.sizeof(), bssid=bssid.to_raw())
         return self.send_message(PT_DEL_VAP, msg)
 
     def send_assoc_response(self, lvap):
         """Send a ASSOC_RESPONSE message."""
 
-        msg = Container(length=16, sta=lvap.addr.to_raw())
+        msg = Container(length=ASSOC_RESPONSE.sizeof(),
+                        sta=lvap.addr.to_raw())
         return self.send_message(PT_ASSOC_RESPONSE, msg)
 
     def send_auth_response(self, lvap):
         """Send a AUTH_RESPONSE message."""
 
-        msg = Container(length=22,
+        msg = Container(length=AUTH_RESPONSE.sizeof(),
                         sta=lvap.addr.to_raw(),
-                        bssid=lvap.lvap_bssid.to_raw())
+                        bssid=lvap.bssid.to_raw())
 
+        print(msg)
         return self.send_message(PT_AUTH_RESPONSE, msg)
 
     def send_probe_response(self, lvap, ssid):
         """Send a PROBE_RESPONSE message."""
 
-        msg = Container(length=16 + len(ssid.to_raw()),
+        msg = Container(length=PROBE_RESPONSE.sizeof(),
                         sta=lvap.addr.to_raw(),
                         ssid=ssid.to_raw())
 
         return self.send_message(PT_PROBE_RESPONSE, msg)
 
-    def send_del_lvap(self, lvap, csa_switch_channel=0):
+    def send_del_lvap(self, sta, csa_switch_channel=0):
         """Send a DEL_LVAP message."""
 
-        msg = Container(length=23,
+        msg = Container(length=DEL_LVAP.sizeof(),
                         module_id=get_xid(),
-                        sta=lvap.addr.to_raw(),
+                        sta=sta.to_raw(),
                         csa_switch_mode=0,
                         csa_switch_count=3,
                         csa_switch_channel=csa_switch_channel)
@@ -873,11 +968,18 @@ class LVAPPConnection:
                           set_mask=set_mask)
 
         encap = EtherAddress("00:00:00:00:00:00")
-
         if lvap.encap:
             encap = lvap.encap
 
-        msg = Container(length=51,
+        bssid = EtherAddress()
+        if lvap.bssid:
+            bssid = lvap.bssid
+
+        ssid = SSID()
+        if lvap.ssid:
+            ssid = lvap.ssid
+
+        msg = Container(length=78,
                         flags=flags,
                         assoc_id=lvap.assoc_id,
                         module_id=get_xid(),
@@ -887,24 +989,14 @@ class LVAPPConnection:
                         supported_band=lvap.supported_band,
                         sta=lvap.addr.to_raw(),
                         encap=encap.to_raw(),
-                        net_bssid=lvap.net_bssid.to_raw(),
-                        lvap_bssid=lvap.lvap_bssid.to_raw(),
-                        ssids=[])
+                        bssid=bssid.to_raw(),
+                        ssid=ssid.to_raw(),
+                        networks=[])
 
-        if lvap.ssid:
-            b_ssid = lvap.ssid.to_raw()
-            tmp = Container(length=len(b_ssid), ssid=b_ssid)
-            msg.ssids.append(tmp)
-            msg.length = msg.length + len(b_ssid) + 1
-        else:
-            msg.ssids.append(Container(length=0, ssid=b''))
-            msg.length = msg.length + 1
-
-        for ssid in lvap.ssids:
-            b_ssid = ssid.to_raw()
-            tmp = Container(length=len(b_ssid), ssid=b_ssid)
-            msg.ssids.append(tmp)
-            msg.length = msg.length + len(b_ssid) + 1
+        for network in lvap.networks:
+            msg.length += 6 + WIFI_NWID_MAXSIZE + 1
+            msg.networks.append(Container(bssid=network[0].to_raw(),
+                                          ssid=network[1].to_raw()))
 
         return self.send_message(PT_ADD_LVAP, msg)
 
@@ -928,30 +1020,45 @@ class LVAPPConnection:
         for handler in self.server.pt_types_handlers[PT_REGISTER]:
             handler(self.wtp)
 
-    def send_set_traffic_rule_queue(self, traffic_rule):
-        """Send an SET_TRAFFIC_RULE message."""
+    def send_set_slice(self, block, slc):
+        """Send an SET_SLICE message."""
 
-        flags = Container(amsdu_aggregation=traffic_rule.amsdu_aggregation)
+        ssid = slc.tenant.tenant_name
 
-        msg = Container(length=25 + len(traffic_rule.ssid),
+        amsdu_aggregation = slc.wifi_properties['amsdu_aggregation']
+        quantum = slc.wifi_properties['quantum']
+
+        if self.wtp.addr in slc.wtps:
+
+            if 'amsdu_aggregation' in slc.wtps[self.wtp.addr]['properties']:
+                amsdu_aggregation = \
+                    slc.wtps[self.wtp.addr]['properties']['amsdu_aggregation']
+
+            if 'quantum' in slc.wtps[self.wtp.addr]['properties']:
+                quantum = \
+                    slc.wtps[self.wtp.addr]['properties']['quantum']
+
+        flags = Container(amsdu_aggregation=amsdu_aggregation)
+
+        msg = Container(length=SET_SLICE.sizeof(),
                         flags=flags,
-                        hwaddr=traffic_rule.block.hwaddr.to_raw(),
-                        channel=traffic_rule.block.channel,
-                        band=traffic_rule.block.band,
-                        quantum=traffic_rule.quantum,
-                        dscp=traffic_rule.dscp.to_raw(),
-                        ssid=traffic_rule.ssid.to_raw())
+                        hwaddr=block.hwaddr.to_raw(),
+                        channel=block.channel,
+                        band=block.band,
+                        quantum=quantum,
+                        dscp=slc.dscp.to_raw(),
+                        ssid=ssid.to_raw())
 
-        return self.send_message(PT_SET_TRAFFIC_RULE_QUEUE, msg)
+        return self.send_message(PT_SET_SLICE, msg)
 
-    def send_del_traffic_rule_queue(self, traffic_rule):
-        """Send an DEL_TRAFFIC_RULE message. """
+    def send_del_slice(self, block, ssid, dscp):
+        """Send an DEL_SLICEs message. """
 
-        msg = Container(length=19 + len(traffic_rule.ssid),
-                        hwaddr=traffic_rule.block.hwaddr.to_raw(),
-                        channel=traffic_rule.block.channel,
-                        band=traffic_rule.block.band,
-                        dscp=traffic_rule.dscp.to_raw(),
-                        ssid=traffic_rule.ssid.to_raw())
+        msg = Container(length=DEL_SLICE.sizeof(),
+                        hwaddr=block.hwaddr.to_raw(),
+                        channel=block.channel,
+                        band=block.band,
+                        dscp=dscp.to_raw(),
+                        ssid=ssid.to_raw())
 
-        return self.send_message(PT_DEL_TRAFFIC_RULE_QUEUE, msg)
+        return self.send_message(PT_DEL_SLICE, msg)

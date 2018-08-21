@@ -40,6 +40,7 @@ from empower.lvnfp import PT_VERSION
 from empower.lvnfp import PT_LVNF_STATUS_REQUEST
 from empower.lvnfp import PT_CAPS_REQUEST
 from empower.core.lvnf import LVNF
+from empower.core.lvnf import PROCESS_RUNNING
 from empower.core.image import Image
 from empower.core.utils import get_xid
 
@@ -175,7 +176,7 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
         for tenant in RUNTIME.tenants.values():
             for lvnf in list(tenant.lvnfs.values()):
                 if lvnf.cpp == self.cpp:
-                    tenant.remove_lvnf(lvnf.uuid)
+                    lvnf.cpp = None
 
         # reset state
         self.cpp.set_disconnected()
@@ -468,8 +469,13 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
                           state_handlers=img_dict['state_handlers'],
                           handlers=img_dict['handlers'])
 
-            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id, tenant, image,
-                                         self.cpp, "running")
+            tenant.lvnfs[lvnf_id] = LVNF(lvnf_id,
+                                         tenant,
+                                         image,
+                                         PROCESS_RUNNING)
+
+            tenant.lvnfs[lvnf_id]._cpp = self.cpp
+            tenant.lvnfs[lvnf_id].datapath = self.cpp.datapath
 
         lvnf = tenant.lvnfs[lvnf_id]
 

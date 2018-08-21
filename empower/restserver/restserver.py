@@ -24,11 +24,14 @@ import tornado.web
 import tornado.httpserver
 
 from tornado.web import MissingArgumentError
+
+import empower.logger
 from empower import settings
-from empower.core.service import Service
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.core.module import ModuleWorker
 from empower.main import _do_launch
 from empower.main import _parse_args
 from empower.main import RUNTIME
@@ -389,7 +392,7 @@ class AccountsHandler(EmpowerAPIHandler):
 
         try:
 
-            if not args:
+            if args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -1231,20 +1234,14 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
     def post(self, *args, **kwargs):
         """Add a new slice.
 
+        Check Slice object documentation for descriptors examples.
+
         Args:
             tenant_id: network name of a tenant
             dscp: the slice DSCP (optional)
 
         Example URLs:
-
             POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices
-            {
-                "version" : 1.0,
-                "aggregation" : true,
-                "quantum" : 1500,
-                "dscp": "0x42"
-            }
-
         """
 
         try:
@@ -1257,12 +1254,6 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "amsdu_aggregation" not in request:
-                raise ValueError("missing amsdu_aggregation element")
-
-            if "quantum" not in request:
-                raise ValueError("missing quantum element")
-
             if "dscp" not in request:
                 raise ValueError("missing dscp element")
 
@@ -1271,8 +1262,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(request["dscp"])
 
-            tenant.add_slice(dscp, request["quantum"],
-                             request["amsdu_aggregation"])
+            tenant.add_slice(dscp, request)
 
             url = "/api/v1/tenants/%s/slices/%s" % (tenant_id, dscp)
             self.set_header("Location", url)
@@ -1289,20 +1279,15 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
     def put(self, *args, **kwargs):
         """Modify slice.
 
+        Check Slice object documentation for descriptors examples.
+
         Args:
             tenant_id: network name of a tenant
             dscp: the slice DSCP (optional)
 
         Example URLs:
-
             PUT /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slices/
-              0x40
-            {
-                "version" : 1.0,
-                "aggregation" : true,
-                "quantum" : 1500
-            }
-
+                0x42
         """
 
         try:
@@ -1315,19 +1300,12 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             if "version" not in request:
                 raise ValueError("missing version element")
 
-            if "amsdu_aggregation" not in request:
-                raise ValueError("missing amsdu_aggregation element")
-
-            if "quantum" not in request:
-                raise ValueError("missing quantum element")
-
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
 
             dscp = DSCP(args[1])
 
-            tenant.set_slice(dscp, request["quantum"],
-                             request["amsdu_aggregation"])
+            tenant.set_slice(dscp, request)
 
         except TypeError as ex:
             self.send_error(400, message=ex)
@@ -1336,7 +1314,7 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-        self.set_status(201, None)
+        self.set_status(204, None)
 
     def delete(self, *args, **kwargs):
         """Delete slice.
@@ -1346,10 +1324,8 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             dscp: the slice DSCP
 
         Example URLs:
-
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/slice/
-              0x40
-
+              0x42
         """
 
         try:
@@ -1771,7 +1747,7 @@ class TenantEndpointPortHandler(EmpowerAPIHandlerUsers):
             self.send_error(404, message=ex)
 
 
-class TenantTrafficHandler(EmpowerAPIHandlerUsers):
+class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/?",
@@ -1900,7 +1876,165 @@ class TenantTrafficHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
-class RESTServer(Service, tornado.web.Application):
+class ModuleHandler(EmpowerAPIHandlerAdminUsers):
+    """Tenat traffic rule queue handler."""
+
+    HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/?",
+                r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/"
+                "([0-9]*)/?"]
+
+    def __get_worker(self, module_name):
+        """Look for the worker associated to the specified module_name."""
+
+        worker = None
+
+        for value in RUNTIME.components.values():
+
+            if not isinstance(value, ModuleWorker):
+                continue
+
+            if value.module.MODULE_NAME == module_name:
+                worker = value
+                break
+
+        return worker
+
+    def get(self, *args, **kwargs):
+        """List traffic rules .
+
+        Args:
+            tenant_id: network name of a tenant
+            module_name: the name of the module
+            module_id: the id of the module
+
+        Example URLs:
+
+            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_stats
+        """
+
+        try:
+
+            if len(args) not in (2, 3):
+                raise ValueError("Invalid URL")
+
+            module_name = str(args[1])
+            worker = self.__get_worker(module_name)
+
+            if not worker:
+                raise KeyError("Unable to find module %s" % module_name)
+
+            tenant_id = UUID(args[0])
+
+            resp = {k: v for k, v in worker.modules.items()
+                    if v.tenant_id == tenant_id}
+
+            if len(args) == 2:
+                self.write_as_json(resp.values())
+            else:
+                module_id = int(args[2])
+                self.write_as_json(resp[module_id])
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+    def post(self, *args, **kwargs):
+        """Create a new module.
+
+        Args:
+            tenant_id: network name of a tenant
+            module_name: the name of the module
+
+        Request:
+            version: the protocol version (1.0)
+
+        Example URLs:
+
+            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_stats
+        """
+
+        try:
+
+            if len(args) != 2:
+                raise ValueError("Invalid URL")
+
+            module_name = str(args[1])
+            worker = self.__get_worker(module_name)
+
+            if not worker:
+                raise KeyError("Unable to find module %s" % module_name)
+
+            tenant_id = UUID(args[0])
+
+            request = tornado.escape.json_decode(self.request.body)
+
+            if "version" not in request:
+                raise ValueError("missing version element")
+
+            del request['version']
+            request['tenant_id'] = tenant_id
+            request['module_type'] = str(args[1])
+            request['worker'] = worker
+
+            module = worker.add_module(**request)
+
+            self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
+                            (module.tenant_id,
+                             worker.module.MODULE_NAME,
+                             module.module_id))
+
+            self.set_status(201, None)
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+    def delete(self, *args, **kwargs):
+        """Delete a module.
+
+        Args:
+            tenant_id: network name of a tenant
+            module_name: the name of the module
+
+        Example URLs:
+
+            DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+              wifi_stats/1
+        """
+
+        try:
+
+            if len(args) != 3:
+                raise ValueError("Invalid URL")
+
+            tenant_id = UUID(args[0])
+            module_id = int(args[2])
+
+            module_name = str(args[1])
+            worker = self.__get_worker(module_name)
+
+            if not worker:
+                raise KeyError("Unable to find module %s" % module_name)
+
+            module = worker.modules[module_id]
+
+            if module.tenant_id != tenant_id:
+                raise KeyError("Module %u not found" % module_id)
+
+            module.unload()
+
+        except KeyError as ex:
+            self.send_error(404, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+        self.set_status(204, None)
+
+
+class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
     parms = {
@@ -1913,11 +2047,10 @@ class RESTServer(Service, tornado.web.Application):
 
     def __init__(self, port, cert, key):
 
-        Service.__init__(self, every=-1)
-
         self.port = int(port)
         self.cert = cert
         self.key = key
+        self.log = empower.logger.get_logger()
 
         tornado.web.Application.__init__(self, [], **self.parms)
 
@@ -1939,8 +2072,8 @@ class RESTServer(Service, tornado.web.Application):
                            PendingTenantHandler, TenantHandler,
                            AllowHandler, TenantSliceHandler,
                            TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficHandler,
-                           MarketplaceHandler]
+                           TenantEndpointPortHandler, TenantTrafficRuleHandler,
+                           MarketplaceHandler, ModuleHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
@@ -1959,7 +2092,8 @@ class RESTServer(Service, tornado.web.Application):
     def to_dict(self):
         """Return a dict representation of the object."""
 
-        out = Service.to_dict(self)
+        out = {}
+
         out['port'] = self.port
         out['certfile'] = self.cert
         out['keyfile'] = self.key

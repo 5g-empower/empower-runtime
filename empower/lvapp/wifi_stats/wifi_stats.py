@@ -232,6 +232,9 @@ class WiFiStats(ModulePeriodic):
         self.last['ed'] = \
             max([sample['timestamp'] for sample in self.wifi_stats['ed']])
 
+        # update wifi_stats module
+        self.block.wifi_stats = self.wifi_stats
+
         # call callback
         self.handle_callback(self)
 

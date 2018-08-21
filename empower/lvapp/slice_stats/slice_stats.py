@@ -15,16 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Traffic rules statistics module."""
+"""Slice statistics module."""
 
 from construct import UBInt8
-from construct import UBInt16
 from construct import UBInt32
 from construct import Bytes
-from construct import Sequence
 from construct import Container
 from construct import Struct
-from construct import Array
 
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
@@ -37,13 +34,11 @@ from empower.lvapp import PT_VERSION
 from empower.main import RUNTIME
 
 
-PT_TRQ_BIN_COUNTER_REQUEST = 0x59
-PT_TRQ_BIN_COUNTER_RESPONSE = 0x60
+PT_SLICE_STATS_REQUEST = 0x59
+PT_SLICE_STATS_RESPONSE = 0x60
 
-STATS = Sequence("stats", UBInt16("bytes"), UBInt32("count"))
-
-TRQ_BIN_COUNTER_REQUEST = \
-    Struct("trq_bin_counter_request", UBInt8("version"),
+SLICE_STATS_REQUEST = \
+    Struct("slice_stats_request", UBInt8("version"),
            UBInt8("type"),
            UBInt32("length"),
            UBInt32("seq"),
@@ -54,8 +49,8 @@ TRQ_BIN_COUNTER_REQUEST = \
            UBInt8("dscp"),
            Bytes("ssid", lambda ctx: ctx.length - 23))
 
-TRQ_BIN_COUNTER_RESPONSE = \
-    Struct("trq_bin_counter_response", UBInt8("version"),
+SLICE_STATS_RESPONSE = \
+    Struct("slice_stats_response", UBInt8("version"),
            UBInt8("type"),
            UBInt32("length"),
            UBInt32("seq"),
@@ -63,14 +58,14 @@ TRQ_BIN_COUNTER_RESPONSE = \
            Bytes("wtp", 6),
            UBInt32("deficit_used"),
            UBInt32("max_queue_length"),
-           UBInt16("nb_tx"),
-           Array(lambda ctx: ctx.nb_tx, STATS))
+           UBInt32("tx_packets"),
+           UBInt32("tx_bytes"))
 
 
-class TRQBinCounter(ModulePeriodic):
-    """ TRQBinCounter object. """
+class SliceStats(ModulePeriodic):
+    """ SliceStats object. """
 
-    MODULE_NAME = "trq_bin_counter"
+    MODULE_NAME = "slice_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
 
     def __init__(self):
@@ -79,14 +74,10 @@ class TRQBinCounter(ModulePeriodic):
 
         # parameters
         self._block = None
-        self._bins = [8192]
         self._dscp = DSCP()
 
         # data structures
-        self.tx_packets = []
-        self.tx_bytes = []
-        self.deficit_used = 0
-        self.max_queue_length = 0
+        self.slice_stats = {}
 
     def __eq__(self, other):
 
@@ -101,34 +92,6 @@ class TRQBinCounter(ModulePeriodic):
     @dscp.setter
     def dscp(self, value):
         self._dscp = DSCP(value)
-
-    @property
-    def bins(self):
-        """ Return the lvaps list """
-
-        return self._bins
-
-    @bins.setter
-    def bins(self, bins):
-        """ Setthe distribution bins. Default is [ 8192 ]."""
-
-        if bins:
-
-            if [x for x in bins if isinstance(x, int)] != bins:
-                raise ValueError("bins values must be integers")
-
-            if sorted(bins) != bins:
-                raise ValueError("bins must be monotonically increasing")
-
-            if sorted(set(bins)) != sorted(bins):
-                raise ValueError("bins values must not contain duplicates")
-
-            if [x for x in bins if x > 0] != bins:
-                raise ValueError("bins values must be positive")
-
-            self._bins = bins
-
-        raise ValueError("empty bins")
 
     @property
     def block(self):
@@ -179,13 +142,9 @@ class TRQBinCounter(ModulePeriodic):
 
         out = super().to_dict()
 
-        out['bins'] = self.bins
-        out['tx_bytes'] = self.tx_bytes
-        out['tx_packets'] = self.tx_packets
         out['block'] = self.block.to_dict()
         out['dscp'] = self.dscp
-        out['deficit_used'] = self.deficit_used
-        out['max_queue_length'] = self.max_queue_length
+        out['slice_stats'] = self.slice_stats
 
         return out
 
@@ -214,7 +173,7 @@ class TRQBinCounter(ModulePeriodic):
                       self.MODULE_NAME, wtp.addr, self.module_id)
 
         stats_req = Container(version=PT_VERSION,
-                              type=PT_TRQ_BIN_COUNTER_REQUEST,
+                              type=PT_SLICE_STATS_REQUEST,
                               length=23+len(tenant.tenant_name),
                               seq=wtp.seq,
                               module_id=self.module_id,
@@ -224,62 +183,8 @@ class TRQBinCounter(ModulePeriodic):
                               dscp=self.dscp.to_raw(),
                               ssid=tenant.tenant_name.to_raw())
 
-        msg = TRQ_BIN_COUNTER_REQUEST.build(stats_req)
+        msg = SLICE_STATS_REQUEST.build(stats_req)
         wtp.connection.stream.write(msg)
-
-    def fill_bytes_samples(self, data):
-        """ Compute samples.
-
-        Samples are in the following format (after ordering):
-
-        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
-
-        Each 2-tuple has format [ size, count ] where count is the number of
-        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
-
-        """
-
-        samples = sorted(data, key=lambda entry: entry[0])
-        out = [0] * len(self.bins)
-
-        for entry in samples:
-            if not entry:
-                continue
-            size = entry[0]
-            count = entry[1]
-            for i in range(0, len(self.bins)):
-                if size <= self.bins[i]:
-                    out[i] = out[i] + size * count
-                    break
-
-        return out
-
-    def fill_packets_samples(self, data):
-        """ Compute samples.
-
-        Samples are in the following format (after ordering):
-
-        [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
-
-        Each 2-tuple has format [ size, count ] where count is the number of
-        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
-
-        """
-
-        samples = sorted(data, key=lambda entry: entry[0])
-        out = [0] * len(self.bins)
-
-        for entry in samples:
-            if not entry:
-                continue
-            size = entry[0]
-            count = entry[1]
-            for i in range(0, len(self.bins)):
-                if size <= self.bins[i]:
-                    out[i] = out[i] + count
-                    break
-
-        return out
 
     def handle_response(self, response):
         """Handle an incoming STATS_RESPONSE message.
@@ -290,41 +195,51 @@ class TRQBinCounter(ModulePeriodic):
         """
 
         # update this object
-        self.tx_bytes = self.fill_bytes_samples(response.stats)
-        self.tx_packets = self.fill_packets_samples(response.stats)
+        self.slice_stats = {
+            'tx_bytes': response.tx_bytes,
+            'tx_packets': response.tx_packets,
+            'deficit_used': response.deficit_used,
+            'max_queue_length': response.max_queue_length
+        }
 
-        self.deficit_used = response.deficit_used
-        self.max_queue_length = response.max_queue_length
+        tenant = RUNTIME.tenants[self.tenant_id]
+        slc = tenant.slices[self.dscp]
+
+        wtp_addr = self.block.radio.addr
+        block = "%s-%s-%s" % (self.block.hwaddr, self.block.channel,
+                              self.block.band)
+
+        slc.wtps[wtp_addr]['blocks'][block] = self.slice_stats
 
         # call callback
         self.handle_callback(self)
 
 
-class TRQBinCounterWorker(ModuleLVAPPWorker):
+class SliceStatsWorker(ModuleLVAPPWorker):
     """Counter worker."""
 
     pass
 
 
-def trq_bin_counter(**kwargs):
+def slice_stats(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[TRQBinCounter.__module__]
+    worker = RUNTIME.components[SliceStats.__module__]
     return worker.add_module(**kwargs)
 
 
-def bound_trq_bin_counter(self, **kwargs):
+def bound_slice_stats(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return trq_bin_counter(**kwargs)
+    return slice_stats(**kwargs)
 
 
-setattr(EmpowerApp, TRQBinCounter.MODULE_NAME, bound_trq_bin_counter)
+setattr(EmpowerApp, SliceStats.MODULE_NAME, bound_slice_stats)
 
 
 def launch():
     """ Initialize the module. """
 
-    return TRQBinCounterWorker(TRQBinCounter, PT_TRQ_BIN_COUNTER_RESPONSE,
-                               TRQ_BIN_COUNTER_RESPONSE)
+    return SliceStatsWorker(SliceStats, PT_SLICE_STATS_RESPONSE,
+                            SLICE_STATS_RESPONSE)

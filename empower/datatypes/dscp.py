@@ -30,7 +30,7 @@ class DSCP:
         elif isinstance(dscp, DSCP):
             self.dscp = dscp.dscp
         else:
-            raise ValueError("DSCP must be a string or a DSCP objec")
+            raise ValueError("DSCP must be a string or a DSCP object")
 
     def to_raw(self):
         """ Return the bytes represenation of the DSCP """

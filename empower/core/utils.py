@@ -19,8 +19,6 @@
 
 import random
 
-from empower.datatypes.etheraddress import EtherAddress
-
 
 def get_module(module):
     """Get an empower module or return None."""
@@ -34,17 +32,6 @@ def get_module(module):
 
 
 def get_xid():
-    """Return randon 32bits integers to be used as mod_id."""
+    """Return randon 32bits integers to be used as xid."""
 
     return random.getrandbits(32)
-
-
-def generate_bssid(base_mac, sta_mac):
-    """ Generate a new BSSID address. """
-
-    base = str(base_mac).split(":")[0:3]
-    unicast_addr_mask = int(base[0], 16) & 0xFE
-    base[0] = str(format(unicast_addr_mask, 'X'))
-    sta = str(sta_mac).split(":")[3:6]
-
-    return EtherAddress(":".join(base + sta))

@@ -21,7 +21,7 @@
 class EtherAddress:
     """An Ethernet (MAC) address type."""
 
-    def __init__(self, addr):
+    def __init__(self, addr="00:00:00:00:00:00"):
         """
         Understands Ethernet address is various forms. Hex strings, raw bytes
         strings, etc.

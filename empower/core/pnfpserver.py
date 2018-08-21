@@ -17,18 +17,24 @@
 
 """PNF Protocol Server."""
 
+import json
+
 from uuid import UUID
 
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
 
-from empower.core.service import Service
+import empower.logger
+
 from empower.persistence import Session
+from empower.core.slice import Slice
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.persistence.persistence import TblBelongs
+from empower.persistence.persistence import TblSlice
+from empower.persistence.persistence import TblSliceBelongs
 
 from empower.main import RUNTIME
 
@@ -258,7 +264,7 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
         self.set_status(204, None)
 
 
-class PNFPServer(Service):
+class PNFPServer:
     """Exposes the PNF Protocol API."""
 
     PNFDEV = None
@@ -266,13 +272,62 @@ class PNFPServer(Service):
 
     def __init__(self, port, pt_types, pt_types_handlers):
 
-        super().__init__(every=-1)
-
         self.port = port
         self.__load_pnfdevs()
         self.__load_belongs()
+        self.__load_slices()
+        self.log = empower.logger.get_logger()
         self.pt_types = pt_types
         self.pt_types_handlers = pt_types_handlers
+
+    def __load_slices(self):
+        """Load Slices."""
+
+        slices = Session().query(TblSlice).all()
+
+        for slc in slices:
+
+            tenant = RUNTIME.tenants[slc.tenant_id]
+
+            desc = {'dscp': slc.dscp,
+                    'wtps': {},
+                    'vbses': {},
+                    'wifi-properties': json.loads(slc.wifi_properties),
+                    'lte-properties': json.loads(slc.lte_properties)}
+
+            if slc.dscp not in tenant.slices:
+                tenant.slices[slc.dscp] = Slice(slc.dscp, tenant, desc)
+
+            t_slice = tenant.slices[slc.dscp]
+
+            belongs = \
+                Session().query(TblSliceBelongs) \
+                         .filter(TblSliceBelongs.dscp == slc.dscp) \
+                         .filter(TblSliceBelongs.tenant_id == slc.tenant_id) \
+                         .all()
+
+            for belong in belongs:
+
+                if belong.addr not in self.pnfdevs:
+                    continue
+
+                pnfdev = self.pnfdevs[belong.addr]
+                pnfdevs = getattr(t_slice, pnfdev.ALIAS)
+
+                if pnfdev.addr not in pnfdevs:
+
+                    if pnfdev.ALIAS == "vbses":
+
+                        pnfdevs[belong.addr] = {'properties': {},
+                                                'cells': {}}
+
+                    else:
+
+                        pnfdevs[belong.addr] = {'properties': {},
+                                                'blocks': {}}
+
+                    pnfdevs[belong.addr]['properties'] = \
+                        json.loads(belong.properties)
 
     @property
     def pnfdevs(self):
@@ -313,7 +368,7 @@ class PNFPServer(Service):
     def to_dict(self):
         """ Return a dict representation of the object. """
 
-        out = super().to_dict()
+        out = {}
         out['port'] = self.port
         return out
 

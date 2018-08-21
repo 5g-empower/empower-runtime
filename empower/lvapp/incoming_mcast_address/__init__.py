@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2017 Roberto Riggio
+# Copyright (c) 2018 Estefania Coronado
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Sample LVNF app."""
+"""IGMP traffic module."""

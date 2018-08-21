@@ -106,8 +106,8 @@ class ModuleLVAPPWorker(ModuleWorker):
 
         module = self.modules[message.module_id]
 
-        self.log.info("Received %s response (id=%u)", self.module.MODULE_NAME,
-                      message.module_id)
+        self.log.info("Received %s response (id=%u) from %s",
+                      self.module.MODULE_NAME, message.module_id, pnfdev.addr)
 
         module.handle_response(message)
 
@@ -127,18 +127,10 @@ class LVAPPServer(PNFPServer, TCPServer):
 
         self.listen(self.port)
 
-        self.__assoc_id = 0
-
     def handle_stream(self, stream, address):
         self.log.info('Incoming connection from %r', address)
         self.connection = LVAPPConnection(stream, address, server=self)
 
-    @property
-    def assoc_id(self):
-        """ Return next association id. """
-
-        self.__assoc_id += 1
-        return self.__assoc_id
 
     def send_lvap_leave_message_to_self(self, lvap):
         """Send an LVAP_LEAVE message to self."""
