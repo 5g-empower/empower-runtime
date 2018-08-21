@@ -149,8 +149,6 @@ class EmpowerApp:
         params['app_name'] = self.app_name
         params['every'] = self.every
         params['tenant_id'] = self.tenant_id
-        params['ui_url'] = "/apps/tenants/%s/%s/" % \
-            (self.tenant_id, self.app_name)
         params['params'] = self.params
 
         for param in self.params:
