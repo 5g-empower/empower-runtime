@@ -74,6 +74,18 @@ class Account:
         """Get email."""
         return self._email
 
+    @password.setter
+    def password(self, password):
+        """Set name."""
+
+        session = Session()
+        account = session.query(TblAccount) \
+                         .filter(TblAccount.username == self.username) \
+                         .first()
+        account.password = password
+        session.commit()
+        self._password = password
+
     @name.setter
     def name(self, name):
         """Set name."""
