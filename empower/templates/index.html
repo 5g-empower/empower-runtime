@@ -1,316 +1,183 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block js %}
+<head>
 
-  <script type="text/javascript" src="/static/js/empower.ui.lib.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-  <script type="text/javascript">
+    <title>5G-EmPOWER</title>
 
-  var BASE_AUTH = "Basic " + btoa("{{username}}" + ':' + "{{password}}");
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-  function initialize() {
-    initTab()
-    {% if role == "admin" %}
-      runLoader(loadTenantsAdmin, '{{username}}')
-      runLoader(loadPendingTenantsAdmin, '{{username}}')
-      runLoader(loadUsers)
-      runLoader(loadCPPs)
-      runLoader(loadVBSes)
-      uesInterval = runLoader(loadUEs)
-      runLoader(loadWTPs)
-      runLoader(loadIMSI2MAC)
-      runLoader(loadMACs, 'allow')
-      runLoader(loadMACs, 'deny')
-      lvapsInterval = runLoader(loadLVAPs)
-      runLoader(loadComponents)
-      feedsInterval = runLoader(loadFeeds)
-    {% else %}
-      runLoader(loadTenantsUser, '{{username}}')
-      runLoader(loadPendingTenantsUser, '{{username}}')
-    {% end %}
-  }
+    <!-- MetisMenu CSS -->
+    <link href="/static/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
 
-  </script>
+    <!-- DataTables CSS -->
+    <link href="/static/vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
 
-{% end %}
+    <!-- DataTables Responsive CSS -->
+    <link href="/static/vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
 
-{% block navigation %}
-    {% if role == "admin" %}
-      <div style="width: 1000px; margin-left: auto; margin-right: auto">
-        <div class="tabs segmentedControlBase">
-          <div class="button segmentedControl leftEnd tab"><span>Tenants</span></div>
-          <div class="button segmentedControl tab"><span id="nb_pending" /></div>
-          <div class="button segmentedControl tab"><span>Components</span></div>
-          <div class="button segmentedControl tab"><span>Feeds</span></div>
-          <div class="button segmentedControl tab"><span>LVAPs</span></div>
-          <div class="button segmentedControl tab"><span>CPPs</span></div>
-          <div class="button segmentedControl tab"><span>VBSes</span></div>
-          <div class="button segmentedControl tab"><span>UEs</span></div>
-          <div class="button segmentedControl tab"><span>IMSI <=> MAC</span></div>
-          <div class="button segmentedControl tab"><span>WTPs</span></div>
-          <div class="button segmentedControl tab"><span>ACL</span></div>
-          <div class="button segmentedControl rightEnd tab"><span>Users</span></div>
+    <!-- MorrisChart CSS -->
+    <link href="/static/vendor/morrisjs/morris.css" rel="stylesheet" >
+
+    <!-- Custom CSS -->
+    <link href="/static/dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="/static/empower/css/empower.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- VIS CSS -->
+    <link href="/static/vendor/vis/dist/vis.min.css" rel="stylesheet">
+
+    <style>
+    .navbar-brand>img {
+        height: 100%;
+
+        width: auto;
+    }
+
+    .navbar-nav.navbar-center {
+        position: absolute;
+        left: 50%;
+        transform: translatex(-50%);
+    }
+
+    table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected {
+        background-color: #08C;
+    }
+
+    /* KUDOS TO:  https://stackoverflow.com/users/27862/user123444555621 */
+    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: red; }
+    .null { color: magenta; }
+    .key { color: blue; }
+
+
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0"
+        id="navbar">
+    </nav>
+
+    <div  id="wrapper" style="width:96%;margin:10px 2%">
+        <div id="adminpage" style="margin: 100px 0px 10px 0px">
         </div>
-      </div>
-    {% else %}
-      <div style="width: 450px; margin-left: auto; margin-right: auto">
-        <div class="tabs segmentedControlBase">
-          <div class="button segmentedControl leftEnd tab"><span>Tenants</span></div>
-          <div class="button segmentedControl rightEnd tab"><span id="nb_pending"/></div>
+        <div id="userpage" style="margin: 100px 0px 10px 0px">
         </div>
-      </div>
-    {% end %}
-{% end %}
-
-{% block body %}
-
-    {% if role == "admin" %}
-
-      <div class="tabPanels">
-
-        <div class="tabPanel">
-
-          <h1>Active Tenants</h1>
-
-          <table id="tenants" class="dump">
-            <tr>
-              <th width="24px">&nbsp;</th>
-              <th width="350px">UUID</th>
-              <th width="200px">Network Name</th>
-              <th width="150px">Devs</th>
-              <th width="100x">Owner</th>
-              <th width="100x">PLMN ID</th>
-              <th width="100x">BSSID Type</th>
-            </tr>
-            <tr>
-              <td colspan="7" align="center">Log as normal user to request new Tenant</td>
-            </tr>
-          </table>
+    </div>
 
-        </div>
-        <div class="tabPanel">
+    <div id="footer">
+    </div>
 
-          <h1>Pending requests</h1>
 
-          <table id="pending" class="dump">
-            <tr>
-              <th width="24px">&nbsp;</th>
-              <th width="350px">UUID</th>
-              <th width="200px">Network Name</th>
-              <th width="100px">Owner</th>
-              <th width="100x">PLMN ID</th>
-              <th width="150x">BSSID Type</th>
-            </tr>
-          </table>
 
-        </div>
-        <div class="tabPanel">
 
-          <h1>Components</h1>
 
-          <p>From this page you can load global modules, that is modules that do not require a tenant id. For example in order to load the wtpup module you must use 'event.wtpup'.</p>
+    <!-- jQuery -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
 
-          <p>You can also load tenant specific modules by specifying the tenant id. For example to load the mobilitymanager module for a specific tenant you must use 'apps.mobilitymanager.mobilitymanager --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26'.<p>
-
-          <p>Notice however that in this case the module will not show up in this page. Instead you must log in again as regular user and then click on the components tab.</p>
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/static/vendor/metisMenu/metisMenu.min.js"></script>
 
-          <table id="components" class="dump">
-            <tr>
-              <th>Components</th>
-              <th>Ctrl</th>
-            </tr>
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addComponent()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
+    <!-- DataTables JavaScript -->
+    <script src="/static/vendor/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+    <script src="/static/vendor/datatables-responsive/dataTables.responsive.js"></script>
 
-        </div>
-        <div class="tabPanel">
+    <!-- Graph JavaScript -->
+    <script src="/static/vendor/raphael/raphael.min.js"></script>
+    <script src="/static/vendor/morrisjs/morris.min.js"></script>
 
-          <h1>Power feeds</h1>
+    <!-- Custom Theme JavaScript -->
+    <script src="/static/dist/js/sb-admin-2.js"></script>
 
-          <table id="feeds" class="dump">
-            <tr>
-              <th width="24px" align="center">&nbsp;</th>
-              <th width="24px" align="center">&nbsp;</th>
-              <th width="24px" align="center">Id</th>
-              <th width="200px" align="center">Power</th>
-              <th width="260px">Last Update</th>
-              <th width="130px">Dev</th>
-              <th width="48px" align="center">Ctrl</th>
-            </tr>
-            <tr>
-              <td colspan="9" align="right"><a onClick="return addFeed()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
+    <!-- VIS JavaScript -->
+    <script src="/static/vendor/vis/dist/vis.min.js"></script>
 
-        </div>
+    <script src="/static/empower/js/empower.config.js"></script>
+    <script src="/static/empower/js/empower.descriptor.js"></script>
+    <script src="/static/empower/js/empower.hbuilder.js"></script>
+    <script src="/static/empower/js/empower.queryengine.js"></script>
+    <script src="/static/empower/js/empower.cache.js"></script>
+    <script src="/static/empower/js/empower.collapsepanel.js"></script>
+    <script src="/static/empower/js/empower.staticscripts.js"></script>
+    <script src="/static/empower/js/empower.formatfunctions.js"></script>
+    <script src="/static/empower/js/empower.validationfunctions.js"></script>
+    <script src="/static/empower/js/empower.floatingnavmenu.js"></script>
+    <script src="/static/empower/js/empower.adminpage.js"></script>
+    <script src="/static/empower/js/empower.userpage.js"></script>
+    <script src="/static/empower/js/empower.modalbox.js"></script>
+    <script src="/static/empower/js/empower.modalbox.addpanel.js"></script>
+    <script src="/static/empower/js/empower.modalbox.batchpanel.js"></script>
+    <script src="/static/empower/js/empower.modalbox.showallpanel.js"></script>
+    <script src="/static/empower/js/empower.modalbox.updatepanel.js"></script>
 
-        <div class="tabPanel">
+    <script src="/static/empower/js/empower.badgebox.js"></script>
+    <script src="/static/empower/js/empower.badge.js"></script>
+    <script src="/static/empower/js/empower.tenantbadge.js"></script>
+    <script src="/static/empower/js/empower.datatablebox.js"></script>
+    <script src="/static/empower/js/empower.datatable.js"></script>
+    <script src="/static/empower/js/empower.buttonbox.js"></script>
+    <script src="/static/empower/js/empower.button.js"></script>
+    <script src="/static/empower/js/empower.netgraphbox.js"></script>
+    <script src="/static/empower/js/empower.netgraph.js"></script>
+    <script src="/static/empower/js/empower.viscreator.js"></script>
 
-          <h1>Light Virtual Access Points</h1>
+    <script src="/static/empower/js/empower.randomdatagenerator.js"></script>
 
-          <table id="lvaps" class="dump">
-            <tr>
-              <th width="150px">Station</th>
-              <th width="150px">SSID</th>
-              <th width="150px">BSSID (Network)</th>
-              <th width="150px">BSSID (LVAP)</th>
-              <th width="240px" colspan="2">WTP</th>
-            </tr>
-          </table>
 
-        </div>
+    <script>
 
-        <div class="tabPanel">
+        const __ROLE = "{{role}}";
+        const __USERNAME = "{{username}}";
 
-          <h1>Click Packet Processors</h1>
+        document.title = '5G-EmPOWER - ' + __USERNAME + ' ( ' + (__ROLE==='user'? ' U )':' A )' );
 
-          <table id="cpps" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addCPP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
+		var __HB = new HBuilder(__EMP_CONFIG_JSON);
+		var __QE = new EmpQueryEngine( __USERNAME, "{{password}}", __ROLE );
+        var __DESC = new EmpDescriptor();
+		var __CACHE = new EmpCache(__HB, __QE);
 
-        </div>
+		var __DELAY = 2000;
 
-        <div class="tabPanel">
+<!--TEMPORANEO-->
+        __RAND = new EmpRandomDataGenerator();
+        __RAND.create();
 
-          <h1>Virtual Basestation Points</h1>
+        if( __ROLE ==='user' ){
+            var ap = new EmpUserPage();
+            ap.initUserPage();
+        }
+        else{
+        var ap = new EmpAdminPage();
+        ap.initAdminPage();
+        }
 
-          <table id="vbses" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addVBS()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
 
-        </div>
+    </script>
 
-        <div class="tabPanel">
+</body>
 
-          <h1>User Equipments</h1>
-
-          <table id="ues" class="dump">
-            <tr>
-              <th width="350px">UUID</th>
-              <th width="100px">RNTI</th>
-              <th width="100px">IMSI</th>
-              <th width="100px">PLMN ID</th>
-              <th width="200px" colspan="2">VBS</th>
-            </tr>
-          </table>
-
-        </div>
-
-        <div class="tabPanel">
-
-          <h1>IMSI to MAC address mapping</h1>
-
-          <table id="imsi2mac" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addIMSI2MAC()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-        </div>
-
-        <div class="tabPanel">
-
-          <h1>Wireless Termination Points</h1>
-
-          <table id="wtps" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addWTP()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-        </div>
-
-        <div class="tabPanel">
-
-          <h1>Allow</h1>
-
-          <table id="allow" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addMAC('allow')"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-          <h1>Deny</h1>
-
-          <table id="deny" width="650" class="dump">
-            <tr>
-              <td colspan="3" align="right"><a onClick="return addMAC('deny')"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-        </div>
-
-        <div class="tabPanel">
-
-          <h1>Users</h1>
-
-          <table id="users" class="dump">
-            <tr>
-              <th width="24px" align="center">&nbsp;</th>
-              <th width="150px">User</th>
-              <th width="150px">Name</th>
-              <th width="150px">Surname</th>
-              <th width="50px">Role</th>
-              <th width="250px">E-Mail</th>
-            </tr>
-            <tr>
-              <td colspan="6" align="right"><a onClick="return addUser()"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-        </div>
-
-      </div>
-
-    {% else %}
-
-      <div class="tabPanels">
-
-        <div class="tabPanel">
-
-          <h1>Active Tenants</h1>
-
-          <table id="tenants" class="dump">
-            <tr>
-              <th width="24px" align="center">&nbsp;</th>
-              <th width="350px">UUID</th>
-              <th width="200px">Network Name</th>
-              <th width="150px">Devs</th>
-              <th width="100x">Owner</th>
-              <th width="100x">PLMN ID</th>
-              <th width="100x">BSSID Type</th>
-            </tr>
-            <tr>
-              <td colspan="7" align="right"><a href="/request_tenant"><img class="ctrl" src="/static/images/add.png" /></a></td>
-            </tr>
-          </table>
-
-        </div>
-        <div class="tabPanel">
-
-          <h1>Pending requests</h1>
-
-          <table id="pending" class="dump">
-            <tr>
-              <th width="24px">&nbsp;</th>
-              <th width="350px">UUID</th>
-              <th width="200px">Network Name</th>
-              <th width="100px">Owner</th>
-              <th width="100x">PLMN ID</th>
-              <th width="150px">BSSID Type</th>
-            </tr>
-          </table>
-
-        </div>
-
-      </div>
-
-    {% end %}
-
-{% end %}
+</html>
