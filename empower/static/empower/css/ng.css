@@ -1,0 +1,11 @@
+body {
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
+}
+
+#cy {
+  height: 200px;
+  width: 200px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}

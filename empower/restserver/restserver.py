@@ -22,7 +22,6 @@ from uuid import uuid4
 
 import tornado.web
 import tornado.httpserver
-
 from tornado.web import MissingArgumentError
 
 import empower.logger
@@ -64,10 +63,9 @@ def exceptions(method):
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """ Base handler, implements only basic authentication stuff. """
+    """Base handler."""
 
-    HANDLERS = [r"/"]
-    PAGE = "index.html"
+    HANDLERS = []
 
     def initialize(self, server=None):
         self.server = server
@@ -80,76 +78,31 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return None
 
-    @tornado.web.authenticated
+
+class IndexHandler(BaseHandler):
+    """Index page"""
+
+    HANDLERS = [r"/", "/index.html"]
+
     def get(self):
         """ Render page. """
 
-        try:
-            error = self.get_argument("error")
-        except MissingArgumentError:
-            error = ""
+        user = self.get_current_user()
+        account = RUNTIME.accounts[user]
 
-        account = RUNTIME.accounts[self.get_current_user()]
-
-        self.render(self.PAGE,
+        self.render("index.html",
                     username=self.get_current_user(),
                     password=account.password,
                     name=account.name,
                     surname=account.surname,
                     email=account.email,
-                    role=account.role,
-                    error=error)
-
-
-class EmpowerAppHomeHandler(BaseHandler):
-    """Web UI Handler.
-
-    Templates must be put in the /templates/<app name>/ sub-directory. Static
-    files must be put in the /static/<app name>/.
-    """
-
-    HANDLERS = [r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/?",
-                r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/(.*)"]
-
-    def get(self, *args):
-
-        try:
-
-            if len(args) < 2 or len(args) > 3:
-                raise ValueError("Invalid url")
-
-            tenant_id = UUID(args[0])
-            app_name = args[1]
-
-            if len(args) == 2:
-                page = "index.html"
-            else:
-                page = args[2]
-
-            self.render("apps/%s/%s" % (app_name, page), tenant_id=tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-
-class RequestTenantHandler(BaseHandler):
-    """Tenant management (for users)."""
-
-    PAGE = "request_tenant.html"
-    HANDLERS = [r"/request_tenant/?"]
-
-
-class ProfileHandler(BaseHandler):
-    """Profile managerment (both read and update)."""
-
-    PAGE = "profile.html"
-    HANDLERS = [r"/profile/?"]
+                    role=account.role)
 
 
 class AuthLoginHandler(BaseHandler):
     """Login handler."""
 
-    HANDLERS = [r"/auth/login/?"]
+    HANDLERS = [r"/auth/login"]
 
     def get(self):
         try:
@@ -158,65 +111,35 @@ class AuthLoginHandler(BaseHandler):
             self.render("login.html", error="")
 
     def post(self):
+        """Process login credentials."""
+
         username = self.get_argument("username", "")
         password = self.get_argument("password", "")
+
         if RUNTIME.check_permission(username, password):
             self.set_secure_cookie("user", username)
-            self.redirect(self.get_argument("next", "/"))
         else:
-            error_msg = "Login incorrect."
-            self.redirect("/auth/login/" +
-                          "?error=" +
-                          tornado.escape.url_escape(error_msg))
+            self.clear_cookie("user")
+
+        self.redirect(self.get_argument("next", "/"))
 
 
 class AuthLogoutHandler(BaseHandler):
     """Logout handler."""
 
-    HANDLERS = [r"/auth/logout/?"]
+    HANDLERS = [r"/auth/logout"]
 
     def get(self):
         self.clear_cookie("user")
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect(self.get_argument("next", "/auth/login"))
 
 
-class ManageTenantHandler(BaseHandler):
-    """Tenant management (for users)."""
+class AllowHandler(EmpowerAPIHandler):
+    """ Allow handler. """
 
-    PAGE = "manage_tenant.html"
-    HANDLERS = [r"/manage_tenant/?"]
-
-    @tornado.web.authenticated
-    def get(self):
-        """ Render page. """
-
-        tenant_id = UUID(self.get_argument("tenant_id", ""))
-        tenant = RUNTIME.tenants[tenant_id]
-
-        try:
-            error = self.get_argument("error")
-        except MissingArgumentError:
-            error = ""
-
-        account = RUNTIME.accounts[self.get_current_user()]
-
-        self.render(self.PAGE,
-                    username=self.get_current_user(),
-                    password=account.password,
-                    name=account.name,
-                    surname=account.surname,
-                    email=account.email,
-                    role=account.role,
-                    error=error,
-                    tenant=tenant)
-
-
-class ACLHandler(EmpowerAPIHandler):
-
-    """ACL handler. Used to view and manipulate the ACL."""
-
-    STRUCT = None
-    HANDLERS = []
+    STRUCT = "allowed"
+    HANDLERS = [r"/api/v1/allow/?",
+                r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
 
     def get(self, *args, **kwargs):
         """ List the entire ACL or just the specified entry.
@@ -312,15 +235,6 @@ class ACLHandler(EmpowerAPIHandler):
         except ValueError as ex:
             self.send_error(400, message=ex)
         self.set_status(204, None)
-
-
-class AllowHandler(ACLHandler):
-    """ Allow handler. """
-
-    STRUCT = "allowed"
-    HANDLERS = [r"/api/v1/allow/?",
-                r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
-
 
 class AccountsHandler(EmpowerAPIHandler):
     """Accounts handler. Used to add/remove accounts."""
@@ -2042,7 +1956,7 @@ class RESTServer(tornado.web.Application):
         "static_path": settings.STATIC_PATH,
         "debug": settings.DEBUG,
         "cookie_secret": settings.COOKIE_SECRET,
-        "login_url": "/auth/login/"
+        "login_url": "/auth/login"
     }
 
     def __init__(self, port, cert, key):
@@ -2064,16 +1978,14 @@ class RESTServer(tornado.web.Application):
 
         http_server.listen(self.port)
 
-        handler_classes = [BaseHandler, EmpowerAppHomeHandler,
-                           RequestTenantHandler, ProfileHandler,
-                           AuthLoginHandler, AuthLogoutHandler,
-                           ManageTenantHandler, AccountsHandler,
+        handler_classes = [BaseHandler, ModuleHandler, AuthLoginHandler,
+                           AuthLogoutHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
-                           PendingTenantHandler, TenantHandler,
-                           AllowHandler, TenantSliceHandler,
-                           TenantEndpointHandler, TenantEndpointNextHandler,
+                           PendingTenantHandler, TenantHandler, AllowHandler,
+                           TenantSliceHandler, TenantEndpointHandler,
+                           TenantEndpointNextHandler,
                            TenantEndpointPortHandler, TenantTrafficRuleHandler,
-                           MarketplaceHandler, ModuleHandler]
+                           MarketplaceHandler, IndexHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
