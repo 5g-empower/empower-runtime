@@ -22,7 +22,6 @@ from uuid import uuid4
 
 import tornado.web
 import tornado.httpserver
-from tornado.web import MissingArgumentError
 
 import empower.logger
 from empower import settings
