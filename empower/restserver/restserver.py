@@ -84,6 +84,7 @@ class IndexHandler(BaseHandler):
 
     HANDLERS = [r"/", "/index.html"]
 
+    @tornado.web.authenticated
     def get(self):
         """ Render page. """
 
@@ -105,10 +106,7 @@ class AuthLoginHandler(BaseHandler):
     HANDLERS = [r"/auth/login"]
 
     def get(self):
-        try:
-            self.render("login.html", error=self.get_argument("error"))
-        except MissingArgumentError:
-            self.render("login.html", error="")
+        self.render("login.html", error=self.get_argument("error", ""))
 
     def post(self):
         """Process login credentials."""
@@ -118,10 +116,10 @@ class AuthLoginHandler(BaseHandler):
 
         if RUNTIME.check_permission(username, password):
             self.set_secure_cookie("user", username)
+            self.redirect("/index.html")
         else:
             self.clear_cookie("user")
-
-        self.redirect(self.get_argument("next", "/"))
+            self.redirect("/auth/login?error=Wrong Password")
 
 
 class AuthLogoutHandler(BaseHandler):
@@ -131,7 +129,7 @@ class AuthLogoutHandler(BaseHandler):
 
     def get(self):
         self.clear_cookie("user")
-        self.redirect(self.get_argument("next", "/auth/login"))
+        self.redirect("/auth/login")
 
 
 class AllowHandler(EmpowerAPIHandler):

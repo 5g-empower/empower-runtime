@@ -89,10 +89,6 @@
     <div id="footer">
     </div>
 
-
-
-
-
     <!-- jQuery -->
     <script src="/static/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
@@ -155,12 +151,12 @@
 
         document.title = '5G-EmPOWER - ' + __USERNAME + ' ( ' + (__ROLE==='user'? ' U )':' A )' );
 
-		var __HB = new HBuilder(__EMP_CONFIG_JSON);
-		var __QE = new EmpQueryEngine( __USERNAME, "{{password}}", __ROLE );
+        var __HB = new HBuilder(__EMP_CONFIG_JSON);
+        var __QE = new EmpQueryEngine( __USERNAME, "{{password}}", __ROLE );
         var __DESC = new EmpDescriptor();
-		var __CACHE = new EmpCache(__HB, __QE);
+        var __CACHE = new EmpCache(__HB, __QE);
 
-		var __DELAY = 2000;
+        var __DELAY = 2000;
 
 <!--TEMPORANEO-->
         __RAND = new EmpRandomDataGenerator();
