@@ -192,10 +192,22 @@ class EmpowerRuntime:
             acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
 
-    def load_apps(self):
-        """Fetch the available apps.
+    def load_main_components(self):
+        """Fetch the available components. """
 
-        An app is a standard python module defining in the init file
+        results = {}
+
+        self.__walk_module(empower, results)
+        self.__walk_module(empower.lvapp, results)
+        self.__walk_module(empower.lvnfp, results)
+        self.__walk_module(empower.vbsp, results)
+
+        return results
+
+    def load_user_components(self):
+        """Fetch the available user components.
+
+        A user component is a standard python module defining in the init file
         a python dictionary  named MANIFEST.
 
         The MANIFEST provides:
@@ -211,11 +223,6 @@ class EmpowerRuntime:
         """
 
         results = {}
-
-        self.__walk_module(empower, results)
-        self.__walk_module(empower.lvapp, results)
-        self.__walk_module(empower.lvnfp, results)
-        self.__walk_module(empower.vbsp, results)
         self.__walk_module(empower.apps, results)
 
         return results
@@ -376,9 +383,14 @@ class EmpowerRuntime:
     def unregister_app(self, tenant_id, app_id):
         """Unregister app."""
 
+        tenant = self.tenants[tenant_id]
+
+        if app_id not in tenant.components:
+            self.log.error("'%s' not registered", app_id)
+            raise ValueError("%s not registered" % app_id)
+
         self.log.info("Unregistering: %s (%s)", app_id, tenant_id)
 
-        tenant = self.tenants[tenant_id]
         app = tenant.components[app_id]
 
         from empower.core.app import EmpowerApp
@@ -409,7 +421,6 @@ class EmpowerRuntime:
         for remove in to_be_removed:
             self.components[name].remove_module(remove)
 
-        self.components[name].remove_handlers()
         del self.components[name]
 
     def get_account(self, username):

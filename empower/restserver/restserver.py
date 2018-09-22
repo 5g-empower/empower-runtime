@@ -426,43 +426,6 @@ class AccountsHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
-class MarketplaceHandler(EmpowerAPIHandler):
-    """Marketplace handler.
-
-    Used to list available apps."""
-
-    HANDLERS = [r"/api/v1/marketplace?",
-                r"/api/v1/marketplace/([a-zA-Z0-9:_\-.]*)/?"]
-
-    def get(self, *args):
-        """Lists the available system-wide apps.
-
-        Args:
-            component_id: the id of a component istance
-
-        Example URLs:
-            GET /api/v1/marketplace
-            GET /api/v1/marketplace/<app>
-        """
-
-        try:
-
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-
-            apps = RUNTIME.load_apps()
-
-            if not args:
-                self.write_as_json(apps)
-            else:
-                self.write_as_json(apps[args[0]])
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-
 class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
@@ -489,20 +452,30 @@ class ComponentsHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid url")
 
-            componets = {}
+            components = {}
+            main_components = RUNTIME.load_main_components()
 
             for component in RUNTIME.components:
 
                 if hasattr(RUNTIME.components[component], 'to_dict'):
-                    componets[component] = \
+                    components[component] = \
                         RUNTIME.components[component].to_dict()
+                elif component in main_components:
+                    components[component] = main_components[component]
                 else:
-                    componets[component] = {}
+                    components[component] = {}
+                components[component]['active'] = True
+
+            for component in main_components:
+
+                if component not in RUNTIME.components:
+                    components[component] = main_components[component]
+                    components[component]['active'] = False
 
             if not args:
-                self.write_as_json(componets)
+                self.write_as_json(components)
             else:
-                self.write_as_json(componets[args[0]])
+                self.write_as_json(components[args[0]])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -605,8 +578,7 @@ class ComponentsHandler(EmpowerAPIHandler):
         """
 
         try:
-
-            if not args:
+            if args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -617,7 +589,10 @@ class ComponentsHandler(EmpowerAPIHandler):
             if "argv" not in request:
                 raise ValueError("missing argv element")
 
-            argv = request['argv'].split(" ")
+            prefix = "empower."
+            argv = request['argv'][len(prefix):] \
+                if request['argv'].startswith(prefix) else request['argv']
+            argv = argv.split(" ")
             components, components_order = _parse_args(argv)
 
             if not _do_launch(components, components_order):
@@ -955,12 +930,31 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
+            components = {}
+            user_components = RUNTIME.load_user_components()
+
+            for component in tenant.components:
+
+                if hasattr(tenant.components[component], 'to_dict'):
+                    components[component] = \
+                        tenant.components[component].to_dict()
+                elif component in user_components:
+                    components[component] = user_components[component]
+                else:
+                    components[component] = {}
+                components[component]['active'] = True
+
+            for component in user_components:
+
+                if component not in tenant.components:
+                    components[component] = user_components[component]
+                    components[component]['active'] = False
 
             if len(args) == 1:
-                self.write_as_json(tenant.components)
+                self.write_as_json(components)
             else:
                 componet_id = args[1]
-                self.write_as_json(tenant.components[componet_id])
+                self.write_as_json(components[componet_id])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1007,10 +1001,18 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
             tenant = RUNTIME.tenants[tenant_id]
 
             app_id = args[1]
-            app = tenant.components[app_id]
 
-            for param in request['params']:
-                setattr(app, param, request['params'][param])
+            # Update of an active component
+            if app_id in tenant.components:
+                app = tenant.components[app_id]
+
+                for param in request['params']:
+                    setattr(app, param, request['params'][param])
+
+            # Requests on inactive components are ignored
+            else:
+                self.log.error("'%s' not loaded", app_id)
+                raise ValueError("%s not loaded" % app_id)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1087,7 +1089,10 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
 
-            argv = request['argv'].strip().split(" ")
+            prefix = "empower."
+            argv = request['argv'][len(prefix):] \
+                if request['argv'].startswith(prefix) else request['argv']
+            argv = argv.strip().split(" ")
             argv.append("--tenant_id=%s" % tenant_id)
 
             components, components_order = _parse_args(argv)
@@ -1980,9 +1985,8 @@ class RESTServer(tornado.web.Application):
                            ComponentsHandler, TenantComponentsHandler,
                            PendingTenantHandler, TenantHandler, AllowHandler,
                            TenantSliceHandler, TenantEndpointHandler,
-                           TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficRuleHandler,
-                           MarketplaceHandler, IndexHandler]
+                           TenantEndpointNextHandler, IndexHandler,
+                           TenantEndpointPortHandler, TenantTrafficRuleHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

@@ -19,6 +19,6 @@
 
 # the manifest
 MANIFEST = {
-    "name": "empower.lvapp.bin_counter",
+    "name": "empower.lvapp.bin_counter.bin_counter",
     "desc": "Aggregates TX/RX in bins per LVAP.",
 }
