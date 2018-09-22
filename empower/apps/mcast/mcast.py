@@ -69,6 +69,7 @@ class MCastManager(EmpowerApp):
         self.schedule = [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy
         self._demo_mode = TX_MCAST_SDNPLAY_H
+        self.status = {}
 
     @property
     def demo_mode(self):
@@ -240,6 +241,8 @@ class MCastManager(EmpowerApp):
         out['Phases_schedule'] = [TX_MCAST[x] for x in self.schedule]
         out['Receptors'] = \
             {str(k): v for k, v in self.receptors.items()}
+        out['Status'] = \
+            {str(k): v for k, v in self.status.items()}
 
         return out
 
