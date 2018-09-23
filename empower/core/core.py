@@ -489,14 +489,11 @@ class EmpowerRuntime:
                     'quantum': 12000
                 },
                 'wtps': {}
-             },
-             "lte": {
+            },
+            "lte": {
                 'static-properties': {
                     "amsdu_aggregation": False,
                     'quantum': 12000
-                },
-                'runtime-properties': {
-                    'rntis': []
                 },
                 "vbses": {}
             }
