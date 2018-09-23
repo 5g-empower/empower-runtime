@@ -16,3 +16,10 @@
 # under the License.
 
 """Channel quality and conflict maps package."""
+
+MANIFEST = {
+    "name": ["empower.lvapp.cqm.ncqm",  \
+			"empower.lvapp.cqm.ucqm"],
+    "desc": ["Channel quality maps package.", \
+			"Conflict maps package."]
+}

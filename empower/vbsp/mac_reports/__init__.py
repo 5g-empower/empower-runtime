@@ -16,3 +16,9 @@
 # under the License.
 
 """PRB utilization module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.vbsp.mac_reports.mac_reports",
+    "desc": "PRB utilization module.",
+}
