@@ -1025,18 +1025,21 @@ class LVAPPConnection:
 
         ssid = slc.tenant.tenant_name
 
-        amsdu_aggregation = slc.wifi_properties['amsdu_aggregation']
-        quantum = slc.wifi_properties['quantum']
+        amsdu_aggregation = slc.wifi['static-properties']['amsdu_aggregation']
+        quantum = slc.wifi['static-properties']['quantum']
 
-        if self.wtp.addr in slc.wtps:
+        if self.wtp.addr in slc.wifi['wtps']:
 
-            if 'amsdu_aggregation' in slc.wtps[self.wtp.addr]['properties']:
-                amsdu_aggregation = \
-                    slc.wtps[self.wtp.addr]['properties']['amsdu_aggregation']
+            if 'amsdu_aggregation' in \
+                slc.wifi['wtps'][self.wtp.addr]['static-properties']:
 
-            if 'quantum' in slc.wtps[self.wtp.addr]['properties']:
+                amsdu_aggregation = slc.wifi['wtps'][self.wtp.addr] \
+                    ['static-properties']['amsdu_aggregation']
+
+            if 'quantum' in slc.wifi['wtps'][self.wtp.addr]['static-properties']:
                 quantum = \
-                    slc.wtps[self.wtp.addr]['properties']['quantum']
+                    slc.wifi['wtps'][self.wtp.addr] \
+                        ['static-properties']['quantum']
 
         flags = Container(amsdu_aggregation=amsdu_aggregation)
 

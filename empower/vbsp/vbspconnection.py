@@ -620,22 +620,24 @@ class VBSPConnection:
             None
         """
 
-        sched_id = slc.lte_properties['sched_id']
-        rbgs = slc.lte_properties['rbgs']
-        rntis = slc.lte_runtime['rntis']
+        sched_id = slc.lte['static-properties']['sched_id']
+        rbgs = slc.lte['static-properties']['rbgs']
+        rntis = slc.lte['runtime-properties']['rntis']
 
-        if self.vbs.addr in slc.vbses:
+        if self.vbs.addr in slc.lte['vbses']:
 
-            if 'sched_id' in slc.vbses[self.vbs.addr]['properties']:
+            if 'sched_id' in \
+                slc.lte['vbses'][self.vbs.addr]['static-properties']:
+
                 sched_id = \
-                    slc.vbses[self.vbs.addr]['properties']['sched_id']
+                    slc.lte['vbses'][self.vbs.addr]['static-properties']['sched_id']
 
-            if 'rbgs' in slc.vbses[self.vbs.addr]['properties']:
+            if 'rbgs' in slc.lte['vbses'][self.vbs.addr]['static-properties']:
                 rbgs = \
-                    slc.vbses[self.vbs.addr]['properties']['rbgs']
+                    slc.lte['vbses'][self.vbs.addr]['static-properties']['rbgs']
 
-        if 'rntis' in slc.lte_runtime['rntis']:
-            rntis = slc.lte_runtime['rntis']
+            if 'rntis' in slc.lte['vbses'][self.vbs.addr]['runtime-properties']:
+                rntis = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),

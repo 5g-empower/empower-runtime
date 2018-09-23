@@ -483,12 +483,23 @@ class EmpowerRuntime:
         descriptor = {
             "version": 1.0,
             "dscp": "0x0",
-            "wifi-properties": {
-                "amsdu_aggregation": False
-            },
-            "wtps": {},
-            "lte-properties": {},
-            "vbses": {}
+            "wifi": {
+                'static-properties': {
+                    "amsdu_aggregation": False,
+                    'quantum': 12000
+                },
+                'wtps': {}
+             },
+             "lte": {
+                'static-properties': {
+                    "amsdu_aggregation": False,
+                    'quantum': 12000
+                },
+                'runtime-properties': {
+                    'rntis': []
+                },
+                "vbses": {}
+            }
         }
 
         self.tenants[request.tenant_id].add_slice(dscp, descriptor)

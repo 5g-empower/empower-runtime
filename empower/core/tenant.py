@@ -278,14 +278,15 @@ class Tenant:
 
             tbl_slc = TblSlice(tenant_id=self.tenant_id,
                                dscp=slc.dscp,
-                               wifi_properties=json.dumps(slc.wifi_properties),
-                               lte_properties=json.dumps(slc.lte_properties))
+                               wifi=json.dumps(slc.wifi['static-properties']),
+                               lte=json.dumps(slc.lte['static-properties']))
 
             session.add(tbl_slc)
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
-                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+                properties = \
+                    json.dumps(slc.wifi['wtps'][wtp_addr]['static-properties'])
 
                 belongs = TblSliceBelongs(tenant_id=self.tenant_id,
                                           dscp=tbl_slc.dscp,
@@ -294,9 +295,10 @@ class Tenant:
 
                 session.add(belongs)
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
-                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+                properties = \
+                    json.dumps(slc.lte['vbses'][vbs_addr]['static-properties'])
 
                 belongs = TblSliceBelongs(tenant_id=self.tenant_id,
                                           dscp=tbl_slc.dscp,
@@ -315,7 +317,7 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wtps:
+        for wtp_addr in slc.wifi['wtps']:
             wtp = self.wtps[wtp_addr]
             if not wtp.is_online():
                 continue
@@ -323,7 +325,7 @@ class Tenant:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.vbses:
+        for vbs_addr in slc.lte['vbses']:
             vbs = self.vbses[vbs_addr]
             if not vbs.is_online():
                 continue
@@ -361,12 +363,13 @@ class Tenant:
                                  .filter(TblSlice.dscp == slc.dscp) \
                                  .first()
 
-            tbl_slice.wifi_properties = json.dumps(slc.wifi_properties)
-            tbl_slice.lte_properties = json.dumps(slc.lte_properties)
+            tbl_slice.wifi = json.dumps(slc.wifi['static-properties'])
+            tbl_slice.lte = json.dumps(slc.lte['static-properties'])
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
-                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+                properties = \
+                    json.dumps(slc.wifi['wtps'][wtp_addr]['static-properties'])
 
                 tbl_belongs = \
                     Session().query(TblSliceBelongs) \
@@ -388,9 +391,10 @@ class Tenant:
 
                     tbl_belongs.properties = properties
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
-                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+                properties = \
+                    json.dumps(slc.lte['vbses'][vbs_addr]['static-properties'])
 
                 tbl_belongs = \
                     Session().query(TblSliceBelongs) \
@@ -422,7 +426,7 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wtps:
+        for wtp_addr in slc.wifi['wtps']:
             wtp = self.wtps[wtp_addr]
             if not wtp.is_online():
                 continue
@@ -430,7 +434,7 @@ class Tenant:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.vbses:
+        for vbs_addr in slc.lte['vbses']:
             vbs = self.vbses[vbs_addr]
             if not vbs.is_online():
                 continue
@@ -469,7 +473,7 @@ class Tenant:
 
             session.delete(rem)
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
                 rem = \
                     Session().query(TblSliceBelongs) \
@@ -481,7 +485,7 @@ class Tenant:
                 if rem:
                     session.delete(rem)
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
                 rem = \
                     Session().query(TblSliceBelongs) \
@@ -500,13 +504,13 @@ class Tenant:
             raise ValueError()
 
         # delete it from the WTPs
-        for wtp_addr in self.slices[dscp].wtps:
+        for wtp_addr in self.slices[dscp].wifi['wtps']:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_del_slice(block, self.tenant_name, dscp)
 
         # delete it from the VBSes
-        for vbs_addr in self.slices[dscp].vbses:
+        for vbs_addr in self.slices[dscp].lte['vbses']:
             vbs = self.vbses[vbs_addr]
             for cell in vbs.cells.values():
                 vbs.connection.send_del_ran_mac_slice_request(cell,
