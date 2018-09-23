@@ -222,8 +222,8 @@ class PNFPServer:
             desc = {'dscp': slc.dscp,
                     'wtps': {},
                     'vbses': {},
-                    'wifi-properties': json.loads(slc.wifi_properties),
-                    'lte-properties': json.loads(slc.lte_properties)}
+                    'wifi': json.loads(slc.wifi),
+                    'lte': json.loads(slc.lte)}
 
             if slc.dscp not in tenant.slices:
                 tenant.slices[slc.dscp] = Slice(slc.dscp, tenant, desc)
@@ -242,21 +242,22 @@ class PNFPServer:
                     continue
 
                 pnfdev = self.pnfdevs[belong.addr]
-                pnfdevs = getattr(t_slice, pnfdev.ALIAS)
+                pnfdevs = None
 
-                if pnfdev.addr not in pnfdevs:
+                if pnfdev.ALIAS == "vbses":
+                    pnfdevs = t_slice.lte.get(pnfdev.ALIAS)
 
-                    if pnfdev.ALIAS == "vbses":
+                    if pnfdev.addr not in pnfdevs:
+                        pnfdevs[belong.addr] = {'static-properties': {},
+                                                'runtime-properties': {}}
+                else:
+                    pnfdevs = t_slice.wifi.get(pnfdev.ALIAS)
 
-                        pnfdevs[belong.addr] = {'properties': {},
-                                                'cells': {}}
+                    if pnfdev.addr not in pnfdevs:
+                        pnfdevs[belong.addr] = {'static-properties': {},
+                                                'runtime-properties': {}}
 
-                    else:
-
-                        pnfdevs[belong.addr] = {'properties': {},
-                                                'blocks': {}}
-
-                    pnfdevs[belong.addr]['properties'] = \
+                pnfdevs[belong.addr]['static-properties'] = \
                         json.loads(belong.properties)
 
     @property

@@ -32,24 +32,41 @@ class Slice:
     {
         "version": 1.0,
         "dscp": "0x42",
-        "wifi-properties": {
-            "amsdu_aggregation": true,
-            "quantum": 12000
-        },
-        "wtps": {
-            "00:0D:B9:2F:56:64": {
-                "quantum": 15000
+        "wifi": {
+            "static-properties": {
+              "amsdu_aggregation": true,
+              "quantum": 12000
+            },
+            "wtps": {
+              "00:0D:B9:2F:56:64": {
+                "static-properties": {
+                  "quantum": 15000
+                }
+              }
             }
         },
-        "lte-properties": {
-            "rbgs": 5,
-            "sched_id": 1,
-            "rntis": [12345, 22233]
-        },
-        "vbses": {
-            "aa:bb:cc:dd:ee:ff": {
-                "rbgs": 2,
-                "rntis": [555555]
+        "lte": {
+            "static-properties": {
+              "rbgs": 5,
+              "sched_id": 1
+            },
+            "runtime-properties": {
+              "rntis": [
+                12345,
+                22233
+              ]
+            },
+            "vbses": {
+                "aa:bb:cc:dd:ee:ff": {
+                    "static-properties": {
+                      "rbgs": 2
+                    },
+                    "runtime-properties": {
+                      "rntis": [
+                        555555
+                      ]
+                    }
+                }
             }
         }
     }
@@ -60,79 +77,84 @@ class Slice:
         self.dscp = DSCP(dscp)
         self.tenant = tenant
 
-        self.wifi_properties = {
-            'amsdu_aggregation': False,
-            'quantum': 12000
+        self.wifi = {
+            'static-properties': {
+                'amsdu_aggregation': False,
+                'quantum': 12000
+            },
+            'wtps': {}
         }
 
-        if 'wifi-properties' in descriptor:
+        if 'wifi' in descriptor:
             self.__parse_wifi_descriptor(descriptor)
 
-        self.lte_properties = {
-            'sched_id': 0,
-            'rbgs': 1
+        self.lte = {
+            'static-properties': {
+                'sched_id': 0,
+                'rbgs': 1
+            },
+            'runtime-properties': {
+                'rntis': []
+            },
+            'vbses': {}
         }
 
-        if 'lte-properties' in descriptor:
+        if 'lte' in descriptor:
             self.__parse_lte_descriptor(descriptor)
-
-        self.lte_runtime = {
-            'rntis': []
-        }
-
-        if 'lte-runtime' in descriptor:
-            self.__parse_lte_runtime_descriptor(descriptor)
-
-        self.wtps = {}
-
-        if 'wtps' in descriptor:
-            self.__parse_wtps_descriptor(descriptor)
-
-        self.vbses = {}
-
-        if 'vbses' in descriptor:
-            self.__parse_vbses_descriptor(descriptor)
 
     def __parse_wifi_descriptor(self, descriptor):
 
-        if 'amsdu_aggregation' in descriptor['wifi-properties']:
+        if 'static-properties' in descriptor['wifi']:
+            self.__parse_wifi_static_properties(descriptor)
+
+        if 'wtps' in descriptor['wifi']:
+            self.__parse_wtps_descriptor(descriptor)
+
+
+    def __parse_wifi_static_properties(self, descriptor):
+
+        if 'amsdu_aggregation' in descriptor['wifi']['static-properties']:
 
             amsdu_aggregation = \
-                descriptor['wifi-properties']['amsdu_aggregation']
+                descriptor['wifi']['static-properties']['amsdu_aggregation']
 
             if isinstance(amsdu_aggregation, bool):
-                self.wifi_properties['amsdu_aggregation'] = \
+                self.wifi['static-properties']['amsdu_aggregation'] = \
                     amsdu_aggregation
             else:
-                self.wifi_properties['amsdu_aggregation'] = \
+                self.wifi['static-properties']['amsdu_aggregation'] = \
                     json.loads(amsdu_aggregation.lower())
 
-        if 'quantum' in descriptor['wifi-properties']:
+        if 'quantum' in descriptor['wifi']['static-properties']:
 
-            quantum = descriptor['wifi-properties']['quantum']
+            quantum = descriptor['wifi']['static-properties']['quantum']
 
             if isinstance(amsdu_aggregation, int):
-                self.wifi_properties['quantum'] = quantum
+                self.wifi['static-properties']['quantum'] = quantum
             else:
-                self.wifi_properties['quantum'] = int(quantum)
+                self.wifi['static-properties']['quantum'] = int(quantum)
 
     def __parse_wtps_descriptor(self, descriptor):
 
-        for addr in descriptor['wtps']:
+        for addr in descriptor['wifi']['wtps']:
 
             wtp_addr = EtherAddress(addr)
 
             if wtp_addr not in self.tenant.wtps:
                 raise KeyError("Unable to find WTP %s" % addr)
 
-            self.wtps[wtp_addr] = {'properties': {}, 'blocks': {}}
+            if 'static-properties' not in descriptor['wifi']['wtps'][addr]:
+                continue
 
-            if 'amsdu_aggregation' in descriptor['wtps'][addr]:
+            self.wifi['wtps'][wtp_addr] = {'static-properties': {}}
 
-                amsdu_aggregation = \
-                    descriptor['wtps'][addr]['amsdu_aggregation']
+            if 'amsdu_aggregation' in \
+                descriptor['wifi']['wtps'][addr]['static-properties']:
 
-                props = self.wtps[wtp_addr]['properties']
+                amsdu_aggregation = descriptor['wifi']['wtps'][addr] \
+                    ['static-properties']['amsdu_aggregation']
+
+                props = self.wifi['wtps'][wtp_addr]['static-properties']
 
                 if isinstance(amsdu_aggregation, bool):
                     props['amsdu_aggregation'] = amsdu_aggregation
@@ -140,82 +162,131 @@ class Slice:
                     props['amsdu_aggregation'] = \
                         json.loads(amsdu_aggregation.lower())
 
-            if 'quantum' in descriptor['wtps'][addr]:
+            if 'quantum' in \
+                descriptor['wifi']['wtps'][addr]['static-properties']:
 
-                quantum = descriptor['wtps'][addr]['quantum']
+                quantum = \
+                    descriptor['wifi']['wtps'][addr]['static-properties'] \
+                        ['quantum']
 
                 if isinstance(quantum, int):
-                    self.wtps[wtp_addr]['properties']['quantum'] = quantum
+                    self.wifi['wtps'][wtp_addr]['static-properties'] \
+                        ['quantum'] = quantum
                 else:
-                    self.wtps[wtp_addr]['properties']['quantum'] = \
-                        int(quantum)
+                    self.wifi['wtps'][wtp_addr]['static-properties'] \
+                    ['quantum'] = int(quantum)
 
     def __parse_lte_descriptor(self, descriptor):
 
-        if 'sched_id' in descriptor['lte-properties']:
+        if 'static-properties' in descriptor['lte']:
+            self.__parse_lte_static_properties(descriptor)
 
-            sched_id = descriptor['lte-properties']['sched_id']
+        if 'runtime-properties' in descriptor['lte']:
+            self.__parse_lte_runtime_descriptor(descriptor)
+
+        if 'vbses' in descriptor['lte']:
+            self.__parse_vbses_descriptor(descriptor)
+
+    def __parse_lte_static_properties(self, descriptor):
+
+        if 'sched_id' in descriptor['lte']['static-properties']:
+
+            sched_id = descriptor['lte']['static-properties']['sched_id']
 
             if isinstance(sched_id, int):
-                self.lte_properties['sched_id'] = sched_id
+                self.lte['static-properties']['sched_id'] = sched_id
             else:
-                self.lte_properties['sched_id'] = int(sched_id)
+                self.lte['static-properties']['sched_id'] = int(sched_id)
 
-        if 'rbgs' in descriptor['lte-properties']:
+        if 'rbgs' in descriptor['lte']['static-properties']:
 
-            rbgs = descriptor['lte-properties']['rbgs']
+            rbgs = descriptor['lte']['static-properties']['rbgs']
 
             if isinstance(rbgs, int):
-                self.lte_properties['rbgs'] = rbgs
+                self.lte['static-properties']['rbgs'] = rbgs
             else:
-                self.lte_properties['rbgs'] = int(rbgs)
+                self.lte['static-properties']['rbgs'] = int(rbgs)
 
     def __parse_lte_runtime_descriptor(self, descriptor):
 
-        if 'rntis' in descriptor['lte-runtime']:
+        if 'rntis' in descriptor['lte']['runtime-properties']:
 
-            rntis = descriptor['lte-runtime']['rntis']
+            rntis = descriptor['lte']['runtime-properties']['rntis']
 
             if isinstance(rntis, list):
-                self.lte_runtime['rntis'] = [int(x) for x in rntis]
+                self.lte['runtime-properties']['rntis'] = \
+                    [int(x) for x in rntis]
             else:
-                self.lte_runtime['rntis'] = [int(rntis)]
+                self.lte['runtime-properties']['rntis'] = [int(rntis)]
 
     def __parse_vbses_descriptor(self, descriptor):
 
-        for addr in descriptor['vbses']:
+        for addr in descriptor['lte']['vbses']:
 
             vbs_addr = EtherAddress(addr)
 
             if vbs_addr not in self.tenant.vbses:
                 raise KeyError("Unable to find VBS %s" % addr)
 
-            self.vbses[vbs_addr] = {'properties': {}, 'cells': {}}
+            self.lte['vbses'][vbs_addr] = \
+                {'static-properties': {}, 'runtime-properties': {}}
 
-            if 'sched_id' in descriptor['vbses'][addr]['properties']:
+            if 'static-properties' in descriptor['lte']['vbses'][addr]:
 
-                sched_id = \
-                    descriptor['vbses'][addr]['properties']['sched_id']
+                if 'sched_id' in \
+                    descriptor['lte']['vbses'][addr]['static-properties']:
 
-                if isinstance(sched_id, int):
-                    self.vbses[vbs_addr]['properties']['sched_id'] = \
-                        sched_id
-                else:
-                    self.vbses[vbs_addr]['properties']['sched_id'] = \
-                        int(sched_id)
+                    sched_id = descriptor['lte']['vbses'][addr] \
+                        ['static-properties']['sched_id']
 
-            if 'rbgs' in descriptor['vbses'][addr]['properties']:
+                    if isinstance(sched_id, int):
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                        ['sched_id'] = sched_id
+                    else:
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                        ['sched_id'] = int(sched_id)
 
-                rbgs = descriptor['vbses'][addr]['properties']['rbgs']
+                if 'rbgs' in \
+                    descriptor['lte']['vbses'][addr]['static-properties']:
 
-                if isinstance(rbgs, int):
-                    self.vbses[vbs_addr]['properties']['rbgs'] = rbgs
-                else:
-                    self.vbses[vbs_addr]['properties']['rbgs'] = \
-                        int(rbgs)
+                    rbgs = descriptor['lte']['vbses'][addr] \
+                        ['static-properties']['rbgs']
+
+                    if isinstance(rbgs, int):
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['rbgs'] = rbgs
+                    else:
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['rbgs'] = int(rbgs)
+
+            if 'runtime-properties' in descriptor['lte']['vbses'][addr]:
+
+                if 'rntis' in \
+                    descriptor['lte']['vbses'][addr]['runtime-properties']:
+
+                    rntis = descriptor['lte']['vbses'][addr] \
+                        ['runtime-properties']['rntis']
+
+                    if isinstance(rntis, list):
+                        self.lte['vbses'][vbs_addr]['runtime-properties'] \
+                        ['rntis'] = [int(x) for x in rntis]
+                    else:
+                        self.lte['vbses'][vbs_addr]['runtime-properties'] \
+                        ['rntis'] = [int(rntis)]
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
+
+    def print_descriptor(self, desc):
+        """ Return a JSON-serializable dictionary of a Slice descriptor """
+
+        if type(desc) is dict:
+            result = \
+                {str(k): self.print_descriptor(v) for k, v in desc.items()}
+        else:
+            result = str(desc)
+
+        return result
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Slice """
@@ -223,11 +294,8 @@ class Slice:
         desc = {
             'dscp': self.dscp,
             'tenant_id': self.tenant.tenant_id,
-            'wifi-properties': self.wifi_properties,
-            'lte-properties': self.lte_properties,
-            'lte-runtime': self.lte_runtime,
-            'wtps': {str(k): v for k, v in self.wtps.items()},
-            'vbses': {str(k): v for k, v in self.vbses.items()},
+            'wifi': self.print_descriptor(self.wifi),
+            'lte': self.print_descriptor(self.lte),
         }
 
         return desc

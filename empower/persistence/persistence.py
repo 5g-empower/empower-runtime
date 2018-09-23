@@ -299,9 +299,9 @@ class TblSlice(Base):
                        ForeignKey('tenant.tenant_id'),
                        primary_key=True)
 
-    wifi_properties = Column(String)
+    wifi = Column(String)
 
-    lte_properties = Column(String)
+    lte = Column(String)
 
 
 class TblSliceBelongs(Base):
