@@ -210,32 +210,6 @@ class TblAccount(Base):
     role = Column(String)
 
 
-class TblPendingTenant(Base):
-    """ List of pending Tenant request. """
-
-    __tablename__ = 'pending_tenant'
-
-    tenant_id = Column("tenant_id",
-                       UUID(),
-                       primary_key=True,
-                       default=uuid.uuid4)
-    plmn_id = Column("plmn_id", PLMNID, unique=True)
-    tenant_name = Column(SSID, unique=True)
-    desc = Column(String)
-    owner = Column(String)
-    bssid_type = Column(String)
-
-    def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the request """
-
-        return {'tenant_id': self.tenant_id,
-                'owner': self.owner,
-                'plmn_id': self.plmn_id,
-                'tenant_name': self.tenant_name,
-                'desc': self.desc,
-                'bssid_type': self.bssid_type}
-
-
 class TblTenant(Base):
     """ Tenant table. """
 
@@ -268,22 +242,6 @@ class TblPNFDev(Base):
         'polymorphic_on': tbl_type,
         'polymorphic_identity': 'pnfdevs'
     }
-
-
-class TblBelongs(Base):
-    """Link PNFDevs with Tenants"""
-
-    __tablename__ = 'belongs'
-
-    addr = Column(EtherAddress(),
-                  ForeignKey('pnfdev.addr'),
-                  primary_key=True)
-
-    tenant_id = Column(UUID(),
-                       ForeignKey('tenant.tenant_id'),
-                       primary_key=True)
-
-    parent = Column(String)
 
 
 class TblCPP(TblPNFDev):

@@ -21,11 +21,9 @@ import json
 
 from sqlalchemy.exc import IntegrityError
 
-from empower.persistence.persistence import TblBelongs
 from empower.persistence.persistence import TblSlice
 from empower.persistence.persistence import TblSliceBelongs
 from empower.persistence.persistence import TblTrafficRule
-from empower.core.lvnf import LVNF
 from empower.core.slice import Slice
 from empower.persistence import Session
 from empower.core.utils import get_module
@@ -78,9 +76,6 @@ class Tenant:
         self.owner = owner
         self.desc = desc
         self.bssid_type = bssid_type
-        self.wtps = {}
-        self.cpps = {}
-        self.vbses = {}
         self.endpoints = {}
         self.lvaps = {}
         self.ues = {}
@@ -88,6 +83,24 @@ class Tenant:
         self.vaps = {}
         self.slices = {}
         self.components = {}
+
+    @property
+    def wtps(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.wtps
+
+    @property
+    def cpps(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.cpps
+
+    @property
+    def vbses(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.vbses
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """
@@ -502,62 +515,6 @@ class Tenant:
 
         # remove slice
         del self.slices[dscp]
-
-    def add_pnfdev(self, pnfdev):
-        """Add a new PNF Dev to the Tenant.
-
-        Args:
-            pnfdev, a PNFDev object
-
-        Returns:
-            None
-
-        Raises:
-            KeyError, if the pnfdev is not available
-        """
-
-        pnfdevs = getattr(self, pnfdev.ALIAS)
-
-        if pnfdev.addr in pnfdevs:
-            return
-
-        pnfdevs[pnfdev.addr] = pnfdev
-
-        belongs = TblBelongs(tenant_id=self.tenant_id,
-                             addr=pnfdev.addr,
-                             parent=pnfdev.ALIAS)
-
-        session = Session()
-        session.add(belongs)
-        session.commit()
-
-    def remove_pnfdev(self, pnfdev):
-        """Remove a PNFDev from the Tenant.
-
-        Args:
-            addr, a PNFDev object
-
-        Returns:
-            None
-        Raises:
-            KeyError, if the pnfdev is not available
-        """
-
-        pnfdevs = getattr(self, pnfdev.ALIAS)
-
-        if pnfdev.addr not in pnfdevs:
-            return
-
-        del pnfdevs[pnfdev.addr]
-
-        belongs = Session().query(TblBelongs) \
-                           .filter(TblBelongs.tenant_id == self.tenant_id,
-                                   TblBelongs.addr == pnfdev.addr) \
-                           .first()
-
-        session = Session()
-        session.delete(belongs)
-        session.commit()
 
     def __str__(self):
         return str(self.tenant_id)

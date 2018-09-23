@@ -31,8 +31,7 @@ from empower.persistence import Session
 from empower.core.slice import Slice
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
-from empower.persistence.persistence import TblBelongs
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.persistence.persistence import TblSlice
 from empower.persistence.persistence import TblSliceBelongs
 
@@ -148,7 +147,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
-class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
+class BaseTenantPNFDevHandler(EmpowerAPIHandlerUsers):
     """TenantPNFDevHandler Handler."""
 
     HANDLERS = []
@@ -174,7 +173,7 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
 
         try:
 
-            if len(args) > 2 or len(args) < 1:
+            if len(args) not in (1, 2):
                 raise ValueError("Invalid url")
 
             tenant_id = UUID(args[0])
@@ -195,74 +194,6 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerAdminUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def post(self, *args, **kwargs):
-        """ Add a pnfdev to a tenant.
-
-        Args:
-            [0]: the network names of the tenant
-            [1]: the address of the pnfdev
-
-        Example URLs:
-
-            POST /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-              <wtps|cpps|vbses>
-
-        """
-
-        try:
-
-            if len(args) != 2:
-                raise ValueError("Invalid url")
-
-            tenant_id = UUID(args[0])
-            addr = EtherAddress(args[1])
-
-            tenant = RUNTIME.tenants[tenant_id]
-            pnfdev = self.server.pnfdevs[addr]
-
-            tenant.add_pnfdev(pnfdev)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(204, None)
-
-    def delete(self, *args, **kwargs):
-        """ Remove a pnfdev from a Tenant.
-
-        Args:
-            [0]: the network names of the tenant
-            [1]: the address of the pnfdev
-
-        Example URLs:
-
-            GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-              <wtps|cpps|vbses>/11:22:33:44:55:66
-
-        """
-
-        try:
-
-            if len(args) != 2:
-                raise ValueError("Invalid url")
-
-            tenant_id = UUID(args[0])
-            addr = EtherAddress(args[1])
-
-            tenant = RUNTIME.tenants[tenant_id]
-            tenant_pnfdevs = getattr(tenant, self.server.PNFDEV.ALIAS)
-            pnfdev = tenant_pnfdevs[addr]
-
-            tenant.remove_pnfdev(pnfdev)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        self.set_status(204, None)
-
 
 class PNFPServer:
     """Exposes the PNF Protocol API."""
@@ -274,7 +205,6 @@ class PNFPServer:
 
         self.port = port
         self.__load_pnfdevs()
-        self.__load_belongs()
         self.__load_slices()
         self.log = empower.logger.get_logger()
         self.pt_types = pt_types
@@ -348,23 +278,6 @@ class PNFPServer:
             self.pnfdevs[pnfdev.addr] = \
                 self.PNFDEV(pnfdev.addr, pnfdev.label)
 
-    def __load_belongs(self):
-        """Load Tenant/PNFDevs relationship."""
-
-        for belongs in Session().query(TblBelongs).all():
-
-            if belongs.addr not in self.pnfdevs:
-                continue
-
-            if belongs.tenant_id not in RUNTIME.tenants:
-                raise KeyError("Tenant not found %s" % belongs.tenant_id)
-
-            pnfdev = self.pnfdevs[belongs.addr]
-            tenant = RUNTIME.tenants[belongs.tenant_id]
-            tenant_pnfdevs = getattr(tenant, self.PNFDEV.ALIAS)
-
-            tenant_pnfdevs[pnfdev.addr] = pnfdev
-
     def to_dict(self):
         """ Return a dict representation of the object. """
 
@@ -393,13 +306,6 @@ class PNFPServer:
             raise KeyError(addr)
 
         pnfdev = self.pnfdevs[addr]
-
-        for tenant in RUNTIME.tenants.values():
-
-            tenant_pnfdevs = getattr(tenant, self.PNFDEV.ALIAS)
-
-            if addr in tenant_pnfdevs:
-                tenant.remove_pnfdev(pnfdev)
 
         del self.pnfdevs[addr]
 

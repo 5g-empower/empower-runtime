@@ -37,8 +37,6 @@ from empower.datatypes.dscp import DSCP
 from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
-from empower.persistence.persistence import TblBelongs
-from empower.persistence.persistence import TblPendingTenant
 from empower.core.account import Account
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
@@ -508,15 +506,6 @@ class EmpowerRuntime:
         # remove slices in this tenant
         for dscp in list(tenant.slices):
             tenant.del_slice(dscp)
-
-        # remove pnfdev in this tenant
-        devs = Session().query(TblBelongs) \
-                        .filter(TblBelongs.tenant_id == tenant_id)
-
-        for dev in devs:
-            session = Session()
-            session.delete(dev)
-            session.commit()
 
         # remove tenant
         del self.tenants[tenant_id]
