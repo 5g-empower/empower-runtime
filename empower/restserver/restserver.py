@@ -87,16 +87,20 @@ class IndexHandler(BaseHandler):
     def get(self):
         """ Render page. """
 
-        username = self.get_current_user()
-        account = RUNTIME.accounts[username]
+        user = self.get_current_user()
 
-        self.render("index.html",
-                    username=username,
-                    password=account.password,
-                    name=account.name,
-                    surname=account.surname,
-                    email=account.email,
-                    role=account.role)
+        if user not in RUNTIME.accounts:
+            self.render("login.html", error=self.get_argument("error", ""))
+
+        else:
+            account = RUNTIME.accounts[user]
+            self.render("index.html",
+                        username=self.get_current_user(),
+                        password=account.password,
+                        name=account.name,
+                        surname=account.surname,
+                        email=account.email,
+                        role=account.role)
 
 
 class AuthLoginHandler(BaseHandler):
