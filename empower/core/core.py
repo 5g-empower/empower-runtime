@@ -399,6 +399,7 @@ class EmpowerRuntime:
             raise ValueError("Module %s cannot be removed" % app_id)
 
         app.stop()
+
         del tenant.components[app_id]
 
     def unregister(self, name):
@@ -408,18 +409,13 @@ class EmpowerRuntime:
 
         worker = self.components[name]
 
-        from empower.core.module import ModuleWorker
+        from empower.core.module import ServiceWorker
 
-        if not issubclass(type(worker), ModuleWorker):
+        if not issubclass(type(worker), ServiceWorker):
             raise ValueError("Module %s cannot be removed" % name)
 
-        to_be_removed = []
-
-        for module in self.components[name].modules.values():
-            to_be_removed.append(module.module_id)
-
-        for remove in to_be_removed:
-            self.components[name].remove_module(remove)
+        for module_id in list(self.components[name].modules.keys()):
+            self.components[name].remove_module(module_id)
 
         del self.components[name]
 

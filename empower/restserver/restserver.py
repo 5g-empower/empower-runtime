@@ -606,156 +606,9 @@ class ComponentsHandler(EmpowerAPIHandler):
         self.set_status(201, None)
 
 
-class PendingTenantHandler(EmpowerAPIHandler):
-    """Pending Tenant handler. Used to view and manipulate tenant requests."""
-
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_USER],
-              'DELETE': [ROLE_ADMIN, ROLE_USER]}
-
-    HANDLERS = [r"/api/v1/pending/?",
-                r"/api/v1/pending/([a-zA-Z0-9-]*)/?"]
-
-    def get(self, *args, **kwargs):
-        """ Lists all the tenants requested. Returns 404 if the requested
-        tenant does not exists.
-
-        Args:
-            tenant_id: network name of a tenant
-
-        Example URLs:
-
-            GET /api/v1/pending
-            GET /api/v1/pending/TenantName
-
-        """
-
-        try:
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-            if not args:
-                user = self.get_argument("user", default=None)
-                if user:
-                    pendings = RUNTIME.load_pending_tenants(user)
-                else:
-                    pendings = RUNTIME.load_pending_tenants()
-                self.write_as_json(pendings)
-            else:
-                tenant_id = UUID(args[0])
-                pending = RUNTIME.load_pending_tenant(tenant_id)
-                self.write_as_json(pending)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-    def post(self, *args, **kwargs):
-        """ Create a new tenant request.
-
-        Args:
-            None
-
-        Request:
-            version: protocol version (1.0)
-            owner: the username of the requester
-            tenant_id: the network name
-            desc: a description for the new tenant
-            bssid_type: shared or unique
-
-        Example URLs:
-
-            POST /api/v1/pending
-
-        """
-
-        try:
-
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "desc" not in request:
-                raise ValueError("missing desc element")
-
-            if "tenant_name" not in request:
-                raise ValueError("missing tenant_name element")
-
-            bssid_type = T_TYPE_UNIQUE
-            if "bssid_type" in request:
-                bssid_type = request['bssid_type']
-
-            if "plmn_id" in request:
-                plmn_id = PLMNID(request['plmn_id'])
-            else:
-                plmn_id = None
-
-            if len(args) == 1:
-                tenant_id = UUID(args[0])
-            else:
-                tenant_id = None
-
-            tenant_name = SSID(request['tenant_name'])
-
-            RUNTIME.request_tenant(self.account.username,
-                                   request['desc'],
-                                   tenant_name,
-                                   bssid_type,
-                                   tenant_id,
-                                   plmn_id)
-
-            self.set_header("Location", "/api/v1/pendig/%s" % tenant_id)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        self.set_status(201, None)
-
-    def delete(self, *args, **kwargs):
-        """ Delete a tenant request.
-
-        Args:
-            tenant_id: network name of a tenant
-
-        Example URLs:
-
-            PUT /api/v1/pending/52313ecb-9d00-4b7d-b873-b55d3d9ada26
-
-        """
-
-        try:
-
-            if not args:
-
-                pendings = RUNTIME.load_pending_tenants()
-
-                for pending in pendings:
-                    RUNTIME.reject_tenant(pending.tenant_id)
-
-            else:
-
-                tenant_id = UUID(args[0])
-                RUNTIME.reject_tenant(tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        self.set_status(204, None)
-
-
 class TenantHandler(EmpowerAPIHandler):
-
     """Tenat handler. Used to view and manipulate tenants."""
 
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_ADMIN],
-              'DELETE': [ROLE_ADMIN, ROLE_USER]}
 
     HANDLERS = [r"/api/v1/tenants/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/?"]
@@ -1983,7 +1836,7 @@ class RESTServer(tornado.web.Application):
         handler_classes = [BaseHandler, ModuleHandler, AuthLoginHandler,
                            AuthLogoutHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
-                           PendingTenantHandler, TenantHandler, AllowHandler,
+                           TenantHandler, AllowHandler,
                            TenantSliceHandler, TenantEndpointHandler,
                            TenantEndpointNextHandler, IndexHandler,
                            TenantEndpointPortHandler, TenantTrafficRuleHandler]
