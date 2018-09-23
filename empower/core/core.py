@@ -479,25 +479,7 @@ class EmpowerRuntime:
 
         # create default queue
         dscp = DSCP()
-
-        descriptor = {
-            "version": 1.0,
-            "dscp": "0x0",
-            "wifi": {
-                'static-properties': {
-                    "amsdu_aggregation": False,
-                    'quantum': 12000
-                },
-                'wtps': {}
-            },
-            "lte": {
-                'static-properties': {
-                    "amsdu_aggregation": False,
-                    'quantum': 12000
-                },
-                "vbses": {}
-            }
-        }
+        descriptor = {}
 
         self.tenants[request.tenant_id].add_slice(dscp, descriptor)
 

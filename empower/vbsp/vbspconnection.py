@@ -626,18 +626,18 @@ class VBSPConnection:
 
         if self.vbs.addr in slc.lte['vbses']:
 
-            if 'sched_id' in \
-                slc.lte['vbses'][self.vbs.addr]['static-properties']:
+            static = slc.lte['vbses'][self.vbs.addr]['static-properties']
 
-                sched_id = \
-                    slc.lte['vbses'][self.vbs.addr]['static-properties']['sched_id']
+            if 'sched_id' in static:
+                sched_id = static['sched_id']
 
-            if 'rbgs' in slc.lte['vbses'][self.vbs.addr]['static-properties']:
-                rbgs = \
-                    slc.lte['vbses'][self.vbs.addr]['static-properties']['rbgs']
+            if 'rbgs' in static:
+                rbgs = static['rbgs']
 
-            if 'rntis' in slc.lte['vbses'][self.vbs.addr]['runtime-properties']:
-                rntis = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
+            runtime = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
+
+            if 'rntis' in runtime:
+                rntis = runtime['rntis']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),
