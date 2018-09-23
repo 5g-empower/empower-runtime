@@ -84,20 +84,6 @@ class ModuleLVAPPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
 
-        self.pnfp_server.register_message(PT_REGISTER, None,
-                                          self.handle_register)
-        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
-
-    def handle_register(self, wtp):
-        """WTP joined."""
-
-        pass
-
-    def handle_bye(self, wtp):
-        """WTP left."""
-
-        pass
-
     def handle_packet(self, pnfdev, message):
         """Handle response message."""
 

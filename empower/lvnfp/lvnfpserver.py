@@ -71,13 +71,6 @@ class ModuleLVNFPWorker(ModuleWorker):
         ModuleWorker.__init__(self, LVNFPServer.__module__, module, pt_type,
                               pt_packet)
 
-        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
-
-    def handle_bye(self, cpp, msg):
-        """CPP left."""
-
-        pass
-
     def handle_packet(self, msg):
         """Handle response message."""
 
