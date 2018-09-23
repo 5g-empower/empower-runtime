@@ -72,8 +72,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         """ Return username of currently logged user. """
 
-        if self.get_secure_cookie("user"):
-            return self.get_secure_cookie("user").decode('UTF-8')
+        if self.get_secure_cookie("username"):
+            return self.get_secure_cookie("username").decode('UTF-8')
 
         return None
 
@@ -81,17 +81,17 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     """Index page"""
 
-    HANDLERS = [r"/", "/index.html"]
+    HANDLERS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
     def get(self):
         """ Render page. """
 
-        user = self.get_current_user()
-        account = RUNTIME.accounts[user]
+        username = self.get_current_user()
+        account = RUNTIME.accounts[username]
 
         self.render("index.html",
-                    username=self.get_current_user(),
+                    username=username,
                     password=account.password,
                     name=account.name,
                     surname=account.surname,
@@ -114,10 +114,10 @@ class AuthLoginHandler(BaseHandler):
         password = self.get_argument("password", "")
 
         if RUNTIME.check_permission(username, password):
-            self.set_secure_cookie("user", username)
+            self.set_secure_cookie("username", username)
             self.redirect("/index.html")
         else:
-            self.clear_cookie("user")
+            self.clear_cookie("username")
             self.redirect("/auth/login?error=Wrong Password")
 
 
@@ -127,14 +127,13 @@ class AuthLogoutHandler(BaseHandler):
     HANDLERS = [r"/auth/logout"]
 
     def get(self):
-        self.clear_cookie("user")
+        self.clear_cookie("username")
         self.redirect("/auth/login")
 
 
 class AllowHandler(EmpowerAPIHandler):
     """ Allow handler. """
 
-    STRUCT = "allowed"
     HANDLERS = [r"/api/v1/allow/?",
                 r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
 
@@ -155,7 +154,7 @@ class AllowHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid URL")
 
-            acl = getattr(RUNTIME, self.STRUCT)
+            acl = RUNTIME.allowed
 
             if not args:
                 self.write_as_json(acl.values())
@@ -199,8 +198,7 @@ class AllowHandler(EmpowerAPIHandler):
             if "label" in request:
                 label = request['label']
 
-            func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
-            func(EtherAddress(request['sta']), label)
+            RUNTIME.add_allowed(EtherAddress(request['sta']), label)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 
@@ -225,8 +223,7 @@ class AllowHandler(EmpowerAPIHandler):
         try:
             if len(args) != 1:
                 raise ValueError("Invalid URL")
-            func = getattr(RUNTIME, 'remove_%s' % self.STRUCT)
-            func(EtherAddress(args[0]))
+            RUNTIME.remove_allowed(EtherAddress(args[0]))
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
