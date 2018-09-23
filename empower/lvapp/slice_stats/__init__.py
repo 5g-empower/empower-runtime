@@ -16,3 +16,9 @@
 # under the License.
 
 """Traffic rules statistics module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.slice_stats.slice_stats",
+    "desc": "Traffic rules statistics module.",
+}

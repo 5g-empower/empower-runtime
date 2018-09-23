@@ -19,3 +19,9 @@
 
 PT_LVNF_SET_REQUEST = "lvnf_set_request"
 PT_LVNF_SET_RESPONSE = "lvnf_set_response"
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvnfp.lvnf_set.lvnf_set",
+    "desc": "LVNF Element Management System.",
+}
