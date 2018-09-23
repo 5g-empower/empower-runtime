@@ -245,17 +245,12 @@ class PNFPServer:
                 pnfdevs = None
 
                 if pnfdev.ALIAS == "vbses":
-                    pnfdevs = t_slice.lte.get(pnfdev.ALIAS)
-
-                    if pnfdev.addr not in pnfdevs:
-                        pnfdevs[belong.addr] = {'static-properties': {},
-                                                'runtime-properties': {}}
+                    pnfdevs = t_slice.lte[pnfdev.ALIAS]
                 else:
-                    pnfdevs = t_slice.wifi.get(pnfdev.ALIAS)
+                    pnfdevs = t_slice.wifi[pnfdev.ALIAS]
 
-                    if pnfdev.addr not in pnfdevs:
-                        pnfdevs[belong.addr] = {'static-properties': {},
-                                                'runtime-properties': {}}
+                if pnfdev.addr not in pnfdevs:
+                    pnfdevs[belong.addr] = {'static-properties': {}}
 
                 pnfdevs[belong.addr]['static-properties'] = \
                         json.loads(belong.properties)
