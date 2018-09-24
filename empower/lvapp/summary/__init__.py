@@ -16,3 +16,9 @@
 # under the License.
 
 """Summary module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.summary.summary",
+    "desc": "Summary module.",
+}

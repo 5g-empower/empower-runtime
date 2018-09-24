@@ -16,3 +16,9 @@
 # under the License.
 
 """RRC measurements module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.vbsp.rrc_measurements.rrc_measurements",
+    "desc": "RRC measurements module.",
+}

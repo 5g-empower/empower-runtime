@@ -191,7 +191,22 @@ class EmpowerRuntime:
             self.allowed[allow.addr] = acl
 
     def load_main_components(self):
-        """Fetch the available components. """
+        """Fetch the available components.
+
+        A main component is a standard python module defining in the init file
+        a python dictionary named MANIFEST.
+
+        The MANIFEST provides:
+          - name: the name of the module
+          - desc: a human readable description of the app
+          - params: the list of parameters defined by the app.
+
+        For each parameter the following info are provided:
+          - label: the name of the parameters
+          - desc: a description of the parameter
+          - mandatory (optional): true/false (default: false)
+          - default: the default value of the parameter
+        """
 
         results = {}
 
@@ -206,7 +221,7 @@ class EmpowerRuntime:
         """Fetch the available user components.
 
         A user component is a standard python module defining in the init file
-        a python dictionary  named MANIFEST.
+        a python dictionary named MANIFEST.
 
         The MANIFEST provides:
           - name: the name of the module

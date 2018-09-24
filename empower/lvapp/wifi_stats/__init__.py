@@ -16,3 +16,9 @@
 # under the License.
 
 """ WiFi Stats module. """
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.wifi_stats.wifi_stats",
+    "desc": "WiFi Stats module.",
+}

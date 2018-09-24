@@ -19,3 +19,9 @@
 
 PT_LVNF_STATS_REQUEST = "lvnf_stats_request"
 PT_LVNF_STATS_RESPONSE = "lvnf_stats_response"
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvnfp.lvnf_stats.lvnf_stats",
+    "desc": "LVNF Stats gathering module.",
+}
