@@ -209,7 +209,7 @@ class SliceStats(ModulePeriodic):
         block = "%s-%s-%s" % (self.block.hwaddr, self.block.channel,
                               self.block.band)
 
-        slc.wtps[wtp_addr]['blocks'][block] = self.slice_stats
+        slc.wifi['wtps'][wtp_addr]['blocks'][block] = self.slice_stats
 
         # call callback
         self.handle_callback(self)

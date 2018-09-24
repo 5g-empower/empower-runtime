@@ -22,6 +22,8 @@ import json
 from empower.datatypes.dscp import DSCP
 from empower.datatypes.etheraddress import EtherAddress
 
+import empower.logger
+
 
 class Slice:
     """The base EmPOWER slice class.
@@ -65,6 +67,8 @@ class Slice:
                       "rntis": [
                         555555
                       ]
+                    },
+                    "cells": {
                     }
                 }
             }
@@ -73,6 +77,8 @@ class Slice:
     """
 
     def __init__(self, dscp, tenant, descriptor):
+
+        self.log = empower.logger.get_logger()
 
         self.dscp = DSCP(dscp)
         self.tenant = tenant
@@ -143,40 +149,47 @@ class Slice:
             if wtp_addr not in self.tenant.wtps:
                 raise KeyError("Unable to find WTP %s" % addr)
 
-            if 'static-properties' not in descriptor['wifi']['wtps'][addr]:
-                continue
+            if 'static-properties' in descriptor['wifi']['wtps'][addr]:
 
-            self.wifi['wtps'][wtp_addr] = {'static-properties': {}}
+                self.wifi['wtps'][wtp_addr] = {'static-properties': {}}
 
-            if 'amsdu_aggregation' in \
-                descriptor['wifi']['wtps'][addr]['static-properties']:
+                if 'amsdu_aggregation' in \
+                    descriptor['wifi']['wtps'][addr]['static-properties']:
 
-                amsdu_aggregation = descriptor['wifi']['wtps'][addr] \
-                    ['static-properties']['amsdu_aggregation']
+                    amsdu_aggregation = descriptor['wifi']['wtps'][addr] \
+                        ['static-properties']['amsdu_aggregation']
 
-                props = self.wifi['wtps'][wtp_addr]['static-properties']
+                    props = self.wifi['wtps'][wtp_addr]['static-properties']
 
-                if isinstance(amsdu_aggregation, bool):
-                    props['amsdu_aggregation'] = amsdu_aggregation
-                else:
-                    props['amsdu_aggregation'] = \
-                        json.loads(amsdu_aggregation.lower())
+                    if isinstance(amsdu_aggregation, bool):
+                        props['amsdu_aggregation'] = amsdu_aggregation
+                    else:
+                        props['amsdu_aggregation'] = \
+                            json.loads(amsdu_aggregation.lower())
 
-            if 'quantum' in \
-                descriptor['wifi']['wtps'][addr]['static-properties']:
+                if 'quantum' in \
+                    descriptor['wifi']['wtps'][addr]['static-properties']:
 
-                quantum = \
-                    descriptor['wifi']['wtps'][addr]['static-properties'] \
-                        ['quantum']
+                    quantum = \
+                        descriptor['wifi']['wtps'][addr]['static-properties'] \
+                            ['quantum']
 
-                if isinstance(quantum, int):
-                    self.wifi['wtps'][wtp_addr]['static-properties'] \
-                        ['quantum'] = quantum
-                else:
-                    self.wifi['wtps'][wtp_addr]['static-properties'] \
-                    ['quantum'] = int(quantum)
+                    if isinstance(quantum, int):
+                        self.wifi['wtps'][wtp_addr]['static-properties'] \
+                            ['quantum'] = quantum
+                    else:
+                        self.wifi['wtps'][wtp_addr]['static-properties'] \
+                        ['quantum'] = int(quantum)
+
+            if 'blocks' in descriptor['wifi']['wtps'][addr]:
+                self.wifi['wtps'][wtp_addr]['blocks'] = \
+                    descriptor['wifi']['wtps'][addr]['blocks']
 
     def __parse_lte_descriptor(self, descriptor):
+
+        if not self.tenant.plmn_id:
+            self.log.info('Tenant %s without PLMIND', self.tenant.tenant_name)
+            return
 
         if 'static-properties' in descriptor['lte']:
             self.__parse_lte_static_properties(descriptor)
@@ -229,7 +242,7 @@ class Slice:
                 raise KeyError("Unable to find VBS %s" % addr)
 
             self.lte['vbses'][vbs_addr] = \
-                {'static-properties': {}, 'runtime-properties': {}}
+                {'static-properties': {}, 'runtime-properties': {}, 'cells': {}}
 
             if 'static-properties' in descriptor['lte']['vbses'][addr]:
 
@@ -273,6 +286,10 @@ class Slice:
                     else:
                         self.lte['vbses'][vbs_addr]['runtime-properties'] \
                         ['rntis'] = [int(rntis)]
+
+            if 'cells' in descriptor['lte']['vbses'][addr]:
+                self.lte['vbses'][vbs_addr]['cells'] = \
+                    descriptor['lte']['vbses'][addr]['cells']
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
