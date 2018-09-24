@@ -344,11 +344,14 @@ class VBSPConnection:
             # send slices configuration
             for slc in tenant.slices.values():
 
-                if self.vbs.addr not in slc.vbses:
+                if not tenant.plmn_id:
+                    continue
+
+                if self.vbs.addr not in slc.lte['vbses']:
                     continue
 
                 for cell in self.vbs.cells.values():
-                    if not slc.vbses[self.vbs.addr]['cells']:
+                    if not slc.lte['vbses'][self.vbs.addr]['cells']:
                         self.vbs.connection.\
                             send_add_set_ran_mac_slice_request(cell,
                                                                slc,
@@ -491,11 +494,12 @@ class VBSPConnection:
 
         slc = tenant.slices[dscp]
 
-        if vbs.addr not in slc.vbses:
-            slc.vbses[vbs.addr] = {'properties': {}, 'cells': {}}
+        if vbs.addr not in slc.lte['vbses']:
+            slc.lte['vbses'][vbs.addr] = \
+                {'static-properties': {}, 'runtime-properties': {}, 'cells': {}}
 
-        if hdr.cellid not in slc.vbses[vbs.addr]['cells']:
-            slc.vbses[vbs.addr]['cells'][hdr.cellid] = {}
+        if hdr.cellid not in slc.lte['vbses'][vbs.addr]['cells']:
+            slc.lte['vbses'][vbs.addr]['cells'][hdr.cellid] = {}
 
         for raw_cap in msg.options:
 
@@ -509,15 +513,15 @@ class VBSPConnection:
             self.log.warning("Processing options %s", prop)
 
             if raw_cap.type == EP_RAN_MAC_SLICE_SCHED_ID:
-                slc.vbses[self.vbs.addr]['properties']['sched_id'] = \
-                    option.sched_id
+                slc.lte['vbses'][vbs.addr] \
+                    ['static-properties']['sched_id'] = option.sched_id
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RBGS:
-                slc.vbses[self.vbs.addr]['properties']['rbgs'] = \
+                slc.lte['vbses'][vbs.addr]['static-properties']['rbgs'] = \
                     option.rbgs
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
-                slc.lte_runtime['rntis'] = option.rntis
+                slc.lte['vbses']['runtime-properties']['rntis'] = option.rntis
 
         self.log.info("Slice %s updated", slc)
 
@@ -626,18 +630,22 @@ class VBSPConnection:
 
         if self.vbs.addr in slc.lte['vbses']:
 
-            static = slc.lte['vbses'][self.vbs.addr]['static-properties']
+            if 'static-properties' in slc.lte['vbses'][self.vbs.addr]:
 
-            if 'sched_id' in static:
-                sched_id = static['sched_id']
+                static = slc.lte['vbses'][self.vbs.addr]['static-properties']
 
-            if 'rbgs' in static:
-                rbgs = static['rbgs']
+                if 'sched_id' in static:
+                    sched_id = static['sched_id']
 
-            runtime = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
+                if 'rbgs' in static:
+                    rbgs = static['rbgs']
 
-            if 'rntis' in runtime:
-                rntis = runtime['rntis']
+            if 'runtime-properties' in slc.lte['vbses'][self.vbs.addr]:
+
+                runtime = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
+
+                if 'rntis' in runtime:
+                    rntis = runtime['rntis']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),

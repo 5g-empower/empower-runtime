@@ -246,11 +246,17 @@ class PNFPServer:
 
                 if pnfdev.ALIAS == "vbses":
                     pnfdevs = t_slice.lte[pnfdev.ALIAS]
+
+                    if pnfdev.addr not in pnfdevs:
+                        pnfdevs[belong.addr] = {'static-properties': {},
+                                                'cells': {}}
+
                 else:
                     pnfdevs = t_slice.wifi[pnfdev.ALIAS]
 
-                if pnfdev.addr not in pnfdevs:
-                    pnfdevs[belong.addr] = {'static-properties': {}}
+                    if pnfdev.addr not in pnfdevs:
+                        pnfdevs[belong.addr] = {'static-properties': {},
+                                                'blocks': {}}
 
                 pnfdevs[belong.addr]['static-properties'] = \
                         json.loads(belong.properties)

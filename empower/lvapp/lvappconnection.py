@@ -441,7 +441,7 @@ class LVAPPConnection:
 
             # send slices configuration
             for slc in tenant.slices.values():
-                if self.wtp.addr not in slc.wtps:
+                if self.wtp.addr not in slc.wifi['wtps']:
                     continue
                 for block in self.wtp.supports:
                     self.wtp.connection.send_set_slice(block, slc)
@@ -798,11 +798,13 @@ class LVAPPConnection:
 
         slc = tenant.slices[dscp]
 
-        if wtp.addr not in slc.wtps:
-            slc.wtps[wtp.addr] = {'properties': {}, 'blocks': {}}
+        if wtp.addr not in slc.wifi['wtps']:
+            slc.wifi['wtps'][wtp.addr] = {'static-properties': {}, 'blocks': {}}
 
-        slc.wtps[wtp.addr]['properties']['quantum'] = status.quantum
-        slc.wtps[wtp.addr]['properties']['amsdu_aggregation'] = \
+        slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
+            status.quantum
+
+        slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
             bool(status.flags.amsdu_aggregation)
 
         self.log.info("Slice %s updated", slc)
