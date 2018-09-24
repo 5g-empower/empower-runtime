@@ -19,8 +19,8 @@
 
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.app import EmpowerApp
-from empower.lvapp.cqm.maps import POLLER_RESPONSE
-from empower.lvapp.cqm.maps import Maps
+from empower.lvapp.common.maps import POLLER_RESPONSE
+from empower.lvapp.common.maps import Maps
 
 from empower.main import RUNTIME
 

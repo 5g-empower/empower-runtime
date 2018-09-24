@@ -449,30 +449,19 @@ class ComponentsHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid url")
 
-            components = {}
             main_components = RUNTIME.load_main_components()
-
-            for component in RUNTIME.components:
-
-                if hasattr(RUNTIME.components[component], 'to_dict'):
-                    components[component] = \
-                        RUNTIME.components[component].to_dict()
-                elif component in main_components:
-                    components[component] = main_components[component]
-                else:
-                    components[component] = {}
-                components[component]['active'] = True
 
             for component in main_components:
 
-                if component not in RUNTIME.components:
-                    components[component] = main_components[component]
-                    components[component]['active'] = False
+                if component in RUNTIME.components:
+                    main_components[component]['active'] = True
+                else:
+                    main_components[component]['active'] = False
 
             if not args:
-                self.write_as_json(components)
+                self.write_as_json(main_components)
             else:
-                self.write_as_json(components[args[0]])
+                self.write_as_json(main_components[args[0]])
 
         except ValueError as ex:
             self.send_error(400, message=ex)

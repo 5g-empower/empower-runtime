@@ -16,3 +16,9 @@
 # under the License.
 
 """Link statistics module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.lvap_stats.lvap_stats",
+    "desc": "Link statistics module.",
+}

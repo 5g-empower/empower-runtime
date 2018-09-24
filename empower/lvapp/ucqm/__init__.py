@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2017 Roberto Riggio
+# Copyright (c) 2016 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Traffic rules statistics module."""
+"""Channel quality and conflict maps package."""
 
 # the manifest
 MANIFEST = {
-    "name": "empower.lvapp.slice_stats.slice_stats",
-    "desc": "Traffic rules statistics module.",
+    "name": "empower.lvapp.ucqm.ucqm",
+    "desc": "Channel quality map package."
 }
