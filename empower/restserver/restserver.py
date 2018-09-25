@@ -1017,6 +1017,9 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(request["dscp"])
 
+            if dscp in tenant.slices:
+                raise ValueError("slice already registered in this tenant")
+
             tenant.add_slice(dscp, request)
 
             url = "/api/v1/tenants/%s/slices/%s" % (tenant_id, dscp)
