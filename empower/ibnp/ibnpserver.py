@@ -68,6 +68,7 @@ class IBNPServer(tornado.web.Application):
 
             tr = TrafficRule(ssid=rule_db.tenant_id,
                              match=rule_db.match,
+                             priority=rule_db.priority,
                              label=rule_db.label,
                              dscp=rule_db.dscp)
 
