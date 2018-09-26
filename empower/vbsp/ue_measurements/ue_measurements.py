@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""RRC measurements module."""
+"""UE measurements module."""
 
 import uuid
 
@@ -41,41 +41,41 @@ from empower.vbsp import EP_OPERATION_REM
 from empower.main import RUNTIME
 
 
-EP_ACT_RRC_MEASUREMENT = 0x05
+EP_ACT_UE_MEASURE = 0x05
 
-RRC_REQUEST = Struct("rrc_request",
-                     UBInt8("type"),
-                     UBInt8("version"),
-                     Bytes("enbid", 8),
-                     UBInt16("cellid"),
-                     UBInt32("xid"),
-                     BitStruct("flags", Padding(15), Bit("dir")),
-                     UBInt32("seq"),
-                     UBInt16("length"),
-                     UBInt16("action"),
-                     UBInt8("opcode"),
-                     UBInt8("meas_id"),
-                     UBInt16("rnti"),
-                     UBInt16("earfcn"),
-                     UBInt16("interval"),
-                     UBInt16("max_cells"),
-                     UBInt16("max_meas"))
+UE_MEAS_REQUEST = Struct("ue_meas_request",
+                         UBInt8("type"),
+                         UBInt8("version"),
+                         Bytes("enbid", 8),
+                         UBInt16("cellid"),
+                         UBInt32("xid"),
+                         BitStruct("flags", Padding(15), Bit("dir")),
+                         UBInt32("seq"),
+                         UBInt16("length"),
+                         UBInt16("action"),
+                         UBInt8("opcode"),
+                         UBInt8("meas_id"),
+                         UBInt16("rnti"),
+                         UBInt16("earfcn"),
+                         UBInt16("interval"),
+                         UBInt16("max_cells"),
+                         UBInt16("max_meas"))
 
-RRC_ENTRY = Struct("rrc_entries",
-                   UBInt8("meas_id"),
-                   UBInt16("pci"),
-                   SBInt16("rsrp"),
-                   SBInt16("rsrq"))
+UE_MEAS_ENTRY = Struct("ue_meas_entries",
+                       UBInt8("meas_id"),
+                       UBInt16("pci"),
+                       SBInt16("rsrp"),
+                       SBInt16("rsrq"))
 
-RRC_RESPONSE = Struct("rrc_response",
-                      UBInt32("nof_meas"),
-                      Array(lambda ctx: ctx.nof_meas, RRC_ENTRY))
+UE_MEAS_RESPONSE = Struct("ue_meas_response",
+                          UBInt32("nof_meas"),
+                          Array(lambda ctx: ctx.nof_meas, UE_MEAS_ENTRY))
 
 
-class RRCMeasurements(ModulePeriodic):
-    """ LVAPStats object. """
+class UEMeasurements(ModulePeriodic):
+    """ UEMurements object. """
 
-    MODULE_NAME = "rrc_measurements"
+    MODULE_NAME = "ue_measurements"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue', 'measurements']
 
     def __init__(self):
@@ -189,8 +189,8 @@ class RRCMeasurements(ModulePeriodic):
 
                 self.vbs.connection.send_message(msg,
                                                  E_TYPE_TRIG,
-                                                 EP_ACT_RRC_MEASUREMENT,
-                                                 RRC_REQUEST,
+                                                 EP_ACT_UE_MEASURE,
+                                                 UE_MEAS_REQUEST,
                                                  cellid=self.ue.cell.pci,
                                                  xid=self.module_id,
                                                  opcode=EP_OPERATION_REM)
@@ -212,8 +212,8 @@ class RRCMeasurements(ModulePeriodic):
 
             self.vbs.connection.send_message(msg,
                                              E_TYPE_TRIG,
-                                             EP_ACT_RRC_MEASUREMENT,
-                                             RRC_REQUEST,
+                                             EP_ACT_UE_MEASURE,
+                                             UE_MEAS_REQUEST,
                                              cellid=self.ue.cell.pci,
                                              xid=self.module_id,
                                              opcode=EP_OPERATION_ADD)
@@ -254,32 +254,32 @@ class RRCMeasurements(ModulePeriodic):
         self.handle_callback(self)
 
 
-class RRCMeasurementsWorker(ModuleVBSPWorker):
+class UEMeasurementsWorker(ModuleVBSPWorker):
     """ Counter worker. """
 
     pass
 
 
-def rrc_measurements(**kwargs):
+def ue_measurements(**kwargs):
     """Create a new module."""
 
-    module = RRCMeasurementsWorker.__module__
+    module = UEMeasurementsWorker.__module__
     return RUNTIME.components[module].add_module(**kwargs)
 
 
-def bound_rrc_measurements(self, **kwargs):
+def bound_ue_measurements(self, **kwargs):
     """Create a new module (app version)."""
 
     kwargs['tenant_id'] = self.tenant.tenant_id
-    return rrc_measurements(**kwargs)
+    return ue_measurements(**kwargs)
 
 
-setattr(EmpowerApp, RRCMeasurements.MODULE_NAME, bound_rrc_measurements)
+setattr(EmpowerApp, UEMeasurements.MODULE_NAME, bound_ue_measurements)
 
 
 def launch():
     """ Initialize the module. """
 
-    return RRCMeasurementsWorker(RRCMeasurements,
-                                 EP_ACT_RRC_MEASUREMENT,
-                                 RRC_RESPONSE)
+    return UEMeasurementsWorker(UEMeasurements,
+                                EP_ACT_UE_MEASURE,
+                                UE_MEAS_RESPONSE)

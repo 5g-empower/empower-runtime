@@ -40,7 +40,7 @@ from empower.main import RUNTIME
 
 EP_ACT_MAC_REPORTS = 0x06
 
-MAC_REPORTS_REQ = Struct("rrc_request",
+MAC_REPORTS_REQ = Struct("mac_reports_request",
                          UBInt8("type"),
                          UBInt8("version"),
                          Bytes("enbid", 8),
