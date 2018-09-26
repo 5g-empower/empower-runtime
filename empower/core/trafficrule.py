@@ -30,12 +30,13 @@ class TrafficRule:
     instance within a Tenant.
     """
 
-    def __init__(self, ssid, match, dscp, label):
+    def __init__(self, ssid, match, dscp, label, priority=0):
 
         self.ssid = ssid
         self.match = match
         self.dscp = dscp
         self.label = label
+        self.priority = priority
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
@@ -43,8 +44,10 @@ class TrafficRule:
         return {'match': self.match,
                 'dscp': self.dscp,
                 'ssid': self.ssid,
+                'priority': self.priority,
                 'label': self.label}
 
     def __repr__(self):
 
-        return "%s-%s -> %s" % (self.ssid, self.dscp, self.match)
+        return "%s-%s -> %s (priority %d)" % \
+            (self.ssid, self.dscp, self.match, self.priority)
