@@ -343,20 +343,20 @@ class VBSPConnection:
                 if not tenant.plmn_id:
                     continue
 
-                if self.vbs.addr not in slc.lte['vbses']:
-                    continue
+                if not slc.lte['vbses'] or \
+                    (slc.lte['vbses'] and self.vbs.addr in slc.lte['vbses']):
 
-                for cell in self.vbs.cells.values():
-                    if not slc.lte['vbses'][self.vbs.addr]['cells']:
-                        self.vbs.connection.\
-                            send_add_set_ran_mac_slice_request(cell,
-                                                               slc,
-                                                               EP_OPERATION_ADD)
-                    else:
-                        self.vbs.connection.\
-                            send_add_set_ran_mac_slice_request(cell,
-                                                               slc,
-                                                               EP_OPERATION_SET)
+                    for cell in self.vbs.cells.values():
+                        if not slc.lte['vbses'][self.vbs.addr]['cells']:
+                            self.vbs.connection.\
+                                send_add_set_ran_mac_slice_request(cell,
+                                                                   slc,
+                                                                   EP_OPERATION_ADD)
+                        else:
+                            self.vbs.connection.\
+                                send_add_set_ran_mac_slice_request(cell,
+                                                                   slc,
+                                                                   EP_OPERATION_SET)
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.

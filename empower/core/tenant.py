@@ -184,11 +184,12 @@ class Tenant:
         for rule in trs:
             results[rule.match] = {'match': rule.match,
                                    'label': rule.label,
+                                   'priority': rule.priority,
                                    'dscp': rule.dscp}
 
         return results
 
-    def add_traffic_rule(self, match, dscp, label):
+    def add_traffic_rule(self, match, dscp, label, priority=0):
         """Add a new traffic rule to the Tenant.
 
         Args:
@@ -203,7 +204,7 @@ class Tenant:
         """
 
         rule = TblTrafficRule(tenant_id=self.tenant_id, match=match,
-                              dscp=dscp, label=label)
+                              dscp=dscp, priority=priority, label=label)
 
         try:
             session = Session()
@@ -216,6 +217,7 @@ class Tenant:
         trule = TrafficRule(ssid=self.tenant_id,
                             match=match,
                             dscp=dscp,
+                            priority=priority,
                             label=label)
 
         # Send command to IBN
@@ -317,23 +319,25 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wifi['wtps']:
-            wtp = self.wtps[wtp_addr]
-            if not wtp.is_online():
-                continue
-            for block in wtp.supports:
-                wtp.connection.send_set_slice(block, slc)
+        for wtp_addr in self.wtps:
+            if not slc.wifi['wtps'] or (slc.wifi['wtps'] and wtp_addr in slc.wifi['wtps']):
+                wtp = self.wtps[wtp_addr]
+                if not wtp.is_online():
+                    continue
+                for block in wtp.supports:
+                    wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.lte['vbses']:
-            vbs = self.vbses[vbs_addr]
-            if not vbs.is_online():
-                continue
-            for cell in vbs.cells.values():
-                vbs.connection.\
-                    send_add_set_ran_mac_slice_request(cell,
-                                                       slc,
-                                                       EP_OPERATION_ADD)
+        for vbs_addr in self.vbses:
+            if not slc.lte['vbses'] or (slc.lte['vbses'] and vbs_addr in slc.lte['vbses']):
+                vbs = self.vbses[vbs_addr]
+                if not vbs.is_online():
+                    continue
+                for cell in vbs.cells.values():
+                    vbs.connection.\
+                        send_add_set_ran_mac_slice_request(cell,
+                                                           slc,
+                                                           EP_OPERATION_ADD)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.

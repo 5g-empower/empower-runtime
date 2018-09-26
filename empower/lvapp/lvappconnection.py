@@ -441,10 +441,9 @@ class LVAPPConnection:
 
             # send slices configuration
             for slc in tenant.slices.values():
-                if self.wtp.addr not in slc.wifi['wtps']:
-                    continue
-                for block in self.wtp.supports:
-                    self.wtp.connection.send_set_slice(block, slc)
+                if not slc.wifi['wtps'] or (slc.wifi['wtps'] and self.wtp.addr in slc.wifi['wtps']):
+                    for block in self.wtp.supports:
+                        self.wtp.connection.send_set_slice(block, slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -780,7 +779,7 @@ class LVAPPConnection:
         tenant = RUNTIME.load_tenant(ssid)
 
         if not tenant:
-            self.log.info("Traffic rule status from unknown tenant %s", ssid)
+            self.log.info("Slice status from unknown tenant %s", ssid)
             return
 
         # Check if block is valid

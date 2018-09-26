@@ -338,5 +338,7 @@ class TblTrafficRule(Base):
 
     label = Column(String)
 
+    priority = Column(String)
+
 
 Base.metadata.create_all(ENGINE)

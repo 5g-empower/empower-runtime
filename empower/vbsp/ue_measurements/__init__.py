@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""RRC measurements module."""
+"""UE measurements module."""
 
 # the manifest
 MANIFEST = {
-    "name": "empower.vbsp.rrc_measurements.rrc_measurements",
-    "desc": "RRC measurements module.",
+    "name": "empower.vbsp.ue_measurements.ue_measurements",
+    "desc": "UE measurements module.",
 }

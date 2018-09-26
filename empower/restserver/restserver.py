@@ -1017,6 +1017,9 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(request["dscp"])
 
+            if dscp in tenant.slices:
+                raise ValueError("slice already registered in this tenant")
+
             tenant.add_slice(dscp, request)
 
             url = "/api/v1/tenants/%s/slices/%s" % (tenant_id, dscp)
@@ -1584,7 +1587,11 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             dscp = DSCP(request["dscp"])
             match = Match(request["match"])
 
-            tenant.add_traffic_rule(match, dscp, request["label"])
+            if "priority" in request:
+                tenant.add_traffic_rule(match, dscp, request["label"], \
+                                        request["request"])
+            else:
+                tenant.add_traffic_rule(match, dscp, request["label"])
 
             url = "/api/v1/tenants/%s/trs/%s" % (tenant_id, match)
             self.set_header("Location", url)
