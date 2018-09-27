@@ -441,7 +441,10 @@ class LVAPPConnection:
 
             # send slices configuration
             for slc in tenant.slices.values():
-                if not slc.wifi['wtps'] or (slc.wifi['wtps'] and self.wtp.addr in slc.wifi['wtps']):
+
+                if not slc.wifi['wtps'] or \
+                    (slc.wifi['wtps'] and self.wtp.addr in slc.wifi['wtps']):
+
                     for block in self.wtp.supports:
                         self.wtp.connection.send_set_slice(block, slc)
 
