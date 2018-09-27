@@ -269,7 +269,7 @@ class VBSPConnection:
 
         return msg.xid
 
-    def _handle_hello(self, vbs, hdr, event, _):
+    def _handle_hello(self, vbs, hdr, event, message):
         """Handle an incoming HELLO message.
         Args:
             hello, a HELLO message
@@ -316,18 +316,14 @@ class VBSPConnection:
                             cap.ul_earfcn, cap.ul_prbs)
                 vbs.cells[cap.pci] = cell
 
-                # send ran setup request
-                self.send_ran_setup_request(cap.pci)
-
                 # send slice request
                 self.send_ran_mac_slice_request(cap.pci)
 
         # transition to the online state
         vbs.set_online()
 
-        # if UE reports are supported then activate them
-        if bool(caps.flags.ue_report):
-            self.send_ue_reports_request()
+        # activate UE reports
+        self.send_ue_reports_request()
 
         # send slices
         self.update_slices()
@@ -361,16 +357,6 @@ class VBSPConnection:
                                 send_add_set_ran_mac_slice_request(cell,
                                                                    slc,
                                                                    EP_OPERATION_SET)
-
-    def _handle_ran_setup_response(self, vbs, hdr, event, setup):
-        """Handle an incoming RAN SETUP message.
-        Args:
-            setup, a RAN_SETUP messagge
-        Returns:
-            None
-        """
-
-        pass
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -540,22 +526,6 @@ class VBSPConnection:
                           EP_ACT_CAPS,
                           CAPS_REQUEST)
 
-    def send_ran_setup_request(self, cell_id):
-        """Send a RAN_SETUP_REQUEST message.
-        Args:
-            cell_id: the id of the cell
-        Returns:
-            None
-        """
-
-        msg = Container(length=RAN_SETUP_REQUEST.sizeof(), dummy=0)
-
-        self.send_message(msg,
-                          E_TYPE_SINGLE,
-                          EP_ACT_RAN_SETUP,
-                          RAN_SETUP_REQUEST,
-                          cellid=cell_id)
-
     def send_ue_reports_request(self):
         """Send a UE Reports message.
         Args:
@@ -596,7 +566,10 @@ class VBSPConnection:
                           UE_HO_REQUEST,
                           cellid=ue.cell.pci)
 
-    def send_ran_mac_slice_request(self, cell_id, slice_id=0):
+    def send_ran_mac_slice_request(self,
+                                   cell_id,
+                                   plmn_id=PLMNID(),
+                                   dscp=DSCP()):
         """Send a STATUS_SLICE_REQUEST message.
         Args:
             None
@@ -605,8 +578,9 @@ class VBSPConnection:
         """
 
         msg = Container(length=RAN_MAC_SLICE_REQUEST.sizeof(),
-                        slice_id=slice_id,
-                        dummy=0)
+                        plmn_id=plmn_id.to_raw(),
+                        dscp=dscp.to_raw(),
+                        padding=b'\x00\x00\x00')
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
