@@ -533,7 +533,6 @@ class LVAPPConnection:
             None
         """
 
-        print(request)
         sta = EtherAddress(request.sta)
 
         if sta not in RUNTIME.lvaps:
@@ -906,7 +905,6 @@ class LVAPPConnection:
                         sta=lvap.addr.to_raw(),
                         bssid=lvap.bssid.to_raw())
 
-        print(msg)
         return self.send_message(PT_AUTH_RESPONSE, msg)
 
     def send_probe_response(self, lvap, ssid):
