@@ -20,14 +20,14 @@
 from empower.core.app import EmpowerApp
 
 
-class RRCMeasurementsPoller(EmpowerApp):
-    """RRC Measurements Poller Apps.
+class UEMeasurementsPoller(EmpowerApp):
+    """UE Measurements Poller Apps.
 
     Command Line Parameters:
         tenant_id: tenant id
 
     Example:
-        ./empower-runtime.py apps.pollers.rrcmeasurementspoller \
+        ./empower-runtime.py apps.pollers.uemeasurementspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
@@ -40,10 +40,10 @@ class RRCMeasurementsPoller(EmpowerApp):
               "max_cells": 2,
               "max_meas": 2}]
 
-        self.rrc_measurements(ue=ue, measurements=measurements)
+        self.ue_measurements(ue=ue, measurements=measurements)
 
 
 def launch(tenant_id):
     """ Initialize the module. """
 
-    return RRCMeasurementsPoller(tenant_id=tenant_id)
+    return UEMeasurementsPoller(tenant_id=tenant_id)

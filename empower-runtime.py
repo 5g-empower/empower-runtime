@@ -39,7 +39,7 @@ if __name__ == "__main__":
              'lvapp.rssi.rssi',
              'lvapp.summary.summary',
 
-             'vbsp.rrc_measurements.rrc_measurements',
+             'vbsp.ue_measurements.ue_measurements',
              'vbsp.mac_reports.mac_reports',
 
              'lvnfp.lvnf_get.lvnf_get',
