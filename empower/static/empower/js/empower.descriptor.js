@@ -252,22 +252,22 @@ class EmpDescriptor{
 //            this.d[targets.LVNF].ff.UPD = ff_Lvnf_Update;
 
 
-        // RRC_MEASUREMENT  // TODO EMP_if: da controllare
-        this.d[targets.RRC_MEASUREMENT] =  { "attr" : {},    // attributes
+        // UE_MEASUREMENT  // TODO EMP_if: da controllare
+        this.d[targets.UE_MEASUREMENT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.RRC_MEASUREMENT].attr["id"]             =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.RRC_MEASUREMENT].attr["module_type"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
-            this.d[targets.RRC_MEASUREMENT].attr["tenant_id"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.uuid};
-            this.d[targets.RRC_MEASUREMENT].attr["callback"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
-            this.d[targets.RRC_MEASUREMENT].attr["imsi"]           =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.RRC_MEASUREMENT].attr["measurements"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.RRC_MEASUREMENT].attr["results"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE_MEASUREMENT].attr["id"]             =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.UE_MEASUREMENT].attr["module_type"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d[targets.UE_MEASUREMENT].attr["tenant_id"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.uuid};
+            this.d[targets.UE_MEASUREMENT].attr["callback"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d[targets.UE_MEASUREMENT].attr["imsi"]           =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.UE_MEASUREMENT].attr["measurements"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE_MEASUREMENT].attr["results"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
 
-//            this.d[targets.RRC_MEASUREMENT].ff.TBL = ff_Rrc_Table;
-//            this.d[targets.RRC_MEASUREMENT].ff.GET = ff_Rrc_Get;
-//            this.d[targets.RRC_MEASUREMENT].ff.SET = ff_Rrc_Set;
-//            this.d[targets.RRC_MEASUREMENT].ff.UPD = ff_Rrc_Update;
+//            this.d[targets.UE_MEASUREMENT].ff.TBL = ff_Rrc_Table;
+//            this.d[targets.UE_MEASUREMENT].ff.GET = ff_Rrc_Get;
+//            this.d[targets.UE_MEASUREMENT].ff.SET = ff_Rrc_Set;
+//            this.d[targets.UE_MEASUREMENT].ff.UPD = ff_Rrc_Update;
 
 
         // ACL

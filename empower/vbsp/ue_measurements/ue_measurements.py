@@ -219,14 +219,14 @@ class UEMeasurements(ModulePeriodic):
                                              opcode=EP_OPERATION_ADD)
 
     def handle_response(self, response):
-        """Handle an incoming RRC_MEASUREMENTS message.
+        """Handle an incoming UE_MEASUREMENTS message.
         Args:
-            meas, a RRC_MEASUREMENTS message
+            meas, a UE_MEASUREMENTS message
         Returns:
             None
         """
 
-        for entry in response.rrc_entries:
+        for entry in response.ue_entries:
 
             # save measurements in this object
             if entry.meas_id not in self.results:
@@ -245,7 +245,7 @@ class UEMeasurements(ModulePeriodic):
             for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
                 for cell in vbs.cells.values():
                     if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
-                        cell.rrc_measurements[self.ue.ue_id] = {
+                        cell.ue_measurements[self.ue.ue_id] = {
                             "rsrp": entry.rsrp,
                             "rsrq": entry.rsrq
                         }

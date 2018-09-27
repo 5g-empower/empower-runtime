@@ -22,7 +22,7 @@ class EmpQueryEngine{
         this.targets.LVAP = "lvaps";
         this.targets.LVNF = "lvnfs";
         this.targets.ACL = "acl";
-        this.targets.RRC_MEASUREMENT = "rrc_measurements";
+        this.targets.UE_MEASUREMENT = "ue_measurements";
 
         this.queryqueue = [];
         this.querystatus = 0;
@@ -109,7 +109,7 @@ class EmpQueryEngine{
 //                case this.targets.UE:
 //                case this.targets.LVAP:
 //                case this.targets.LVNF:
-//                case this.targets.RRC_MEASUREMENT:
+//                case this.targets.UE_MEASUREMENT:
 //                case this.targets.ACTIVE:
             case this.targets.TENANT:
                 if( type === "POST" ){
@@ -223,7 +223,7 @@ class EmpQueryEngine{
                             }
                 break;
             case this.targets.LVNF:
-            case this.targets.RRC_MEASUREMENT:
+            case this.targets.UE_MEASUREMENT:
                 if( tenant_id ){
                     url = "/api/v1/tenants/" + tenant_id + "/" + target;
                         }

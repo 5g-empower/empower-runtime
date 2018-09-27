@@ -45,16 +45,16 @@ class MobilityManager(EmpowerApp):
               "max_cells": 2,
               "max_meas": 2}]
 
-        self.rrc_measurements(ue=ue, measurements=measurements)
+        self.ue_measurements(ue=ue, measurements=measurements)
 
     def loop(self):
         """ Periodic job. """
 
         for ueq in self.ues():
             for cell in self.cells():
-                if ueq.ue_id not in cell.rrc_measurements:
+                if ueq.ue_id not in cell.ue_measurements:
                     continue
-                print("Cell %s UE %s -> RSRQ %d" % (cell.vbs.addr, ueq.ue_id, cell.rrc_measurements[ueq.ue_id]['rsrq']))
+                print("Cell %s UE %s -> RSRQ %d" % (cell.vbs.addr, ueq.ue_id, cell.ue_measurements[ueq.ue_id]['rsrq']))
             target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
 
             ueq.cell = target_cell

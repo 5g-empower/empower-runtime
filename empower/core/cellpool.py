@@ -27,10 +27,10 @@ class CellPool(list):
     def sort_by_rsrp(self, ue_id):
         """Return list sorted by rsrp for the specified address."""
 
-        filtered = [x for x in self if ue_id in x.rrc_measurements]
+        filtered = [x for x in self if ue_id in x.ue_measurements]
 
         cells = sorted(filtered,
-                       key=lambda x: x.rrc_measurements[ue_id]['rsrp'],
+                       key=lambda x: x.ue_measurements[ue_id]['rsrp'],
                        reverse=True)
 
         return CellPool(cells)
@@ -38,10 +38,10 @@ class CellPool(list):
     def sort_by_rsrq(self, ue_id):
         """Return list sorted by rsrq for the specified address."""
 
-        filtered = [x for x in self if ue_id in x.rrc_measurements]
+        filtered = [x for x in self if ue_id in x.ue_measurements]
 
         cells = sorted(filtered,
-                       key=lambda x: x.rrc_measurements[ue_id]['rsrq'],
+                       key=lambda x: x.ue_measurements[ue_id]['rsrq'],
                        reverse=True)
 
         return CellPool(cells)
@@ -72,7 +72,7 @@ class Cell:
         self.vbs = vbs
         self.pci = pci
         self.cap = cap
-        self.rrc_measurements = {}
+        self.ue_measurements = {}
         self.mac_reports = {}
         self.dl_earfcn = dl_earfcn
         self.dl_prbs = dl_prbs
@@ -99,7 +99,7 @@ class Cell:
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 
-        rrc = {str(k): v for k, v in self.rrc_measurements.items()}
+        ue_meas = {str(k): v for k, v in self.ue_measurements.items()}
 
         out = {}
 
@@ -111,6 +111,6 @@ class Cell:
         out['ul_earfcn'] = self.ul_earfcn
         out['ul_prbs'] = self.ul_prbs
         out['mac_reports'] = self.mac_reports
-        out['rrc_measurements'] = rrc
+        out['ue_measurements'] = ue_meas
 
         return out
