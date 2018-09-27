@@ -15,6 +15,7 @@ class EmpNetGraph{
 
         this.graph = null;
         this.play = false;
+        this.type = null;
     }
 
     getID(keys=null){
@@ -32,6 +33,7 @@ class EmpNetGraph{
     }
 
     create(type, params){   // params = [tag, a, values]
+        this.type = type;
         var p =  this.hb.cePANEL();
         $( p ).addClass("panel-info");
         p.id = this.getID();
@@ -63,211 +65,188 @@ class EmpNetGraph{
 
 // ---------------------------------------------------------------------- TOPOLOGY
 
-    d_TopologyGraph(){
-        var options = this.d_TopologyGraph_ResetOptions();
-        var vc = new EmpVisCreator(null, options);
-
-        $( "#" + this.getID_BODY() ).empty();
-
-        vc.addOption("autoResize", true);
-        vc.addOption("height", '100%');
-        vc.addOption("width", '100%');
-
-        vc.addOption("nodes", {
-            "size": 60,
-            "font": { "size": 15, "color": "#000000" },
-            "color":{ "border": "#ffffff" },
-            "borderWidth": 2
-        });
-        vc.addOption("edges", {
-            "width": 2,
-            "font": { "size": 10, "color": "#000000" }
-        })
-
-        var div = this.hb.ce("DIV");
-        $( div ).css("height", "350px")
-        var fff = function(){
-            var graph = new vis.Network(div, vc.data, vc.options);
-            var g = graph;//.fit();
-            setInterval(function() {
-                 g.fit();
-             }, 1000);
-        }
-        $( this.d_TopologyGraph_CreateNodeEdges(vc) ).ready(fff)
-        return div;
-    }
-
-    d_TopologyGraph_CreateNodeEdges(vc){
-//        var target = [  this.qe.targets.WTP,
-//                        this.qe.targets.VBS,
-//                        this.qe.targets.LVAP,
-//                        this.qe.targets.UE];
-//        var ff = function(){
-//            var wtps = arguments[0][this.qe.targets.WTP];
-//            var vbses = arguments[0][this.qe.targets.VBS];
-//            var lvaps = arguments[0][this.qe.targets.LVAP];
-//            var ueses = arguments[0][this.qe.targets.UE];
+//    d_TopologyGraph(){
+//        var options = this.d_TopologyGraph_ResetOptions();
+//        var vc = new EmpVisCreator(null, options);
+//        this.graph = vc;
+//
+//        $( "#" + this.getID_BODY() ).empty();
+//
+//        vc.addOption("autoResize", true);
+//        vc.addOption("height", '100%');
+//        vc.addOption("width", '100%');
+//
+//        vc.addOption("nodes", {
+//            "size": 60,
+//            "font": { "size": 15, "color": "#000000" },
+//            "color":{ "border": "#ffffff" },
+//            "borderWidth": 2
+//        });
+//        vc.addOption("edges", {
+//            "width": 2,
+//            "font": { "size": 10, "color": "#000000" }
+//        })
+//
+//        var div = this.hb.ce("DIV");
+//        $( div ).css("height", "350px")
+//        var fff = function(){
+//            var graph = new vis.Network(div, vc.data, vc.options);
+//            var g = graph;//.fit();
+//            setInterval(function() {
+//                 g.fit();
+//             }, 1000);
+//        }
+//        $( this.d_TopologyGraph_CreateNodeEdges(vc) ).ready(fff)
+//        return div;
+//    }
+//
+//    d_TopologyGraph_CreateNodeEdges(vc){
+//
+//        var wtps = this.cache.c[this.qe.targets.WTP];
+//        var vbses = this.cache.c[this.qe.targets.VBS];
+//        var lvaps = this.cache.c[this.qe.targets.LVAP];
+//        var ueses = this.cache.c[this.qe.targets.UE];
 ////            console.log(wtps, vbses, lvaps, ueses)
 //
 //            for(var i=0; i<wtps.length; i++){
 //                var id = wtps[i]["addr"]
 //                var title = wtps[i]["label"]
 //                var node = vc.createNode(id, title, "wtp");
-//                    node.x = 100 + 100*i;
+//                node.x = 100 + 150*i;
 //                    node.y = 100;
 //                    node.fixed = true;
 //                vc.addNode(node)
-//            }
-//            var eee = vc.createSpecialEdge("EEE", wtps[0]["addr"], wtps[1]["addr"], "ASSOCIATION");
-//            vc.addEdge(eee)
-//            for(var i=0; i<vbses.length; i++){
-//                var id = vbses[i]["addr"]
-//                var title = vbses[i]["label"]
-//                var node = vc.createNode(id, title, "vbs");
-//                    node.x = 100 + 100*i;
-//                    node.y = 300;
-//                    node.fixed = true;
-//                vc.addNode(node);
 //            }
 //            for(var i=0; i<lvaps.length; i++){
 //                var id = lvaps[i]["addr"]
 //                var title = lvaps[i]["ssid"]
 //                var node = vc.createNode(id, title, "client_lvap");
-//                    node.x = 100 + 100*i;
-//                    node.y = 500;
+//                node.x = 100 + 150*i;
+//                node.y = 300;
 //                    node.fixed = true;
 //                vc.addNode(node);
+//
+//            var wtp = lvaps[i]["wtp"];
+//            for(var j=0; j<wtps.length; j++){
+//                if( wtps[j]["addr"] === wtp["addr"] ){
+//                    var idEdge = id + "To" + wtps[j]["addr"]
+//                    var from = id;
+//                    var to = wtps[j]["addr"]
+//                    var edge = vc.createSpecialEdge(id, from , to, "ASSOCIATION");
+//                    vc.addEdge(edge);
+//                    break;
+//                }
 //            }
+//            }
+//
+//
 //            for(var i=0; i<vbses.length; i++){
-//                var id = vbses[i]["imsi"]
-//                var title = vbses[i]["imsi"]
+//            var id = vbses[i]["addr"]
+//            var title = vbses[i]["label"]
+//            var node = vc.createNode(id, title, "vbs");
+//                node.x = 100 + 150*i;
+//                node.y = 500;
+//                node.fixed = true;
+//            vc.addNode(node);
+//        }
+//        for(var i=0; i<ueses.length; i++){
+//            var id = ueses[i]["imsi"]
+//            var title = ueses[i]["imsi"]
 //                var node = vc.createNode(id, title, "client_ue");
-//                    node.x = 100 + 100*i;
+//                node.x = 100 + 150*i;
 //                    node.y = 700;
 //                    node.fixed = true;
 //                vc.addNode(node);
 //            }
 //
 //        }
-//        this.qe.scheduleQuery("GET", target, null, null, ff.bind(this) );
-
-//        // draw nodes
-        var nA = vc.createNode("A", "WTP A", "wtp");
-        nA.x = 100;
-        nA.y = 100;
-        nA.fixed = true;
-        var nB = vc.createNode("B", "VBS B", "vbs");
-        nB.x = 500;
-        nB.y = 100;
-        nB.fixed = true;
-        var nC = vc.createNode("C", "CLIENT C", "client_hybrid");
-        nC.x = 300;
-        nC.y = 300;
-        nC.fixed = true;
-        // draw edges
-        var eac = vc.createSpecialEdge("EAC", "A", "C", "ASSOCIATION");
-        var ebc = vc.createSpecialEdge("EBC", "B", "C", "ASSOCIATION");
-        var eacd = vc.createSpecialEdge("EACd", "A", "C", "DOWNLINK");
-        var eacu = vc.createSpecialEdge("EACu", "C", "A", "UPLINK");
-        var ebcd = vc.createSpecialEdge("EBCd", "B", "C", "DOWNLINK");
-        var ebcu = vc.createSpecialEdge("EBCu", "C", "B", "UPLINK");
-                vc.addNode(nA);
-                vc.addNode(nB);
-                vc.addNode(nC);
-                vc.addEdge(eacd);
-                vc.addEdge(eac);
-                vc.addEdge(eacu);
-                vc.addEdge(ebcu);
-                vc.addEdge(ebcd);
-                vc.addEdge(ebc);
-    }
-
-    d_TopologyGraph_ResetOptions(){
-        var options = {
-            "groups":{
-                "wtp": {
-                    "shape": "circularImage",
-                    "image": "/static/pics/wtp.png"
-                },
-                "vbs": {
-                    "shape": "circularImage",
-                    "image": "/static/pics/vbs.png"
-                },
-                "client_lvap": {
-                    "shape": "circularImage",
-                    "image": "/static/pics/lvap.png"
-                },
-                "client_ue": {
-                    "shape": "circularImage",
-                    "image": "/static/pics/ue.png"
-                },
-                "client_hybrid": {
-                    "shape": "circularImage",
-                    "image": "/static/pics/hybrid.png"
-                },
-            }
-        }
-        return options;
-    }
-
-    d_TopologyGraph_SetTopology(conf_id){
-        switch (conf_id){
-
-            case 0: // BASE CASE
-                eacd.label = "ALL";
-                ebcd.label = "ALL";
-                eacu.label = "ALL";
-                vc.addNode(nA);
-                vc.addNode(nB);
-                vc.addNode(nC);
-                vc.addEdge(eacd);
-                vc.addEdge(eac);
-                vc.addEdge(eacu);
-                vc.addEdge(ebcd);
-                vc.addEdge(ebc);
-                //vc.addEdge(ebcu);
-                break;
-            case 1: // route UDP on LTE
-                eacd.label = "NOT [UDP]";
-                ebcd.label = "[UDP] ONLY";
-                eacu.label = "ALL";
-                vc.addNode(nA);
-                vc.addNode(nB);
-                vc.addNode(nC);
-                vc.addEdge(eacd);
-                vc.addEdge(eac);
-                vc.addEdge(eacu);
-                vc.addEdge(ebcd);
-                vc.addEdge(ebc);
-                //vc.addEdge(ebcu);
-                break;
-            case 2: // route UDP and TCP on LTE
-                eacd.label = "NOT [UDP, TCP]";
-                ebcd.label = "[UDP, TCP] ONLY";
-                eacu.label = "ALL";
-                vc.addNode(nA);
-                vc.addNode(nB);
-                vc.addNode(nC);
-                vc.addEdge(eacd);
-                vc.addEdge(eac);
-                vc.addEdge(eacu);
-                vc.addEdge(ebcd);
-                vc.addEdge(ebc);
-                //vc.addEdge(ebcu);
-                break;
-            default:
-                vc.addNode(nA);
-                vc.addNode(nB);
-                vc.addNode(nC);
-                vc.addEdge(eacd);
-                vc.addEdge(eac);
-                vc.addEdge(eacu);
-                vc.addEdge(ebcd);
-                vc.addEdge(ebc);
-                vc.addEdge(ebcu);
-
-        }
-    }
+//
+//    d_TopologyGraph_ResetOptions(){
+//        var options = {
+//            "groups":{
+//                "wtp": {
+//                    "shape": "circularImage",
+//                    "image": "/static/pics/wtp.png"
+//                },
+//                "vbs": {
+//                    "shape": "circularImage",
+//                    "image": "/static/pics/vbs.png"
+//                },
+//                "client_lvap": {
+//                    "shape": "circularImage",
+//                    "image": "/static/pics/lvap.png"
+//                },
+//                "client_ue": {
+//                    "shape": "circularImage",
+//                    "image": "/static/pics/ue.png"
+//                },
+//                "client_hybrid": {
+//                    "shape": "circularImage",
+//                    "image": "/static/pics/hybrid.png"
+//                },
+//            }
+//        }
+//        return options;
+//    }
+//
+//    d_TopologyGraph_SetTopology(conf_id){
+//        switch (conf_id){
+//
+//            case 0: // BASE CASE
+//                eacd.label = "ALL";
+//                ebcd.label = "ALL";
+//                eacu.label = "ALL";
+//                vc.addNode(nA);
+//                vc.addNode(nB);
+//                vc.addNode(nC);
+//                vc.addEdge(eacd);
+//                vc.addEdge(eac);
+//                vc.addEdge(eacu);
+//                vc.addEdge(ebcd);
+//                vc.addEdge(ebc);
+//                //vc.addEdge(ebcu);
+//                break;
+//            case 1: // route UDP on LTE
+//                eacd.label = "NOT [UDP]";
+//                ebcd.label = "[UDP] ONLY";
+//                eacu.label = "ALL";
+//                vc.addNode(nA);
+//                vc.addNode(nB);
+//                vc.addNode(nC);
+//                vc.addEdge(eacd);
+//                vc.addEdge(eac);
+//                vc.addEdge(eacu);
+//                vc.addEdge(ebcd);
+//                vc.addEdge(ebc);
+//                //vc.addEdge(ebcu);
+//                break;
+//            case 2: // route UDP and TCP on LTE
+//                eacd.label = "NOT [UDP, TCP]";
+//                ebcd.label = "[UDP, TCP] ONLY";
+//                eacu.label = "ALL";
+//                vc.addNode(nA);
+//                vc.addNode(nB);
+//                vc.addNode(nC);
+//                vc.addEdge(eacd);
+//                vc.addEdge(eac);
+//                vc.addEdge(eacu);
+//                vc.addEdge(ebcd);
+//                vc.addEdge(ebc);
+//                //vc.addEdge(ebcu);
+//                break;
+//            default:
+//                vc.addNode(nA);
+//                vc.addNode(nB);
+//                vc.addNode(nC);
+//                vc.addEdge(eacd);
+//                vc.addEdge(eac);
+//                vc.addEdge(eacu);
+//                vc.addEdge(ebcd);
+//                vc.addEdge(ebc);
+//                vc.addEdge(ebcu);
+//
+//        }
+//    }
 
 // --------------------------------------------------------------------- STACKED BAR GRAPH
 

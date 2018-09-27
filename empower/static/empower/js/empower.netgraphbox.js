@@ -14,7 +14,7 @@ class EmpNetGraphBox{
         this.keys = keys;
 
         this.box = null;
-        this.netGraphList = [];
+        this.netGraphList = {};
 
     }
 
@@ -35,11 +35,18 @@ class EmpNetGraphBox{
         return box;
     }
 
+    removeGraph(type){
+        if( type in this.netGraphList ){
+            var graph = this.netGraphList[type];
+            $( "#" + graph.getID() ).remove();
+            delete this.netGraphList[type];
+        }
+    }
+
     addGraph(type, params){ // params = [tag, a, values]
-        var graph = new EmpNetGraph(this.keys).create(type,params);
-        this.netGraphList.push(graph);
-        $( this.box ).append(graph);
+        var graph = new EmpNetGraph(this.keys)
+        this.netGraphList[type] = graph;
+        $( this.box ).append( graph.create(type,params) );
     }
 
 }
-

@@ -1,5 +1,9 @@
 function createNavbar(){
     var navbar = __HB.ceROW();
+    if( __ROLE === "admin")
+        $( navbar ).css("backgroundColor", "#d9edf7");
+    else
+        $( navbar ).css("backgroundColor", "#fcf8e3");
 
     var navbarBrand = __HB.ce("DIV");
     $( navbar ).append(navbarBrand);
@@ -36,7 +40,19 @@ function createNavbar(){
         var user = __HB.ce("LI");
         $( navbarUL ).append(user);
             $(user).addClass("navbar-text");
-            $(user).html("<strong>" + __USERNAME + "</strong>" + " (" + ( __ROLE==="user"? "U)":"A)" ) );
+            $(user).html("<strong>" + __USERNAME + "</strong>" + " (" + ( __ROLE==="user"? "USER)":"ADMIN)" ) );
+
+        var refresh = __HB.ce("li");
+        $( navbarUL ).append(refresh);
+            var a = __HB.ce("A");
+            $( refresh ).append(a);
+                $( a ).attr("href","#");
+                $( a ).attr("title","Toggle Autorefresh");
+                var i = __HB.ceFAI("fa-spinner");
+                $( a ).prepend(i);
+                    i.id = "toggle_autorefresh_icon";
+                    $( i ).addClass("fa-fw");
+//                $( a ).click(function(){toggleAutoRefresh("toggle_autorefresh_icon", 10000)});
 
         var ms = __HB.ce("LI");
         $( navbarUL ).append(ms);
@@ -54,21 +70,9 @@ function createNavbar(){
                     var i = __HB.ceFAI("fa-caret-down");
                     $( a ).append(i);
 
-
-
             var ul = __HB.ce("UL");
             $( ms ).append(ul);
                 $( ul ).addClass("dropdown-menu dropdown-user");
-
-                var li = __HB.ce("li");
-                $( ul ).append(li);
-                    var a = __HB.ce("A");
-                    $( li ).append(a);
-                        $( a ).attr("href","/auth/logout");
-                        $( a ).text("Logout");
-                        var i = __HB.ceFAI(" fa-sign-out");
-                        $( a ).prepend(i);
-                            $( i ).addClass("fa-fw");
 
                 var li = __HB.ce("li");
                 $( ul ).append(li);
@@ -95,13 +99,11 @@ function createNavbar(){
                 $( ul ).append(li);
                     var a = __HB.ce("A");
                     $( li ).append(a);
-                        $( a ).attr("href","#");
-                        $( a ).text("Toggle Autorefresh");
-                        var i = __HB.ceFAI("fa-spinner");
+                        $( a ).attr("href","/auth/logout");
+                        $( a ).text("Logout");
+                        var i = __HB.ceFAI(" fa-sign-out");
                         $( a ).prepend(i);
-                            i.id = "toggle_autorefresh_icon";
                             $( i ).addClass("fa-fw");
-                        $( a ).click(function(){toggleAutoRefresh("toggle_autorefresh_icon", 10000)});
 
     return navbar;
 }
@@ -116,7 +118,7 @@ function createFooter(){
             var txt = __HB.ce("STRONG");
             $( sp ).append(txt);
                 $( txt ).addClass("text-primary");
-                $( txt ).text("@CREATE-NET FBK, 2018");
+                $( txt ).text("@FBK CREATE-NET, 2018");
 
     return footer;
 }
@@ -195,4 +197,3 @@ function generateWarningModal(title, f_YES, f_NO=null){
                     else    $( btf_NO ).attr("data-dismiss", "modal");
     return m;
 }
-
