@@ -32,7 +32,6 @@ from empower.vbsp import PT_BYE
 from empower.vbsp import PT_REGISTER
 from empower.vbsp import EP_ACT_HELLO
 from empower.vbsp import EP_ACT_CAPS
-from empower.vbsp import EP_ACT_RAN_SETUP
 from empower.vbsp import E_TYPE_SINGLE
 from empower.vbsp import E_TYPE_SCHED
 from empower.vbsp import E_TYPE_TRIG
@@ -41,7 +40,6 @@ from empower.vbsp import E_SCHED
 from empower.vbsp import E_TRIG
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
-from empower.vbsp import RAN_SETUP_REQUEST
 from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
@@ -347,8 +345,11 @@ class VBSPConnection:
                     (slc.lte['vbses'] and self.vbs.addr in slc.lte['vbses']):
 
                     for cell in self.vbs.cells.values():
-                        if not slc.lte['vbses'][self.vbs.addr]['cells']:
-                            self.vbs.connection.\
+
+                        if self.vbs.addr not in slc.lte['vbses'] or \
+                            not slc.lte['vbses'][self.vbs.addr]['cells']:
+
+                            self.vbs.connection. \
                                 send_add_set_ran_mac_slice_request(cell,
                                                                    slc,
                                                                    EP_OPERATION_ADD)

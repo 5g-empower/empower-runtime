@@ -27,7 +27,7 @@ class PLMNID:
         plmnid: The PLMNID. Only numeric characters are accepted (0 - 9)
     """
 
-    def __init__(self, plmnid):
+    def __init__(self, plmnid=bytes(16)):
 
         if isinstance(plmnid, str):
             allowed = re.compile(r'^[f0-9]+$', re.VERBOSE | re.IGNORECASE)
