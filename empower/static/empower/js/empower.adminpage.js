@@ -45,13 +45,14 @@ class EmpAdminPage{
         */
         res.recipes.collapsepanels_l1 = {
             "overview": {"text": "Overview", "color": "primary", "icon": "fa-info-circle"},
-            "network": {"text": "Network Graph", "color": "primary", "icon": "fa-sitemap"},
             "clients": {"text": "Clients", "color": "primary", "icon": "fa-laptop"},
             "services": {"text": "Network Services", "color": "primary", "icon": "fa-cogs"},
             "devices": {"text": "Devices", "color": "primary", "icon": "fa-hdd-o"},
-            "components": {"text": "Components", "color": "primary", "icon": "fa-plug"},
+            "active": {"text": "Components", "color": "primary", "icon": "fa-bolt"},
+            "qos": {"text": "Quality of Service", "color": "primary", "icon": "fa-bullseye"},
             "acl": {"text": "ACL", "color": "primary", "icon": "fa-filter"},
-            "admin": {"text": "Admin", "color": "primary", "icon": "fa-trophy"},
+            "account": {"text": "Account", "color": "info", "icon": "fa-users"},
+            "tenant": {"text": "Tenants", "color": "info", "icon": "fa-cubes"},
         };
 
         res.recipes.collapsepanels_l2 = {
@@ -71,51 +72,10 @@ class EmpAdminPage{
                 "cpp": {"text": "CPPs", "color": "info", "icon": "fa-gears"},
                 "vbs": {"text": "VBSes", "color": "info", "icon": "fa-code"},
             },
-            "components": {
-                "active": {"text": "Active", "color": "info", "icon": "fa-bolt"},
-                "marketplace": {"text": "Marketplace", "color": "info", "icon": "fa-puzzle-piece"},
+            "qos": {
+                "traffic_rules": {"text": "Traffic rules", "color": "info", "icon": "fa-arrows-alt"},
+                "slices": {"text": "Slices", "color": "info", "icon": "fa-database"},
             },
-            "admin": {
-                "account": {"text": "Account", "color": "info", "icon": "fa-users"},
-                "tenant": {"text": "Tenants", "color": "info", "icon": "fa-cubes"},
-            }
-        };
-
-        /* GraphBoxes
-        * GraphBoxes (GBs) show a graph depiction of the network configuration
-        * They are identified by the CP where they are deployed and by a TAG
-        */
-        res.recipes.graphboxes = {
-            "network": [
-                [
-                    {
-                        "tag": "WTP",
-                        "left": true,
-                        //"params": [ "TEXT A", "fa-plug", "info", "text a", click]
-                        "params": [ null, "fa-wifi", "info", "filter WTP" ]
-                    },
-                    {
-                        "tag": "LVAP",
-                        "left": true,
-                        "params": [ null, "fa-circle", "info", "filter LVAP" ]
-                    },
-                    {
-                        "tag": "VBS",
-                        "left": true,
-                        "params": [ null, "fa-code", "info", "filter VBS" ]
-                    },
-                    {
-                        "tag": "UE",
-                        "left": true,
-                        "params": [ null, "fa-wrench", "info", "filter UE" ]
-                    },
-                    {
-                        "tag": "refresh",
-                        "left": false,
-                        "params": [ null, "fa-refresh", "primary", "Force graph refresh " ]
-                    }
-                ]
-            ]
         };
 
         /* BadgeBoxes (BBs) are defined in some CPs and show some aggregated
@@ -130,7 +90,7 @@ class EmpAdminPage{
         for (var cp in cpl1){
             if (cp === "overview"){
                 res.recipes.badgeboxes[cp] = [];
-                var cardinality = Object.keys(cpl1).length - 2;
+                var cardinality = Object.keys(cpl1).length - 1;
                 var size = -1;
                 var slots = cardinality;
                 switch (cardinality){
@@ -142,11 +102,14 @@ class EmpAdminPage{
                     case 12:
                         size = "lg";
                         slots = 12 / cardinality;
+                    break
+                    case 8:
+                        size = "lg";
+                        slots = 3;
                 }
 
                 for (var cpsub in cpl1){
-                    if ((cpsub != "overview" ) &&
-                        (cpsub != "network")){
+                    if ((cpsub != "overview" )){
 
                         var bbx = [
                             cpsub,
@@ -211,8 +174,7 @@ class EmpAdminPage{
         res.recipes.datatableboxes.list = [];
         var cpl1 = res.recipes.collapsepanels_l1
         for (var cp in cpl1){
-            if ((cp != "overview" ) &&
-                (cp != "network")){
+            if ((cp != "overview" )){
                 var cpl2 = res.recipes.collapsepanels_l2
                 if (typeof cpl2[cp] === "undefined"){
                         res.recipes.datatableboxes.list.push(cp);
@@ -242,8 +204,8 @@ class EmpAdminPage{
 
             switch(cp){
                 case "active":
-                case "marketplace":
                 case "lvap":
+                case "ue":
             res.recipes.datatableboxes.buttonboxes[cp] = [
                         {   "tag": "show", "left": true,
                             "params": [ null, "fa-search", "primary", "show selected " + cp.toUpperCase(), f_shows ]
@@ -468,13 +430,6 @@ class EmpAdminPage{
 
             //console.log("Added item to floatingMenu "+cp);
 
-            if(cp === "network"){
-                var netGraphBox = new EmpNetGraphBox(this.keys);
-                var ng = netGraphBox.create();
-                $( "#"+cpid ).append( ng );
-                netGraphBox.addGraph("topology", [])
-            }
-
         }
 
         // Update BadgeBox functions
@@ -523,7 +478,6 @@ class EmpAdminPage{
                             this.qe.targets.UE,
                             this.qe.targets.ACL,
                             this.qe.targets.ACTIVE,
-                            this.qe.targets.MARKETPLACE,
                             this.qe.targets.ACCOUNT,
                         ];
 //        $.when( this.qe.scheduleQuery("GET", targets, null, null, console.log) ).then( function(){ console.log( "done", new Date() )} );
@@ -533,6 +487,8 @@ class EmpAdminPage{
 //var d1 = $.Deferred();
 //d1.resolve( this.qe.scheduleQuery("GET", targets, null, null, this.cache.update.bind(this.cache) ) )
 //$.when( d1 ).done(function(){console.log("done", t.cache.c)} )
+
+    this.switchTo(["overview"])
 
 }
 
@@ -586,10 +542,7 @@ class EmpAdminPage{
 
     switchTo( args ){
         var cp = args[0];
-        if( cp === "overview" ){
-            this.uncollapseAll();
-        }
-        else if( cp in this.resources.recipes.collapsepanels_l2 ){
+        if( cp in this.resources.recipes.collapsepanels_l2 ){
             var first = Object.keys( this.resources.recipes.collapsepanels_l2[cp] )[0];
             this.switchTo([first])
         }

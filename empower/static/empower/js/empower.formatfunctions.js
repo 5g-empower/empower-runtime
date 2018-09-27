@@ -135,22 +135,6 @@ function ff_Active_Table( ctrl ){ // input param: ctrl = "h" for header table / 
     return params;
 };
 
-function ff_Marketplace_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" for data table
-    var params = [];
-    if( ctrl === "h" ){
-        params.push( [ { "type": "i", "value": "fa-key"},
-                        { "type": "k", "value": "Component",
-                            "style": "color:#0000FF" },
-                         ]);
-    }
-    else if ( ctrl === "d" ){
-        params.push( [ { "type": "k", "attr": "component_id",
-                            "style": "color:#0000FF" },
-                         ]);
-    }
-    return params;
-};
-
 function ff_Vbs_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" for data table
     var params = [];
     if( ctrl === "h" ){

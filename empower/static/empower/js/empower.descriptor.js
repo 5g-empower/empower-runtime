@@ -157,25 +157,6 @@ class EmpDescriptor{
 //            this.d[targets.ACTIVE].ff.UPD = ff_Active_Update;
 
 
-// COMPONENT MARKETPLACE    // Gli attributi cambiano in base al servizio/componente, come fare???
-        this.d[targets.MARKETPLACE] =  { "attr" : {},    // attributes
-                        "ff" : {},      // format functions
-                        };
-            this.d[targets.MARKETPLACE].attr["component_id"] =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.MARKETPLACE].attr["name"]         =  {"isKey": false,    "set": true,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.MARKETPLACE].attr["desc"]         =  {"isKey": false,    "set": true,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.MARKETPLACE].attr["params"]         =  {"isKey": false,    "set": true,  "update": false,  "type": this.dt.LIST.d};
-//            this.d[targets.MARKETPLACE].attr["every"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.NUM.intgr};
-//            this.d[targets.MARKETPLACE].attr["params"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.unknwn};
-//            this.d[targets.MARKETPLACE].attr["modules"]      =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.unknwn};
-//            this.d[targets.MARKETPLACE].attr["port"]         =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.NUM.intgr};
-
-            this.d[targets.MARKETPLACE].ff.TBL = ff_Marketplace_Table;
-//            this.d[targets.MARKETPLACE].ff.GET = ff_Marketplace_Get;
-//            this.d[targets.MARKETPLACE].ff.SET = ff_Marketplace_Set;
-//            this.d[targets.MARKETPLACE].ff.UPD = ff_Marketplace_Update;
-
-
         // ACCOUNT
         this.d[targets.ACCOUNT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
