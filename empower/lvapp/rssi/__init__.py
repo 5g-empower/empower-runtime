@@ -16,3 +16,9 @@
 # under the License.
 
 """RSSI module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.rssi.rssi",
+    "desc": "RSSI Stats module.",
+}

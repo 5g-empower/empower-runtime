@@ -1,0 +1,35 @@
+.table-text-center th, .table-text-center td {
+    text-align: center !important;
+}
+
+.panel-special {
+  border-color: #337ab7;
+}
+.panel-special > .panel-heading {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #337ab7;
+}
+.panel-special > .panel-heading + .panel-collapse > .panel-body {
+  border-top-color: #337ab7;
+}
+.panel-special > .panel-heading .badge {
+  color: #337ab7;
+  background-color: #fff;
+}
+.panel-special > .panel-footer + .panel-collapse > .panel-body {
+  border-bottom-color: #337ab7;
+}
+
+.panel-special > a {
+  color: #ffffff !important;
+}
+.panel-special > a:hover {
+  color: #ffffff !important;
+}
+
+.navbar-brand>img {
+    height: 100%;
+
+    width: auto;
+}

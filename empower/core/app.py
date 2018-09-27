@@ -44,6 +44,12 @@ class EmpowerApp:
             setattr(self, param, kwargs[param])
             self.params.append(param)
 
+    def __add_lvapp_event(self, message, handler):
+
+        from empower.lvapp.lvappserver import LVAPPServer
+        server = RUNTIME.components[LVAPPServer.__module__]
+        server.register_message(message, None, handler)
+
     def ue_leave(self, ue):
         """Called when a UE leaves a tenant."""
 
@@ -149,8 +155,6 @@ class EmpowerApp:
         params['app_name'] = self.app_name
         params['every'] = self.every
         params['tenant_id'] = self.tenant_id
-        params['ui_url'] = "/apps/tenants/%s/%s/" % \
-            (self.tenant_id, self.app_name)
         params['params'] = self.params
 
         for param in self.params:

@@ -27,17 +27,3 @@ PT_UPDATE_ENDPOINT = "update_endpoint"
 PT_REMOVE_ENDPOINT = "remove_endpoint"
 PT_ADD_RULE = "add_rule"
 PT_REMOVE_RULE = "remove_rule"
-
-# the manifest
-MANIFEST = {
-    "name": "empower.ibnp.ibnpserver",
-    "desc": "The EmPOWER intent-based server.",
-    "params": {
-        "port": {
-            "desc": "The port on which the server will listen.",
-            "mandatory": False,
-            "default": 4444,
-            "type": "int"
-        }
-    }
-}

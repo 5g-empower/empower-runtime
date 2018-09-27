@@ -1,22 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>EmPOWER Runtime</title>
-  <link rel="stylesheet" type="text/css" href="/static/css/empower.css" />
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>5G-EmPOWER</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/static/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/static/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
 </head>
+
 <body>
-  <div class="loginBox">
-    <img src="/static/images/empower_login.png" width="320" alt="EmPOWER Login" title="EmPOWER Login" />
-    {% if error %}
-      <div class="errormessage">{{error}}</div>
-    {% end %}
-    <form action="/auth/login/" method="post" id="login_form">
-      <ul>
-        <li>Username: <div class="box"><input autocapitalize="off" autocorrect="off" class="text-input" id="username" name="username" tabindex="1" type="text" value="" /></div></li>
-        <li>Password: <div class="box"><input class="text-input" id="password" name="password" tabindex="2" type="password" value="" /></div></li>
-        <li>&nbsp;<div class="box"><input id="signin-btn" type="submit" value="Login" tabindex="3" /></div></li>
-      </ul>
-    </form>
-  </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                <div class="login-panel panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">5G-EmPOWER Sign In</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form role="form" action="/auth/login" method="post">
+                            <fieldset>
+                                <div class="form-group">
+                                    <input class="form-control" placeholder="Username" name="username" type="username" autofocus>
+                                </div>
+                                <div class="form-group">
+                                    <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                                </div>
+                                <input type="submit" class="btn btn-lg btn-success btn-block" value="Login"/>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/static/vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/static/dist/js/sb-admin-2.js"></script>
+
 </body>
+
 </html>

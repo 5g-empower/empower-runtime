@@ -23,14 +23,11 @@ from empower.core.pnfpserver import BaseTenantPNFDevHandler
 from empower.core.pnfpserver import BasePNFDevHandler
 from empower.restserver.restserver import RESTServer
 from empower.core.pnfpserver import PNFPServer
-from empower.core.module import ModuleEventWorker
 from empower.core.module import ModuleWorker
 from empower.lvapp.lvappconnection import LVAPPConnection
 from empower.persistence.persistence import TblWTP
 from empower.core.wtp import WTP
 
-from empower.lvapp import PT_BYE
-from empower.lvapp import PT_REGISTER
 from empower.lvapp import PT_LVAP_LEAVE
 from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_TYPES
@@ -57,46 +54,12 @@ class WTPHandler(BasePNFDevHandler):
                 (r"/api/v1/wtps/([a-zA-Z0-9:]*)/?")]
 
 
-class ModuleLVAPPEventWorker(ModuleEventWorker):
-    """Module worker (LVAP Server version).
-    Keeps track of the currently defined modules for each tenant (events only)
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
-
-    def __init__(self, module, pt_type, pt_packet=None):
-        ModuleEventWorker.__init__(self, LVAPPServer.__module__, module,
-                                   pt_type, pt_packet)
-
-
 class ModuleLVAPPWorker(ModuleWorker):
-    """Module worker (LVAP Server version).
-
-    Keeps track of the currently defined modules for each tenant (events only)
-
-    Attributes:
-        module_id: Next module id
-        modules: dictionary of modules currently active in this tenant
-    """
+    """Module worker (LVAP Server version)."""
 
     def __init__(self, module, pt_type, pt_packet=None):
         ModuleWorker.__init__(self, LVAPPServer.__module__, module, pt_type,
                               pt_packet)
-
-        self.pnfp_server.register_message(PT_REGISTER, None,
-                                          self.handle_register)
-        self.pnfp_server.register_message(PT_BYE, None, self.handle_bye)
-
-    def handle_register(self, wtp):
-        """WTP joined."""
-
-        pass
-
-    def handle_bye(self, wtp):
-        """WTP left."""
-
-        pass
 
     def handle_packet(self, pnfdev, message):
         """Handle response message."""

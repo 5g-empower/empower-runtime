@@ -16,3 +16,9 @@
 # under the License.
 
 """TXP bin counters module."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvapp.txp_bin_counter.txp_bin_counter",
+    "desc": "TXP bin counters module.",
+}

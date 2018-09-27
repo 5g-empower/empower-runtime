@@ -84,13 +84,13 @@ class HandoverManager(EmpowerApp):
               "max_cells": 2,
               "max_meas": 2}]
 
-        self.rrc_measurements(ue=ue, measurements=measurements,
-                              callback=self.rrc_measurements_callback)
+        self.ue_measurements(ue=ue, measurements=measurements,
+                              callback=self.ue_measurements_callback)
 
-    def rrc_measurements_callback(self, rrc):
+    def ue_measurements_callback(self, ue):
         """ New measurements available. """
 
-        self.log.info("New rrc measurements received from %s" % rrc.ue.ue_id)
+        self.log.info("New ue measurements received from %s" % ue.ue.ue_id)
 
     @property
     def load_balance(self):
@@ -302,11 +302,11 @@ class HandoverManager(EmpowerApp):
                             continue
 
                         # pick cell from measurements
-                        if cell not in ue.rrc_measurements:
+                        if cell not in ue.ue_measurements:
                             continue
 
-                        current = ue.rrc_measurements[ue.cell]["rsrq"]
-                        new = ue.rrc_measurements[cell]["rsrq"]
+                        current = ue.ue_measurements[ue.cell]["rsrq"]
+                        new = ue.ue_measurements[cell]["rsrq"]
 
                         if new > current and new > self.rsrq_thr:
                             ho_info[ue.ue_id] = {"ue": ue, "cell": cell}

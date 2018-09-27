@@ -67,7 +67,8 @@ PT_SET_SLICE = 0x56
 PT_DEL_SLICE = 0x57
 PT_STATUS_SLICE = 0x58
 PT_SLICE_STATUS_REQUEST = 0x61
-
+PT_IGMP_REPORT = 0x48
+PT_INCOMING_MCAST_ADDR = 0x46
 
 HEADER = Struct("header", UBInt8("version"),
                 UBInt8("type"),
@@ -372,6 +373,25 @@ STATUS_SLICE = \
            UBInt8("dscp"),
            Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
+IGMP_REPORT = Struct("igmp_report", UBInt8("version"),
+                     UBInt8("type"),
+                     UBInt32("length"),
+                     UBInt32("seq"),
+                     Bytes("wtp", 6),
+                     Bytes("sta", 6),
+                     Bytes("mcast_addr", 4),
+                     UBInt8("igmp_type"))
+
+INCOMING_MCAST_ADDR = Struct("incoming_mcast_address", UBInt8("version"),
+                             UBInt8("type"),
+                             UBInt32("length"),
+                             UBInt32("seq"),
+                             Bytes("wtp", 6),
+                             Bytes("mcast_addr", 6),
+                             Bytes("hwaddr", 6),
+                             UBInt8("channel"),
+                             UBInt8("band"))
+
 PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
             PT_LVAP_JOIN: None,
@@ -403,7 +423,9 @@ PT_TYPES = {PT_BYE: None,
             PT_SLICE_STATUS_REQUEST: SLICE_STATUS_REQUEST,
             PT_STATUS_SLICE: STATUS_SLICE,
             PT_SET_SLICE: SET_SLICE,
-            PT_DEL_SLICE: DEL_SLICE}
+            PT_DEL_SLICE: DEL_SLICE,
+            PT_IGMP_REPORT: IGMP_REPORT,
+            PT_INCOMING_MCAST_ADDR: INCOMING_MCAST_ADDR}
 
 
 PT_TYPES_HANDLERS = {}

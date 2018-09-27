@@ -19,3 +19,9 @@
 
 PT_LVNF_GET_REQUEST = "lvnf_get_request"
 PT_LVNF_GET_RESPONSE = "lvnf_get_response"
+
+# the manifest
+MANIFEST = {
+    "name": "empower.lvnfp.lvnf_get.lvnf_get",
+    "desc": "LVNF Element Management System.",
+}

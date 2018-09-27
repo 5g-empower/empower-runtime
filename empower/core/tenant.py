@@ -21,11 +21,9 @@ import json
 
 from sqlalchemy.exc import IntegrityError
 
-from empower.persistence.persistence import TblBelongs
 from empower.persistence.persistence import TblSlice
 from empower.persistence.persistence import TblSliceBelongs
 from empower.persistence.persistence import TblTrafficRule
-from empower.core.lvnf import LVNF
 from empower.core.slice import Slice
 from empower.persistence import Session
 from empower.core.utils import get_module
@@ -78,9 +76,6 @@ class Tenant:
         self.owner = owner
         self.desc = desc
         self.bssid_type = bssid_type
-        self.wtps = {}
-        self.cpps = {}
-        self.vbses = {}
         self.endpoints = {}
         self.lvaps = {}
         self.ues = {}
@@ -88,6 +83,24 @@ class Tenant:
         self.vaps = {}
         self.slices = {}
         self.components = {}
+
+    @property
+    def wtps(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.wtps
+
+    @property
+    def cpps(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.cpps
+
+    @property
+    def vbses(self):
+        from empower.main import RUNTIME
+
+        return RUNTIME.vbses
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the Poll """
@@ -171,11 +184,12 @@ class Tenant:
         for rule in trs:
             results[rule.match] = {'match': rule.match,
                                    'label': rule.label,
+                                   'priority': rule.priority,
                                    'dscp': rule.dscp}
 
         return results
 
-    def add_traffic_rule(self, match, dscp, label):
+    def add_traffic_rule(self, match, dscp, label, priority=0):
         """Add a new traffic rule to the Tenant.
 
         Args:
@@ -190,7 +204,7 @@ class Tenant:
         """
 
         rule = TblTrafficRule(tenant_id=self.tenant_id, match=match,
-                              dscp=dscp, label=label)
+                              dscp=dscp, priority=priority, label=label)
 
         try:
             session = Session()
@@ -203,6 +217,7 @@ class Tenant:
         trule = TrafficRule(ssid=self.tenant_id,
                             match=match,
                             dscp=dscp,
+                            priority=priority,
                             label=label)
 
         # Send command to IBN
@@ -265,14 +280,15 @@ class Tenant:
 
             tbl_slc = TblSlice(tenant_id=self.tenant_id,
                                dscp=slc.dscp,
-                               wifi_properties=json.dumps(slc.wifi_properties),
-                               lte_properties=json.dumps(slc.lte_properties))
+                               wifi=json.dumps(slc.wifi['static-properties']),
+                               lte=json.dumps(slc.lte['static-properties']))
 
             session.add(tbl_slc)
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
-                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+                properties = \
+                    json.dumps(slc.wifi['wtps'][wtp_addr]['static-properties'])
 
                 belongs = TblSliceBelongs(tenant_id=self.tenant_id,
                                           dscp=tbl_slc.dscp,
@@ -281,9 +297,10 @@ class Tenant:
 
                 session.add(belongs)
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
-                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+                properties = \
+                    json.dumps(slc.lte['vbses'][vbs_addr]['static-properties'])
 
                 belongs = TblSliceBelongs(tenant_id=self.tenant_id,
                                           dscp=tbl_slc.dscp,
@@ -302,23 +319,25 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wtps:
-            wtp = self.wtps[wtp_addr]
-            if not wtp.is_online():
-                continue
-            for block in wtp.supports:
-                wtp.connection.send_set_slice(block, slc)
+        for wtp_addr in self.wtps:
+            if not slc.wifi['wtps'] or (slc.wifi['wtps'] and wtp_addr in slc.wifi['wtps']):
+                wtp = self.wtps[wtp_addr]
+                if not wtp.is_online():
+                    continue
+                for block in wtp.supports:
+                    wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.vbses:
-            vbs = self.vbses[vbs_addr]
-            if not vbs.is_online():
-                continue
-            for cell in vbs.cells.values():
-                vbs.connection.\
-                    send_add_set_ran_mac_slice_request(cell,
-                                                       slc,
-                                                       EP_OPERATION_ADD)
+        for vbs_addr in self.vbses:
+            if not slc.lte['vbses'] or (slc.lte['vbses'] and vbs_addr in slc.lte['vbses']):
+                vbs = self.vbses[vbs_addr]
+                if not vbs.is_online():
+                    continue
+                for cell in vbs.cells.values():
+                    vbs.connection.\
+                        send_add_set_ran_mac_slice_request(cell,
+                                                           slc,
+                                                           EP_OPERATION_ADD)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
@@ -348,12 +367,13 @@ class Tenant:
                                  .filter(TblSlice.dscp == slc.dscp) \
                                  .first()
 
-            tbl_slice.wifi_properties = json.dumps(slc.wifi_properties)
-            tbl_slice.lte_properties = json.dumps(slc.lte_properties)
+            tbl_slice.wifi = json.dumps(slc.wifi['static-properties'])
+            tbl_slice.lte = json.dumps(slc.lte['static-properties'])
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
-                properties = json.dumps(slc.wtps[wtp_addr]['properties'])
+                properties = \
+                    json.dumps(slc.wifi['wtps'][wtp_addr]['static-properties'])
 
                 tbl_belongs = \
                     Session().query(TblSliceBelongs) \
@@ -375,9 +395,10 @@ class Tenant:
 
                     tbl_belongs.properties = properties
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
-                properties = json.dumps(slc.vbses[vbs_addr]['properties'])
+                properties = \
+                    json.dumps(slc.lte['vbses'][vbs_addr]['static-properties'])
 
                 tbl_belongs = \
                     Session().query(TblSliceBelongs) \
@@ -409,7 +430,7 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wtps:
+        for wtp_addr in slc.wifi['wtps']:
             wtp = self.wtps[wtp_addr]
             if not wtp.is_online():
                 continue
@@ -417,7 +438,7 @@ class Tenant:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.vbses:
+        for vbs_addr in slc.lte['vbses']:
             vbs = self.vbses[vbs_addr]
             if not vbs.is_online():
                 continue
@@ -456,7 +477,7 @@ class Tenant:
 
             session.delete(rem)
 
-            for wtp_addr in slc.wtps:
+            for wtp_addr in slc.wifi['wtps']:
 
                 rem = \
                     Session().query(TblSliceBelongs) \
@@ -468,7 +489,7 @@ class Tenant:
                 if rem:
                     session.delete(rem)
 
-            for vbs_addr in slc.vbses:
+            for vbs_addr in slc.lte['vbses']:
 
                 rem = \
                     Session().query(TblSliceBelongs) \
@@ -487,13 +508,13 @@ class Tenant:
             raise ValueError()
 
         # delete it from the WTPs
-        for wtp_addr in self.slices[dscp].wtps:
+        for wtp_addr in self.slices[dscp].wifi['wtps']:
             wtp = self.wtps[wtp_addr]
             for block in wtp.supports:
                 wtp.connection.send_del_slice(block, self.tenant_name, dscp)
 
         # delete it from the VBSes
-        for vbs_addr in self.slices[dscp].vbses:
+        for vbs_addr in self.slices[dscp].lte['vbses']:
             vbs = self.vbses[vbs_addr]
             for cell in vbs.cells.values():
                 vbs.connection.send_del_ran_mac_slice_request(cell,
@@ -502,62 +523,6 @@ class Tenant:
 
         # remove slice
         del self.slices[dscp]
-
-    def add_pnfdev(self, pnfdev):
-        """Add a new PNF Dev to the Tenant.
-
-        Args:
-            pnfdev, a PNFDev object
-
-        Returns:
-            None
-
-        Raises:
-            KeyError, if the pnfdev is not available
-        """
-
-        pnfdevs = getattr(self, pnfdev.ALIAS)
-
-        if pnfdev.addr in pnfdevs:
-            return
-
-        pnfdevs[pnfdev.addr] = pnfdev
-
-        belongs = TblBelongs(tenant_id=self.tenant_id,
-                             addr=pnfdev.addr,
-                             parent=pnfdev.ALIAS)
-
-        session = Session()
-        session.add(belongs)
-        session.commit()
-
-    def remove_pnfdev(self, pnfdev):
-        """Remove a PNFDev from the Tenant.
-
-        Args:
-            addr, a PNFDev object
-
-        Returns:
-            None
-        Raises:
-            KeyError, if the pnfdev is not available
-        """
-
-        pnfdevs = getattr(self, pnfdev.ALIAS)
-
-        if pnfdev.addr not in pnfdevs:
-            return
-
-        del pnfdevs[pnfdev.addr]
-
-        belongs = Session().query(TblBelongs) \
-                           .filter(TblBelongs.tenant_id == self.tenant_id,
-                                   TblBelongs.addr == pnfdev.addr) \
-                           .first()
-
-        session = Session()
-        session.delete(belongs)
-        session.commit()
 
     def __str__(self):
         return str(self.tenant_id)

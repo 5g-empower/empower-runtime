@@ -58,7 +58,6 @@ EP_ACT_INVALID = 0
 EP_ACT_HELLO = 1
 EP_ACT_CAPS = 2
 EP_ACT_UE_REPORT = 4
-EP_ACT_UE_MEASURE = 5
 EP_ACT_HANDOVER = 7
 EP_ACT_RAN_SETUP = 9
 EP_ACT_RAN_MAC_SLICE = 10
@@ -118,26 +117,6 @@ CAPS_RESPONSE = Struct("caps_response",
                                  Bit("ue_report")),
                        Rename("options", OptionalGreedyRange(OPTIONS)))
 
-RAN_SETUP_REQUEST = Struct("ran_setup_request",
-                           UBInt8("type"),
-                           UBInt8("version"),
-                           Bytes("enbid", 8),
-                           UBInt16("cellid"),
-                           UBInt32("xid"),
-                           BitStruct("flags", Padding(15), Bit("dir")),
-                           UBInt32("seq"),
-                           UBInt16("length"),
-                           UBInt16("action"),
-                           UBInt8("opcode"),
-                           UBInt32("dummy"))
-
-RAN_SETUP_RESPONSE = Struct("ran_setup_response",
-                            BitStruct("layer1", Padding(32)),
-                            BitStruct("layer2", Padding(31),
-                                      Bit("prb_slicing")),
-                            BitStruct("layer3", Padding(32)),
-                            Rename("options", OptionalGreedyRange(OPTIONS)))
-
 RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                UBInt8("type"),
                                UBInt8("version"),
@@ -149,7 +128,9 @@ RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                UBInt16("length"),
                                UBInt16("action"),
                                UBInt8("opcode"),
-                               UBInt64("slice_id"))
+                               Bytes("plmn_id", 4),
+                               UBInt8("dscp"),
+                               Bytes("padding", 3))
 
 SET_RAN_MAC_SLICE_REQUEST = Struct("set_ran_mac_slice_request",
                                    UBInt8("type"),
@@ -284,7 +265,6 @@ PT_TYPES = {PT_BYE: None,
             PT_UE_LEAVE: None,
             EP_ACT_HELLO: HELLO,
             EP_ACT_CAPS: CAPS_RESPONSE,
-            EP_ACT_RAN_SETUP: RAN_SETUP_RESPONSE,
             EP_ACT_RAN_MAC_SLICE: RAN_MAC_SLICE_RESPONSE,
             EP_ACT_UE_REPORT: UE_REPORT_RESPONSE,
             EP_ACT_HANDOVER: UE_HO_RESPONSE}

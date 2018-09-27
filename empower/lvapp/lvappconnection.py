@@ -441,10 +441,12 @@ class LVAPPConnection:
 
             # send slices configuration
             for slc in tenant.slices.values():
-                if self.wtp.addr not in slc.wtps:
-                    continue
-                for block in self.wtp.supports:
-                    self.wtp.connection.send_set_slice(block, slc)
+
+                if not slc.wifi['wtps'] or \
+                    (slc.wifi['wtps'] and self.wtp.addr in slc.wifi['wtps']):
+
+                    for block in self.wtp.supports:
+                        self.wtp.connection.send_set_slice(block, slc)
 
     def _handle_probe_request(self, wtp, request):
         """Handle an incoming PROBE_REQUEST message.
@@ -780,7 +782,7 @@ class LVAPPConnection:
         tenant = RUNTIME.load_tenant(ssid)
 
         if not tenant:
-            self.log.info("Traffic rule status from unknown tenant %s", ssid)
+            self.log.info("Slice status from unknown tenant %s", ssid)
             return
 
         # Check if block is valid
@@ -798,11 +800,13 @@ class LVAPPConnection:
 
         slc = tenant.slices[dscp]
 
-        if wtp.addr not in slc.wtps:
-            slc.wtps[wtp.addr] = {'properties': {}, 'blocks': {}}
+        if wtp.addr not in slc.wifi['wtps']:
+            slc.wifi['wtps'][wtp.addr] = {'static-properties': {}, 'blocks': {}}
 
-        slc.wtps[wtp.addr]['properties']['quantum'] = status.quantum
-        slc.wtps[wtp.addr]['properties']['amsdu_aggregation'] = \
+        slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
+            status.quantum
+
+        slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
             bool(status.flags.amsdu_aggregation)
 
         self.log.info("Slice %s updated", slc)
@@ -1025,18 +1029,18 @@ class LVAPPConnection:
 
         ssid = slc.tenant.tenant_name
 
-        amsdu_aggregation = slc.wifi_properties['amsdu_aggregation']
-        quantum = slc.wifi_properties['quantum']
+        amsdu_aggregation = slc.wifi['static-properties']['amsdu_aggregation']
+        quantum = slc.wifi['static-properties']['quantum']
 
-        if self.wtp.addr in slc.wtps:
+        if self.wtp.addr in slc.wifi['wtps']:
 
-            if 'amsdu_aggregation' in slc.wtps[self.wtp.addr]['properties']:
-                amsdu_aggregation = \
-                    slc.wtps[self.wtp.addr]['properties']['amsdu_aggregation']
+            static = slc.wifi['wtps'][self.wtp.addr]['static-properties']
 
-            if 'quantum' in slc.wtps[self.wtp.addr]['properties']:
-                quantum = \
-                    slc.wtps[self.wtp.addr]['properties']['quantum']
+            if 'amsdu_aggregation' in static:
+                amsdu_aggregation = static['amsdu_aggregation']
+
+            if 'quantum' in static:
+                quantum = static['quantum']
 
         flags = Container(amsdu_aggregation=amsdu_aggregation)
 

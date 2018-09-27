@@ -33,15 +33,13 @@ if __name__ == "__main__":
              'lvapp.bin_counter.bin_counter',
              'lvapp.txp_bin_counter.txp_bin_counter',
              'lvapp.slice_stats.slice_stats',
-             'lvapp.cqm.ucqm',
-             'lvapp.cqm.ncqm',
+             'lvapp.ucqm.ucqm',
+             'lvapp.ncqm.ncqm',
              'lvapp.wifi_stats.wifi_stats',
              'lvapp.rssi.rssi',
              'lvapp.summary.summary',
-             'lvapp.igmp_report.igmp_report',
-             'lvapp.incoming_mcast_address.incoming_mcast_address',
 
-             'vbsp.rrc_measurements.rrc_measurements',
+             'vbsp.ue_measurements.ue_measurements',
              'vbsp.mac_reports.mac_reports',
 
              'lvnfp.lvnf_get.lvnf_get',

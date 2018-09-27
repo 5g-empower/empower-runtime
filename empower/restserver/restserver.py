@@ -23,8 +23,6 @@ from uuid import uuid4
 import tornado.web
 import tornado.httpserver
 
-from tornado.web import MissingArgumentError
-
 import empower.logger
 from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
@@ -64,10 +62,9 @@ def exceptions(method):
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """ Base handler, implements only basic authentication stuff. """
+    """Base handler."""
 
-    HANDLERS = [r"/"]
-    PAGE = "index.html"
+    HANDLERS = []
 
     def initialize(self, server=None):
         self.server = server
@@ -75,148 +72,70 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         """ Return username of currently logged user. """
 
-        if self.get_secure_cookie("user"):
-            return self.get_secure_cookie("user").decode('UTF-8')
+        if self.get_secure_cookie("username"):
+            return self.get_secure_cookie("username").decode('UTF-8')
 
         return None
+
+
+class IndexHandler(BaseHandler):
+    """Index page"""
+
+    HANDLERS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
     def get(self):
         """ Render page. """
 
-        try:
-            error = self.get_argument("error")
-        except MissingArgumentError:
-            error = ""
+        username = self.get_current_user()
+        account = RUNTIME.accounts[username]
 
-        account = RUNTIME.accounts[self.get_current_user()]
-
-        self.render(self.PAGE,
-                    username=self.get_current_user(),
+        self.render("index.html",
+                    username=username,
                     password=account.password,
                     name=account.name,
                     surname=account.surname,
                     email=account.email,
-                    role=account.role,
-                    error=error)
-
-
-class EmpowerAppHomeHandler(BaseHandler):
-    """Web UI Handler.
-
-    Templates must be put in the /templates/<app name>/ sub-directory. Static
-    files must be put in the /static/<app name>/.
-    """
-
-    HANDLERS = [r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/?",
-                r"/apps/tenants/([a-zA-Z0-9-]*)/([a-zA-Z0-9-]*)/(.*)"]
-
-    def get(self, *args):
-
-        try:
-
-            if len(args) < 2 or len(args) > 3:
-                raise ValueError("Invalid url")
-
-            tenant_id = UUID(args[0])
-            app_name = args[1]
-
-            if len(args) == 2:
-                page = "index.html"
-            else:
-                page = args[2]
-
-            self.render("apps/%s/%s" % (app_name, page), tenant_id=tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-
-class RequestTenantHandler(BaseHandler):
-    """Tenant management (for users)."""
-
-    PAGE = "request_tenant.html"
-    HANDLERS = [r"/request_tenant/?"]
-
-
-class ProfileHandler(BaseHandler):
-    """Profile managerment (both read and update)."""
-
-    PAGE = "profile.html"
-    HANDLERS = [r"/profile/?"]
+                    role=account.role)
 
 
 class AuthLoginHandler(BaseHandler):
     """Login handler."""
 
-    HANDLERS = [r"/auth/login/?"]
+    HANDLERS = [r"/auth/login"]
 
     def get(self):
-        try:
-            self.render("login.html", error=self.get_argument("error"))
-        except MissingArgumentError:
-            self.render("login.html", error="")
+        self.render("login.html", error=self.get_argument("error", ""))
 
     def post(self):
+        """Process login credentials."""
+
         username = self.get_argument("username", "")
         password = self.get_argument("password", "")
+
         if RUNTIME.check_permission(username, password):
-            self.set_secure_cookie("user", username)
-            self.redirect(self.get_argument("next", "/"))
+            self.set_secure_cookie("username", username)
+            self.redirect("/index.html")
         else:
-            error_msg = "Login incorrect."
-            self.redirect("/auth/login/" +
-                          "?error=" +
-                          tornado.escape.url_escape(error_msg))
+            self.clear_cookie("username")
+            self.redirect("/auth/login?error=Wrong Password")
 
 
 class AuthLogoutHandler(BaseHandler):
     """Logout handler."""
 
-    HANDLERS = [r"/auth/logout/?"]
+    HANDLERS = [r"/auth/logout"]
 
     def get(self):
-        self.clear_cookie("user")
-        self.redirect(self.get_argument("next", "/"))
+        self.clear_cookie("username")
+        self.redirect("/auth/login")
 
 
-class ManageTenantHandler(BaseHandler):
-    """Tenant management (for users)."""
+class AllowHandler(EmpowerAPIHandler):
+    """ Allow handler. """
 
-    PAGE = "manage_tenant.html"
-    HANDLERS = [r"/manage_tenant/?"]
-
-    @tornado.web.authenticated
-    def get(self):
-        """ Render page. """
-
-        tenant_id = UUID(self.get_argument("tenant_id", ""))
-        tenant = RUNTIME.tenants[tenant_id]
-
-        try:
-            error = self.get_argument("error")
-        except MissingArgumentError:
-            error = ""
-
-        account = RUNTIME.accounts[self.get_current_user()]
-
-        self.render(self.PAGE,
-                    username=self.get_current_user(),
-                    password=account.password,
-                    name=account.name,
-                    surname=account.surname,
-                    email=account.email,
-                    role=account.role,
-                    error=error,
-                    tenant=tenant)
-
-
-class ACLHandler(EmpowerAPIHandler):
-
-    """ACL handler. Used to view and manipulate the ACL."""
-
-    STRUCT = None
-    HANDLERS = []
+    HANDLERS = [r"/api/v1/allow/?",
+                r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
 
     def get(self, *args, **kwargs):
         """ List the entire ACL or just the specified entry.
@@ -235,7 +154,7 @@ class ACLHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid URL")
 
-            acl = getattr(RUNTIME, self.STRUCT)
+            acl = RUNTIME.allowed
 
             if not args:
                 self.write_as_json(acl.values())
@@ -279,8 +198,7 @@ class ACLHandler(EmpowerAPIHandler):
             if "label" in request:
                 label = request['label']
 
-            func = getattr(RUNTIME, 'add_%s' % self.STRUCT)
-            func(EtherAddress(request['sta']), label)
+            RUNTIME.add_allowed(EtherAddress(request['sta']), label)
 
             self.set_header("Location", "/api/v1/allow/%s" % request['sta'])
 
@@ -305,22 +223,12 @@ class ACLHandler(EmpowerAPIHandler):
         try:
             if len(args) != 1:
                 raise ValueError("Invalid URL")
-            func = getattr(RUNTIME, 'remove_%s' % self.STRUCT)
-            func(EtherAddress(args[0]))
+            RUNTIME.remove_allowed(EtherAddress(args[0]))
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
             self.send_error(400, message=ex)
         self.set_status(204, None)
-
-
-class AllowHandler(ACLHandler):
-    """ Allow handler. """
-
-    STRUCT = "allowed"
-    HANDLERS = [r"/api/v1/allow/?",
-                r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
-
 
 class AccountsHandler(EmpowerAPIHandler):
     """Accounts handler. Used to add/remove accounts."""
@@ -515,43 +423,6 @@ class AccountsHandler(EmpowerAPIHandler):
         self.set_status(204, None)
 
 
-class MarketplaceHandler(EmpowerAPIHandler):
-    """Marketplace handler.
-
-    Used to list available apps."""
-
-    HANDLERS = [r"/api/v1/marketplace?",
-                r"/api/v1/marketplace/([a-zA-Z0-9:_\-.]*)/?"]
-
-    def get(self, *args):
-        """Lists the available system-wide apps.
-
-        Args:
-            component_id: the id of a component istance
-
-        Example URLs:
-            GET /api/v1/marketplace
-            GET /api/v1/marketplace/<app>
-        """
-
-        try:
-
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-
-            apps = RUNTIME.load_apps()
-
-            if not args:
-                self.write_as_json(apps)
-            else:
-                self.write_as_json(apps[args[0]])
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-
 class ComponentsHandler(EmpowerAPIHandler):
     """Components handler. Used to load/unload components."""
 
@@ -578,20 +449,19 @@ class ComponentsHandler(EmpowerAPIHandler):
             if len(args) > 1:
                 raise ValueError("Invalid url")
 
-            componets = {}
+            main_components = RUNTIME.load_main_components()
 
-            for component in RUNTIME.components:
+            for component in main_components:
 
-                if hasattr(RUNTIME.components[component], 'to_dict'):
-                    componets[component] = \
-                        RUNTIME.components[component].to_dict()
+                if component in RUNTIME.components:
+                    main_components[component]['active'] = True
                 else:
-                    componets[component] = {}
+                    main_components[component]['active'] = False
 
             if not args:
-                self.write_as_json(componets)
+                self.write_as_json(main_components)
             else:
-                self.write_as_json(componets[args[0]])
+                self.write_as_json(main_components[args[0]])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -694,8 +564,7 @@ class ComponentsHandler(EmpowerAPIHandler):
         """
 
         try:
-
-            if not args:
+            if args:
                 raise ValueError("Invalid url")
 
             request = tornado.escape.json_decode(self.request.body)
@@ -706,7 +575,10 @@ class ComponentsHandler(EmpowerAPIHandler):
             if "argv" not in request:
                 raise ValueError("missing argv element")
 
-            argv = request['argv'].split(" ")
+            prefix = "empower."
+            argv = request['argv'][len(prefix):] \
+                if request['argv'].startswith(prefix) else request['argv']
+            argv = argv.split(" ")
             components, components_order = _parse_args(argv)
 
             if not _do_launch(components, components_order):
@@ -720,156 +592,9 @@ class ComponentsHandler(EmpowerAPIHandler):
         self.set_status(201, None)
 
 
-class PendingTenantHandler(EmpowerAPIHandler):
-    """Pending Tenant handler. Used to view and manipulate tenant requests."""
-
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_USER],
-              'DELETE': [ROLE_ADMIN, ROLE_USER]}
-
-    HANDLERS = [r"/api/v1/pending/?",
-                r"/api/v1/pending/([a-zA-Z0-9-]*)/?"]
-
-    def get(self, *args, **kwargs):
-        """ Lists all the tenants requested. Returns 404 if the requested
-        tenant does not exists.
-
-        Args:
-            tenant_id: network name of a tenant
-
-        Example URLs:
-
-            GET /api/v1/pending
-            GET /api/v1/pending/TenantName
-
-        """
-
-        try:
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-            if not args:
-                user = self.get_argument("user", default=None)
-                if user:
-                    pendings = RUNTIME.load_pending_tenants(user)
-                else:
-                    pendings = RUNTIME.load_pending_tenants()
-                self.write_as_json(pendings)
-            else:
-                tenant_id = UUID(args[0])
-                pending = RUNTIME.load_pending_tenant(tenant_id)
-                self.write_as_json(pending)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-    def post(self, *args, **kwargs):
-        """ Create a new tenant request.
-
-        Args:
-            None
-
-        Request:
-            version: protocol version (1.0)
-            owner: the username of the requester
-            tenant_id: the network name
-            desc: a description for the new tenant
-            bssid_type: shared or unique
-
-        Example URLs:
-
-            POST /api/v1/pending
-
-        """
-
-        try:
-
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "desc" not in request:
-                raise ValueError("missing desc element")
-
-            if "tenant_name" not in request:
-                raise ValueError("missing tenant_name element")
-
-            bssid_type = T_TYPE_UNIQUE
-            if "bssid_type" in request:
-                bssid_type = request['bssid_type']
-
-            if "plmn_id" in request:
-                plmn_id = PLMNID(request['plmn_id'])
-            else:
-                plmn_id = None
-
-            if len(args) == 1:
-                tenant_id = UUID(args[0])
-            else:
-                tenant_id = None
-
-            tenant_name = SSID(request['tenant_name'])
-
-            RUNTIME.request_tenant(self.account.username,
-                                   request['desc'],
-                                   tenant_name,
-                                   bssid_type,
-                                   tenant_id,
-                                   plmn_id)
-
-            self.set_header("Location", "/api/v1/pendig/%s" % tenant_id)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        self.set_status(201, None)
-
-    def delete(self, *args, **kwargs):
-        """ Delete a tenant request.
-
-        Args:
-            tenant_id: network name of a tenant
-
-        Example URLs:
-
-            PUT /api/v1/pending/52313ecb-9d00-4b7d-b873-b55d3d9ada26
-
-        """
-
-        try:
-
-            if not args:
-
-                pendings = RUNTIME.load_pending_tenants()
-
-                for pending in pendings:
-                    RUNTIME.reject_tenant(pending.tenant_id)
-
-            else:
-
-                tenant_id = UUID(args[0])
-                RUNTIME.reject_tenant(tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        self.set_status(204, None)
-
-
 class TenantHandler(EmpowerAPIHandler):
-
     """Tenat handler. Used to view and manipulate tenants."""
 
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_ADMIN],
-              'DELETE': [ROLE_ADMIN, ROLE_USER]}
 
     HANDLERS = [r"/api/v1/tenants/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/?"]
@@ -1044,12 +769,31 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
             tenant = RUNTIME.tenants[tenant_id]
+            components = {}
+            user_components = RUNTIME.load_user_components()
+
+            for component in tenant.components:
+
+                if hasattr(tenant.components[component], 'to_dict'):
+                    components[component] = \
+                        tenant.components[component].to_dict()
+                elif component in user_components:
+                    components[component] = user_components[component]
+                else:
+                    components[component] = {}
+                components[component]['active'] = True
+
+            for component in user_components:
+
+                if component not in tenant.components:
+                    components[component] = user_components[component]
+                    components[component]['active'] = False
 
             if len(args) == 1:
-                self.write_as_json(tenant.components)
+                self.write_as_json(components)
             else:
                 componet_id = args[1]
-                self.write_as_json(tenant.components[componet_id])
+                self.write_as_json(components[componet_id])
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1096,10 +840,18 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
             tenant = RUNTIME.tenants[tenant_id]
 
             app_id = args[1]
-            app = tenant.components[app_id]
 
-            for param in request['params']:
-                setattr(app, param, request['params'][param])
+            # Update of an active component
+            if app_id in tenant.components:
+                app = tenant.components[app_id]
+
+                for param in request['params']:
+                    setattr(app, param, request['params'][param])
+
+            # Requests on inactive components are ignored
+            else:
+                self.log.error("'%s' not loaded", app_id)
+                raise ValueError("%s not loaded" % app_id)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1176,7 +928,10 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 
             tenant_id = UUID(args[0])
 
-            argv = request['argv'].strip().split(" ")
+            prefix = "empower."
+            argv = request['argv'][len(prefix):] \
+                if request['argv'].startswith(prefix) else request['argv']
+            argv = argv.strip().split(" ")
             argv.append("--tenant_id=%s" % tenant_id)
 
             components, components_order = _parse_args(argv)
@@ -1261,6 +1016,9 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
             tenant = RUNTIME.tenants[tenant_id]
 
             dscp = DSCP(request["dscp"])
+
+            if dscp in tenant.slices:
+                raise ValueError("slice already registered in this tenant")
 
             tenant.add_slice(dscp, request)
 
@@ -1829,7 +1587,11 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             dscp = DSCP(request["dscp"])
             match = Match(request["match"])
 
-            tenant.add_traffic_rule(match, dscp, request["label"])
+            if "priority" in request:
+                tenant.add_traffic_rule(match, dscp, request["label"], \
+                                        request["request"])
+            else:
+                tenant.add_traffic_rule(match, dscp, request["label"])
 
             url = "/api/v1/tenants/%s/trs/%s" % (tenant_id, match)
             self.set_header("Location", url)
@@ -2042,7 +1804,7 @@ class RESTServer(tornado.web.Application):
         "static_path": settings.STATIC_PATH,
         "debug": settings.DEBUG,
         "cookie_secret": settings.COOKIE_SECRET,
-        "login_url": "/auth/login/"
+        "login_url": "/auth/login"
     }
 
     def __init__(self, port, cert, key):
@@ -2064,16 +1826,13 @@ class RESTServer(tornado.web.Application):
 
         http_server.listen(self.port)
 
-        handler_classes = [BaseHandler, EmpowerAppHomeHandler,
-                           RequestTenantHandler, ProfileHandler,
-                           AuthLoginHandler, AuthLogoutHandler,
-                           ManageTenantHandler, AccountsHandler,
+        handler_classes = [BaseHandler, ModuleHandler, AuthLoginHandler,
+                           AuthLogoutHandler, AccountsHandler,
                            ComponentsHandler, TenantComponentsHandler,
-                           PendingTenantHandler, TenantHandler,
-                           AllowHandler, TenantSliceHandler,
-                           TenantEndpointHandler, TenantEndpointNextHandler,
-                           TenantEndpointPortHandler, TenantTrafficRuleHandler,
-                           MarketplaceHandler, ModuleHandler]
+                           TenantHandler, AllowHandler,
+                           TenantSliceHandler, TenantEndpointHandler,
+                           TenantEndpointNextHandler, IndexHandler,
+                           TenantEndpointPortHandler, TenantTrafficRuleHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)

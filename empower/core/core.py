@@ -37,8 +37,6 @@ from empower.datatypes.dscp import DSCP
 from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
-from empower.persistence.persistence import TblBelongs
-from empower.persistence.persistence import TblPendingTenant
 from empower.core.account import Account
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
@@ -192,11 +190,11 @@ class EmpowerRuntime:
             acl = ACL(allow.addr, allow.label)
             self.allowed[allow.addr] = acl
 
-    def load_apps(self):
-        """Fetch the available apps.
+    def load_main_components(self):
+        """Fetch the available components.
 
-        An app is a standard python module defining in the init file
-        a python dictionary  named MANIFEST.
+        A main component is a standard python module defining in the init file
+        a python dictionary named MANIFEST.
 
         The MANIFEST provides:
           - name: the name of the module
@@ -216,6 +214,28 @@ class EmpowerRuntime:
         self.__walk_module(empower.lvapp, results)
         self.__walk_module(empower.lvnfp, results)
         self.__walk_module(empower.vbsp, results)
+
+        return results
+
+    def load_user_components(self):
+        """Fetch the available user components.
+
+        A user component is a standard python module defining in the init file
+        a python dictionary named MANIFEST.
+
+        The MANIFEST provides:
+          - name: the name of the module
+          - desc: a human readable description of the app
+          - params: the list of parameters defined by the app.
+
+        For each parameter the following info are provided:
+          - label: the name of the parameters
+          - desc: a description of the parameter
+          - mandatory (optional): true/false (default: false)
+          - default: the default value of the parameter
+        """
+
+        results = {}
         self.__walk_module(empower.apps, results)
 
         return results
@@ -376,9 +396,14 @@ class EmpowerRuntime:
     def unregister_app(self, tenant_id, app_id):
         """Unregister app."""
 
+        tenant = self.tenants[tenant_id]
+
+        if app_id not in tenant.components:
+            self.log.error("'%s' not registered", app_id)
+            raise ValueError("%s not registered" % app_id)
+
         self.log.info("Unregistering: %s (%s)", app_id, tenant_id)
 
-        tenant = self.tenants[tenant_id]
         app = tenant.components[app_id]
 
         from empower.core.app import EmpowerApp
@@ -387,6 +412,7 @@ class EmpowerRuntime:
             raise ValueError("Module %s cannot be removed" % app_id)
 
         app.stop()
+
         del tenant.components[app_id]
 
     def unregister(self, name):
@@ -396,20 +422,14 @@ class EmpowerRuntime:
 
         worker = self.components[name]
 
-        from empower.core.module import ModuleWorker
+        from empower.core.module import ServiceWorker
 
-        if not issubclass(type(worker), ModuleWorker):
+        if not issubclass(type(worker), ServiceWorker):
             raise ValueError("Module %s cannot be removed" % name)
 
-        to_be_removed = []
+        for module_id in list(self.components[name].modules.keys()):
+            self.components[name].remove_module(module_id)
 
-        for module in self.components[name].modules.values():
-            to_be_removed.append(module.module_id)
-
-        for remove in to_be_removed:
-            self.components[name].remove_module(remove)
-
-        self.components[name].remove_handlers()
         del self.components[name]
 
     def get_account(self, username):
@@ -474,93 +494,11 @@ class EmpowerRuntime:
 
         # create default queue
         dscp = DSCP()
-
-        descriptor = {
-            "version": 1.0,
-            "dscp": "0x0",
-            "wifi-properties": {
-                "amsdu_aggregation": False
-            },
-            "wtps": {},
-            "lte-properties": {},
-            "vbses": {}
-        }
+        descriptor = {}
 
         self.tenants[request.tenant_id].add_slice(dscp, descriptor)
 
         return request.tenant_id
-
-    @classmethod
-    def load_pending_tenant(cls, tenant_id):
-        """Load pending tenant request."""
-
-        return Session().query(TblPendingTenant) \
-                        .filter(TblPendingTenant.tenant_id == tenant_id) \
-                        .first()
-
-    @classmethod
-    def load_pending_tenants(cls, username=None):
-        """Fetch pending tenants requests."""
-
-        if username:
-            return Session().query(TblPendingTenant) \
-                            .filter(TblPendingTenant.owner == username) \
-                            .all()
-
-        return Session().query(TblPendingTenant).all()
-
-    def request_tenant(self, owner, desc, tenant_name, bssid_type,
-                       tenant_id=None, plmn_id=None):
-
-        """Request new Tenant."""
-
-        if tenant_id in self.tenants:
-            raise ValueError("Tenant %s exists" % tenant_id)
-
-        if self.load_pending_tenant(tenant_id):
-            raise ValueError("Tenant %s exists" % tenant_id)
-
-        try:
-
-            session = Session()
-
-            if tenant_id:
-                request = TblPendingTenant(tenant_id=tenant_id,
-                                           owner=owner,
-                                           tenant_name=tenant_name,
-                                           desc=desc,
-                                           bssid_type=bssid_type,
-                                           plmn_id=plmn_id)
-            else:
-                request = TblPendingTenant(owner=owner,
-                                           tenant_name=tenant_name,
-                                           desc=desc,
-                                           bssid_type=bssid_type,
-                                           plmn_id=plmn_id)
-
-            session.add(request)
-            session.commit()
-
-        except IntegrityError:
-            session.rollback()
-            raise ValueError("Tenant name %s exists" % tenant_name)
-
-        return request.tenant_id
-
-    @classmethod
-    def reject_tenant(cls, tenant_id):
-        """Reject previously requested Tenant."""
-
-        pending = Session().query(TblPendingTenant) \
-            .filter(TblPendingTenant.tenant_id == tenant_id) \
-            .first()
-
-        if not pending:
-            raise KeyError(tenant_id)
-
-        session = Session()
-        session.delete(pending)
-        session.commit()
 
     def remove_tenant(self, tenant_id):
         """Delete existing Tenant."""
@@ -573,15 +511,6 @@ class EmpowerRuntime:
         # remove slices in this tenant
         for dscp in list(tenant.slices):
             tenant.del_slice(dscp)
-
-        # remove pnfdev in this tenant
-        devs = Session().query(TblBelongs) \
-                        .filter(TblBelongs.tenant_id == tenant_id)
-
-        for dev in devs:
-            session = Session()
-            session.delete(dev)
-            session.commit()
 
         # remove tenant
         del self.tenants[tenant_id]

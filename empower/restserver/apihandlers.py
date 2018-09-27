@@ -109,24 +109,6 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
 
                 return
 
-            if self.request.uri.startswith("/api/v1/pending"):
-                pattern = re.compile("/api/v1/pending/([a-zA-Z0-9-]*)/?")
-                match = pattern.match(self.request.uri)
-                if match and match.group(1):
-                    try:
-                        tenant_id = UUID(match.group(1))
-                    except ValueError:
-                        self.send_error(400)
-                        return
-                    pending = RUNTIME.load_pending_tenant(tenant_id)
-                    if pending:
-                        if self.account.username == pending.owner:
-                            return
-                        self.send_error(401)
-                        return
-
-                return
-
             if self.request.uri.startswith("/api/v1/tenants"):
 
                 pattern = re.compile("/api/v1/tenants/([a-zA-Z0-9-]*)/?")

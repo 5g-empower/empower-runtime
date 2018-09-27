@@ -35,6 +35,9 @@ from empower.core.transmissionpolicy import TX_MCAST_LEGACY
 from empower.datatypes.etheraddress import EtherAddress
 import sys
 
+TX_MCAST_SDNPLAY = 0x3
+TX_MCAST_SDNPLAY_H = "sdnplay"
+
 
 class MCastManager(EmpowerApp):
     """Multicast app with rate adaptation support.
@@ -62,40 +65,77 @@ class MCastManager(EmpowerApp):
         self.mcast_addr = EtherAddress("01:00:5e:00:c8:dd")
         self.current = 0
         self.dms = 1
-        self.legacy = 4
+        self.legacy = 9
         self.schedule = [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy
+        self._demo_mode = TX_MCAST_SDNPLAY_H
+        self.status = {}
 
-        # register lvap join/leave events
-        self.lvapjoin(callback=self.lvap_join_callback)
-        self.lvapleave(callback=self.lvap_leave_callback)
+    @property
+    def demo_mode(self):
+        """Get demo mode."""
 
-    def lvap_join_callback(self, lvap):
-        """Called when a new LVAP joins the network."""
+        return self._demo_mode
+
+    @demo_mode.setter
+    def demo_mode(self, demo_mode):
+        """Set the demo mode."""
+
+        self._demo_mode = demo_mode
+
+        # if the demo is not SDN@Play, the tx policy should be ignored
+        for block in self.blocks():
+            # fetch txp
+            txp = block.tx_policies[self.mcast_addr]
+            if demo_mode == TX_MCAST[TX_MCAST_DMS]:
+                txp.mcast = TX_MCAST_DMS
+            elif demo_mode == TX_MCAST[TX_MCAST_LEGACY]:
+                txp.mcast = TX_MCAST_LEGACY
+                mcs_type = BT_HT20
+                if mcs_type == BT_HT20:
+                    txp.ht_mcs = [min(block.ht_supports)]
+                else:
+                    txp.mcs = [min(block.supports)]
+
+        if demo_mode != TX_MCAST_DMSPLAY_H:
+            self.status['MCS'] = "None"
+            self.status['Phase'] = "None"
+
+    def lvap_join(self, lvap):
+        """Called when an LVAP joins a tenant."""
 
         self.receptors[lvap.addr] = \
             self.lvap_stats(lvap=lvap.addr, every=self.every)
 
-    def lvap_leave_callback(self, lvap):
+    def lvap_leave(self, lvap):
         """Called when an LVAP leaves the network."""
 
-        del self.receptors[lvap.addr]
-        del self.receptors_mcses[lvap.addr]
-        del self.receptors_quality[lvap.addr]
+        if lvap.addr in self.receptors:
+            del self.receptors[lvap.addr]
+
+        if lvap.addr in self.receptors_mcses:
+            del self.receptors_mcses[lvap.addr]
+
+        if lvap.addr in self.receptors_quality:
+            del self.receptors_quality[lvap.addr]
 
     def compute_receptors_mcs(self):
         """ New stats available. """
 
-        for receptor, value in self.receptors.items():
+        for value in self.receptors.values():
             highest_prob = 0
             information = value.to_dict()
+
             if not information["rates"]:
                 continue
 
             lvap = information["lvap"]
-            best_mcs = min(list(map(int, information["rates"].keys())))
+            keys = [float(i) for i in information["rates"].keys()]
+            best_mcs = min(list(map(int, keys)))
+
             if lvap in self.receptors_mcses:
                 del self.receptors_mcses[lvap]
+
             self.receptors_mcses[lvap] = []
 
             for mcs, stats in information["rates"].items():
@@ -133,57 +173,76 @@ class MCastManager(EmpowerApp):
 
         return mcs
 
-    def get_next_mode(self):
-        """Get next mcast mode in the schedule."""
+    def get_next_phase(self):
+        """Get next mcast phase to be scheduled."""
 
-        mode = self.schedule[self.current % len(self.schedule)]
+        phase = self.schedule[self.current % len(self.schedule)]
         self.current += 1
 
-        return mode
+        return phase
 
     def loop(self):
         """ Periodic job. """
 
-        mode = self.get_next_mode()
-        self.log.info("Mcast mode %s", TX_MCAST[mode])
+        # if the demo is now in DMS it should not calculate anything
+        if self.demo_mode == TX_MCAST[TX_MCAST_DMS] or \
+           self.demo_mode == TX_MCAST[TX_MCAST_LEGACY]:
+            return
+
+        # if there are no clients the mode should be dms
+        if not self.receptors:
+            for block in self.blocks():
+                # fetch txp
+                txp = block.tx_policies[self.mcast_addr]
+
+                if txp.mcast == TX_MCAST_DMS:
+                    continue
+
+                txp.mcast = TX_MCAST_DMS
+
+
+        phase = self.get_next_phase()
+        self.log.info("Mcast phase %s", TX_MCAST[phase])
 
         for block in self.blocks():
-
             # fetch txp
             txp = block.tx_policies[self.mcast_addr]
 
-            # no clients or DMS slot
-            if (not self.lvaps(block) or not self.receptors or
-                    mode == TX_MCAST_DMS):
-
-                self.log.info("Block %s setting mcast address %s to %s",
-                              block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS])
+            if phase == TX_MCAST_DMS:
                 txp.mcast = TX_MCAST_DMS
-                continue
-
-            # legacy period
-            mcs_type = BT_HT20
-
-            # compute MCS
-            mcs = max(self.calculate_mcs(), min(block.supports))
-
-            # assign MCS
-            self.log.info("Block %s setting mcast address %s to %s MCS %d",
-                          block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS], mcs)
-            txp.mcast = TX_MCAST_LEGACY
-            if mcs_type == BT_HT20:
-                txp.ht_mcs = [mcs]
             else:
-                txp.mcs = [mcs]
+                # legacy period
+                mcs_type = BT_HT20
+
+                # compute MCS
+                mcs = max(self.calculate_mcs(), min(block.supports))
+                self.status['MCS'] = mcs
+                txp.mcast = TX_MCAST_LEGACY
+
+                if mcs_type == BT_HT20:
+                    txp.ht_mcs = [mcs]
+                else:
+                    txp.mcs = [mcs]
+
+                # assign MCS
+                self.log.info("Block %s setting mcast address %s to %s MCS %d",
+                              block, self.mcast_addr, TX_MCAST[TX_MCAST_DMS], mcs)
+
+            self.status['Phase'] = TX_MCAST[phase]
 
     def to_dict(self):
         """ Return a JSON-serializable."""
 
         out = super().to_dict()
 
-        out['schedule'] = [TX_MCAST[x] for x in self.schedule]
-        out['receptors'] = \
+        out['Demo_mode'] = self.demo_mode
+        out['SDN@Play parameters'] = \
+            {str(k): v for k, v in self.status.items()}
+        out['Phases_schedule'] = [TX_MCAST[x] for x in self.schedule]
+        out['Receptors'] = \
             {str(k): v for k, v in self.receptors.items()}
+        out['Status'] = \
+            {str(k): v for k, v in self.status.items()}
 
         return out
 

@@ -33,6 +33,8 @@ from empower.lvapp import PT_VERSION
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.core.module import ModuleTrigger
+from empower.lvapp import PT_BYE
+from empower.lvapp import PT_REGISTER
 
 from empower.main import RUNTIME
 
@@ -302,5 +304,15 @@ setattr(EmpowerApp, RSSI.MODULE_NAME, bound_rssi)
 
 def launch():
     """ Initialize the module. """
+
+    worker = RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)
+
+    worker.pnfp_server.register_message(PT_REGISTER,
+                                        None,
+                                        worker.handle_register)
+
+    worker.pnfp_server.register_message(PT_BYE,
+                                        None,
+                                        worker.handle_bye)
 
     return RssiWorker(RSSI, PT_RSSI, RSSI_TRIGGER)

@@ -55,8 +55,8 @@ class UE:
         # migration sats
         self._timer = None
 
-        # the rrc measurement, this is set by an rrc_measurement module
-        self.rrc_measurements = {}
+        # the ue measurements, this is set by a ue_measurement module
+        self.ue_measurements = {}
 
         # logger :)
         self.log = empower.logger.get_logger()
@@ -194,15 +194,15 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        rrcs = {"%u-%u" % (k.vbs.enb_id, k.pci): v
-                for k, v in self.rrc_measurements.items()}
+        ue_meas = {"%u-%u" % (k.vbs.enb_id, k.pci): v
+                for k, v in self.ue_measurements.items()}
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
                 'cell': self.cell,
                 'vbs': self.vbs,
                 'state': self.state,
-                'rrc_measurements': rrcs}
+                'ue_measurements': ue_meas}
 
     def __str__(self):
         """Return string representation."""

@@ -32,7 +32,6 @@ from empower.vbsp import PT_BYE
 from empower.vbsp import PT_REGISTER
 from empower.vbsp import EP_ACT_HELLO
 from empower.vbsp import EP_ACT_CAPS
-from empower.vbsp import EP_ACT_RAN_SETUP
 from empower.vbsp import E_TYPE_SINGLE
 from empower.vbsp import E_TYPE_SCHED
 from empower.vbsp import E_TYPE_TRIG
@@ -41,7 +40,6 @@ from empower.vbsp import E_SCHED
 from empower.vbsp import E_TRIG
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
-from empower.vbsp import RAN_SETUP_REQUEST
 from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import EP_OPERATION_ADD
@@ -269,7 +267,7 @@ class VBSPConnection:
 
         return msg.xid
 
-    def _handle_hello(self, vbs, hdr, event, _):
+    def _handle_hello(self, vbs, hdr, event, message):
         """Handle an incoming HELLO message.
         Args:
             hello, a HELLO message
@@ -316,18 +314,14 @@ class VBSPConnection:
                             cap.ul_earfcn, cap.ul_prbs)
                 vbs.cells[cap.pci] = cell
 
-                # send ran setup request
-                self.send_ran_setup_request(cap.pci)
-
                 # send slice request
                 self.send_ran_mac_slice_request(cap.pci)
 
         # transition to the online state
         vbs.set_online()
 
-        # if UE reports are supported then activate them
-        if bool(caps.flags.ue_report):
-            self.send_ue_reports_request()
+        # activate UE reports
+        self.send_ue_reports_request()
 
         # send slices
         self.update_slices()
@@ -344,30 +338,26 @@ class VBSPConnection:
             # send slices configuration
             for slc in tenant.slices.values():
 
-                if self.vbs.addr not in slc.vbses:
+                if not tenant.plmn_id:
                     continue
 
-                for cell in self.vbs.cells.values():
-                    if not slc.vbses[self.vbs.addr]['cells']:
-                        self.vbs.connection.\
-                            send_add_set_ran_mac_slice_request(cell,
-                                                               slc,
-                                                               EP_OPERATION_ADD)
-                    else:
-                        self.vbs.connection.\
-                            send_add_set_ran_mac_slice_request(cell,
-                                                               slc,
-                                                               EP_OPERATION_SET)
+                if not slc.lte['vbses'] or \
+                    (slc.lte['vbses'] and self.vbs.addr in slc.lte['vbses']):
 
-    def _handle_ran_setup_response(self, vbs, hdr, event, setup):
-        """Handle an incoming RAN SETUP message.
-        Args:
-            setup, a RAN_SETUP messagge
-        Returns:
-            None
-        """
+                    for cell in self.vbs.cells.values():
 
-        pass
+                        if self.vbs.addr not in slc.lte['vbses'] or \
+                            not slc.lte['vbses'][self.vbs.addr]['cells']:
+
+                            self.vbs.connection. \
+                                send_add_set_ran_mac_slice_request(cell,
+                                                                   slc,
+                                                                   EP_OPERATION_ADD)
+                        else:
+                            self.vbs.connection.\
+                                send_add_set_ran_mac_slice_request(cell,
+                                                                   slc,
+                                                                   EP_OPERATION_SET)
 
     def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
         """Handle an incoming UE_REPORT message.
@@ -491,11 +481,12 @@ class VBSPConnection:
 
         slc = tenant.slices[dscp]
 
-        if vbs.addr not in slc.vbses:
-            slc.vbses[vbs.addr] = {'properties': {}, 'cells': {}}
+        if vbs.addr not in slc.lte['vbses']:
+            slc.lte['vbses'][vbs.addr] = \
+                {'static-properties': {}, 'runtime-properties': {}, 'cells': {}}
 
-        if hdr.cellid not in slc.vbses[vbs.addr]['cells']:
-            slc.vbses[vbs.addr]['cells'][hdr.cellid] = {}
+        if hdr.cellid not in slc.lte['vbses'][vbs.addr]['cells']:
+            slc.lte['vbses'][vbs.addr]['cells'][hdr.cellid] = {}
 
         for raw_cap in msg.options:
 
@@ -509,15 +500,15 @@ class VBSPConnection:
             self.log.warning("Processing options %s", prop)
 
             if raw_cap.type == EP_RAN_MAC_SLICE_SCHED_ID:
-                slc.vbses[self.vbs.addr]['properties']['sched_id'] = \
-                    option.sched_id
+                slc.lte['vbses'][vbs.addr] \
+                    ['static-properties']['sched_id'] = option.sched_id
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RBGS:
-                slc.vbses[self.vbs.addr]['properties']['rbgs'] = \
+                slc.lte['vbses'][vbs.addr]['static-properties']['rbgs'] = \
                     option.rbgs
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
-                slc.lte_runtime['rntis'] = option.rntis
+                slc.lte['vbses']['runtime-properties']['rntis'] = option.rntis
 
         self.log.info("Slice %s updated", slc)
 
@@ -535,22 +526,6 @@ class VBSPConnection:
                           E_TYPE_SINGLE,
                           EP_ACT_CAPS,
                           CAPS_REQUEST)
-
-    def send_ran_setup_request(self, cell_id):
-        """Send a RAN_SETUP_REQUEST message.
-        Args:
-            cell_id: the id of the cell
-        Returns:
-            None
-        """
-
-        msg = Container(length=RAN_SETUP_REQUEST.sizeof(), dummy=0)
-
-        self.send_message(msg,
-                          E_TYPE_SINGLE,
-                          EP_ACT_RAN_SETUP,
-                          RAN_SETUP_REQUEST,
-                          cellid=cell_id)
 
     def send_ue_reports_request(self):
         """Send a UE Reports message.
@@ -592,7 +567,10 @@ class VBSPConnection:
                           UE_HO_REQUEST,
                           cellid=ue.cell.pci)
 
-    def send_ran_mac_slice_request(self, cell_id, slice_id=0):
+    def send_ran_mac_slice_request(self,
+                                   cell_id,
+                                   plmn_id=PLMNID(),
+                                   dscp=DSCP()):
         """Send a STATUS_SLICE_REQUEST message.
         Args:
             None
@@ -601,8 +579,9 @@ class VBSPConnection:
         """
 
         msg = Container(length=RAN_MAC_SLICE_REQUEST.sizeof(),
-                        slice_id=slice_id,
-                        dummy=0)
+                        plmn_id=plmn_id.to_raw(),
+                        dscp=dscp.to_raw(),
+                        padding=b'\x00\x00\x00')
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
@@ -620,22 +599,28 @@ class VBSPConnection:
             None
         """
 
-        sched_id = slc.lte_properties['sched_id']
-        rbgs = slc.lte_properties['rbgs']
-        rntis = slc.lte_runtime['rntis']
+        sched_id = slc.lte['static-properties']['sched_id']
+        rbgs = slc.lte['static-properties']['rbgs']
+        rntis = slc.lte['runtime-properties']['rntis']
 
-        if self.vbs.addr in slc.vbses:
+        if self.vbs.addr in slc.lte['vbses']:
 
-            if 'sched_id' in slc.vbses[self.vbs.addr]['properties']:
-                sched_id = \
-                    slc.vbses[self.vbs.addr]['properties']['sched_id']
+            if 'static-properties' in slc.lte['vbses'][self.vbs.addr]:
 
-            if 'rbgs' in slc.vbses[self.vbs.addr]['properties']:
-                rbgs = \
-                    slc.vbses[self.vbs.addr]['properties']['rbgs']
+                static = slc.lte['vbses'][self.vbs.addr]['static-properties']
 
-        if 'rntis' in slc.lte_runtime['rntis']:
-            rntis = slc.lte_runtime['rntis']
+                if 'sched_id' in static:
+                    sched_id = static['sched_id']
+
+                if 'rbgs' in static:
+                    rbgs = static['rbgs']
+
+            if 'runtime-properties' in slc.lte['vbses'][self.vbs.addr]:
+
+                runtime = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
+
+                if 'rntis' in runtime:
+                    rntis = runtime['rntis']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),
