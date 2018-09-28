@@ -1638,6 +1638,72 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
+class TrafficRuleHandler(EmpowerAPIHandler):
+    """TrafficRule handler. Used to view traffic rules."""
+
+
+    HANDLERS = [r"/api/v1/trs/?"]
+
+    def get(self, *args, **kwargs):
+        """ Lists either all the traffic rules managed by this controller.
+
+        Args:
+            None
+
+        Example URLs:
+
+            GET /api/v1/trs
+
+        """
+
+        try:
+            if args:
+                raise ValueError("Invalid url")
+
+            traffic_rules = []
+
+            for tenant in RUNTIME.tenants.values():
+                traffic_rules += tenant.traffic_rules.values()
+
+            self.write_as_json(traffic_rules)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+
+class SliceHandler(EmpowerAPIHandler):
+    """Slice handler. Used to view slices."""
+
+
+    HANDLERS = [r"/api/v1/slices/?"]
+
+    def get(self, *args, **kwargs):
+        """ Lists either all the slices managed by this controller.
+
+        Args:
+            None
+
+        Example URLs:
+
+            GET /api/v1/slices
+
+        """
+
+        try:
+            if args:
+                raise ValueError("Invalid url")
+
+            slices = []
+
+            for tenant in RUNTIME.tenants.values():
+                slices += tenant.slices.values()
+
+            self.write_as_json(slices)
+
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+
+
 class ModuleHandler(EmpowerAPIHandlerAdminUsers):
     """Tenat traffic rule queue handler."""
 
@@ -1832,7 +1898,8 @@ class RESTServer(tornado.web.Application):
                            TenantHandler, AllowHandler,
                            TenantSliceHandler, TenantEndpointHandler,
                            TenantEndpointNextHandler, IndexHandler,
-                           TenantEndpointPortHandler, TenantTrafficRuleHandler]
+                           TenantEndpointPortHandler, TenantTrafficRuleHandler,
+                           TrafficRuleHandler, SliceHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
