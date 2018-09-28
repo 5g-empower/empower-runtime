@@ -47,15 +47,16 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         self.log = empower.logger.get_logger()
 
     def write_error(self, code, message=None, **kwargs):
+        """Write error as JSON message."""
+
         self.set_header('Content-Type', 'application/json')
+
+        out = {"code": code, "reason": self._reason}
+
         if message:
-            out = {"message": "%d: %s (%s)" % (code,
-                                               self._reason,
-                                               str(message))}
-            self.finish(json.dumps(out))
-        else:
-            out = {"message": "%d: %s" % (code, self._reason)}
-            self.finish(json.dumps(out))
+            out["message"] = str(message)
+
+        self.finish(json.dumps(out))
 
     def write_as_json(self, value):
         """Return reply as a json document."""

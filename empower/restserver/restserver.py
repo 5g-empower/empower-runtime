@@ -45,20 +45,26 @@ from empower.datatypes.match import Match
 DEFAULT_PORT = 8888
 
 
-def exceptions(method):
-    """Decorator catching the most common exceptions."""
+def exceptions(min_args=0, max_args=0):
 
-    def magic(self, *args, **kwargs):
-        """Perform basic exception catching in rest calls."""
+    def decorator(func):
 
-        try:
-            method(self, *args, **kwargs)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
+        def magic(self, *args, **kwargs):
 
-    return magic
+            try:
+                if len(args) < min_args or len(args) > max_args:
+                    msg = "Invalid url (%u, %u)" % (min_args, max_args)
+                    raise ValueError(msg)
+                func(self, *args, **kwargs)
+            except KeyError as ex:
+                self.send_error(404, message=ex)
+            except ValueError as ex:
+                self.send_error(400, message=ex)
+
+        return magic
+
+    return decorator
+
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -1670,38 +1676,25 @@ class TrafficRuleHandler(EmpowerAPIHandler):
         except ValueError as ex:
             self.send_error(400, message=ex)
 
-
 class SliceHandler(EmpowerAPIHandler):
     """Slice handler. Used to view slices."""
 
 
-    HANDLERS = [r"/api/v1/slices/?"]
+    HANDLERS = [r"/api/v1/slices"]
 
+    @exceptions
     def get(self, *args, **kwargs):
-        """ Lists either all the slices managed by this controller.
+        """Lists all the slices managed by this controller.
 
         Args:
             None
 
         Example URLs:
-
             GET /api/v1/slices
-
         """
 
-        try:
-            if args:
-                raise ValueError("Invalid url")
-
-            slices = []
-
-            for tenant in RUNTIME.tenants.values():
-                slices += tenant.slices.values()
-
-            self.write_as_json(slices)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
+        slices = [x for x in RUNTIME.tenants.values()]
+        self.write_as_json(slices)
 
 
 class ModuleHandler(EmpowerAPIHandlerAdminUsers):
