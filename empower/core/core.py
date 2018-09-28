@@ -422,9 +422,9 @@ class EmpowerRuntime:
 
         worker = self.components[name]
 
-        from empower.core.module import ServiceWorker
+        from empower.core.module import ModuleWorker
 
-        if not issubclass(type(worker), ServiceWorker):
+        if not issubclass(type(worker), ModuleWorker):
             raise ValueError("Module %s cannot be removed" % name)
 
         for module_id in list(self.components[name].modules.keys()):
