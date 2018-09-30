@@ -30,7 +30,7 @@ MANIFEST = {
         "every": {
             "desc": "The control loop period (in ms).",
             "mandatory": False,
-            "default": 2000,
+            "default": 5000,
             "type": "int"
         }
     }

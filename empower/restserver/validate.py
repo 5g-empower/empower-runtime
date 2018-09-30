@@ -34,9 +34,12 @@ def _parse_schema(schema, data):
         elif key not in data:
             continue
         else:
-            arg_type = schema[key]["type"]
-            param = arg_type(data[key])
-            params[key] = param
+            if isinstance(schema[key]["type"], dict):
+                params[key] = _parse_schema(schema[key]["type"], data[key])
+            else:
+                arg_type = schema[key]["type"]
+                param = arg_type(data[key])
+                params[key] = param
 
     return params
 
@@ -69,9 +72,15 @@ def validate(returncode=200, min_args=0, max_args=0, input_schema=None):
                 self.send_error(404, message=ex)
 
             except ValueError as ex:
+                print(ex)
                 self.send_error(400, message=ex)
 
             except AttributeError as ex:
+                print(ex)
+                self.send_error(400, message=ex)
+
+            except TypeError as ex:
+                print(ex)
                 self.send_error(400, message=ex)
 
             self.set_status(returncode, None)

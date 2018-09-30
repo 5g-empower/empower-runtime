@@ -45,7 +45,7 @@ from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
 
 import empower.logger
-
+import empower.apps
 
 DEFAULT_PERIOD = 5000
 
@@ -210,16 +210,26 @@ class EmpowerRuntime:
           - default: the default value of the parameter
         """
 
-        results = {}
+        components = {}
 
-        self.__walk_module(empower, results)
-        self.__walk_module(empower.lvapp, results)
-        self.__walk_module(empower.lvnfp, results)
-        self.__walk_module(empower.vbsp, results)
+        self.__walk_module(empower, components)
+        self.__walk_module(empower.lvapp, components)
+        self.__walk_module(empower.lvnfp, components)
+        self.__walk_module(empower.vbsp, components)
 
-        return results
+        for component in components:
+            if component in self.components:
+                components[component]['active'] = True
+                if "params" in components[component]:
+                    for param in components[component]["params"]:
+                        components[component][param] = \
+                            getattr(self.components[component], param)
+            else:
+                components[component]['active'] = False
 
-    def load_user_components(self):
+        return components
+
+    def load_user_components(self, tenant_id):
         """Fetch the available user components.
 
         A user component is a standard python module defining in the init file
@@ -237,10 +247,22 @@ class EmpowerRuntime:
           - default: the default value of the parameter
         """
 
-        results = {}
-        self.__walk_module(empower.apps, results)
+        tenant = self.tenants[tenant_id]
+        components = {}
 
-        return results
+        self.__walk_module(empower.apps, components)
+
+        for component in components:
+            if component in tenant.components:
+                components[component]['active'] = True
+                if "params" in components[component]:
+                    for param in components[component]["params"]:
+                        components[component][param] = \
+                            getattr(tenant.components[component], param)
+            else:
+                components[component]['active'] = False
+
+        return components
 
     @classmethod
     def __walk_module(cls, package, results):
@@ -267,7 +289,7 @@ class EmpowerRuntime:
             name = manifest['name']
             results[name] = manifest
 
-    def add_allowed(self, sta_addr, label):
+    def add_allowed(self, sta_addr, label=None):
         """ Add entry to ACL. """
 
         allow = Session().query(TblAllow) \
