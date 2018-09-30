@@ -22,6 +22,8 @@ import empower.logger
 
 from empower.core.resourcepool import ResourcePool
 from empower.core.cellpool import CellPool
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.lvapp import PT_LVAP_JOIN
 
 from empower.main import RUNTIME
 
@@ -41,9 +43,11 @@ class EmpowerApp:
         for param in kwargs:
             setattr(self, param, kwargs[param])
 
-    def __add_lvapp_event(self, message, handler):
+        # uncommen the following lines after updating the event handling
+        #self._register_lvapp_event(PT_LVAP_JOIN, self.lvap_join)
 
-        from empower.lvapp.lvappserver import LVAPPServer
+    @classmethod
+    def _register_lvapp_event(cls, message, handler):
         server = RUNTIME.components[LVAPPServer.__module__]
         server.register_message(message, None, handler)
 
