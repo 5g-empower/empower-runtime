@@ -1355,7 +1355,7 @@ class TrafficRuleHandler(EmpowerAPIHandler):
 
     HANDLERS = [r"/api/v1/trs/?"]
 
-    @validate
+    @validate()
     def get(self, *args, **kwargs):
         """ Lists all the traffic rules managed by this controller.
 
@@ -1378,7 +1378,7 @@ class SliceHandler(EmpowerAPIHandler):
 
     HANDLERS = [r"/api/v1/slices"]
 
-    @validate
+    @validate()
     def get(self, *args, **kwargs):
         """Lists all the slices managed by this controller.
 

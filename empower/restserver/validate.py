@@ -65,22 +65,19 @@ def validate(returncode=200, min_args=0, max_args=0, input_schema=None):
 
                 output = func(self, *args, **params)
 
-                if output:
+                if returncode == 200:
                     self.write_as_json(output)
 
             except KeyError as ex:
                 self.send_error(404, message=ex)
 
             except ValueError as ex:
-                print(ex)
                 self.send_error(400, message=ex)
 
             except AttributeError as ex:
-                print(ex)
                 self.send_error(400, message=ex)
 
             except TypeError as ex:
-                print(ex)
                 self.send_error(400, message=ex)
 
             self.set_status(returncode, None)
