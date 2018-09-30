@@ -612,20 +612,17 @@ class TenantHandler(EmpowerAPIHandler):
 
         self.set_status(201, None)
 
+    @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
-        """ Delete a tenant.
+        """Delete a tenant.
 
         Args:
-            tenant_id: network name of a tenant
-
-        Request:
-            version: protocol version (1.0)
+            [0]: network name of a tenant
 
         Example URLs:
-
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
-
         """
+
         try:
 
             if not args:
