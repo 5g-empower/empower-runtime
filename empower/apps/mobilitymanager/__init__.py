@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic mobility manager."""
+"""A simple Wi-Fi mobility manager."""
 
 # the manifest
 MANIFEST = {

@@ -16,3 +16,22 @@
 # under the License.
 
 """A basic LTE handover manager."""
+
+# the manifest
+MANIFEST = {
+    "name": "empower.apps.handovermanager.handovermanager",
+    "desc": "A simple LTE handover manager.",
+    "params": {
+        "tenant_id": {
+            "desc": "The tenant on which this app must be loaded.",
+            "mandatory": True,
+            "type": "UUID"
+        },
+        "every": {
+            "desc": "The control loop period (in ms).",
+            "mandatory": False,
+            "default": 5000,
+            "type": "int"
+        }
+    }
+}

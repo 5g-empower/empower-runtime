@@ -17,7 +17,6 @@
 
 """A basic LTE handover manager."""
 
-
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
@@ -25,7 +24,7 @@ from empower.core.app import DEFAULT_PERIOD
 class HandoverManager(EmpowerApp):
     """A basic LTE handover manager.
 
-	This app move every UE in the tenant to the cell with the best rsrp.
+    This app move every UE in the tenant to the cell with the best rsrp.
 
     Command Line Parameters:
         tenant_id: tenant id
@@ -51,14 +50,8 @@ class HandoverManager(EmpowerApp):
         """ Periodic job. """
 
         for ueq in self.ues():
-            for cell in self.cells():
-                if ueq.ue_id not in cell.ue_measurements:
-                    continue
-                print("Cell %s UE %s -> RSRQ %d" % \
-                    (cell.vbs.addr, ueq.ue_id, cell.ue_measurements[ueq.ue_id]['rsrq']))
-            target_cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
+            ueq.cell = self.cells().sort_by_rsrq(ueq.ue_id).first()
 
-            ueq.cell = target_cell
 
 def launch(tenant_id, every=DEFAULT_PERIOD):
     """ Initialize the module. """

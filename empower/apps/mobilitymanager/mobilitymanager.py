@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Reactive mobility manager."""
+"""A simple Wi-Fi mobility manager."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
 class MobilityManager(EmpowerApp):
-    """Reactive mobility manager.
+    """A simple Wi-Fi mobility manager.
 
     Command Line Parameters:
         tenant_id: tenant id
