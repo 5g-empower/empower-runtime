@@ -41,30 +41,9 @@ from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dpid import DPID
 from empower.datatypes.dscp import DSCP
 from empower.datatypes.match import Match
+from empower.restserver.validate import validate
 
 DEFAULT_PORT = 8888
-
-
-def exceptions(min_args=0, max_args=0):
-
-    def decorator(func):
-
-        def magic(self, *args, **kwargs):
-
-            try:
-                if len(args) < min_args or len(args) > max_args:
-                    msg = "Invalid url (%u, %u)" % (min_args, max_args)
-                    raise ValueError(msg)
-                func(self, *args, **kwargs)
-            except KeyError as ex:
-                self.send_error(404, message=ex)
-            except ValueError as ex:
-                self.send_error(400, message=ex)
-
-        return magic
-
-    return decorator
-
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -247,38 +226,32 @@ class AccountsHandler(EmpowerAPIHandler):
     HANDLERS = [r"/api/v1/accounts/?",
                 r"/api/v1/accounts/([a-zA-Z0-9:.]*)/?"]
 
-    def get(self, *args):
-        """ Lists either all the accounts running in controller or just
-        the one requested. Returns 404 if the requested account does not
-        exists.
+    @validate(max_args=1)
+    def get(self, *args, **kwargs):
+        """List the accounts
 
         Args:
-            username: the id of a component istance
+            [0]: the username
 
         Example URLs:
-
             GET /api/v1/accounts
             GET /api/v1/accounts/root
-
         """
 
-        try:
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-            accounts = {}
-            for account in RUNTIME.accounts:
-                accounts[account] = RUNTIME.accounts[account].to_dict()
-            if not args:
-                self.write_as_json(accounts)
-            else:
-                self.write_as_json(accounts[args[0]])
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        return RUNTIME.accounts if not args else RUNTIME.accounts[args[0]]
 
+    @validate(returncode=201,
+              input_schema={
+                  "version" : {"type": float, "mandatory": True},
+                  "username" : {"type": str, "mandatory": True},
+                  "password" : {"type": str, "mandatory": True},
+                  "role" : {"type": str, "mandatory": True},
+                  "name" : {"type": str, "mandatory": True},
+                  "surname" : {"type": str, "mandatory": True},
+                  "email" : {"type": str, "mandatory": True}
+              })
     def post(self, *args, **kwargs):
-        """ Create a new account.
+        """Create a new account.
 
         Request:
             version: protocol version (1.0)
@@ -290,7 +263,6 @@ class AccountsHandler(EmpowerAPIHandler):
             email: email
 
         Example URLs:
-
             POST /api/v1/accounts
             {
               "version" : 1.0,
@@ -301,59 +273,30 @@ class AccountsHandler(EmpowerAPIHandler):
               "surname" : "foo",
               "email" : "foo@email.com"
             }
-
         """
 
-        try:
+        RUNTIME.create_account(kwargs['username'],
+                               kwargs['password'],
+                               kwargs['role'],
+                               kwargs['name'],
+                               kwargs['surname'],
+                               kwargs['email'])
 
-            if args:
-                raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "username" not in request:
-                raise ValueError("missing username element")
-
-            if "password" not in request:
-                raise ValueError("missing password element")
-
-            if "role" not in request:
-                raise ValueError("missing role element")
-
-            if "name" not in request:
-                raise ValueError("missing name element")
-
-            if "surname" not in request:
-                raise ValueError("missing surname element")
-
-            if "email" not in request:
-                raise ValueError("missing email element")
-
-            if request['role'] not in [ROLE_ADMIN, ROLE_USER]:
-                raise ValueError("Invalid role %s" % request['role'])
-
-            RUNTIME.create_account(request['username'],
-                                   request['password'],
-                                   request['role'],
-                                   request['name'],
-                                   request['surname'],
-                                   request['email'])
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(201, None)
-
+    @validate(returncode=204,
+              min_args=1,
+              max_args=1,
+              input_schema={
+                  "version" : {"type": float, "mandatory": True},
+                  "password" : {"type": str, "mandatory": True},
+                  "name" : {"type": str, "mandatory": True},
+                  "surname" : {"type": str, "mandatory": True},
+                  "email" : {"type": str, "mandatory": True}
+              })
     def put(self, *args, **kwargs):
-        """ Update an account.
+        """Update an account.
 
         Args:
-            username: the username
+            [0]: the username
 
         Request:
             version: protocol version (1.0)
@@ -365,7 +308,6 @@ class AccountsHandler(EmpowerAPIHandler):
             email: email
 
         Example URLs:
-
             PUT /api/v1/accounts/test
             {
               "version" : 1.0,
@@ -376,57 +318,22 @@ class AccountsHandler(EmpowerAPIHandler):
               "surname" : "foo",
               "email" : "foo@email.com"
             }
-
         """
 
-        try:
+        RUNTIME.update_account(args[0], kwargs)
 
-            if len(args) != 1:
-                raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            del request['version']
-
-            RUNTIME.update_account(args[0], request)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except AttributeError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(204, None)
-
+    @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
-        """ Unload a component.
+        """Unload a component.
 
         Args:
-            username: the username
+            [0]: the username
 
         Example URLs:
-
             DELETE /api/v1/accounts/test
-
         """
 
-        try:
-
-            if len(args) != 1:
-                raise ValueError("Invalid url")
-
-            RUNTIME.remove_account(args[0])
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(204, None)
+        RUNTIME.remove_account(args[0])
 
 
 class ComponentsHandler(EmpowerAPIHandler):
@@ -1650,31 +1557,23 @@ class TrafficRuleHandler(EmpowerAPIHandler):
 
     HANDLERS = [r"/api/v1/trs/?"]
 
+    @validate
     def get(self, *args, **kwargs):
-        """ Lists either all the traffic rules managed by this controller.
+        """ Lists all the traffic rules managed by this controller.
 
         Args:
             None
 
         Example URLs:
-
             GET /api/v1/trs
-
         """
 
-        try:
-            if args:
-                raise ValueError("Invalid url")
+        traffic_rules = []
 
-            traffic_rules = []
+        for tenant in RUNTIME.tenants.values():
+            traffic_rules += tenant.traffic_rules.values()
 
-            for tenant in RUNTIME.tenants.values():
-                traffic_rules += tenant.traffic_rules.values()
-
-            self.write_as_json(traffic_rules)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
+        return traffic_rules
 
 class SliceHandler(EmpowerAPIHandler):
     """Slice handler. Used to view slices."""
@@ -1682,7 +1581,7 @@ class SliceHandler(EmpowerAPIHandler):
 
     HANDLERS = [r"/api/v1/slices"]
 
-    @exceptions
+    @validate
     def get(self, *args, **kwargs):
         """Lists all the slices managed by this controller.
 
@@ -1693,8 +1592,12 @@ class SliceHandler(EmpowerAPIHandler):
             GET /api/v1/slices
         """
 
-        slices = [x for x in RUNTIME.tenants.values()]
-        self.write_as_json(slices)
+        slices = []
+
+        for tenant in RUNTIME.tenants.values():
+            slices += tenant.slices.values()
+
+        return slices
 
 
 class ModuleHandler(EmpowerAPIHandlerAdminUsers):

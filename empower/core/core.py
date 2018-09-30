@@ -38,6 +38,8 @@ from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
 from empower.core.account import Account
+from empower.core.account import ROLE_ADMIN
+from empower.core.account import ROLE_USER
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
@@ -307,8 +309,10 @@ class EmpowerRuntime:
         """Create a new account."""
 
         if username in self.accounts:
-            self.log.error("'%s' already registered", username)
             raise ValueError("%s already registered" % username)
+
+        if role not in [ROLE_ADMIN, ROLE_USER]:
+            raise ValueError("Invalid role %s" % role)
 
         session = Session()
         account = TblAccount(username=username,
