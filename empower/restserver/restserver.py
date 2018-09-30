@@ -1578,7 +1578,6 @@ class TrafficRuleHandler(EmpowerAPIHandler):
 class SliceHandler(EmpowerAPIHandler):
     """Slice handler. Used to view slices."""
 
-
     HANDLERS = [r"/api/v1/slices"]
 
     @validate
