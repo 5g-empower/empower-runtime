@@ -69,7 +69,7 @@ class IndexHandler(BaseHandler):
     HANDLERS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
-    def get(self):
+    def get(self, *args, **kwargs):
         """ Render page. """
 
         username = self.get_current_user()
@@ -89,10 +89,10 @@ class AuthLoginHandler(BaseHandler):
 
     HANDLERS = [r"/auth/login"]
 
-    def get(self):
+    def get(self, *args, **kwargs):
         self.render("login.html", error=self.get_argument("error", ""))
 
-    def post(self):
+    def post(self, *args, **kwargs):
         """Process login credentials."""
 
         username = self.get_argument("username", "")
@@ -111,7 +111,7 @@ class AuthLogoutHandler(BaseHandler):
 
     HANDLERS = [r"/auth/logout"]
 
-    def get(self):
+    def get(self, *args, **kwargs):
         self.clear_cookie("username")
         self.redirect("/auth/login")
 
@@ -342,7 +342,7 @@ class ComponentsHandler(EmpowerAPIHandler):
     HANDLERS = [r"/api/v1/components/?",
                 r"/api/v1/components/([a-zA-Z0-9:_\-.]*)/?"]
 
-    def get(self, *args):
+    def get(self, *args, **kwargs):
         """ Lists either all the components running in this controller or just
         the one requested. Returns 404 if the requested component does not
         exists.
@@ -381,7 +381,7 @@ class ComponentsHandler(EmpowerAPIHandler):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def put(self, *args):
+    def put(self, *args, **kwargs):
         """ Update a component.
 
         Args:
@@ -659,7 +659,7 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         [r"/api/v1/tenants/([a-zA-Z0-9-]*)/components/?",
          r"/api/v1/tenants/([a-zA-Z0-9-]*)/components/([a-zA-Z0-9:\-.]*)/?"]
 
-    def get(self, *args):
+    def get(self, *args, **kwargs):
         """ Lists either all the components running in this controller or just
         the one requested. Returns 404 if the requested component does not
         exists.
@@ -713,7 +713,7 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
         except KeyError as ex:
             self.send_error(404, message=ex)
 
-    def put(self, *args):
+    def put(self, *args, **kwargs):
         """ Update a component.
 
         Args:
@@ -1192,9 +1192,6 @@ class TenantEndpointNextHandler(EmpowerAPIHandlerUsers):
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
                 r"/([a-zA-Z0-9-]*)/ports/([0-9]*)/next/([a-zA-Z0-9_:,=]*)/?"]
 
-    def initialize(self, server):
-        self.server = server
-
     def get(self, *args, **kwargs):
         """List next associations.
 
@@ -1371,9 +1368,6 @@ class TenantEndpointPortHandler(EmpowerAPIHandlerUsers):
                 "/([a-zA-Z0-9-]*)/ports/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/eps" +
                 "/([a-zA-Z0-9-]*)/ports/([0-9]*)/?"]
-
-    def initialize(self, server):
-        self.server = server
 
     def get(self, *args, **kwargs):
         """ List all ports.
