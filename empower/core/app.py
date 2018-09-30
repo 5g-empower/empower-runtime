@@ -51,6 +51,17 @@ class EmpowerApp:
         server = RUNTIME.components[LVAPPServer.__module__]
         server.register_message(message, None, handler)
 
+    def to_dict(self):
+        """Return JSON-serializable representation of the object."""
+
+        output = {}
+
+        output['name'] = self.__module__
+        output['every'] = self.every
+        output['tenant_id'] = self.tenant_id
+
+        return output
+
     def ue_leave(self, ue):
         """Called when a UE leaves a tenant."""
 

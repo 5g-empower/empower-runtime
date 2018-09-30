@@ -201,7 +201,8 @@ class AccountsHandler(EmpowerAPIHandler):
             GET /api/v1/accounts/root
         """
 
-        return RUNTIME.accounts if not args else RUNTIME.accounts[args[0]]
+        return RUNTIME.accounts.values() \
+            if not args else RUNTIME.accounts[args[0]]
 
     @validate(returncode=201,
               input_schema={
@@ -319,7 +320,7 @@ class ComponentsHandler(EmpowerAPIHandler):
 
         components = RUNTIME.load_main_components()
 
-        return components if not args else components[args[0]]
+        return components.values() if not args else components[args[0]]
 
     @validate(returncode=204,
               min_args=1,
@@ -425,7 +426,7 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 
         components = RUNTIME.load_user_components(UUID(args[0]))
 
-        return components if len(args) != 2 else components[args[1]]
+        return components.values() if len(args) != 2 else components[args[1]]
 
     @validate(returncode=204,
               min_args=2,
@@ -520,43 +521,23 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
 class TenantHandler(EmpowerAPIHandler):
     """Tenat handler. Used to view and manipulate tenants."""
 
-
     HANDLERS = [r"/api/v1/tenants/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/?"]
 
+    @validate(min_args=0, max_args=1)
     def get(self, *args, **kwargs):
-        """ Lists either all the tenants managed by this controller or just the
-        one requested. Returns 404 if the requested tenant does not exists.
+        """Lists all the tenants managed by this controller.
 
         Args:
-            tenant_id: network name of a tenant
+            [0]: network name of a tenant
 
         Example URLs:
-
             GET /api/v1/tenants
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
-
         """
 
-        try:
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-            if not args:
-                tenants = RUNTIME.tenants.values()
-                user = self.get_argument("user", default=None)
-                if user:
-                    filtered = [x for x in tenants if x.owner == user]
-                    self.write_as_json(filtered)
-                else:
-                    self.write_as_json(tenants)
-            else:
-                tenant_id = UUID(args[0])
-                tenant = RUNTIME.tenants[tenant_id]
-                self.write_as_json(tenant)
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        return RUNTIME.tenants.values() \
+            if not args else RUNTIME.tenants[UUID(args[0])]
 
     def post(self, *args, **kwargs):
         """ Create a new tenant.
