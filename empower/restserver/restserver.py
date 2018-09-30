@@ -31,8 +31,6 @@ from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.core.module import ModuleWorker
-from empower.main import _do_launch
-from empower.main import _parse_args
 from empower.main import RUNTIME
 from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
