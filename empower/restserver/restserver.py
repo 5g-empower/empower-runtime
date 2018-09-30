@@ -1606,7 +1606,8 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
                 r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/"
                 "([0-9]*)/?"]
 
-    def __get_worker(self, module_name):
+    @classmethod
+    def __get_worker(cls, module_name):
         """Look for the worker associated to the specified module_name."""
 
         worker = None
