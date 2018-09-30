@@ -868,8 +868,8 @@ class TenantEndpointHandler(EmpowerAPIHandlerUsers):
                                 datapath=datapath,
                                 ports=request["ports"])
 
-            self.set_header("Location", "/api/v1/tenants/%s/eps/%s"
-                            % (tenant_id, endpoint_id))
+            url = "/api/v1/tenants/%s/eps/%s" % (tenant_id, endpoint_id)
+            self.set_header("Location", url)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1040,10 +1040,10 @@ class TenantEndpointNextHandler(EmpowerAPIHandlerUsers):
 
             port.next[match] = next_port
 
-            url = "/api/v1/tenants/%s/eps/%s/ports/%u/next/%s"
-            tokens = (tenant_id, endpoint_id, port_id, match)
+            url = "/api/v1/tenants/%s/eps/%s/ports/%u/next/%s" % \
+                (tenant_id, endpoint_id, port_id, match)
 
-            self.set_header("Location", url % tokens)
+            self.set_header("Location", url)
 
         except ValueError as ex:
             self.send_error(400, message=ex)
@@ -1434,10 +1434,9 @@ class ModuleHandler(EmpowerAPIHandlerAdminUsers):
 
             module = worker.add_module(**request)
 
-            self.set_header("Location", "/api/v1/tenants/%s/%s/%s" %
-                            (module.tenant_id,
-                             worker.module.MODULE_NAME,
-                             module.module_id))
+            url = "/api/v1/tenants/%s/%s/%s" % \
+                (module.tenant_id, worker.module.MODULE_NAME, module.module_id)
+            self.set_header("Location", url)
 
             self.set_status(201, None)
 

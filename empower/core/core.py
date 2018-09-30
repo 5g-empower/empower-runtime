@@ -489,30 +489,24 @@ class EmpowerRuntime:
         if bssid_type not in T_TYPES:
             raise ValueError("Invalid bssid_type %s" % bssid_type)
 
-        try:
+        session = Session()
 
-            session = Session()
+        if tenant_id:
+            request = TblTenant(tenant_id=tenant_id,
+                                tenant_name=tenant_name,
+                                owner=owner,
+                                desc=desc,
+                                bssid_type=bssid_type,
+                                plmn_id=plmn_id)
+        else:
+            request = TblTenant(owner=owner,
+                                tenant_name=tenant_name,
+                                desc=desc,
+                                bssid_type=bssid_type,
+                                plmn_id=plmn_id)
 
-            if tenant_id:
-                request = TblTenant(tenant_id=tenant_id,
-                                    tenant_name=tenant_name,
-                                    owner=owner,
-                                    desc=desc,
-                                    bssid_type=bssid_type,
-                                    plmn_id=plmn_id)
-            else:
-                request = TblTenant(owner=owner,
-                                    tenant_name=tenant_name,
-                                    desc=desc,
-                                    bssid_type=bssid_type,
-                                    plmn_id=plmn_id)
-
-            session.add(request)
-            session.commit()
-
-        except IntegrityError:
-            session.rollback()
-            raise ValueError("Tenant name %s exists" % tenant_name)
+        session.add(request)
+        session.commit()
 
         self.tenants[request.tenant_id] = \
             Tenant(request.tenant_id,
