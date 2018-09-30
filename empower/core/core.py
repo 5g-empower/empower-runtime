@@ -43,6 +43,7 @@ from empower.core.account import ROLE_USER
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
+from empower.core.tenant import T_TYPES
 
 import empower.logger
 import empower.apps
@@ -484,6 +485,9 @@ class EmpowerRuntime:
 
         if tenant_id in self.tenants:
             raise ValueError("Tenant %s exists" % tenant_id)
+
+        if bssid_type not in T_TYPES:
+            raise ValueError("Invalid bssid_type %s" % bssid_type)
 
         try:
 

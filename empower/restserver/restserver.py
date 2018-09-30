@@ -539,78 +539,47 @@ class TenantHandler(EmpowerAPIHandler):
         return RUNTIME.tenants.values() \
             if not args else RUNTIME.tenants[UUID(args[0])]
 
+    @validate(returncode=201,
+              min_args=0,
+              max_args=1,
+              input_schema={
+                  "version" : {"type": float, "mandatory": True},
+                  "owner": {"type": str, "mandatory": True},
+                  "desc" : {"type": str, "mandatory": True},
+                  "tenant_name": {"type": SSID, "mandatory": True},
+                  "bssid_type" : {"type": str, "mandatory": False},
+                  "plmn_id": {"type": PLMNID, "mandatory": False}
+              })
     def post(self, *args, **kwargs):
-        """ Create a new tenant.
+        """Create a new tenant.
 
         Args:
-            None
+            [0], the tenant id
 
         Request:
             version: protocol version (1.0)
             owner: the username of the requester
-            tenant_id: the network name
+            tenant_name: the network name
             desc: a description for the new tenant
             bssid_type: shared or unique
-
-        Example URLs:
-
-            POST /api/v1/tenants
-
+            plmn_id: the PLMN id
         """
 
-        try:
+        bssid_type = kwargs["bssid_type"] \
+            if "bssid_type" in kwargs else T_TYPE_UNIQUE
 
-            if len(args) > 1:
-                raise ValueError("Invalid url")
+        plmn_id = PLMNID(kwargs["plmn_id"]) if "plmn_id" in kwargs else None
 
-            request = tornado.escape.json_decode(self.request.body)
+        tenant_id = UUID(args[0]) if args else None
 
-            if "version" not in request:
-                raise ValueError("missing version element")
+        RUNTIME.add_tenant(kwargs['owner'],
+                           kwargs['desc'],
+                           kwargs['tenant_name'],
+                           bssid_type,
+                           tenant_id,
+                           plmn_id)
 
-            if "owner" not in request:
-                raise ValueError("missing owner element")
-
-            if "desc" not in request:
-                raise ValueError("missing desc element")
-
-            if "tenant_name" not in request:
-                raise ValueError("missing tenant_name element")
-
-            bssid_type = T_TYPE_UNIQUE
-            if "bssid_type" in request:
-                bssid_type = request['bssid_type']
-
-            if bssid_type not in T_TYPES:
-                raise ValueError("invalid bssid_type %s" % bssid_type)
-
-            if "plmn_id" in request:
-                plmn_id = PLMNID(request['plmn_id'])
-            else:
-                plmn_id = None
-
-            if len(args) == 1:
-                tenant_id = UUID(args[0])
-            else:
-                tenant_id = None
-
-            tenant_name = SSID(request['tenant_name'])
-
-            RUNTIME.add_tenant(request['owner'],
-                               request['desc'],
-                               tenant_name,
-                               bssid_type,
-                               tenant_id,
-                               plmn_id)
-
-            self.set_header("Location", "/api/v1/tenants/%s" % tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(201, None)
+        self.set_header("Location", "/api/v1/tenants/%s" % tenant_id)
 
     @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
@@ -620,26 +589,11 @@ class TenantHandler(EmpowerAPIHandler):
             [0]: network name of a tenant
 
         Example URLs:
+            DELETE /api/v1/tenants
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26
         """
 
-        try:
-
-            if not args:
-
-                for tenant in list(RUNTIME.tenants.keys()):
-                    RUNTIME.remove_tenant(tenant)
-
-            else:
-
-                tenant_id = UUID(args[0])
-                RUNTIME.remove_tenant(tenant_id)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        self.set_status(204, None)
+        RUNTIME.remove_tenant(UUID(args[0]))
 
 
 class TenantSliceHandler(EmpowerAPIHandlerUsers):
