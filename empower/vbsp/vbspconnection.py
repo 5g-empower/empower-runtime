@@ -508,7 +508,8 @@ class VBSPConnection:
                     option.rbgs
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
-                slc.lte['vbses']['runtime-properties']['rntis'] = option.rntis
+                slc.lte['vbses'][vbs.addr]['runtime-properties']['rntis'] = \
+                    option.rntis
 
         self.log.info("Slice %s updated", slc)
 
