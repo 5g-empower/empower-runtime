@@ -486,6 +486,11 @@ class EmpowerRuntime:
         if tenant_id in self.tenants:
             raise ValueError("Tenant %s exists" % tenant_id)
 
+        plmn_ids = [tenant.plmn_id for tenant in self.tenants.values()]
+
+        if plmn_id and plmn_id in plmn_ids:
+            raise ValueError("PLMN ID %s exists" % plmn_id)
+
         if bssid_type not in T_TYPES:
             raise ValueError("Invalid bssid_type %s" % bssid_type)
 
