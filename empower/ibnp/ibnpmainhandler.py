@@ -20,9 +20,9 @@
 import time
 import json
 
-import tornado.websocket
-
 from uuid import uuid4
+
+import tornado.websocket
 
 from empower.datatypes.dpid import DPID
 from empower.datatypes.etheraddress import EtherAddress
