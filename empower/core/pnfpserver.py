@@ -21,10 +21,6 @@ import json
 
 from uuid import UUID
 
-import tornado.web
-import tornado.ioloop
-import tornado.websocket
-
 import empower.logger
 
 from empower.persistence import Session
@@ -34,6 +30,7 @@ from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.persistence.persistence import TblSlice
 from empower.persistence.persistence import TblSliceBelongs
+from empower.restserver.validate import validate
 
 from empower.main import RUNTIME
 
@@ -46,6 +43,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
     def initialize(self, server):
         self.server = server
 
+    @validate(max_args=1)
     def get(self, *args, **kwargs):
         """List all PNFDevs or a single PNFDev.
 
@@ -58,23 +56,16 @@ class BasePNFDevHandler(EmpowerAPIHandler):
             GET /api/v1/<wtps|cpps|vbses>/11:22:33:44:55:66
         """
 
-        try:
+        return self.server.pnfdevs.values() \
+            if not args else self.server.pnfdevs[EtherAddress(args[0])]
 
-            if len(args) > 1:
-                raise ValueError("Invalid url")
-
-            if not args:
-                self.write_as_json(self.server.pnfdevs.values())
-            else:
-                pnfdev = self.server.pnfdevs[EtherAddress(args[0])]
-                self.write_as_json(pnfdev)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-    def post(self, *args):
+    @validate(returncode=201,
+              input_schema={
+                  "version" : {"type": float, "mandatory": True},
+                  "addr" : {"type": EtherAddress, "mandatory": True},
+                  "label" : {"type": str, "mandatory": False}
+              })
+    def post(self, *args, **kwargs):
         """Add a new PNFDev.
 
         Args:
@@ -90,41 +81,12 @@ class BasePNFDevHandler(EmpowerAPIHandler):
             POST /api/v1/<wtps|cpps|vbses>
         """
 
-        try:
+        label = kwargs['label'] if 'label' in kwargs else "Generic Device"
+        pnfdev = self.server.add_pnfdev(kwargs['addr'], label)
+        url = "/api/v1/%s/%s" % (pnfdev.ALIAS, kwargs['addr'])
+        self.set_header("Location", url)
 
-            if args:
-                raise ValueError("Invalid url")
-
-            request = tornado.escape.json_decode(self.request.body)
-
-            if "version" not in request:
-                raise ValueError("missing version element")
-
-            if "addr" not in request:
-                raise ValueError("missing pnfdev element")
-
-            if "label" not in request:
-                label = "Generic PNFDev"
-            else:
-                label = request['label']
-
-            addr = EtherAddress(request['addr'])
-            self.server.add_pnfdev(addr, label)
-
-            self.set_header("Location",
-                            "/api/v1/pnfdevs/%s" % request['addr'])
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-
-        except RuntimeError as ex:
-            self.send_error(400, message=ex)
-
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-
-        self.set_status(201, None)
-
+    @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
         """ Delete a PNFDev.
 
@@ -136,15 +98,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
             DELETE /api/v1/<wtps|cpps|vbses>/11:22:33:44:55:66
         """
 
-        try:
-            if len(args) != 1:
-                raise ValueError("Invalid url")
-            self.server.remove_pnfdev(EtherAddress(args[0]))
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
-        self.set_status(204, None)
+        self.server.remove_pnfdev(EtherAddress(args[0]))
 
 
 class BaseTenantPNFDevHandler(EmpowerAPIHandlerUsers):
@@ -155,6 +109,7 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerUsers):
     def initialize(self, server):
         self.server = server
 
+    @validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
         """List all PNFDevs in a certain Tenant or a single PNFDev.
 
@@ -163,36 +118,17 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerUsers):
             [1]: the address of the pnfdev
 
         Example URLs:
-
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
               <wtps|cpps|vbses>
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
               <wtps|cpps|vbses>/11:22:33:44:55:66
-
         """
 
-        try:
+        tenant = RUNTIME.tenants[UUID(args[0])]
+        pnfdevs = getattr(tenant, self.server.PNFDEV.ALIAS)
 
-            if len(args) not in (1, 2):
-                raise ValueError("Invalid url")
-
-            tenant_id = UUID(args[0])
-            tenant = RUNTIME.tenants[tenant_id]
-            tenant_pnfdevs = getattr(tenant, self.server.PNFDEV.ALIAS)
-
-            if len(args) == 1:
-                self.write_as_json(tenant_pnfdevs.values())
-                self.set_status(200, None)
-            else:
-                addr = EtherAddress(args[1])
-                pnfdev = tenant_pnfdevs[addr]
-                self.write_as_json(pnfdev)
-                self.set_status(200, None)
-
-        except ValueError as ex:
-            self.send_error(400, message=ex)
-        except KeyError as ex:
-            self.send_error(404, message=ex)
+        return pnfdevs.values() \
+            if len(args) != 2 else pnfdevs[EtherAddress(args[1])]
 
 
 class PNFPServer:

@@ -36,15 +36,6 @@ class EmpCache{
                 }
                 results = tmp;
             }
-            else if( tag === "marketplace" ){
-                var tmp = [];
-                for( var cmpnt in args[tag] ){
-                    var c = args[tag][cmpnt];
-                    c["component_id"] = cmpnt;
-                    tmp.push(c);
-        }
-                results = tmp;
-                }
             else{
                 results = args[tag]
             }
@@ -59,6 +50,14 @@ class EmpCache{
 
         this.updateBB(tag);
         this.updateDT(tag);
+//        switch(tag){
+//            case this.qe.targets.WTP:
+//            case this.qe.targets.LVAP:
+//            case this.qe.targets.VBS:
+//            case this.qe.targets.UE:
+//                this.updateNG();
+//            break;
+//        }
     }
 
     updateDT(tag){
@@ -77,16 +76,20 @@ class EmpCache{
         }
     }
 
+//    updateNG(){
+////        console.log( this.NGBox );
+//        this.NGBox.removeGraph("topology");
+//        this.NGBox.addGraph("topology", []);
+//    }
+
     updateBB(el){
 
         var n = this.checkCardinality(el);
         var tag = "";
         switch(el){
             case this.qe.targets.TENANT:
-                this.updateBB("admin");
                 tag = "tenant"; break;
             case this.qe.targets.ACCOUNT:
-                this.updateBB("admin");
                 tag = "account"; break;
             case this.qe.targets.WTP:
                 this.updateBB("devices");
@@ -108,11 +111,7 @@ class EmpCache{
             case this.qe.targets.FEED:
                 tag = "feed"; break;
             case this.qe.targets.ACTIVE:
-                this.updateBB("components");
                 tag = "active"; break;
-            case this.qe.targets.MARKETPLACE:
-                this.updateBB("components");
-                tag = "marketplace"; break;
             default: tag = el;
         }
 //        console.log( this.BBlist[tag] )
@@ -130,11 +129,8 @@ class EmpCache{
         switch(tag){
             case this.qe.targets.ACCOUNT:
             case this.qe.targets.TENANT:
-                this.checkCardinality("admin");
+//                this.checkCardinality("admin");
                 n = this.c[tag].length;
-                break;
-            case "admin":
-                n = this.c[this.qe.targets.TENANT].length + this.c[this.qe.targets.ACCOUNT].length;
                 break;
             case this.qe.targets.WTP:
             case this.qe.targets.CPP:
@@ -154,15 +150,7 @@ class EmpCache{
                 n = this.c[this.qe.targets.LVAP].length + this.c[this.qe.targets.UE].length;
                 break;
             case this.qe.targets.ACTIVE:
-                this.checkCardinality("components");
                 n = this.c[tag].length;
-                break;
-            case this.qe.targets.MARKETPLACE:
-                this.checkCardinality("components");
-                n = this.c[tag].length;
-                break;
-            case "components":
-                n = this.c[this.qe.targets.ACTIVE].length + this.c[this.qe.targets.MARKETPLACE].length;
                 break;
             case this.qe.targets.LVNF:
                 this.checkCardinality("services");
@@ -182,4 +170,3 @@ class EmpCache{
     }
 
 }
-

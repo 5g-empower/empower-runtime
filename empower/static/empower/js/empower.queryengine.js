@@ -12,7 +12,6 @@ class EmpQueryEngine{
         this.targets = {};
         this.targets.FEED = "feeds";
         this.targets.ACTIVE = "active";
-        this.targets.MARKETPLACE = "marketplace";
         this.targets.TENANT = "tenants";
         this.targets.ACCOUNT = "accounts";
         this.targets.CPP = "cpps";
@@ -213,7 +212,6 @@ class EmpQueryEngine{
                     url = "/api/v1/" + target;
                 }
                 break;
-            case this.targets.MARKETPLACE:
             case this.targets.TENANT:
                 if( this.isAdmin() ){
                     url = "/api/v1/" + target;
@@ -367,7 +365,6 @@ class EmpQueryEngine{
 //                            this.targets.UE,
 //                            this.targets.ACL,
 //                            this.targets.ACTIVE,
-//                            this.targets.MARKETPLACE,
 //                            this.targets.ACCOUNT,
 //                        ];
 //        this.retrieveDataSet( queryList

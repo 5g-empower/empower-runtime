@@ -181,11 +181,11 @@ class EmpUserPage{
         */
         res.recipes.collapsepanels_l1 = {
             "overview": {"text": "Overview", "color": "primary", "icon": "fa-info-circle"},
-            "network": {"text": "Network Graph", "color": "primary", "icon": "fa-sitemap"},
             "clients": {"text": "Clients", "color": "primary", "icon": "fa-laptop"},
             "services": {"text": "Network Services", "color": "primary", "icon": "fa-cogs"},
             "devices": {"text": "Devices", "color": "primary", "icon": "fa-hdd-o"},
-            "components": {"text": "Components", "color": "primary", "icon": "fa-plug"},
+            "active": {"text": "Components", "color": "primary", "icon": "fa-bolt"},
+            "qos": {"text": "Quality of Service", "color": "primary", "icon": "fa-bullseye"},
         };
 
         res.recipes.collapsepanels_l2 = {
@@ -205,9 +205,9 @@ class EmpUserPage{
                 "cpp": {"text": "CPPs", "color": "info", "icon": "fa-gears"},
                 "vbs": {"text": "VBSes", "color": "info", "icon": "fa-code"},
             },
-            "components": {
-                "active": {"text": "Active", "color": "info", "icon": "fa-bolt"},
-                "marketplace": {"text": "Marketplace", "color": "info", "icon": "fa-puzzle-piece"},
+            "qos": {
+                "traffic_rules": {"text": "Traffic rules", "color": "info", "icon": "fa-arrows-alt"},
+                "slices": {"text": "Slices", "color": "info", "icon": "fa-database"},
             },
         };
 
@@ -223,7 +223,7 @@ class EmpUserPage{
         for (var cp in cpl1){
             if (cp === "overview"){
                 res.recipes.badgeboxes[cp] = [];
-                var cardinality = Object.keys(cpl1).length - 2;
+                var cardinality = Object.keys(cpl1).length - 1;
                 var size = -1;
                 var slots = cardinality;
                 switch (cardinality){
@@ -235,11 +235,14 @@ class EmpUserPage{
                     case 12:
                         size = "lg";
                         slots = 12 / cardinality;
+                    break
+                    case 5:
+                        size = "lg";
+                        slots = 4;
                 }
 
                 for (var cpsub in cpl1){
-                    if ((cpsub != "overview" ) &&
-                        (cpsub != "network")){
+                    if ((cpsub != "overview" )){
 
                         var bbx = [
                             cpsub,
@@ -335,7 +338,6 @@ class EmpUserPage{
 
             switch(cp){
                 case "active":
-                case "marketplace":
                 case "lvap":
                 case "wtp":
                 case "cpp":
@@ -575,12 +577,6 @@ class EmpUserPage{
 
             //console.log("Added item to floatingMenu "+cp);
 
-            if(cp === "network"){
-                var netGraphBox = new EmpNetGraphBox(this.keys);
-                var ng = netGraphBox.create();
-                $( "#"+cpid ).append( ng );
-            }
-
         }
 
         tr.pagestruct.floatingnavmenu.addMenuItem(
@@ -599,8 +595,7 @@ class EmpUserPage{
             if (typeof trp[cp].badgebox !== "undefined"){
                 if (cp === "overview"){
                     for (var cpsub in this.resources.recipes.collapsepanels_l1){
-                        if ((cpsub != "overview" ) &&
-                            (cpsub != "network")){
+                        if ((cpsub != "overview" )){
 
                             var f = this.hb.wrapFunction(this.switchTo.bind(this), [cpsub]);
                             trp[cp].badgebox.updateBadge(cpsub,[
@@ -631,6 +626,8 @@ class EmpUserPage{
 
         // update Db
 //        this.qe.showAll();
+
+        this.switchTo(["overview"])
 
     }
 
@@ -683,10 +680,7 @@ class EmpUserPage{
 
     switchTo( args ){
         var cp = args[0];
-        if( cp === "overview" ){
-            this.uncollapseAll();
-        }
-        else if( cp in this.resources.recipes.collapsepanels_l2 ){
+        if( cp in this.resources.recipes.collapsepanels_l2 ){
             var first = Object.keys( this.resources.recipes.collapsepanels_l2[cp] )[0];
             this.switchTo([first])
         }
@@ -774,7 +768,6 @@ class EmpUserPage{
                         this.qe.targets.LVAP,
                         this.qe.targets.UE,
                         this.qe.targets.ACTIVE,
-                        this.qe.targets.MARKETPLACE,
                         ];
         this.qe.scheduleQuery("GET", targets, tenant_id, null, this.cache.update.bind(this.cache));
     }

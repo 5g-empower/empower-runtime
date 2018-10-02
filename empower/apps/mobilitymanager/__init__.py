@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic mobility manager."""
+"""A simple Wi-Fi mobility manager."""
 
 # the manifest
 MANIFEST = {
@@ -30,7 +30,7 @@ MANIFEST = {
         "every": {
             "desc": "The control loop period (in ms).",
             "mandatory": False,
-            "default": 2000,
+            "default": 5000,
             "type": "int"
         }
     }

@@ -68,7 +68,6 @@ class EmpBadge{
 
         var badge = this.hb.ceCOL(colsize, coln);
         badge.id = this.getID(keys);
-        $( badge ).click(func);
 
             var p =  this.hb.cePANEL();
             p.id = this.getID_PANEL(keys);
@@ -108,30 +107,30 @@ class EmpBadge{
                             // $( n ).addClass("");
                             $( n ).text(title);
                         $( c2 ).append(n);
-/*
+
                 var pf = this.hb.cePANEL_F()
                 pf.id = this.getID_FOOTER(keys);
             $( p ).append(pf);
-
+                    var r = this.hb.ceROW();
+                    $( pf ).append(r);
+                        var c0 = this.hb.ceCOL("xs", 8);
+                        $( r ).append(c0);
                     var s1 = this.hb.ce("SPAN");
                     $( s1 ).addClass("pull-left text-"+color);
                     $( s1 ).text("View details");
-                $( pf ).append(s1);
-
+                            $( c0 ).append(s1);
+                        var c1 = this.hb.ceCOL("xs", 3);
+                        $( r ).append(c1);
                     var s2 = this.hb.ce("SPAN");
                     $( s2 ).addClass("pull-right text-"+color);
-                    //s2.onclick= func;
-                    //$( s2 ).click(func);
-                $( pf ).append(s2);
-
+                            $( c1 ).append(s2);
                         var i2 = this.hb.ceFAI("fa-arrow-circle-right");
-                        //i2.id = this.getID_FUNCTION(keys);
-                        //$( i2 ).click(func);
+//                                i2.id = this.getID_FUNCTION(keys);
                     $( s2 ).append(i2);
 
                     var cf = this.hb.ceCLEARFIX();
                 $( pf ).append(cf);
-*/
+
         return badge;
     };
 
@@ -162,8 +161,9 @@ class EmpBadge{
         }
 
         if (func !== null){
-            //$( "#"+this.getID_FUNCTION(keys) ).unbind().click(func);
-            $( "#"+this.getID(keys) ).unbind().click(func);
+//            $( "#"+this.getID_FUNCTION(keys) ).unbind().click(func);
+            $( "#"+this.getID_FOOTER(keys) ).unbind().click(func);
+//            $( "#"+this.getID(keys) ).unbind().click(func);
         }
     }
 

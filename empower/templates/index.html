@@ -33,13 +33,10 @@
     <!-- Custom Fonts -->
     <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-    <!-- VIS CSS -->
-    <link href="/static/vendor/vis/dist/vis.min.css" rel="stylesheet">
 
     <style>
     .navbar-brand>img {
         height: 100%;
-
         width: auto;
     }
 
@@ -109,9 +106,6 @@
     <!-- Custom Theme JavaScript -->
     <script src="/static/dist/js/sb-admin-2.js"></script>
 
-    <!-- VIS JavaScript -->
-    <script src="/static/vendor/vis/dist/vis.min.js"></script>
-
     <script src="/static/empower/js/empower.config.js"></script>
     <script src="/static/empower/js/empower.descriptor.js"></script>
     <script src="/static/empower/js/empower.hbuilder.js"></script>
@@ -139,9 +133,6 @@
     <script src="/static/empower/js/empower.button.js"></script>
     <script src="/static/empower/js/empower.netgraphbox.js"></script>
     <script src="/static/empower/js/empower.netgraph.js"></script>
-    <script src="/static/empower/js/empower.viscreator.js"></script>
-
-    <script src="/static/empower/js/empower.randomdatagenerator.js"></script>
 
 
     <script>
@@ -158,10 +149,6 @@
 
         var __DELAY = 2000;
 
-<!--TEMPORANEO-->
-        __RAND = new EmpRandomDataGenerator();
-        __RAND.create();
-
         if( __ROLE ==='user' ){
             var ap = new EmpUserPage();
             ap.initUserPage();
@@ -171,6 +158,10 @@
         ap.initAdminPage();
         }
 
+
+        window.addEventListener("beforeunload", function(event) {
+          event.returnValue = "You may have unsaved Data";
+        });
 
     </script>
 

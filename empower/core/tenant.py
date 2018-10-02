@@ -65,6 +65,7 @@ class Tenant:
                'vbses',
                'components',
                'slices',
+               'endpoints',
                'traffic_rules']
 
     def __init__(self, tenant_id, tenant_name, owner, desc, bssid_type,

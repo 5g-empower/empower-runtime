@@ -22,6 +22,8 @@ import empower.logger
 
 from empower.core.resourcepool import ResourcePool
 from empower.core.cellpool import CellPool
+from empower.lvapp.lvappserver import LVAPPServer
+from empower.lvapp import PT_LVAP_JOIN
 
 from empower.main import RUNTIME
 
@@ -35,20 +37,30 @@ class EmpowerApp:
 
         self.__tenant_id = tenant_id
         self.__every = DEFAULT_PERIOD
-        self.app_name = self.__module__.split(".")[-1]
-        self.params = []
         self.log = empower.logger.get_logger()
         self.worker = None
 
         for param in kwargs:
             setattr(self, param, kwargs[param])
-            self.params.append(param)
 
-    def __add_lvapp_event(self, message, handler):
+        # uncommen the following lines after updating the event handling
+        #self._register_lvapp_event(PT_LVAP_JOIN, self.lvap_join)
 
-        from empower.lvapp.lvappserver import LVAPPServer
+    @classmethod
+    def _register_lvapp_event(cls, message, handler):
         server = RUNTIME.components[LVAPPServer.__module__]
         server.register_message(message, None, handler)
+
+    def to_dict(self):
+        """Return JSON-serializable representation of the object."""
+
+        output = {}
+
+        output['name'] = self.__module__
+        output['every'] = self.every
+        output['tenant_id'] = self.tenant_id
+
+        return output
 
     def ue_leave(self, ue):
         """Called when a UE leaves a tenant."""
@@ -146,21 +158,6 @@ class EmpowerApp:
         """Stop control loop."""
 
         self.worker.stop()
-
-    def to_dict(self):
-        """Return JSON-serializable representation of the object."""
-
-        params = {}
-
-        params['app_name'] = self.app_name
-        params['every'] = self.every
-        params['tenant_id'] = self.tenant_id
-        params['params'] = self.params
-
-        for param in self.params:
-            params[param] = getattr(self, param)
-
-        return params
 
     def loop(self):
         """Control loop."""

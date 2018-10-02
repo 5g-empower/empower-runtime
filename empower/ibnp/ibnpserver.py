@@ -62,19 +62,20 @@ class IBNPServer(tornado.web.Application):
 
     def __load_traffic_rules(self):
 
-        trs = Session().query(TblTrafficRule).all()
+        rules = Session().query(TblTrafficRule).all()
 
-        for rule_db in trs:
+        for rule in rules:
 
-            tr = TrafficRule(ssid=rule_db.tenant_id,
-                             match=rule_db.match,
-                             priority=rule_db.priority,
-                             label=rule_db.label,
-                             dscp=rule_db.dscp)
+            traffic_rule = TrafficRule(ssid=rule.tenant_id,
+                                       match=rule.match,
+                                       priority=rule.priority,
+                                       label=rule.label,
+                                       dscp=rule.dscp)
 
-            self.add_traffic_rule(tr)
+            self.add_traffic_rule(traffic_rule)
 
-    def add_traffic_rule(self, tr):
+    def add_traffic_rule(self, traffic_rule):
+        """Send traffic rule to backhaul controller."""
 
         tenant_id = tr.ssid
         match = tr.match
@@ -88,6 +89,7 @@ class IBNPServer(tornado.web.Application):
             self.connection.add_tr(tr)
 
     def del_traffic_rule(self, tenant_id, match):
+        """Remove traffic rule from backhaul controller."""
 
         if match in self.trs[tenant_id]:
             del self.trs[tenant_id][match]

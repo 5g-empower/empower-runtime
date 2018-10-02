@@ -15,21 +15,21 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Reactive mobility manager."""
+"""A simple Wi-Fi mobility manager."""
 
 from empower.core.app import EmpowerApp
 from empower.core.app import DEFAULT_PERIOD
 
 
 class MobilityManager(EmpowerApp):
-    """Reactive mobility manager.
+    """A simple Wi-Fi mobility manager.
 
     Command Line Parameters:
         tenant_id: tenant id
         every: loop period in ms (optional, default 5000ms)
 
     Example:
-        ./empower-runtime.py apps.mobilitymanager.proactivemm \
+        ./empower-runtime.py apps.mobilitymanager.mobilitymanager \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26
     """
 

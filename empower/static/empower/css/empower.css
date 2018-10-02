@@ -33,3 +33,11 @@
 
     width: auto;
 }
+
+svg {
+    width: 100% !important;
+}
+
+#page-wrapper {
+    min-height: 100px !important;
+}

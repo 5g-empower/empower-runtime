@@ -38,12 +38,15 @@ from empower.persistence import Session
 from empower.persistence.persistence import TblTenant
 from empower.persistence.persistence import TblAccount
 from empower.core.account import Account
+from empower.core.account import ROLE_ADMIN
+from empower.core.account import ROLE_USER
 from empower.core.tenant import Tenant
 from empower.core.acl import ACL
 from empower.persistence.persistence import TblAllow
+from empower.core.tenant import T_TYPES
 
 import empower.logger
-
+import empower.apps
 
 DEFAULT_PERIOD = 5000
 
@@ -208,16 +211,26 @@ class EmpowerRuntime:
           - default: the default value of the parameter
         """
 
-        results = {}
+        components = {}
 
-        self.__walk_module(empower, results)
-        self.__walk_module(empower.lvapp, results)
-        self.__walk_module(empower.lvnfp, results)
-        self.__walk_module(empower.vbsp, results)
+        self.__walk_module(empower, components)
+        self.__walk_module(empower.lvapp, components)
+        self.__walk_module(empower.lvnfp, components)
+        self.__walk_module(empower.vbsp, components)
 
-        return results
+        for component in components:
+            if component in self.components:
+                components[component]['active'] = True
+                if "params" in components[component]:
+                    for param in components[component]["params"]:
+                        components[component][param] = \
+                            getattr(self.components[component], param)
+            else:
+                components[component]['active'] = False
 
-    def load_user_components(self):
+        return components
+
+    def load_user_components(self, tenant_id):
         """Fetch the available user components.
 
         A user component is a standard python module defining in the init file
@@ -235,10 +248,22 @@ class EmpowerRuntime:
           - default: the default value of the parameter
         """
 
-        results = {}
-        self.__walk_module(empower.apps, results)
+        tenant = self.tenants[tenant_id]
+        components = {}
 
-        return results
+        self.__walk_module(empower.apps, components)
+
+        for component in components:
+            if component in tenant.components:
+                components[component]['active'] = True
+                if "params" in components[component]:
+                    for param in components[component]["params"]:
+                        components[component][param] = \
+                            getattr(tenant.components[component], param)
+            else:
+                components[component]['active'] = False
+
+        return components
 
     @classmethod
     def __walk_module(cls, package, results):
@@ -265,7 +290,7 @@ class EmpowerRuntime:
             name = manifest['name']
             results[name] = manifest
 
-    def add_allowed(self, sta_addr, label):
+    def add_allowed(self, sta_addr, label=None):
         """ Add entry to ACL. """
 
         allow = Session().query(TblAllow) \
@@ -307,8 +332,10 @@ class EmpowerRuntime:
         """Create a new account."""
 
         if username in self.accounts:
-            self.log.error("'%s' already registered", username)
             raise ValueError("%s already registered" % username)
+
+        if role not in [ROLE_ADMIN, ROLE_USER]:
+            raise ValueError("Invalid role %s" % role)
 
         session = Session()
         account = TblAccount(username=username,
@@ -422,9 +449,9 @@ class EmpowerRuntime:
 
         worker = self.components[name]
 
-        from empower.core.module import ServiceWorker
+        from empower.core.module import ModuleWorker
 
-        if not issubclass(type(worker), ServiceWorker):
+        if not issubclass(type(worker), ModuleWorker):
             raise ValueError("Module %s cannot be removed" % name)
 
         for module_id in list(self.components[name].modules.keys()):
@@ -459,30 +486,32 @@ class EmpowerRuntime:
         if tenant_id in self.tenants:
             raise ValueError("Tenant %s exists" % tenant_id)
 
-        try:
+        plmn_ids = [tenant.plmn_id for tenant in self.tenants.values()]
 
-            session = Session()
+        if plmn_id and plmn_id in plmn_ids:
+            raise ValueError("PLMN ID %s exists" % plmn_id)
 
-            if tenant_id:
-                request = TblTenant(tenant_id=tenant_id,
-                                    tenant_name=tenant_name,
-                                    owner=owner,
-                                    desc=desc,
-                                    bssid_type=bssid_type,
-                                    plmn_id=plmn_id)
-            else:
-                request = TblTenant(owner=owner,
-                                    tenant_name=tenant_name,
-                                    desc=desc,
-                                    bssid_type=bssid_type,
-                                    plmn_id=plmn_id)
+        if bssid_type not in T_TYPES:
+            raise ValueError("Invalid bssid_type %s" % bssid_type)
 
-            session.add(request)
-            session.commit()
+        session = Session()
 
-        except IntegrityError:
-            session.rollback()
-            raise ValueError("Tenant name %s exists" % tenant_name)
+        if tenant_id:
+            request = TblTenant(tenant_id=tenant_id,
+                                tenant_name=tenant_name,
+                                owner=owner,
+                                desc=desc,
+                                bssid_type=bssid_type,
+                                plmn_id=plmn_id)
+        else:
+            request = TblTenant(owner=owner,
+                                tenant_name=tenant_name,
+                                desc=desc,
+                                bssid_type=bssid_type,
+                                plmn_id=plmn_id)
+
+        session.add(request)
+        session.commit()
 
         self.tenants[request.tenant_id] = \
             Tenant(request.tenant_id,

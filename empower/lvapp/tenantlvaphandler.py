@@ -49,8 +49,6 @@ class TenantLVAPHandler(EmpowerAPIHandlerUsers):
 
         try:
 
-            print(args)
-
             if len(args) not in (1, 2):
                 raise ValueError("Invalid URL")
 
