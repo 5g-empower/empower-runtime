@@ -18,6 +18,9 @@
 """Network port."""
 
 
+from empower.datatypes.match import conflicting_match
+
+
 class NetworkPort():
     """Network Port."""
 
@@ -37,14 +40,10 @@ class NetworkPort():
         if 'in_port' in new_match.match:
             raise ValueError('the \"in_port\" parameter is not allowed')
 
-        for match in self._matches.values():
-
-            common = {cond: value for cond, value in new_match.items()
-                      if cond in match and value == match[cond]}
-
-            if common == new_match or common == match:
-                raise ValueError('match conflict: %s --> %s'
-                                 % (new_match, match))
+        conflict = conflicting_match(self._matches.values(), new_match)
+        if conflict:
+            raise ValueError('match conflict: %s --> %s'
+                             % (new_match, conflict))
 
         self._matches[rule_uuid] = new_match
 

@@ -26,6 +26,7 @@ import tornado.websocket
 
 from empower.datatypes.dpid import DPID
 from empower.datatypes.etheraddress import EtherAddress
+from empower.datatypes.match import Match
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.core.networkport import NetworkPort
 from empower.core.datapath import Datapath
@@ -58,7 +59,34 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         self.server = server
 
         self.of_dpid = []
-        self.tr_rules = {}
+        self.of_rules = {}
+
+        self.dscp2tos = {'0x00': '0x00',
+                         '0x01': '0x04',
+                         '0x02': '0x08',
+                         '0x03': '0x0C',
+                         '0x04': '0x10',
+                         '0x08': '0x20',
+                         '0x0A': '0x28',
+                         '0x0C': '0x30',
+                         '0x0E': '0x38',
+                         '0x10': '0x40',
+                         '0x12': '0x48',
+                         '0x14': '0x50',
+                         '0x16': '0x58',
+                         '0x18': '0x60',
+                         '0x1A': '0x68',
+                         '0x1C': '0x70',
+                         '0x1E': '0x78',
+                         '0x20': '0x80',
+                         '0x22': '0x88',
+                         '0x24': '0x90',
+                         '0x26': '0x98',
+                         '0x28': '0xA0',
+                         '0x2C': '0xB0',
+                         '0x2E': '0xB8',
+                         '0x30': '0xC0',
+                         '0x38': '0xE0'}
 
         lvapp_server = get_module(LVAPPServer.__module__)
         lvapp_server.register_message(PT_LVAP_JOIN, None, self._lvap_join)
@@ -71,16 +99,16 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
         for lvap in tenant.lvaps.values():
 
-            self._add_tr_rule(tenant, lvap, tr.match, tr.dscp)
+            self._add_tr_rule(tenant, lvap, tr.match, tr.dscp, tr.priority)
 
     def remove_tr(self, tenant_id, match):
 
         tenant = RUNTIME.tenants[tenant_id]
 
-        if tenant_id not in self.tr_rules:
+        if tenant_id not in self.of_rules:
             return
 
-        tenant_rules = self.tr_rules[tenant.tenant_id]
+        tenant_rules = self.of_rules[tenant.tenant_id]
 
         tr_rule_ids = [(match, _) for _match, _ in tenant_rules
                        if _match == match]
@@ -90,40 +118,42 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             of_rule_id = tenant_rules[tr_rule_id]
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
+            print('REMOVING RULE %s' % of_rule_id)
 
     def _lvap_join(self, lvap):
 
         tenant = lvap.tenant
 
-        if not tenant:
+        if not self.server.connection:
             return
 
-        if tenant.tenant_id not in self.server.trs:
+        if tenant.tenant_id not in self.server.rules:
             return
 
-        tenant_trs = self.server.trs[tenant.tenant_id]
+        tenant_rules = self.server.rules[tenant.tenant_id]
 
-        if lvap.tenant.tenant_id not in self.tr_rules:
-            self.tr_rules[tenant.tenant_id] = {}
+        if lvap.tenant.tenant_id not in self.of_rules:
+            self.of_rules[tenant.tenant_id] = {}
 
-        tenant_rules = self.tr_rules[tenant.tenant_id]
+        tenant_of_rules = self.of_rules[tenant.tenant_id]
 
-        for tr in tenant_trs.values():
+        for tr in tenant_rules.values():
 
-            if (tr.match, lvap.addr) in tenant_rules:
+            if (tr.match, lvap.addr) in tenant_of_rules:
                 continue
 
             self._add_tr_rule(tenant=tenant,
                               lvap=lvap,
                               match=tr.match,
-                              dscp=tr.dscp)
+                              dscp=tr.dscp,
+                              priority=tr.priority)
 
     def _lvap_leave(self, lvap):
 
-        if lvap.tenant.tenant_id not in self.tr_rules:
+        if lvap.tenant.tenant_id not in self.of_rules:
             return
 
-        tenant_rules = self.tr_rules[lvap.tenant.tenant_id]
+        tenant_rules = self.of_rules[lvap.tenant.tenant_id]
 
         tr_rule_ids = [(_, _lvap_addr) for _, _lvap_addr in tenant_rules
                        if _lvap_addr == lvap.addr]
@@ -133,6 +163,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             of_rule_id = tenant_rules[tr_rule_id]
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
+            print('REMOVING RULE %s' % of_rule_id)
 
     def _of_dp_join(self, dp):
 
@@ -148,7 +179,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
             self._lvap_join(lvap)
 
-    def _add_tr_rule(self, tenant, lvap, match, dscp):
+    def _add_tr_rule(self, tenant, lvap, match, dscp, priority):
 
         dp = lvap.wtp.datapath
 
@@ -162,6 +193,10 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             tr_ep = Endpoint(uuid4(), tr_ep_label, dp)
             tenant.endpoints[tr_ep.uuid] = tr_ep
 
+            if dp.network_ports.keys() != {1, 2}:
+                raise ValueError('Network port numbers mismatch, '
+                                 'please restart the WTP')
+
             src_vport = VirtualPort(tr_ep, dp.network_ports[1], 0)
             dst_vport = VirtualPort(tr_ep, dp.network_ports[2], 1)
 
@@ -173,22 +208,29 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
         of_rule_id = uuid4()
 
+        sta_match = Match('%s,dl_dst=%s' % (str(match), lvap.addr))
+
         rule = {'version': '1.0',
                 'rule_uuid': of_rule_id,
                 'ttp_uuid': tr_ep.uuid,
                 'ttp_vport': tr_ep.ports[1].virtual_port_id,
                 'stp_uuid': tr_ep.uuid,
                 'stp_vport': tr_ep.ports[0].virtual_port_id,
-                'match': match.match}
+                'match': sta_match.match,
+                'actions': [{'type': 'SET_NW_TOS',
+                             'nw_tos': self.dscp2tos[str(dscp)]}],
+                'priority': priority}
 
         self.send_add_rule(rule)
+        print('ADDING RULE FOR LVAP %s, MATCH %s, tenant %s, of_rule_id %s'
+              % (lvap.addr, match, tenant.tenant_id, of_rule_id))
 
         tr_id = (match, lvap.addr)
 
-        if tenant.tenant_id not in self.tr_rules:
-            self.tr_rules[tenant.tenant_id] = {}
+        if tenant.tenant_id not in self.of_rules:
+            self.of_rules[tenant.tenant_id] = {}
 
-        self.tr_rules[tenant.tenant_id][tr_id] = of_rule_id
+        self.of_rules[tenant.tenant_id][tr_id] = of_rule_id
 
     def open(self):
         """On socket opened."""

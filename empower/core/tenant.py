@@ -204,17 +204,6 @@ class Tenant:
             Nones
         """
 
-        rule = TblTrafficRule(tenant_id=self.tenant_id, match=match,
-                              dscp=dscp, priority=priority, label=label)
-
-        try:
-            session = Session()
-            session.add(rule)
-            session.commit()
-        except IntegrityError:
-            session.rollback()
-            raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, match))
-
         trule = TrafficRule(ssid=self.tenant_id,
                             match=match,
                             dscp=dscp,
@@ -226,6 +215,17 @@ class Tenant:
         ibnp_server = get_module(IBNPServer.__module__)
         if ibnp_server:
             ibnp_server.add_traffic_rule(trule)
+
+        rule = TblTrafficRule(tenant_id=self.tenant_id, match=match,
+                              dscp=dscp, priority=priority, label=label)
+
+        try:
+            session = Session()
+            session.add(rule)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            raise ValueError("Duplicate (%s, %s)" % (self.tenant_id, match))
 
     def del_traffic_rule(self, match):
         """Delete a traffic rule from this tenant.

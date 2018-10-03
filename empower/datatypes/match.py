@@ -18,6 +18,19 @@
 """EmPOWER Match."""
 
 
+def conflicting_match(matches, new_match):
+
+    for match in matches:
+
+        common = {cond: value for cond, value in new_match.match.items()
+                  if cond in match.match and value == match.match[cond]}
+
+        if common == new_match.match or common == match.match:
+            return match
+
+    return None
+
+
 class Match:
     """Match object representing an OpenFlow match rules"""
 
@@ -28,7 +41,7 @@ class Match:
         elif isinstance(match, dict):
             self.match = self.__ofmatch_s2d(self.__ofmatch_d2s(match))
         elif isinstance(match, str):
-            self.match = self.__ofmatch_s2d(match)
+            self.match = self.__ofmatch_s2d(match.replace(" ", ""))
         else:
             raise ValueError("Match must be string, dict, or Match")
 
@@ -43,11 +56,11 @@ class Match:
             if tmp[0] == 'dl_vlan':
                 value = "%s=%u" % tmp
             elif tmp[0] == 'dl_type':
-                value = "%s=%s" % (tmp[0], "{0:#0{1}tmp}".format(tmp[1], 6))
+                value = "%s=%s" % (tmp[0], "0x{:04x}".format(tmp[1]))
             elif tmp[0] == 'in_port':
                 value = "%s=%u" % tmp
             elif tmp[0] == 'nw_proto':
-                value = "%s=%s" % (tmp[0], "{0:#0{1}tmp}".format(tmp[1], 6))
+                value = "%s=%u" % tmp
             elif tmp[0] == 'tp_dst':
                 value = "%s=%u" % tmp
             elif tmp[0] == 'tp_src':
@@ -82,7 +95,7 @@ class Match:
                 value_t = int(value_t)
 
             if key_t == 'nw_proto':
-                value_t = int(value_t, 16)
+                value_t = int(value_t)
 
             if key_t == 'tp_dst':
                 value_t = int(value_t)
