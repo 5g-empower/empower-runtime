@@ -1232,7 +1232,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
             if "priority" in request:
                 tenant.add_traffic_rule(match, dscp, request["label"], \
-                                        request["request"])
+                                        request["priority"])
             else:
                 tenant.add_traffic_rule(match, dscp, request["label"])
 

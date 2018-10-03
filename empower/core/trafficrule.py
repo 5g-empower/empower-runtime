@@ -36,7 +36,7 @@ class TrafficRule:
         self.match = match
         self.dscp = dscp
         self.label = label
-        self.priority = priority
+        self.priority = int(priority)
 
     def to_dict(self):
         """Return a json-frinedly representation of the object."""
