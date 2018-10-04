@@ -515,14 +515,15 @@ class LVAPPConnection:
             # Send probe response
             self.send_probe_response(lvap, incoming_ssid)
 
-        else:
+            return
 
-            # Update networks
-            lvap = RUNTIME.lvaps[sta]
-            lvap.networks = networks
-            lvap.commit()
+        # Update networks
+        lvap = RUNTIME.lvaps[sta]
+        lvap.networks = networks
+        lvap.commit()
 
-            # Send probe response
+        # Send probe response
+        if lvap.wtp == wtp:
             self.send_probe_response(lvap, incoming_ssid)
 
     def _handle_auth_request(self, wtp, request):
