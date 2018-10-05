@@ -297,7 +297,7 @@ class EmpowerRuntime:
                          .filter(TblAllow.addr == sta_addr) \
                          .first()
         if allow:
-            raise ValueError(sta_addr)
+            raise ValueError("Address already defined %s" % sta_addr)
 
         session = Session()
         session.add(TblAllow(addr=sta_addr, label=label))
@@ -315,7 +315,7 @@ class EmpowerRuntime:
                          .filter(TblAllow.addr == sta_addr) \
                          .first()
         if not allow:
-            raise KeyError(sta_addr)
+            raise ValueError("Address not found %s" % sta_addr)
 
         session = Session()
         session.delete(allow)
