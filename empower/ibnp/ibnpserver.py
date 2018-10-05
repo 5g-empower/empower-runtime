@@ -23,6 +23,7 @@ import tornado.websocket
 
 from empower.core.trafficrule import TrafficRule
 
+from empower.datatypes.match import conflicting_match
 from empower.ibnp.ibnpmainhandler import IBNPMainHandler
 from empower.persistence import Session
 from empower.persistence.persistence import TblTrafficRule
@@ -46,7 +47,7 @@ class IBNPServer(tornado.web.Application):
         self.last_seen_ts = None
         self.__seq = 0
 
-        self.trs = {}
+        self.rules = {}
 
         self.__load_traffic_rules()
 
@@ -74,16 +75,20 @@ class IBNPServer(tornado.web.Application):
 
             self.add_traffic_rule(traffic_rule)
 
-    def add_traffic_rule(self, traffic_rule):
+    def add_traffic_rule(self, tr):
         """Send traffic rule to backhaul controller."""
 
         tenant_id = tr.ssid
         match = tr.match
 
-        if tenant_id not in self.trs:
-            self.trs[tenant_id] = {}
+        if tenant_id not in self.rules:
+            self.rules[tenant_id] = {}
 
-        self.trs[tenant_id][match] = tr
+        conflict = conflicting_match(self.rules[tenant_id].keys(), tr.match)
+        if conflict:
+            raise ValueError('match conflict: %s --> %s' % (tr.match, conflict))
+
+        self.rules[tenant_id][match] = tr
 
         if self.connection:
             self.connection.add_tr(tr)
@@ -91,8 +96,8 @@ class IBNPServer(tornado.web.Application):
     def del_traffic_rule(self, tenant_id, match):
         """Remove traffic rule from backhaul controller."""
 
-        if match in self.trs[tenant_id]:
-            del self.trs[tenant_id][match]
+        if match in self.rules[tenant_id]:
+            del self.rules[tenant_id][match]
 
         if self.connection:
             self.connection.remove_tr(tenant_id, match)
