@@ -159,7 +159,8 @@ class MACReports(ModuleTrigger):
 
         self.vbs = self.cell.vbs
 
-        msg = Container(deadline=self.deadline)
+        msg = Container(deadline=self.deadline,
+                        length=MAC_REPORTS_REQ.sizeof())
 
         self.vbs.connection.send_message(msg,
                                          E_TYPE_TRIG,

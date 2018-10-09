@@ -185,15 +185,16 @@ class UEMeasurements(ModulePeriodic):
                                 earfcn=0,
                                 interval=0,
                                 max_cells=0,
-                                max_meas=0)
+                                max_meas=0,
+                                length=UE_MEAS_REQUEST.sizeof())
 
                 self.vbs.connection.send_message(msg,
                                                  E_TYPE_TRIG,
                                                  EP_ACT_UE_MEASURE,
                                                  UE_MEAS_REQUEST,
                                                  cellid=self.ue.cell.pci,
-                                                 xid=self.module_id,
-                                                 opcode=EP_OPERATION_REM)
+                                                 opcode=EP_OPERATION_REM,
+                                                 xid=self.module_id)
 
         self.results = {}
 
@@ -208,15 +209,16 @@ class UEMeasurements(ModulePeriodic):
                             earfcn=measurement["earfcn"],
                             interval=measurement["interval"],
                             max_cells=measurement["max_cells"],
-                            max_meas=measurement["max_meas"])
+                            max_meas=measurement["max_meas"],
+                            length=UE_MEAS_REQUEST.sizeof())
 
             self.vbs.connection.send_message(msg,
                                              E_TYPE_TRIG,
                                              EP_ACT_UE_MEASURE,
                                              UE_MEAS_REQUEST,
                                              cellid=self.ue.cell.pci,
-                                             xid=self.module_id,
-                                             opcode=EP_OPERATION_ADD)
+                                             opcode=EP_OPERATION_ADD,
+                                             xid=self.module_id)
 
     def handle_response(self, response):
         """Handle an incoming UE_MEASUREMENTS message.
@@ -226,7 +228,7 @@ class UEMeasurements(ModulePeriodic):
             None
         """
 
-        for entry in response.ue_entries:
+        for entry in response.ue_meas_entries:
 
             # save measurements in this object
             if entry.meas_id not in self.results:
