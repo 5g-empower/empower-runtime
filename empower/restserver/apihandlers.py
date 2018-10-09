@@ -20,10 +20,11 @@
 import json
 import base64
 import re
-import tornado.web
-import tornado.httpserver
 
 from uuid import UUID
+
+import tornado.web
+import tornado.httpserver
 
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.core.jsonserializer import EmpowerEncoder
@@ -132,15 +133,6 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
 
 class EmpowerAPIHandlerUsers(EmpowerAPIHandler):
     """Base class for User REST handlers."""
-
-    RIGHTS = {'GET': None,
-              'POST': [ROLE_USER],
-              'PUT': [ROLE_USER],
-              'DELETE': [ROLE_USER]}
-
-
-class EmpowerAPIHandlerAdminUsers(EmpowerAPIHandler):
-    """Base class for Admin/User REST handlers."""
 
     RIGHTS = {'GET': None,
               'PUT': [ROLE_ADMIN, ROLE_USER],

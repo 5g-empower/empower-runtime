@@ -22,14 +22,14 @@ import tornado.web
 import tornado.httpserver
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.core.image import Image
 from empower.core.lvnf import LVNF
 
 from empower.main import RUNTIME
 
 
-class TenantLVNFHandler(EmpowerAPIHandlerAdminUsers):
+class TenantLVNFHandler(EmpowerAPIHandlerUsers):
     """Tenant Function Handler. Used to view anc manipulate Functions."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvnfs/?",

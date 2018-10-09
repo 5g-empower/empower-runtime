@@ -19,12 +19,12 @@
 
 import uuid
 
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
 from empower.main import RUNTIME
 
 
-class TenantLVNFPortHandler(EmpowerAPIHandlerAdminUsers):
+class TenantLVNFPortHandler(EmpowerAPIHandlerUsers):
     """Tenant/LVNF/Port Handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvnfs" +
