@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""RRC Statistics Poller Apps."""
+"""UE Statistics Poller Apps."""
 
 from empower.core.app import EmpowerApp
 
