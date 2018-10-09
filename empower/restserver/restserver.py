@@ -361,7 +361,7 @@ class ComponentsHandler(EmpowerAPIHandler):
               input_schema={
                   "version" : {"type": float, "mandatory": True},
                   "component": {"type": str, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": True}
+                  "params" : {"type": dict, "mandatory": False}
               })
     def post(self, *args, **kwargs):
         """Add a component.
