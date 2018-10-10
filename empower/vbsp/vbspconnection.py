@@ -248,14 +248,14 @@ class VBSPConnection:
             handler(self.vbs)
 
     def send_message(self, msg, msg_type, action, parser, cellid=0,
-                     opcode=EP_OPERATION_UNSPECIFIED):
+                     opcode=EP_OPERATION_UNSPECIFIED, xid=get_xid()):
         """Send message and set common parameters."""
 
         msg.type = msg_type
         msg.version = PT_VERSION
         msg.enbid = b'\x00\x00' + self.vbs.addr.to_raw()
         msg.cellid = cellid
-        msg.xid = get_xid()
+        msg.xid = xid
         msg.flags = Container(dir=1)
         msg.seq = self.vbs.seq
 

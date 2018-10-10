@@ -20,12 +20,12 @@
 import uuid
 import tornado.web
 
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 
 from empower.main import RUNTIME
 
 
-class TenantLVNFNextHandler(EmpowerAPIHandlerAdminUsers):
+class TenantLVNFNextHandler(EmpowerAPIHandlerUsers):
     """Tenant/LVNF/Port/Next Handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/lvnfs" +

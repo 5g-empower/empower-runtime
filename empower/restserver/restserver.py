@@ -29,10 +29,8 @@ from empower import settings
 from empower.core.account import ROLE_ADMIN, ROLE_USER
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
 from empower.core.module import ModuleWorker
 from empower.main import RUNTIME
-from empower.core.tenant import T_TYPES
 from empower.core.tenant import T_TYPE_UNIQUE
 from empower.datatypes.ssid import SSID
 from empower.datatypes.plmnid import PLMNID
@@ -363,7 +361,7 @@ class ComponentsHandler(EmpowerAPIHandler):
               input_schema={
                   "version" : {"type": float, "mandatory": True},
                   "component": {"type": str, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": True}
+                  "params" : {"type": dict, "mandatory": False}
               })
     def post(self, *args, **kwargs):
         """Add a component.
@@ -1329,7 +1327,7 @@ class SliceHandler(EmpowerAPIHandler):
         return slices
 
 
-class ModuleHandler(EmpowerAPIHandlerAdminUsers):
+class ModuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9:-]*)/modules/([a-zA-Z_.]*)/?",

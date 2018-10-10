@@ -22,11 +22,11 @@ import tornado.web
 import tornado.httpserver
 
 from empower.datatypes.etheraddress import EtherAddress
-from empower.restserver.apihandlers import EmpowerAPIHandlerAdminUsers
+from empower.restserver.apihandlers import EmpowerAPIHandlerUsers
 from empower.main import RUNTIME
 
 
-class UEHandler(EmpowerAPIHandlerAdminUsers):
+class UEHandler(EmpowerAPIHandlerUsers):
     """UE handler. Used to view UEs (controller-wide)."""
 
     HANDLERS = [r"/api/v1/ues/?",

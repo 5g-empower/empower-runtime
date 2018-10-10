@@ -297,7 +297,7 @@ class EmpowerRuntime:
                          .filter(TblAllow.addr == sta_addr) \
                          .first()
         if allow:
-            raise ValueError(sta_addr)
+            raise ValueError("Address already defined %s" % sta_addr)
 
         session = Session()
         session.add(TblAllow(addr=sta_addr, label=label))
@@ -315,7 +315,7 @@ class EmpowerRuntime:
                          .filter(TblAllow.addr == sta_addr) \
                          .first()
         if not allow:
-            raise KeyError(sta_addr)
+            raise KeyError("Address not found %s" % sta_addr)
 
         session = Session()
         session.delete(allow)
@@ -326,7 +326,7 @@ class EmpowerRuntime:
     def is_allowed(self, src):
         """ Check if station is allowed. """
 
-        return self.allowed and src in self.allowed
+        return src in self.allowed
 
     def create_account(self, username, password, role, name, surname, email):
         """Create a new account."""
