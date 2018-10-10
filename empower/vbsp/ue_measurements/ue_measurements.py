@@ -252,6 +252,11 @@ class UEMeasurements(ModulePeriodic):
                             "rsrq": entry.rsrq
                         }
 
+                    self.ue.ue_measurements[cell] = {
+                        "rsrp": entry.rsrp,
+                        "rsrq": entry.rsrq
+                    }
+
         # call callback
         self.handle_callback(self)
 
