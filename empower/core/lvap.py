@@ -135,7 +135,10 @@ class LVAP:
         # the lvap state
         self._state = state
 
-        # target block to be used for handover
+        # source blocks to be used for handover event
+        self.source_blocks = None
+
+        # target blocks to be used for handover
         self.target_blocks = None
 
         # migration sats
@@ -431,6 +434,8 @@ class LVAP:
             self.association_state = False
             self.authentication_state = False
 
+        # save target block
+        self.source_blocks = self.blocks
         # save target block
         self.target_blocks = pool
 

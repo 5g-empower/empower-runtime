@@ -43,6 +43,7 @@ from empower.core.utils import get_module
 from empower.lvapp.lvappserver import LVAPPServer
 from empower.lvapp import PT_LVAP_JOIN
 from empower.lvapp import PT_LVAP_LEAVE
+from empower.lvapp import PT_LVAP_HANDOVER
 
 from empower.main import RUNTIME
 
@@ -59,8 +60,10 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         self.server = server
 
         self.of_dpid = []
+        self.dpid2ep = {}
         self.of_rules = {}
 
+        # map from dscp values to tos
         self.dscp2tos = {'0x00': '0x00',
                          '0x01': '0x04',
                          '0x02': '0x08',
@@ -91,17 +94,20 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         lvapp_server = get_module(LVAPPServer.__module__)
         lvapp_server.register_message(PT_LVAP_JOIN, None, self._lvap_join)
         lvapp_server.register_message(PT_LVAP_LEAVE, None, self._lvap_leave)
+        lvapp_server.register_message(PT_LVAP_HANDOVER,
+                                      None,
+                                      self._lvap_handover)
 
-    def add_tr(self, tr):
+    def send_add_tr(self, tr):
 
         tenant_id = tr.ssid
         tenant = RUNTIME.tenants[tenant_id]
 
         for lvap in tenant.lvaps.values():
 
-            self._add_tr_rule(tenant, lvap, tr.match, tr.dscp, tr.priority)
+            self._send_add_tr(tenant, lvap, tr.match, tr.dscp, tr.priority)
 
-    def remove_tr(self, tenant_id, match):
+    def send_remove_tr(self, tenant_id, match):
 
         tenant = RUNTIME.tenants[tenant_id]
 
@@ -118,7 +124,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             of_rule_id = tenant_rules[tr_rule_id]
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
-            print('REMOVING RULE %s' % of_rule_id)
 
     def _lvap_join(self, lvap):
 
@@ -142,7 +147,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             if (tr.match, lvap.addr) in tenant_of_rules:
                 continue
 
-            self._add_tr_rule(tenant=tenant,
+            self._send_add_tr(tenant=tenant,
                               lvap=lvap,
                               match=tr.match,
                               dscp=tr.dscp,
@@ -163,7 +168,13 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             of_rule_id = tenant_rules[tr_rule_id]
             self.send_remove_rule(of_rule_id)
             del tenant_rules[tr_rule_id]
-            print('REMOVING RULE %s' % of_rule_id)
+
+    def _lvap_handover(self, lvap, _):
+
+        # ignore handover events if the lvap is not associated
+        if lvap.tenant:
+            self._lvap_leave(lvap)
+            self._lvap_join(lvap)
 
     def _of_dp_join(self, dp):
 
@@ -177,21 +188,21 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             if lvap.wtp.addr != wtp_addr:
                 continue
 
+            if lvap.tenant is None:
+                continue
+
             self._lvap_join(lvap)
 
-    def _add_tr_rule(self, tenant, lvap, match, dscp, priority):
+    def _send_add_tr(self, tenant, lvap, match, dscp, priority):
 
         dp = lvap.wtp.datapath
 
         if dp.dpid not in self.of_dpid:
             return None
 
-        tr_ep_label = '_tr_%s' % lvap.wtp.addr
+        if dp.dpid not in self.dpid2ep:
 
-        if tr_ep_label not in [ep.label for ep in tenant.endpoints.values()]:
-
-            tr_ep = Endpoint(uuid4(), tr_ep_label, dp)
-            tenant.endpoints[tr_ep.uuid] = tr_ep
+            tr_ep = Endpoint(uuid4(), '', dp)
 
             if dp.network_ports.keys() != {1, 2}:
                 raise ValueError('Network port numbers mismatch, '
@@ -203,15 +214,16 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
             tr_ep.ports[src_vport.virtual_port_id] = src_vport
             tr_ep.ports[dst_vport.virtual_port_id] = dst_vport
 
-        tr_ep = [ep for ep in tenant.endpoints.values()
-                 if ep.label == tr_ep_label][0]
+            self.dpid2ep[dp.dpid] = tr_ep
+
+        tr_ep = self.dpid2ep[dp.dpid]
 
         of_rule_id = uuid4()
 
         sta_match = Match('%s,dl_dst=%s' % (str(match), lvap.addr))
 
         rule = {'version': '1.0',
-                'rule_uuid': of_rule_id,
+                'uuid': of_rule_id,
                 'ttp_uuid': tr_ep.uuid,
                 'ttp_vport': tr_ep.ports[1].virtual_port_id,
                 'stp_uuid': tr_ep.uuid,
@@ -222,8 +234,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
                 'priority': priority}
 
         self.send_add_rule(rule)
-        print('ADDING RULE FOR LVAP %s, MATCH %s, tenant %s, of_rule_id %s'
-              % (lvap.addr, match, tenant.tenant_id, of_rule_id))
 
         tr_id = (match, lvap.addr)
 
@@ -312,10 +322,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
         self.server.last_seen = hello['seq']
         self.server.last_seen_ts = time.time()
 
-    def _handle_cleanup(self, _):
-
-        return
-
     def _handle_new_datapath(self, of_datapath):
 
         dpid = DPID(of_datapath['dpid'])
@@ -370,7 +376,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_remove_endpoint(self, endpoint_uuid):
 
-        remove_endpoint = {'endpoint_uuid': endpoint_uuid}
+        remove_endpoint = {'uuid': endpoint_uuid}
 
         self.send_message(PT_REMOVE_ENDPOINT, remove_endpoint)
 
@@ -381,6 +387,6 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_remove_rule(self, rule_uuid):
 
-        remove_rule = {'rule_uuid': rule_uuid}
+        remove_rule = {'uuid': rule_uuid}
 
         self.send_message(PT_REMOVE_RULE, remove_rule)

@@ -40,7 +40,7 @@ class DSCP:
     def to_str(self):
         """ Return the ASCII represenation of the DSCP """
 
-        return hex(self.dscp)
+        return "0x{:02x}".format(self.dscp).upper().replace("X", "x")
 
     def __bool__(self):
         return True if self.dscp else False

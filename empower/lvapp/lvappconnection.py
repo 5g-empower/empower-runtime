@@ -284,8 +284,7 @@ class LVAPPConnection:
 
         return 0
 
-    @classmethod
-    def _handle_add_lvap_response(cls, _, status):
+    def _handle_add_lvap_response(self, _, status):
         """Handle an incoming ADD_LVAP_RESPONSE message.
         Args:
             status, a ADD_LVAP message
@@ -301,6 +300,16 @@ class LVAPPConnection:
         lvap = RUNTIME.lvaps[sta]
 
         lvap.handle_add_lvap_response(status.module_id, status.status)
+
+        if lvap.state == PROCESS_RUNNING \
+                and lvap.source_blocks \
+                and len(lvap.source_blocks) > 0 \
+                and lvap.source_blocks[0] is not None:
+            self.server.send_lvap_handover_message_to_self(lvap,
+                                                           lvap.source_blocks)
+            lvap.source_blocks = None
+
+
 
     @classmethod
     def _handle_del_lvap_response(cls, _, status):
@@ -687,8 +696,8 @@ class LVAPPConnection:
         # update LVAP params
         lvap.supported_band = status.supported_band
         lvap.encap = EtherAddress(status.encap)
-        lvap.authenticated = bool(status.flags.authenticated)
-        lvap.associated = bool(status.flags.associated)
+        lvap.authentication_state = bool(status.flags.authenticated)
+        lvap.association_state = bool(status.flags.associated)
 
         ssid = SSID(status.ssid)
         if ssid == SSID():
