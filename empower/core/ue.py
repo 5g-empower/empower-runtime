@@ -194,8 +194,8 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        ue_meas = {"%u-%u" % (k.vbs.enb_id, k.pci): v
-                for k, v in self.ue_measurements.items()}
+        ue_meas = {k.vbs.addr.to_str(): {k.pci: v}
+                   for k, v in self.ue_measurements.items()}
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
