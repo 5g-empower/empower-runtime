@@ -87,18 +87,24 @@ class Tenant:
 
     @property
     def wtps(self):
+        """Return WTPs. """
+
         from empower.main import RUNTIME
 
         return RUNTIME.wtps
 
     @property
     def cpps(self):
+        """Return CPPs. """
+
         from empower.main import RUNTIME
 
         return RUNTIME.cpps
 
     @property
     def vbses(self):
+        """Return VBSes. """
+
         from empower.main import RUNTIME
 
         return RUNTIME.vbses
