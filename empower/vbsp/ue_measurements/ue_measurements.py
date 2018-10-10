@@ -104,21 +104,18 @@ class UEMeasurements(ModulePeriodic):
         return self._measurements
 
     @measurements.setter
-    def measurements(self, value):
+    def measurements(self, values):
         """Set measurements."""
 
         self._measurements = {}
 
-        for i in range(0, len(value)):
-
-            meas = value[i]
-
+        for i, value in enumerate(values):
             self._measurements[i] = {
                 "meas_id": i,
-                "earfcn": int(meas["earfcn"]),
-                "interval": int(meas["interval"]),
-                "max_cells": int(meas["max_cells"]),
-                "max_meas": int(meas["max_meas"])
+                "earfcn": int(value["earfcn"]),
+                "interval": int(value["interval"]),
+                "max_cells": int(value["max_cells"]),
+                "max_meas": int(value["max_meas"])
             }
 
     @property
@@ -245,9 +242,19 @@ class UEMeasurements(ModulePeriodic):
             earfcn = self.measurements[entry.meas_id]["earfcn"]
 
             for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
+
+                self.ue.ue_measurements[vbs.addr] = {}
+
                 for cell in vbs.cells.values():
+
                     if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
+
                         cell.ue_measurements[self.ue.ue_id] = {
+                            "rsrp": entry.rsrp,
+                            "rsrq": entry.rsrq
+                        }
+
+                        self.ue.ue_measurements[vbs.addr][cell.pci] = {
                             "rsrp": entry.rsrp,
                             "rsrq": entry.rsrq
                         }
