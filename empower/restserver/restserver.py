@@ -1359,6 +1359,7 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         """List traffic rules .
 
         Args:
+
             tenant_id: network name of a tenant
             module_name: the name of the module
             module_id: the id of the module
@@ -1489,6 +1490,43 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
+class DocHandler(EmpowerAPIHandlerUsers):
+    """Generates MD documentation."""
+
+    HANDLERS = [r"/api/v1/doc/?"]
+
+    def get(self, *args, **kwargs):
+        """Generates MD documentation.
+
+        Args:
+            None
+
+        Example URLs:
+            GET /api/v1/doc
+        """
+
+        import inspect
+
+        rest_server = RUNTIME.components[RESTServer.__module__]
+
+        accum = []
+
+        for handler_class in rest_server.handlers:
+            accum.append("### %s" % handler_class.__name__)
+            accum.append("%s" % handler_class.__doc__)
+            if handler_class.HANDLERS:
+                accum.append("#### URLs")
+                for url in handler_class.HANDLERS:
+                    accum.append("    %s" % url)
+            if hasattr(handler_class, "get"):
+                doc = inspect.getdoc(getattr(handler_class, "get"))
+                if doc:
+                    accum.append("#### GET")
+                    accum.append(doc)
+
+        self.write('\n'.join(accum))
+
+
 class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
@@ -1505,6 +1543,7 @@ class RESTServer(tornado.web.Application):
         self.port = int(port)
         self.cert = cert
         self.key = key
+        self.handlers = []
         self.log = empower.logger.get_logger()
 
         tornado.web.Application.__init__(self, [], **self.parms)
@@ -1526,13 +1565,15 @@ class RESTServer(tornado.web.Application):
                            TenantSliceHandler, TenantEndpointHandler,
                            TenantEndpointNextHandler, IndexHandler,
                            TenantEndpointPortHandler, TenantTrafficRuleHandler,
-                           TrafficRuleHandler, SliceHandler]
+                           TrafficRuleHandler, SliceHandler, DocHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
 
     def add_handler_class(self, handler_class, server):
         """Add a new handler class."""
+
+        self.handlers.append(handler_class)
 
         for url in handler_class.HANDLERS:
             self.add_handler((url, handler_class, dict(server=server)))
