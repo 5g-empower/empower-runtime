@@ -243,9 +243,6 @@ class UEMeasurements(ModulePeriodic):
 
             for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
 
-                if self.vbs.addr != vbs.addr:
-                    continue
-
                 for cell in vbs.cells.values():
 
                     if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
