@@ -243,11 +243,15 @@ class UEMeasurements(ModulePeriodic):
 
             for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
 
-                self.ue.ue_measurements[vbs.addr] = {}
+                if self.vbs.addr != vbs.addr:
+                    continue
 
                 for cell in vbs.cells.values():
 
                     if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
+
+                        if vbs.addr not in self.ue.ue_measurements:
+                            self.ue.ue_measurements[vbs.addr] = {}
 
                         cell.ue_measurements[self.ue.ue_id] = {
                             "rsrp": entry.rsrp,
