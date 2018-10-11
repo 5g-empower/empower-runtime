@@ -192,7 +192,7 @@ class VirtualPortNextProp(dict):
 
         # set/update intent
         intent = {'version': '1.0',
-                  'rule_uuid': rule_uuid,
+                  'uuid': rule_uuid,
                   'ttp_uuid': value.endpoint.uuid,
                   'ttp_vport': value.virtual_port_id,
                   'stp_uuid': self.my_virtual_port.endpoint.uuid,

@@ -30,6 +30,7 @@ from empower.core.wtp import WTP
 
 from empower.lvapp import PT_LVAP_LEAVE
 from empower.lvapp import PT_LVAP_JOIN
+from empower.lvapp import PT_LVAP_HANDOVER
 from empower.lvapp import PT_TYPES
 from empower.lvapp import PT_TYPES_HANDLERS
 from empower.lvapp.lvaphandler import LVAPHandler
@@ -114,6 +115,16 @@ class LVAPPServer(PNFPServer, TCPServer):
 
         for handler in self.pt_types_handlers[PT_LVAP_JOIN]:
             handler(lvap)
+
+    def send_lvap_handover_message_to_self(self, lvap, source_blocks):
+        """Send an LVAP_HANDOVER message to self."""
+
+        for tenant in RUNTIME.tenants.values():
+            for app in tenant.components.values():
+                app.lvap_handover(lvap, source_blocks)
+
+        for handler in self.pt_types_handlers[PT_LVAP_HANDOVER]:
+            handler(lvap, source_blocks)
 
 
 def launch(port=DEFAULT_PORT):

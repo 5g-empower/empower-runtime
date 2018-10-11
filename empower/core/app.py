@@ -92,6 +92,11 @@ class EmpowerApp:
 
         pass
 
+    def lvap_handover(self, lvap, source_blocks):
+        """Called when an LVAP completes a handover."""
+
+        pass
+
     def vbs_down(self, vbs):
         """Called when a VBS disconnects to the controller."""
 

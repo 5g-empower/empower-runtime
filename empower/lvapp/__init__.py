@@ -39,6 +39,7 @@ PT_BYE = "bye"
 PT_REGISTER = "register"
 PT_LVAP_JOIN = "lvap_join"
 PT_LVAP_LEAVE = "lvap_leave"
+PT_LVAP_HANDOVER = "lvap_handover"
 
 PT_HELLO = 0x04
 PT_PROBE_REQUEST = 0x05
@@ -396,6 +397,7 @@ PT_TYPES = {PT_BYE: None,
             PT_REGISTER: None,
             PT_LVAP_JOIN: None,
             PT_LVAP_LEAVE: None,
+            PT_LVAP_HANDOVER: None,
             PT_HELLO: HELLO,
             PT_PROBE_REQUEST: PROBE_REQUEST,
             PT_PROBE_RESPONSE: PROBE_RESPONSE,

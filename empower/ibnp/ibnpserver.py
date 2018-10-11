@@ -84,14 +84,17 @@ class IBNPServer(tornado.web.Application):
         if tenant_id not in self.rules:
             self.rules[tenant_id] = {}
 
-        conflict = conflicting_match(self.rules[tenant_id].keys(), tr.match)
+        matches = [match for match in self.rules[tenant_id].keys()
+                   if self.rules[tenant_id][match].priority == tr.priority]
+
+        conflict = conflicting_match(matches, tr.match)
         if conflict:
             raise ValueError('match conflict: %s --> %s' % (tr.match, conflict))
 
         self.rules[tenant_id][match] = tr
 
         if self.connection:
-            self.connection.add_tr(tr)
+            self.connection.send_add_tr(tr)
 
     def del_traffic_rule(self, tenant_id, match):
         """Remove traffic rule from backhaul controller."""
@@ -100,7 +103,7 @@ class IBNPServer(tornado.web.Application):
             del self.rules[tenant_id][match]
 
         if self.connection:
-            self.connection.remove_tr(tenant_id, match)
+            self.connection.send_remove_tr(tenant_id, match)
 
     @property
     def seq(self):
