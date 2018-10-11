@@ -114,19 +114,21 @@ class AuthLogoutHandler(BaseHandler):
 
 
 class AllowHandler(EmpowerAPIHandler):
-    """ Allow handler. """
+    """ Allow handler. Used to add/remove allowed Wi-Fi clients."""
 
     HANDLERS = [r"/api/v1/allow/?",
                 r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """ List the entire ACL or just the specified entry.
+        """List the allowed Wi-Fi clients.
 
         Args:
-            addr: the station address
+
+            [0]: the station address
 
         Example URLs:
+
             GET /api/v1/allow
             GET /api/v1/allow/11:22:33:44:55:66
         """
@@ -189,12 +191,14 @@ class AccountsHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """List the accounts
+        """List the accounts.
 
         Args:
+
             [0]: the username
 
         Example URLs:
+
             GET /api/v1/accounts
             GET /api/v1/accounts/root
         """
@@ -306,12 +310,14 @@ class ComponentsHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """ Lists either all the components running in this controller.
+        """Lists the components.
 
         Args:
+
             [0]: the id of a component
 
         Example URLs:
+
             GET /api/v1/components
             GET /api/v1/components/<component>
         """
@@ -1511,7 +1517,9 @@ class DocHandler(EmpowerAPIHandlerUsers):
 
         accum = []
 
-        for handler_class in rest_server.handlers:
+        handlers = sorted(rest_server.handlers, key=lambda x: x.__name__)
+
+        for handler_class in handlers:
             accum.append("### %s" % handler_class.__name__)
             accum.append("%s" % handler_class.__doc__)
             if handler_class.HANDLERS:

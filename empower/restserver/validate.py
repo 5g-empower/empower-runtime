@@ -82,6 +82,8 @@ def validate(returncode=200, min_args=0, max_args=0, input_schema=None):
 
             self.set_status(returncode, None)
 
+        magic.__doc__ = func.__doc__
+
         return magic
 
     return decorator
