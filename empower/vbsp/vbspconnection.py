@@ -42,8 +42,11 @@ from empower.vbsp import EP_OPERATION_UNSPECIFIED
 from empower.vbsp import CAPS_REQUEST
 from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
-from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import UE_REPORT_REQUEST
+from empower.vbsp import UE_REPORT_TYPES
+from empower.vbsp import EP_UE_REPORT_IDENTITY
+from empower.vbsp import EP_UE_REPORT_STATE
+from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.vbsp import CAPS_TYPES
 from empower.vbsp import EP_CAPS_CELL
@@ -63,6 +66,7 @@ from empower.vbsp import SET_RAN_MAC_SLICE_REQUEST
 from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
+from empower.core.ue import UE_REPORT_STATES
 
 from empower.main import RUNTIME
 
@@ -359,7 +363,7 @@ class VBSPConnection:
                                                                    slc,
                                                                    EP_OPERATION_SET)
 
-    def _handle_ue_report_response(self, vbs, hdr, event, ue_report):
+    def _handle_ue_report_response(self, vbs, hdr, event, msg):
         """Handle an incoming UE_REPORT message.
         Args:
             hello, a UE_REPORT message
@@ -367,56 +371,58 @@ class VBSPConnection:
             None
         """
 
-        incoming = []
+        for raw_entry in msg.options:
 
-        for ue in ue_report.ues:
-
-            # UE already known, ignore.
-            if RUNTIME.find_ue_by_rnti(ue.rnti, ue.pci, vbs):
+            if raw_entry.type not in UE_REPORT_TYPES:
+                self.log.warning("Unknown options %u", raw_entry.raw_entry)
                 continue
 
-            # otherwise check if we can add it
-            plmn_id = PLMNID(ue.plmn_id)
-            tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
+            prop = UE_REPORT_TYPES[raw_entry.type].name
+            option = UE_REPORT_TYPES[raw_entry.type].parse(raw_entry.data)
 
-            if not tenant:
-                self.log.info("Unable to find PLMN id %s", plmn_id)
-                continue
+            self.log.warning("Processing options %s", prop)
 
-            if vbs.addr not in tenant.vbses:
-                self.log.info("VBS %s not in PLMN id %s", vbs.addr, plmn_id)
-                continue
+            if raw_entry.type == EP_UE_REPORT_IDENTITY:
 
-            if ue.pci not in vbs.cells:
-                self.log.info("PCI %u not found", ue.pci)
-                continue
+                plmn_id = PLMNID(option.plmn_id)
+                tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
-            cell = vbs.cells[ue.pci]
-            ue_id = uuid.uuid4()
+                ue = RUNTIME.find_ue_by_rnti(option.rnti, hdr.cellid, vbs)
 
-            ue = UE(ue_id, ue.rnti, cell, tenant)
+                # UE already known, update its parameters
+                if ue:
 
-            RUNTIME.ues[ue.ue_id] = ue
-            tenant.ues[ue.ue_id] = ue
+                    ue.plmn_id = plmn_id
+                    ue.tmsi = option.timsi
 
-            self.server.send_ue_join_message_to_self(ue)
+                else:
 
-            # save the new ue id
-            incoming.append(ue.ue_id)
+                    cell = vbs.cells[hdr.cellid]
+                    ue_id = uuid.uuid4()
 
-        # check for leaving UEs
-        for ue_id in list(RUNTIME.ues.keys()):
-            # handover in progress, ignoring
-            if not RUNTIME.ues[ue_id].is_running():
-                continue
-            # ue has left due to an handover, ignore
-            if RUNTIME.ues[ue_id].vbs != vbs:
-                continue
-            # ue already processed
-            if ue_id in incoming:
-                continue
-            # ue has left
-            RUNTIME.remove_ue(ue_id)
+                    ue = UE(ue_id, option.rnti, option.imsi, option.timsi,
+                            cell, tenant)
+
+                    RUNTIME.ues[ue.ue_id] = ue
+                    tenant.ues[ue.ue_id] = ue
+
+                    self.server.send_ue_join_message_to_self(ue)
+
+            elif raw_entry.type == EP_UE_REPORT_STATE:
+
+                ue_id = uuid.uuid4()
+
+                ue = RUNTIME.find_ue_by_rnti(option.rnti, hdr.cellid, vbs)
+
+                if not ue:
+                    continue
+
+                try:
+                    ue.state = UE_REPORT_STATES[option.state]
+                except IOError:
+                    self.log.error("Invalid transistion %s -> %s" \
+                                    %(ue.state, UE_REPORT_STATES[option.state]))
+
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.

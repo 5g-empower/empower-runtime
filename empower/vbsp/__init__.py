@@ -184,15 +184,19 @@ UE_REPORT_REQUEST = Struct("ue_report_request",
                            UBInt8("opcode"),
                            UBInt32("dummy"))
 
-UE_R = Struct("ues",
-              UBInt16("pci"),
-              Bytes("plmn_id", 4),
-              UBInt16("rnti"),
-              UBInt64("imsi"))
-
 UE_REPORT_RESPONSE = Struct("ue_report_response",
-                            UBInt32("nof_ues"),
-                            Array(lambda ctx: ctx.nof_ues, UE_R))
+                            Rename("options",
+                                   OptionalGreedyRange(OPTIONS)))
+
+UE_REPORT_IDENTITY = Struct("ue_report_identity",
+                            UBInt16("rnti"),
+                            Bytes("plmn_id", 4),
+                            UBInt64("imsi"),
+                            UBInt32("timsi"))
+
+UE_REPORT_STATE = Struct("ue_report_state",
+                         UBInt16("rnti"),
+                         UBInt8("state"))
 
 UE_HO_REQUEST = Struct("ue_ho_request",
                        UBInt8("type"),
@@ -257,6 +261,14 @@ RAN_MAC_SLICE_TYPES = {
     EP_RAN_MAC_SLICE_RBGS: RAN_MAC_SLICE_RBGS,
     EP_RAN_MAC_SLICE_SCHED_ID: RAN_MAC_SLICE_SCHED_ID,
     EP_RAN_MAC_SLICE_RNTI_LIST: RAN_MAC_SLICE_RNTI_LIST
+}
+
+EP_UE_REPORT_IDENTITY = 0x0700
+EP_UE_REPORT_STATE = 0x0701
+
+UE_REPORT_TYPES = {
+    EP_UE_REPORT_IDENTITY: UE_REPORT_IDENTITY,
+    EP_UE_REPORT_STATE: UE_REPORT_STATE
 }
 
 PT_TYPES = {PT_BYE: None,

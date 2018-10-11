@@ -97,7 +97,7 @@ class Slice:
         self.lte = {
             'static-properties': {
                 'sched_id': 0,
-                'rbgs': 1
+                'rbgs': 6
             },
             'runtime-properties': {
                 'rntis': []
