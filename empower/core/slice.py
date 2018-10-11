@@ -242,7 +242,9 @@ class Slice:
                 raise KeyError("Unable to find VBS %s" % addr)
 
             self.lte['vbses'][vbs_addr] = \
-                {'static-properties': {}, 'runtime-properties': {}, 'cells': {}}
+                {'static-properties': {},
+                 'runtime-properties': {},
+                 'cells': {}}
 
             if 'static-properties' in descriptor['lte']['vbses'][addr]:
 
@@ -297,7 +299,7 @@ class Slice:
     def print_descriptor(self, desc):
         """ Return a JSON-serializable dictionary of a Slice descriptor """
 
-        if type(desc) is dict:
+        if isinstance(desc, dict):
             result = \
                 {str(k): self.print_descriptor(v) for k, v in desc.items()}
         else:
