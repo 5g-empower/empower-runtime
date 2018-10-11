@@ -387,6 +387,10 @@ class VBSPConnection:
                 plmn_id = PLMNID(option.plmn_id)
                 tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
+                if not tenant:
+                    self.log.info("Unknown tenant %s", plmn_id)
+                    continue
+
                 ue = RUNTIME.find_ue_by_rnti(option.rnti, hdr.cellid, vbs)
 
                 # UE already known, update its parameters
