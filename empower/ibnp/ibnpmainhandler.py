@@ -100,7 +100,7 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_add_tr(self, tr):
 
-        tenant_id = tr.ssid
+        tenant_id = tr.tenant.tenant_id
         tenant = RUNTIME.tenants[tenant_id]
 
         for lvap in tenant.lvaps.values():
