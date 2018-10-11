@@ -210,7 +210,7 @@ class Tenant:
             Nones
         """
 
-        trule = TrafficRule(tenant=self.tenant_id,
+        trule = TrafficRule(tenant=self,
                             match=match,
                             dscp=dscp,
                             priority=priority,
