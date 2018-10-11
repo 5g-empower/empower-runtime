@@ -82,7 +82,7 @@ class IBNPServer(tornado.web.Application):
     def add_traffic_rule(self, tr):
         """Send traffic rule to backhaul controller."""
 
-        tenant_id = tr.tenant_id.tenant_id
+        tenant_id = tr.tenant.tenant_id
         match = tr.match
 
         if tenant_id not in self.rules:
