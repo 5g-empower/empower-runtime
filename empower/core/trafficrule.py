@@ -30,9 +30,9 @@ class TrafficRule:
     instance within a Tenant.
     """
 
-    def __init__(self, ssid, match, dscp, label, priority=0):
+    def __init__(self, tenant, match, dscp, label, priority=0):
 
-        self.ssid = ssid
+        self.tenant = tenant
         self.match = match
         self.dscp = dscp
         self.label = label
@@ -43,11 +43,11 @@ class TrafficRule:
 
         return {'match': self.match,
                 'dscp': self.dscp,
-                'ssid': self.ssid,
+                'tenant': self.tenant.tenant_id,
                 'priority': self.priority,
                 'label': self.label}
 
     def __repr__(self):
 
         return "%s-%s -> %s (priority %d)" % \
-            (self.ssid, self.dscp, self.match, self.priority)
+            (self.tenant.tenant_id, self.dscp, self.match, self.priority)

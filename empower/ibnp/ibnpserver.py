@@ -28,6 +28,8 @@ from empower.ibnp.ibnpmainhandler import IBNPMainHandler
 from empower.persistence import Session
 from empower.persistence.persistence import TblTrafficRule
 
+from empower.main import RUNTIME
+
 
 DEFAULT_PORT = 4444
 
@@ -67,7 +69,9 @@ class IBNPServer(tornado.web.Application):
 
         for rule in rules:
 
-            traffic_rule = TrafficRule(ssid=rule.tenant_id,
+            tenant = RUNTIME.tenants[rule.tenant_id]
+
+            traffic_rule = TrafficRule(tenant=tenant,
                                        match=rule.match,
                                        priority=rule.priority,
                                        label=rule.label,
@@ -78,7 +82,7 @@ class IBNPServer(tornado.web.Application):
     def add_traffic_rule(self, tr):
         """Send traffic rule to backhaul controller."""
 
-        tenant_id = tr.ssid
+        tenant_id = tr.tenant_id.tenant_id
         match = tr.match
 
         if tenant_id not in self.rules:

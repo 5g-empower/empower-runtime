@@ -1299,7 +1299,9 @@ class TrafficRuleHandler(EmpowerAPIHandler):
         traffic_rules = []
 
         for tenant in RUNTIME.tenants.values():
-            traffic_rules += tenant.traffic_rules.values()
+            trs = tenant.traffic_rules.copy()
+            trs['tenant_id'] = tenant.tenant_id
+            traffic_rules += trs.values()
 
         return traffic_rules
 
