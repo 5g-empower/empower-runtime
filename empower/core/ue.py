@@ -231,6 +231,10 @@ class UE:
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
+                'imsi': self.imsi,
+                'timsi': self.timsi,
+                'tenant_id': self.tenant.tenant_id,
+                'plmn_id': self.tenant.plmn_id,
                 'cell': self.cell,
                 'vbs': self.vbs,
                 'state': self.state,
