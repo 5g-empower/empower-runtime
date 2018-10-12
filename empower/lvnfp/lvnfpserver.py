@@ -44,14 +44,19 @@ DEFAULT_PORT = 4422
 
 
 class TenantCPPHandler(BaseTenantPNFDevHandler):
-    """TenantCPPHandler Handler."""
+    """TenantCPPHandler Handler.
+
+    Used to view and manipulate CPPs. This handler has access to the Tenant CPPs Notice how a CPP is a subclass of PNFDev.
+    """
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/cpps/?",
                 r"/api/v1/tenants/([a-zA-Z0-9-]*)/cpps/([a-zA-Z0-9:]*)/?"]
 
 
 class CPPHandler(BasePNFDevHandler):
-    """CPP Handler."""
+    """CPP Handler. Used to view and manipulate CPPs.
+
+    Used to view and manipulate CPPs. This handler has access to the system wide CPPs Notice how a CPP is a subclass of PNFDev."""
 
     HANDLERS = [(r"/api/v1/cpps/?"),
                 (r"/api/v1/cpps/([a-zA-Z0-9:]*)/?")]

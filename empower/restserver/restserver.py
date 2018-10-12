@@ -1532,7 +1532,7 @@ class DocHandler(EmpowerAPIHandlerUsers):
 
         for handler_class in handlers:
             accum.append("### %s" % handler_class.__name__)
-            accum.append("%s" % handler_class.__doc__)
+            accum.append("%s" % inspect.getdoc(handler_class))
             if handler_class.HANDLERS:
                 accum.append("#### URLs")
                 for url in handler_class.HANDLERS:

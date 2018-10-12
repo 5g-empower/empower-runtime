@@ -45,10 +45,11 @@ class BasePNFDevHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """List all PNFDevs or a single PNFDev.
+        """List PNFDevs.
 
         Args:
-            [0]: the address of the pnfdev
+
+            [0]: the pnfdev address
 
         Example URLs:
 
@@ -68,10 +69,8 @@ class BasePNFDevHandler(EmpowerAPIHandler):
     def post(self, *args, **kwargs):
         """Add a new PNFDev.
 
-        Args:
-            None
-
         Request:
+
             version: protocol version (1.0)
             addr: the pnfdev address
             label: a description for this pnfdev
@@ -88,7 +87,7 @@ class BasePNFDevHandler(EmpowerAPIHandler):
 
     @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
-        """ Delete a PNFDev.
+        """Delete a PNFDev.
 
         Args:
             [0]]: the pnfdev address
@@ -111,13 +110,15 @@ class BaseTenantPNFDevHandler(EmpowerAPIHandlerUsers):
 
     @validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
-        """List all PNFDevs in a certain Tenant or a single PNFDev.
+        """List PNFDevs.
 
         Args:
-            [0]: the network names of the tenant
-            [1]: the address of the pnfdev
+
+            [0]: the tenant id
+            [1]: the pnfdev address
 
         Example URLs:
+
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
               <wtps|cpps|vbses>
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
