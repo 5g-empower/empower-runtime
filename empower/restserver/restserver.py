@@ -44,7 +44,9 @@ DEFAULT_PORT = 8888
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """Base handler."""
+    """Base Handler.
+
+    This handler is extended by the other handlers that render HTML pages."""
 
     HANDLERS = []
 
@@ -61,13 +63,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class IndexHandler(BaseHandler):
-    """Index page"""
+    """Index handler."""
 
     HANDLERS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
     def get(self, *args, **kwargs):
-        """ Render page. """
+        """Render index page."""
 
         username = self.get_current_user()
         account = RUNTIME.accounts[username]
@@ -87,6 +89,8 @@ class AuthLoginHandler(BaseHandler):
     HANDLERS = [r"/auth/login"]
 
     def get(self, *args, **kwargs):
+        """Render login page."""
+
         self.render("login.html", error=self.get_argument("error", ""))
 
     def post(self, *args, **kwargs):
@@ -109,6 +113,8 @@ class AuthLogoutHandler(BaseHandler):
     HANDLERS = [r"/auth/logout"]
 
     def get(self, *args, **kwargs):
+        """Process logout request."""
+
         self.clear_cookie("username")
         self.redirect("/auth/login")
 
@@ -177,6 +183,7 @@ class AllowHandler(EmpowerAPIHandler):
         """
 
         RUNTIME.remove_allowed(EtherAddress(args[0]))
+
 
 class AccountsHandler(EmpowerAPIHandler):
     """Accounts handler. Used to add/remove accounts."""
