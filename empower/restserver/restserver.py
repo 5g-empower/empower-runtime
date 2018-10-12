@@ -310,16 +310,16 @@ class ComponentsHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """Lists the components.
+        """Lists components.
 
         Args:
 
-            [0]: the id of a component
+            [0]: the component id (optional)
 
         Example URLs:
 
             GET /api/v1/components
-            GET /api/v1/components/<component>
+            GET /api/v1/components/empower.apps.mobilitymanager.mobilitymanager
         """
 
         components = RUNTIME.load_main_components()
@@ -337,18 +337,23 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Update a component.
 
         Args:
-            [0]: the id of a component
+
+            [0]: the component id
 
         Request:
+
             version: protocol version (1.0)
             params: dictionary of parametes supported by the component
                     as reported by the GET request
 
         Example URLs:
-            PUT /api/v1/components
+
+            PUT /api/v1/components/empower.apps.mobilitymanager.mobilitymanager
             {
               "version" : 1.0,
-              "params": {}
+              "params": {
+                "every": 1000
+              }
             }
         """
 
@@ -373,8 +378,9 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Add a component.
 
         Request:
+
             version: protocol version (1.0)
-            component: module name
+            component: the component id
             params: dictionary of parametes supported by the component
                     as reported by the GET request
 
@@ -382,8 +388,10 @@ class ComponentsHandler(EmpowerAPIHandler):
             POST /api/v1/components
             {
               "version" : 1.0,
-              "component" : "empower.lvapp.bin_counter.bin_counter"
-              "params": {}
+              "component" : "empower.apps.mobilitymanager.mobilitymanager"
+              "params": {
+                "every": 1000
+              }
             }
         """
 
@@ -399,10 +407,13 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Unload a component.
 
         Args:
-            component_id: the id of a component istance
+
+            [0]: the component id
 
         Example URLs:
-            DELETE /api/v1/components/component
+
+            DELETE /api/v1/components/
+              empower.apps.mobilitymanager.mobilitymanager
         """
 
         RUNTIME.unregister(args[0])
