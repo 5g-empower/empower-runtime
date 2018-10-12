@@ -25,29 +25,19 @@ class EmpUpdateModalBox extends EmpModalBox{
         return this.hb.generateID( keys );
     }
 
-    getID_SELECTOBJ(keys){
-        var id = this.getID_SELECTOR(keys) + "_obj";
-        return id;
-    }
-
-    getID_SELECTOBJ_DETAILS(keys){
-        var id = this.getID_SELECTOR(keys) + "_dtls";
+    getID_BLOCKSELECTOR(){
+        var id = this.getID_SELECTOR() + "_block";
         return id;
     }
 
     initResources(obj, userDetails=false){
-        var tag = this.hb.mapName(obj);
-        var title = "Show and update selected " + obj;
+        var tag = this.hb.mapName2Tag(obj);
+        var title = "Show and update selected " + this.hb.mapName2Title(tag);
 
 // ------------------- Body
         var body = this.hb.ce("DIV");
-        body.id = this.getID_BODY();
+        body.id = this.getID_BODY_UPDPANEL();
 
-        if( userDetails ){
-            var key = __USERNAME;
-            this.selObj = jQuery.extend(true, {}, this.hb.getKeyValue(tag, key) );
-        }
-        else{
         var dt = this.cache.DTlist[ tag ];
         var datatable = $("#"+ dt.getID()).DataTable();
         var key = "";
@@ -57,48 +47,12 @@ class EmpUpdateModalBox extends EmpModalBox{
         else{
             return [title, body, buttons, ff_Close];
         }
-        this.selObj = jQuery.extend(true, {}, this.hb.getKeyValue( tag , key))
-        }
+        this.selObj = this.hb.getKeyValue( tag , key)
 
-        var u = this.hb.ce("UL");
-        $( body ).append(u);
-        $( u ).addClass("nav nav-tabs");
-                var info = this.hb.ce("LI");
-                $( u ).append(info);
-                $( info ).html("<a href=\"#Info\" id=\"InfoTab\" data-toggle=\"tab\">Info </a>");
-                this.toUpdate["Info"]=false;
-                var attrbts = this.desc.d[tag].attr;
-        for( var a in attrbts ){
-                    if( attrbts[a].type === this.desc.dt.LIST.a || attrbts[a].type === this.desc.dt.LIST.d ){
-                var tab = this.hb.ce("LI");
-                $( u ).append(tab);
-                        $( tab ).html("<a href=\"#" + a + "\" id=\"" + a + "Tab\" data-toggle=\"tab\">" + a + " </a>");
-                this.toUpdate[a]=false;
-            }
-                    else if(attrbts[a].type === this.desc.dt.OBJ.wtp){
-                        var wtp = this.hb.ce("LI");
-                        $( u ).append(wtp);
-                        $( wtp ).html("<a href=\"#wtp\" id=\"wtpTab\" data-toggle=\"tab\">wtp </a>");
-                this.toUpdate["wtp"]=false;
-            }
-                    else if(attrbts[a].type === this.desc.dt.OBJ.datapath){
-                        var datapath = this.hb.ce("LI");
-                        $( u ).append(datapath);
-                        $( datapath ).html("<a href=\"#datapath\" id=\"datapathTab\" data-toggle=\"tab\">datapath </a>");
-                        this.toUpdate["datapath"]=false;
-            }
-        }
-                var JSON = this.hb.ce("LI");
-                $( u ).append(JSON);
-                $( JSON ).html("<a href=\"#JSON\" id=\"JSONTab\" data-toggle=\"tab\">JSON </a>");
-                this.toUpdate["JSON"]=false;
-
-        var div = this.d_UpdateBodyPanel(tag, this.selObj);
+        var div = this.d_UpdatePanel(tag, this.selObj);
         $( body ).append(div);
-        div.id = this.getID_BODY_UPDPANEL();
 
 // ------------------- Buttons
-        var ff_Close = this.f_WarningClose.bind(this);
         var buttons = [];
 
         var json = this.hb.getKeyValue( tag , key);
@@ -107,638 +61,463 @@ class EmpUpdateModalBox extends EmpModalBox{
                          "color": "primary",
                          "f": ff_Download};
         buttons.push(btn_Download);
-        var args = [tag , key, this.selObj]
-        var ff_Upd = this.hb.wrapFunction(this.f_Save.bind(this), args);
+
+        var ff_Upd = this.hb.wrapFunction(this.f_Save.bind(this), [tag]);
         var btn_Upd = {"text": "Save",
                          "color": "primary",
                          "f": ff_Upd};
          buttons.push(btn_Upd);
 
-        return [title, body, buttons, ff_Close];
-    }
+        var ff_Close = this.f_WarningClose.bind(this);
+        var btn_Close = {"text": "Close",
+                         "color": "primary",
+                         "f": ff_Close};
+         buttons.push(btn_Close);
 
-    d_UpdateBodyPanel(tag, selObj){
+        return [title, body, buttons, ff_Close];
+        }
+
+// -----------------------------------------------------------------------------
+
+    d_UpdatePanel(tag, selObj){
 
         var div = this.hb.ce("DIV");
-        $( div ).addClass("tab-content");
-            this.selObj = jQuery.extend(true, {}, selObj)
+        $( div ).css("margin", "20px");
+//        $( div ).css("padding", "5px");
+        this.selObj = selObj;
+
+        var attrbts = this.desc.d[tag].attr;
+
+        var u = this.hb.ce("UL");
+            $( div ).append(u);
+        $( u ).addClass("nav nav-tabs");
+            // --------------------- Info TAB
+                var info = this.hb.ce("LI");
+                $( u ).append(info);
+                this.toUpdate["Info"]=false;
+                    $( info ).html("<a href=\"#Info\" id=\"InfoTab\" data-toggle=\"tab\">Info </a>");
+                    var info = [];
+            // --------------------- a TAB for each list of objects
+        for( var a in attrbts ){
+                    if( attrbts[a].type === this.desc.dt.LIST.a || attrbts[a].type === this.desc.dt.LIST.d ){
+                var tab = this.hb.ce("LI");
+                $( u ).append(tab);
+                this.toUpdate[a]=false;
+                            $( tab ).html("<a href=\"#" + a + "\" id=\"" + a + "Tab\" data-toggle=\"tab\">" + this.hb.mapName2Title(a) + " </a>");
+            }
+                    else if(attrbts[a].type === this.desc.dt.OBJ.wtp){
+                        var wtp = this.hb.ce("LI");
+                        $( u ).append(wtp);
+                        this.toUpdate["lvapWtp"]=false;
+                            $( wtp ).html("<a href=\"#lvapWtp\" id=\"wtpTab\" data-toggle=\"tab\">" + this.hb.mapName2Title(a) + " </a>");
+            }
+                    else if(attrbts[a].type === this.desc.dt.OBJ.datapath){
+                        var datapath = this.hb.ce("LI");
+                        $( u ).append(datapath);
+                        this.toUpdate["datapath"]=false;
+                            $( datapath ).html("<a href=\"#datapath\" id=\"datapathTab\" data-toggle=\"tab\">" + this.hb.mapName2Title(a) + " </a>");
+                    }
+                    else{
+                        info.push(a);
+            }
+        }
+            // --------------------- JSON TAB
+                var JSON = this.hb.ce("LI");
+                $( u ).append(JSON);
+                this.toUpdate["JSON"]=false;
+                    $( JSON ).html("<a href=\"#JSON\" id=\"JSONTab\" data-toggle=\"tab\">JSON </a>");
+
+            var content = this.hb.ce("DIV");
+            $( div ).append(content);
+            $( content ).addClass("tab-content");
             for( var tab in this.toUpdate ){
                 var panel = null;
                 switch( tab ){
-                    case "Info":    panel = this.d_infoPanel(tag); break;
-                    case "JSON":    panel = this.d_JSONPanel(tag); break;
-                    default:        panel = this.d_ObjectPanel(tag, tab);
-            }
-                   $( div ).append(panel);
+                    case "Info":    panel = this.d_UP_infoPanel(tag, info); break;
+                    case "JSON":    panel = this.d_UP_JSONPanel(tag); break;
+                    case "lvapWtp":     panel = this.d_UP_WTPPanel(tag); break;
+                    default:        panel = this.d_UP_ListObjectPanel(tag, tab);
+                }
+                $( content ).append(panel);
+                $( panel ).addClass("tab-pane fade")
+                panel.id = tab;
             }
 
             var ff = function(){
                 $('a[href="#Info"]').click();
-                var attrbs = this.desc.d[tag].attr;
-                for(var a in attrbs){
-                    if( !( a in this.toUpdate) && this.desc.d[tag].attr[a].update ){
-                        var id = this.getID_BODY_UPDPANEL_ATTR(a);
-                        var cnt = this.hb.ge(id);
-                        $( cnt ).click( this.hb.wrapFunction(this.f_onClickInfo.bind(this),[tag, a, cnt]) );
             }
-            }
-        }
-            setTimeout(ff.bind(this), 1/5*this.delay)
+            setTimeout(ff.bind(this), 1/8*this.delay)
+
         return div;
     }
 
-    d_JSONPanel(tag){
+// -----------------------------------------------------------------------------
 
-    var pre = this.hb.ce("PRE");
-    $( pre ).addClass("tab-pane fade")
-    pre.id = "JSON";
-        var txt = JSON.stringify(this.selObj, undefined, 4);
-        $( pre ).html( this.hb.syntaxHighlight(txt));
-        $( pre ).css("margin", "20px")
+    d_UP_infoPanel(tag, info){
+        var panel = this.hb.cePANEL();
+        $( panel ).addClass("panel panel-info");
+        $( panel ).css("margin", "25px 5px");
+        $( panel ).css("padding", "25px 5px");
 
-    return pre;
-}
 
-d_infoPanel(tag){
-
-    var div = this.hb.ce("DIV");
-        $( div ).addClass("tab-pane fade");
-        div.id = "Info";
-    $( div ).css("margin", "20px");
-    $( div ).css("padding", "5px");
-    //    $( div ).css("border", "1px solid #ccc");
-    //    $( div ).css("background-color", "#f5f5f5");
-
-            var p = this.hb.ce("DIV");
-            $( div ).append(p);
-            $( p ).addClass("well well-sm");
-                var r0 = this.hb.ceROW();
-                $( p ).append(r0);
-                    var c0 = this.hb.ceCOL("xs", 2);
-                    $( r0 ).prepend(c0);
-                    $( c0 ).addClass("hide");
-                    var c1 = this.hb.ceCOL("xs", 12);
-                    $( r0 ).append(c1);
-            var attrbs = this.desc.d[tag].attr;
-            for(var a in attrbs){
-                if( !( a in this.toUpdate) ){
-                    switch( this.desc.d[tag].attr[a].type ){
-                        case this.desc.dt.STR.bssid_type:
-                            $( c0 ).removeClass("hide");
-                            $( c1 ).removeClass(); $( c1 ).addClass("col-xs-10");
-                            var r = ff_draw_BSSID_type(this.selObj[a]);
-                            $( c0 ).append(r);
-            break;
-                        default:
-                            var r = ff_draw(tag, a, this.selObj[a], this.getID_BODY_UPDPANEL_ATTR.bind(this));
-                            $( c1 ).append(r)
-        }
-    }
-            }
-
-        return div;
-}
-
-    d_ObjectPanel(tag, a){
-        var div = null;
-        var isEdit = this.desc.d[tag].attr[a].update;
-        if( isEdit ){
-            div = this.d_ObjectPanel_Editable(tag, a);
-            return div;
-        }
-        div = this.hb.ce("DIV")
-        $( div ).addClass("tab-pane fade");
-        div.id = a;
-        $( div ).css("margin", "20px");
-        $( div ).css("padding", "5px");
-    //    $( div ).css("border", "1px solid #ccc");
-    //    $( div ).css("background-color", "#f5f5f5");
-
-            var p = this.hb.cePANEL();
-            $( div ).append(p);
-            $( p ).addClass("panel-info");
-                var pH = this.hb.cePANEL_H();
-                $( p ).append(pH);
-                var pB = this.hb.cePANEL_B();
-                $( p ).append(pB);
-
-                var values = this.selObj[a];
-                if( values == null || values.length == 0 || $.isEmptyObject(values) ){
-                    var num = 0;
-                    $( pH ).text( num + " elements" );
-                }
-                else if( this.desc.d[tag].attr[a].type != this.desc.dt.LIST.a &&
-                         this.desc.d[tag].attr[a].type != this.desc.dt.LIST.d ){
-                    var num = 1;
                     var r = this.hb.ceROW();
-                    $( pH ).append(r);
-                        var c0 = this.hb.ceCOL("xs", 6);
-                        $( r ).append(c0);
-                            var lbl = this.hb.ce("LABEL");
-                            $( c0 ).append(lbl);
-                            $( lbl ).text( num + " element" );
-                        var c1 = this.hb.ceCOL("xs", 6);
-                        $( r ).append(c1);
-                        $( c1 ).attr("align", "right");
-                            var btn = __HB.ce("BUTTON");
-                            $( c1 ).append(btn);
-                            $( btn ).attr("type", "button");
-                            $( btn ).attr("style", "margin: 0px 2px;");
-                            $( btn ).attr("title", "refresh");
-                            $( btn ).click(this.hb.wrapFunction(this.f_Refresh.bind(this), [tag, a] ));
-                                var ico = this.hb.ceFAI("fa-refresh");
-                                $( ico ).addClass("fa-2x");
-                                $( btn ).prepend(ico);
-                    var nP = ff_draw(tag, a, values, this.getID_BODY_UPDPANEL_ATTR.bind(this));
-                    $( pB ).append(nP);
-                }
-                else if( this.hb.isArray( values ) ){
-                    var num = values.length;
-                    var r = this.hb.ceROW();
-                    $( pH ).append(r);
-                        var c0 = this.hb.ceCOL("xs", 6);
+            $( panel ).append(r);
+            var c0 = this.hb.ceCOL("xs",2);
             $( r ).append(c0);
-                            var lbl = this.hb.ce("LABEL");
-                            $( c0 ).append(lbl);
-                            $( lbl ).text( num + " element" );
-                        var c1 = this.hb.ceCOL("xs", 6);
+            var c1 = this.hb.ceCOL("xs",10);
             $( r ).append(c1);
-                        $( c1 ).attr("align", "right");
-                            var btn = __HB.ce("BUTTON");
-                            $( c1 ).append(btn);
-                            $( btn ).attr("type", "button");
-                            $( btn ).attr("style", "margin: 0px 2px;");
-                            $( btn ).attr("title", "refresh");
-                            $( btn ).click(this.hb.wrapFunction(this.f_Refresh.bind(this), [tag, a] ));
-                                var ico = this.hb.ceFAI("fa-refresh");
-                                $( ico ).addClass("fa-2x");
-                                $( btn ).prepend(ico);
-                    for( var i=0; i<num; i++){
-                        var nP = ff_draw(tag, a, values[i], this.getID_BODY_UPDPANEL_ATTR.bind(this));
-                        $( pB ).append(nP);
-            }
+
+            for( var i=0; i<info.length; i++ ){
+                var a = info[i];
+                var isEdit = this.desc.d[ tag ].attr[a].update;
+                var id = this.getID_BODY_UPDPANEL_ATTR(a);
+                var value = this.selObj[a];
+                var r = ff_draw(tag, a, id, isEdit, value);
+                var isToUpdate = function(){
+                    var tab = arguments[0];
+                    this.toUpdate[tab] = true;
+                }
+                if( a === "bssid_type" ||
+                    a === "role" ){
+                    $( c0 ).append(r)
                 }
                 else{
-                    var num = Object.keys(values).length;
-                    var r = this.hb.ceROW();
-                    $( pH ).append(r);
-                        var c0 = this.hb.ceCOL("xs", 6);
-                        $( r ).append(c0);
-                            var lbl = this.hb.ce("LABEL");
-                            $( c0 ).append(lbl);
-                            $( lbl ).text( num + " element" );
-                        var c1 = this.hb.ceCOL("xs", 6);
-                        $( r ).append(c1);
-                        $( c1 ).attr("align", "right");
-                            var btn = __HB.ce("BUTTON");
-                            $( c1 ).append(btn);
-                            $( btn ).attr("type", "button");
-                            $( btn ).attr("style", "margin: 0px 2px;");
-                            $( btn ).attr("title", "refresh");
-                            $( btn ).click(this.hb.wrapFunction(this.f_Refresh.bind(this), [tag, a] ));
-                                var ico = this.hb.ceFAI("fa-refresh");
-                                $( ico ).addClass("fa-2x");
-                                $( btn ).prepend(ico);
-                    for(var el in values){
-                        var nP = ff_draw(tag, a, [el, values[el]], this.getID_BODY_UPDPANEL_ATTR.bind(this));
-                        $( pB ).append(nP);
+                    $( c1 ).append(r);
+                    $( c1 ).click( this.hb.wrapFunction(isToUpdate.bind(this), ["Info"] ) );
             }
     }
 
-    return div;
+        return panel;
     }
 
-    d_ObjectPanel_Editable(tag, a){
-        var div = this.hb.ce("DIV")
-        $( div ).addClass("tab-pane fade");
-        div.id = a;
-    $( div ).css("margin", "20px");
-    $( div ).css("padding", "5px");
-    //    $( div ).css("border", "1px solid #ccc");
-    //    $( div ).css("background-color", "#f5f5f5");
+    d_UP_WTPPanel(tag){
+        var panel = this.hb.cePANEL();
+        $( panel ).addClass("panel panel-info")
+        $( panel ).css("margin", "25px 5px");
+//        $( panel ).css("padding", "25px 5px");
+//            var ph = this.hb.cePANEL_H();
+//            $( panel ).append(ph);
+            var body = this.hb.cePANEL_B();
+            $( panel ).append(body);
+//            var pf = this.hb.cePANEL_F();
+//            $( panel ).append(pf);
 
-            var p = this.hb.cePANEL();
-            $( div ).append(p);
-            $( p ).addClass("panel-default");
-                var pH = this.hb.cePANEL_H();
-                $( p ).append(pH);
-                var pB = this.hb.cePANEL_B();
-                $( p ).append(pB);
+//            var span = this.hb.ce("SPAN");
+//            var span = this.hb.ce("SPAN");
+//            $( ph ).append(span);
+//            $( span ).text("Perform handover");
 
-            var el = this.hb.mapName(a);
-            var allObjList = this.cache.c[el];
-            if( allObjList.length == 0 ){
-                $( pH ).text( "No elements available" );
-                return div;
-    }
-            var body = this.d_ObjectPanel_Editable_Obj(tag, a, this.selObj[a]);
-            $( pB ).append(body);
-
-    return div;
-    }
-
-    d_ObjectPanel_Editable_Obj(tag, a, values){
-        var div = null;
-        switch( a ){
-            case "wtps":
-            case "cpps":
-            case "vbses":
-                div = this.d_ObjectPanel_Editable_Obj_Devices(tag, a, values);
-            break;
-            case "wtp":
-                div = this.d_ObjectPanel_Editable_Obj_Clients(tag, a, values);
-            break;
-            default:
-                console.log( a + " object panel not implemented")
-        }
-
-        return div;
-    }
-
-    d_ObjectPanel_Editable_Obj_Devices(tag, a, values){
+            var wtp = this.selObj["wtp"];
     var div = this.hb.ce("DIV");
-        div.id = tag + "_" + a
-    var desc = this.desc.d[a].attr;
-    var key = "";
-    for( var attr in desc ){
-        if( desc[attr].isKey ){
-            key = attr;
-            break;
-        }
-    }
-        var allObjList = this.cache.c[a];
-        var currentObjList = values
-
+            $( body ).append(div);
+            $( div ).css("margin", "25px 0px");
     var r0 = this.hb.ceROW();
     $( div ).append(r0);
-    $( r0 ).css("height","40px");
-    $( r0 ).css("margin","10px 0px");
-            var c0 = this.hb.ceCOL("xs", 10)
-        $( r0 ).append(c0);
-            var select = this.hb.ce("SELECT");
-            $( c0 ).append(select);
-            select.id = this.getID_SELECTOR([div.id])
-            $( select ).css("width","100%");
-            $( select ).css("height","35px");
-            var c1 = this.hb.ceCOL("xs",1);
-        $( r0 ).append(c1);
-            var btn = this.hb.ce("BUTTON");
-            $( c1 ).append(btn);
-            btn.id = select.id + "_bttn" ;
-            $( btn ).attr("type", "button");
-            $( btn ).attr("style", "margin: 0px 2px;");
-                $( btn ).attr("title", "add selected");
-                var args = [select, tag, a, currentObjList, allObjList]
-                var ff = this.hb.wrapFunction(this.f_AddToList.bind(this), args);
-            $( btn ).click( ff );
-                    var ico = this.hb.ceFAI("fa-plus");
-                $( ico ).addClass("fa-2x");
-                $( btn ).prepend(ico);
+                    var c00 = this.hb.ceCOL("xs", COL_0);
+                    $( r0 ).append(c00);
+                    $( c00 ).addClass("text-right")
+                        var s00 = this.hb.ce("SPAN");
+                        $( c00 ).append(s00);
+                        $( s00 ).text("Current WTP : ")
+                        $( s00 ).css("fontWeight", 700)
+                    var c01 = this.hb.ceCOL("xs", COL_1);
+                    $( r0 ).append(c01);
+                        var s01 = this.hb.ce("SPAN");
+                        $( c01 ).append(s01);
+                        s01.id = this.getID_BODY_UPDPANEL_ATTR("wtp");
+                        $( s01 ).text( wtp["label"] + " ( " + wtp["addr"] + " ) " );
+                        var s02 = this.hb.ce("SPAN");
+                        $( c01 ).append(s02);
+                        s02.id = this.getID_BODY_UPDPANEL_ATTR("wtp") + "_block";
+                        $( s02 ).addClass("hide");
+                        $( s02 ).text( "" );
 
+            // built selector
+            var wtpSelector = this.hb.ce("DIV");
+            $( body ).append(wtpSelector);
+            $( wtpSelector ).css("margin", "25px 0px");
     var r1 = this.hb.ceROW();
-    $( div ).append(r1);
-    $( r1 ).css("margin","10px 0px");
-            var c10 = this.hb.ceCOL("xs", 6);
+                $( wtpSelector ).append(r1);
+                    var c10 = this.hb.ceCOL("xs", COL_0);
         $( r1 ).append(c10);
-            c10.id = this.getID_SELECTOBJ([div.id]);
-            var c11 = this.hb.ceCOL("xs", 6);
+                    $( c10 ).addClass("text-right")
+                        var s10 = this.hb.ce("SPAN");
+                        $( c10 ).append(s10);
+                        $( s10 ).text("Connect to a new WTP : ")
+                        $( s10 ).css("fontWeight", 700)
+                    var c11 = this.hb.ceCOL("xs", COL_1-2);
         $( r1 ).append(c11);
-            var details = this.hb.ce("DIV");
-            $( c11 ).append(details);
-                details.id = this.getID_SELECTOBJ_DETAILS([div.id]);
-            $( details ).css("height", "100%")
-            $( details ).css("width", "100%")
 
-        var fff = function(){
-            this.f_updateLists(tag, a, currentObjList, allObjList);
-                            }
-        setTimeout(fff.bind(this), 1/5*this.delay);
-    return div;
+                var selector = this.hb.ce("SELECT");
+                $( c11 ).append(selector);
+                selector.id = this.getID_SELECTOR()
+                $( selector ).css("width","100%");
+                $( selector ).css("height","35px");
+                setTimeout(this.hb.wrapFunction( this.f_UpdateWTPSelector.bind(this),[] ), 1/8*this.delay);
+
+                    var c12 = this.hb.ceCOL("xs", 2);
+                    $( r1 ).append(c12);
+                        var btn1 = this.hb.ce("BUTTON");
+                        $( c12 ).append(btn1);
+                        $( btn1 ).attr("type", "button");
+                        $( btn1 ).attr("style", "margin: 0px 2px;");
+                        $( btn1 ).attr("title", "check blocks");
+                            var icon1 = this.hb.ceFAI("fa-share-square-o");
+                            $( icon1 ).addClass("fa-2x");
+                            $( btn1 ).append(icon1);
+
+            var blockSelector = this.hb.ce("DIV");
+            $( body ).append(blockSelector);
+            $( blockSelector ).addClass("hide");
+            $( blockSelector ).css("margin", "25px 0px");
+                var r2 = this.hb.ceROW();
+                $( blockSelector ).append(r2);
+                    var c20 = this.hb.ceCOL("xs", COL_0);
+                    $( r2 ).append(c20);
+                    $( c20 ).addClass("text-right")
+                        var s20 = this.hb.ce("SPAN");
+                        $( c20 ).append(s20);
+                        $( s20 ).text("Select a block : ")
+                        $( s20 ).css("fontWeight", 700)
+                    var c21 = this.hb.ceCOL("xs", COL_1-2);
+                    $( r2 ).append(c21);
+
+                var blockselector = this.hb.ce("SELECT");
+                $( c21 ).append(blockselector);
+                blockselector.id = this.getID_BLOCKSELECTOR()
+                $( blockselector ).css("width","100%");
+                $( blockselector ).css("height","35px");
+                setTimeout(this.hb.wrapFunction( this.f_UpdateBlockSelector.bind(this),[this.selObj["wtp"]] ), 1/8*this.delay);
+
+                    var c22 = this.hb.ceCOL("xs", 2);
+                    $( r2 ).append(c22);
+                        var btn2 = this.hb.ce("BUTTON");
+                        $( c22 ).append(btn2);
+                        $( btn2 ).attr("type", "button");
+                        $( btn2 ).attr("style", "margin: 0px 2px;");
+                        $( btn2 ).attr("title", "discard");
+                            var icon2 = this.hb.ceFAI("fa-times");
+                            $( icon2 ).addClass("fa-2x");
+                            $( btn2 ).prepend(icon2);
+                        var btn3 = this.hb.ce("BUTTON");
+                        $( c22 ).append(btn3);
+                        $( btn3 ).attr("type", "button");
+                        $( btn3 ).attr("style", "margin: 0px 2px;");
+                        $( btn3 ).attr("title", "select");
+                            var icon3 = this.hb.ceFAI("fa-share-square-o");
+                            $( icon3 ).addClass("fa-2x");
+                            $( btn3 ).prepend(icon3);
+
+                var goToSelectBlock = function(){
+                    this.toUpdate["lvapWtp"] = true;
+                    var selector = this.hb.ge( this.getID_SELECTOR() );
+                    var el = selector.options[selector.selectedIndex];
+                    var addr = el.id.substring(el.id.length-17, el.id.length);
+                    var selectedWTP = this.hb.getKeyValue(this.qe.targets.WTP, addr);
+                    var clr = $( el ).css("color");
+                    if( selectedWTP["state"] != "online" ){
+                        alert( addr + " device is offline!" );
     }
-
-    d_ObjectPanel_Editable_Obj_Clients(tag, a, values){
-    var div = this.hb.ce("DIV");
-        div.id = tag + "_" + a
-        var el = this.hb.mapName(a)
-        var desc = this.desc.d[el].attr;
-    var key = "";
-    for( var attr in desc ){
-        if( desc[attr].isKey ){
-            key = attr;
-            break;
+                    else{
+                        $( btn1 ).addClass("hide");
+                        $( blockSelector ).removeClass("hide");
+                        this.f_UpdateBlockSelector([selectedWTP]);
         }
     }
-//        var currentObjList = this.selObj[a];
-        var allObjList = this.cache.c[ el ];
-    var currentObjList = {};
-        var keyValue = this.selObj[a][key];
-        currentObjList[keyValue] = this.selObj[a];
-        var fff = function(){
-            this.f_updateLists(tag, a, currentObjList, allObjList);
+                $( btn1 ).click( goToSelectBlock.bind(this) )
+
+                var returnToSelectWTP = function(){
+                    $( btn1 ).removeClass("hide");
+                    $( blockSelector ).addClass("hide");
     }
-        setTimeout(fff.bind(this), this.delay);
+                $( btn2 ).click( returnToSelectWTP.bind(this) )
 
-    var r0 = this.hb.ceROW();
-    $( div ).append(r0);
-    $( r0 ).css("height","40px");
-    $( r0 ).css("margin","10px 0px");
-            var c0 = this.hb.ceCOL("xs", 9)
-        $( r0 ).append(c0);
-            $( c0 ).css("padding", "0px 5px")
-            var select = this.hb.ce("SELECT");
-            $( c0 ).append(select);
-            select.id = this.getID_SELECTOR([div.id])
-            $( select ).css("width","100%");
-            $( select ).css("height","35px");
-            var c1 = this.hb.ceCOL("xs",2);
-        $( r0 ).append(c1);
-            var btn = this.hb.ce("BUTTON");
-            $( c1 ).append(btn);
-            btn.id = select.id + "_bttn" ;
-            $( btn ).attr("type", "button");
-            $( btn ).attr("style", "margin: 0px 2px;");
-                $( btn ).attr("title", "handover");
-                var args = [select, tag, a, allObjList, currentObjList]
-                var ff = this.hb.wrapFunction(this.f_AddToClient.bind(this), args);
-            $( btn ).click( ff );
-                    var ico = this.hb.ceFAI("fa-share-square-o");
-                $( ico ).addClass("fa-2x");
-                $( btn ).prepend(ico);
-//                    var span = this.hb.ce("SPAN");
-//                    $( span ).text("handover");
-//                    $( span ).css("margin", "2px")
-//                    $( btn ).append(span)
+                var changeCurrentWTP = function(){
+                    $( btn1 ).removeClass("hide");
+                    $( blockSelector ).addClass("hide");
 
-    var r1 = this.hb.ceROW();
-    $( div ).append(r1);
-    $( r1 ).css("margin","10px 0px");
-        var c10 = this.hb.ceCOL("xs", 6);
-        $( r1 ).append(c10);
-            c10.id = this.getID_SELECTOBJ([div.id]);
-        var c11 = this.hb.ceCOL("xs", 6);
-        $( r1 ).append(c11);
-            var details = this.hb.ce("DIV");
-            $( c11 ).append(details);
-                details.id = this.getID_SELECTOBJ_DETAILS([div.id]);
-            $( details ).css("height", "100%")
-            $( details ).css("width", "100%")
-    return div;
+                    var currentWTP = this.selObj["wtp"];
+                    var selector = this.hb.ge( this.getID_SELECTOR() );
+                    var el = selector.options[selector.selectedIndex];
+                    var addr = el.id.substring(el.id.length-17, el.id.length);
+                    var selectedWTP = this.hb.getKeyValue(this.qe.targets.WTP, addr);
+                    var span = this.hb.ge( this.getID_BODY_UPDPANEL_ATTR("wtp") )
+                    span.id = this.getID_BODY_UPDPANEL_ATTR("wtp");
+                    $( span ).text( selectedWTP["label"] + " ( " + selectedWTP["addr"] + " ) " );
+                    this.selObj["wtp"] = selectedWTP;
+
+                    var blockselector = this.hb.ge( this.getID_BLOCKSELECTOR() );
+                    var block = blockselector.options[blockselector.selectedIndex];
+                    var blockaddr = "";
+                    if( block.id.indexOf("ALL") == -1 ){
+                        blockaddr = block.id.substring(block.id.length-17, block.id.length);
     }
+                    var span = this.hb.ge( this.getID_BODY_UPDPANEL_ATTR("wtp") + "_block")
+                    $( span ).text( blockaddr );
 
-    f_AddToList(args){
-        var select = args[0]; var p = 1;
-        var tag = args[p]; p++;
-        var a = args[p]; p++;
-        var currentObjList = args[p]; p++;
-        var allObjList = args[p]; p++;
-        if( select.selectedIndex != -1 ){
-            var el = select.options[select.selectedIndex];
-            var keyValue = $( el ).attr('key');
-            var toAdd = this.hb.getKeyValue(a, keyValue);
-            currentObjList[keyValue] = toAdd;
-            this.f_updateLists(tag, a, currentObjList, allObjList);
-            this.f_updateName(a, false)
-        }
+                    this.f_UpdateWTPSelector();
     }
+                $( btn3 ).click( changeCurrentWTP.bind(this) )
 
-   f_AddToClient(args){
-        var select = args[0]; var p = 1;
-        var tag = args[p]; p++;
-        var a = args[p]; p++;
-        var allObjList = args[p]; p++;
-        var currentObjList = args[p]; p++;
-        var desc = this.desc.d[a].attr;
-        var key = "";
-        for( var attr in desc ){
-            if( desc[attr].isKey ){
-                key = attr;
-                break;
+        return panel;
             }
-        }
-        var el = select.options[select.selectedIndex];
-        var keyValue = $( el ).attr('key');
-        var toAdd = this.hb.getKeyValue(a, keyValue);
-        var keyValue = toAdd[key];
-        if( toAdd.state === "online" ){
-            currentObjList = {};
-            currentObjList[keyValue] = toAdd;
-            this.f_updateLists(tag, a, currentObjList, allObjList);
-            this.f_updateName(a, false);
-        }
-        else{
-            alert( keyValue + " device is offline!" )
-        }
-    }
 
-    f_RemoveFromList(args){
-        var key = args[0]; var p = 1;
-        var keyValue = args[p]; p++;
-        var tag = args[p]; p++;
-        var a = args[p]; p++;
-        var currentObjList = args[p]; p++;
-        var allObjList = args[p]; p++;
-        delete currentObjList[keyValue];
-        this.f_updateLists(tag, a, currentObjList, allObjList);
-        this.f_updateName(a, false)
-    }
+    d_UP_ListObjectPanel(tag, tab){
+        var panel = this.hb.cePANEL();
+//            var ph = this.hb.cePANEL_H();
+//            $( panel ).append(ph);
+            var body = this.hb.cePANEL_B();
+            $( panel ).append(body);
 
-    f_updateLists(tag, a, currentObjList, allObjList){
-        var id = tag + "_" + a;
-        var selector = this.getID_SELECTOR([id]);
-        var selectobj = this.getID_SELECTOBJ([id]);
-        var selectobjDet = this.getID_SELECTOBJ_DETAILS([id]) ;
-        var desc = this.desc.d[a].attr;
-        var key = "";
-        for( var attr in desc ){
-            if( desc[attr].isKey ){
-                key = attr;
-                break;
-            }
+            var a = tab;
+            var isEdit = this.desc.d[ tag ].attr[a].update;
+            var id = this.getID_BODY_UPDPANEL_ATTR(a);
+            var value = this.selObj[a];
+            var div = ff_draw(tag, a, id, isEdit, value);
+            $( body ).append(div);
+
+        return panel;
         }
-        $( "#" + selector ).empty();
-        for( var i=0; i<allObjList.length; i++){
-            var found = false;
-            for( var e in currentObjList ){
-                if( currentObjList[e][key] === allObjList[i][key])
-                    found = true;
+
+    d_UP_JSONPanel(tag){
+        var panel = this.hb.cePANEL();
+            var pre = this.hb.ce("PRE");
+            $( panel ).append(pre)
+                var txt = JSON.stringify(this.selObj, undefined, 4);
+                $( pre ).html( this.hb.syntaxHighlight(txt));
+                $( pre ).css("margin", "20px")
+        return panel;
             }
-            if( found == false ){
+
+// -----------------------------------------------------------------------------
+
+    f_UpdateWTPSelector(){
+        var selector = this.hb.ge( this.getID_SELECTOR() );
+        $( selector ).empty();
+
+        var currentWTP = this.selObj["wtp"];
+        var allWTP = this.cache.c[ this.qe.targets.WTP ];
+        for( var i=0; i<allWTP.length; i++){
+            if( allWTP[i]["addr"] != currentWTP["addr"] ){
                 var opt = this.hb.ce("OPTION");
-                $( "#" + selector ).append(opt);
-                    $( opt ).attr("key", allObjList[i][key])
-                    $( opt ).text( allObjList[i][key] );
+                $( selector ).append(opt);
+                opt.id = this.getID_SELECTOR() + "_" + allWTP[i]["addr"];
+                var txt = allWTP[i]["label"] + " ( " + allWTP[i]["addr"] + " ) ";
+                $( opt ).text( txt );
+                var clr = "";
+                ( allWTP[i]["state"] === "online" )? clr = "#7DFF7D" : clr = RED;
+                $( opt ).css("color", clr);
             }
         }
-        $( "#" + selectobjDet ).empty();
-        $( "#" + selectobj ).empty();
-        for( var e in currentObjList ){
-            var r = this.hb.ceROW();
-            $( "#" + selectobj ).append(r);
-            $( r ).css("margin","5px 0px");
-                var c0 = this.hb.ceCOL("xs", 8);
-                $( r ).append(c0);
-                $( c0 ).text( currentObjList[e][key]);
-                var t = this;
-                $( c0 ).click(function(){
-                    $( "#" + selectobjDet ).empty();
-                    var key = $( this ).text();
-                    var pre = t.hb.ce("PRE");
-                    $( "#" + selectobjDet ).append(pre);
-                    var json = t.cache.c[a] ? t.hb.getKeyValue(a, key) : currentObjList[key];
-                    var txt = JSON.stringify(json, undefined, 4);
-                    $( pre ).html( t.hb.syntaxHighlight(txt));
-                });
-                var c1 = this.hb.ce("xs",1);
-                $( r ).append(c1);
-                    var btn = this.hb.ce("BUTTON");
-                    $( c1 ).append(btn);
-                    $( btn ).attr("type", "button");
-                    $( btn ).attr("title", "remove selected");
-                    var upd = this.desc.d[ tag ].attr[a].update;
-                    $( btn ).css("visibility", "hidden");
-                    if( upd ) $( btn ).css("visibility", "visible");   // TODO EMP_if : forse estensibile ad UE?
-                    var args = [key, currentObjList[e][key], tag, a, currentObjList, allObjList]
-                    var ff = this.hb.wrapFunction(this.f_RemoveFromList.bind(this), args);
-                    $( btn ).click( ff );
-                        var ico = this.hb.ceFAI("fa-times");
-                        $( ico ).addClass("fa-1x");
-                        $( btn ).prepend(ico);
     }
 
-    }
+    f_UpdateBlockSelector(args){
+        var blockselector = this.hb.ge( this.getID_BLOCKSELECTOR() );
+        $( blockselector ).empty();
+
+        var selObj = args[0];
+        var allBlocks = selObj["supports"];
+            var opt = this.hb.ce("OPTION");
+            $( blockselector ).append(opt);
+            opt.id = this.getID_BLOCKSELECTOR() + "_ALL";
+            var txt = "All blocks";
+            $( opt ).text( txt );
+        for( var i=0; i<allBlocks.length; i++){
+            opt = this.hb.ce("OPTION");
+            $( blockselector ).append(opt);
+            opt.id = this.getID_BLOCKSELECTOR() + "_" + allBlocks[i]["hwaddr"];
+            txt = allBlocks[i]["hwaddr"];
+            $( opt ).text( txt );
+        }
+        }
 
     f_Save(args){
-        var tag = args[0]; var p = 1;
-        var keyValue = args[p]; p++;
-        var attrbts = this.desc.d[ tag ].attr;
-        var key = "";
+        var tag = args[0];
+        var attrbts = this.desc.d[tag].attr;
+        var input = this.selObj ;
+//        var input = jQuery.extend(true, {}, this.selObj) ;
+                        var ctrl = true;
+        var nextSelObj = null;
         for( var a in attrbts ){
-            if( attrbts[a].isKey )
-                key = a;
+            var id = this.getID_BODY_UPDPANEL_ATTR(a);
+            var clr = $( "#" + id ).css('backgroundColor');
+            if( clr === "rgb(238, 98, 98)"){
+                return
+                        }
+            if( attrbts[a].update ){
+                switch(a){
+                    case "wtp":
+                        var txt = $( this.hb.ge(id) ).text();
+                        var addr = txt.substring(txt.length-20, txt.length-3);
+                        var block = $( this.hb.ge( id + "_block" ) ).text();
+//                        console.log( addr, block)
+                        var wtp = this.hb.getKeyValue("wtps", addr);
+                        var params = [input, wtp, block]
+                    break;
+                    case this.qe.targets.WTP:
+                        var txt = $( this.hb.ge(id) ).text();
+                        var currentList = txt.split(";");
+                        var allList = [];
+                        for( var el in this.cache.c[a] ){
+                            allList.push( this.cache.c[a][el]["addr"] )
+                }
+                        var [toDelete, toAdd, other] = this.hb.checkDifferenceArray(allList, currentList)
+//                        console.log(toDelete, toAdd, other)
+                        break;
+                    default:
+                        input[a] = $( this.hb.ge(id) ).val();
+                        break;
+            }
         }
+    }
+
         var fff = function(){
             var target = ( tag === this.qe.targets.TENANT)? [tag] : [tag, this.qe.targets.TENANT];
             this.qe.scheduleQuery("GET", target, null, null, this.cache.update.bind(this.cache) );
-        }
 
-        for( var a in this.toUpdate ){
-            if( this.toUpdate[a] == true ){
-                switch( a ){
-                    case "Info":
-                        var ctrl = true;
-                        for(var attr in attrbts){
-                            if( !( attr in this.toUpdate) ){
-                            var id = this.getID_BODY_UPDPANEL_ATTR(attr);
-                                var cnt = this.hb.ge(id + "_IF");
-                                if( cnt ){
-                                    if( $( cnt ).css("backgroundColor") === "rgb(238, 98, 98)" ){
-                                    ctrl = false;
-                                }
-                                else{
-                                        this.selObj[attr] = $( cnt ).val();
-                                    }
-                                }
-                            }
-                        }
-                        if( ctrl == true ){
-                            this.qe.scheduleQuery("PUT", [tag], null, this.selObj, fff.bind(this));
-                        }
+            var ff = function(){
+                var body = this.hb.ge( this.getID_BODY_UPDPANEL() );
+                $( body ).empty();  console.log(this.selObj)
+                var div = this.d_UpdatePanel(tag, this.selObj);
+                $( body ).append(div);
+        }
+            setTimeout(ff.bind(this), 1/4*this.delay)
+    }
+
+        for(var tab in this.toUpdate ){
+            switch( tab ){
+                case "Info":
+                    console.log(tag, input)
+                    if( this.toUpdate["Info"] ){
+                        this.toUpdate["Info"] = false;
+                        this.qe.scheduleQuery("PUT", [tag], null, input, fff.bind(this));
+        }
                     break;
-                    case "wtp":
-                        var div = this.hb.ge( this.getID_SELECTOBJ([tag + "_" + a]) );
-                        var keyValue = $( div ).children().children().text();
-                        var input = this.hb.getKeyValue(a, keyValue);
-                        var params = [ this.selObj[key], input];
+                case "lvapWtp":
+                    if( this.toUpdate["lvapWtp"] ){
+                        this.toUpdate["lvapWtp"] = false;
                         this.qe.scheduleQuery("PUT", [tag], null, params, fff.bind(this));
+                    }
                     break;
-                    default:
-                        var cachedObj = null;
-                        for( var i=0; i<this.cache.c[tag].length; i++){
-                            if( keyValue === this.cache.c[tag][i][key] ){
-                                cachedObj = this.cache.c[tag][i];
-                                break
-                            }
-                        }
-                        var [onlyNew, onlyPast, sharedEqual, sharedDiff] = this.hb.checkAllDifferences(this.selObj[a], cachedObj[a]);
-                        for( var i=0; i<onlyNew.length; i++ ){
-                            var nEl = onlyNew[i];
-                            this.qe.scheduleQuery("ADD", [a], keyValue, nEl, fff.bind(this));
-                        }
-                        for( var j=0; j<onlyPast.length; j++ ){
-                            var pEl = onlyPast[j];
-                            this.qe.scheduleQuery("DELETE", [a], keyValue, fff.bind(this));
-                        }
-                }
-                this.f_updateName(a, true);
-            }
-        }
-        var ff_Reset = this.hb.wrapFunction(this.f_Reset.bind(this), [tag, this.selObj[key] ]);
-        setTimeout( ff_Reset, this.delay );
-    }
-
-    f_Refresh(args){
-        var tag = args[0]; var p = 1;
-        var a = args[p]; p++;
-        this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
-        var attrbts = this.desc.d[tag].attr;
-        var key = "";
-        for( var attr in attrbts ){
-            if( attrbts[attr].isKey ){
-                key = attr;
-                break;
-                }
-                }
-        var keyValue = this.selObj[key];
-        var ff_Reset = this.hb.wrapFunction(this.f_Reset.bind(this), [tag, this.selObj[key] ]);
-        setTimeout( ff_Reset, this.delay );
-        var fff = function(){
-                    $('a[href="#' + a + '"]').click();
-            }
-        setTimeout(fff, 6/4*this.delay);
-    }
-
-    f_Reset(args){
-        var tag = args[0]; var p = 1;
-        var key = args[p]; p++;
-        var selObj = this.hb.getKeyValue(tag, key);
-        for( var a in this.toUpdate ){
-            var li = $( "#" + a + "Tab" )[0].parentElement;
-            $( li ).removeClass("active");
-        }
-        var div = this.hb.ge( this.getID_BODY_UPDPANEL() );
-        $( div ).remove();
-        div = this.d_UpdateBodyPanel(tag, selObj);
-        $( "#" + this.getID_BODY() ).append(div);
-        div.id = this.getID_BODY_UPDPANEL();
-    }
-
-    f_updateName(tag, finished){
-        if( finished ){
-            var tab = this.hb.ge( tag + "Tab");
-            $( tab ).text( tag + " ");
-            this.toUpdate[tag] = false;
-        }
-        else{
-            var tab = this.hb.ge( tag + "Tab");
-            $( tab ).text( tag + "*");
-            this.toUpdate[tag] = true;
+                case this.qe.targets.WTP:
+                case this.qe.targets.CPP:
+                case this.qe.targets.VBS:
+//                    if( this.toUpdate[ tab ] ){
+//                        this.toUpdate[ tab ] = false;
+//                        if( tag === this.qe.targets.TENANT){
+//                            for( var i=0; i<toDelete.length; i++){
+//                                var device = this.hb.getKeyValue(tab, toDelete[i])
+//                                this.qe.scheduleQuery("DELETE", [tab], this.selObj.tenant_id, device, fff.bind(this));
+//                            }
+//                        }
+//                    }
+                    break;
+                default:
+                    if( this.toUpdate[tab] )
+                        console.log("EmpUpdateModalBox.f_Save: " + tag + "." + tab + " not implemented")
         }
     }
 
-    f_onClickInfo(args){
-        var tag = args[0]; var p = 1;
-        var a = args[p]; p++;
-        var cnt = args[p]; p++;
-
-        this.f_updateName("Info", false);
-        var type = this.desc.d[tag].attr[a].type;
-        var value = $( cnt ).text();
-        var id = cnt.id;
-
-        $( cnt ).empty();
-        var n = ff_drawInputField(tag, a, value, this.getID_BODY_UPDPANEL_ATTR.bind(this));
-        $( cnt ).append(n);
-        $( cnt ).prop("onclick", null).off("click");
     }
 
     f_WarningClose(){
@@ -763,6 +542,14 @@ d_infoPanel(tag){
             var m = this.hb.ge(id);
             $( m ).modal('hide');
         }
+    }
+
+    f_Download(args){
+        var title = args[0];
+        var json = args[1];
+        var txt = JSON.stringify(json, undefined, 4);
+        var filename = __USERNAME.toUpperCase() + "_" + title + "_" +Date.now()+".txt";
+        this.hb.fdownload(txt, filename);
     }
 
 }

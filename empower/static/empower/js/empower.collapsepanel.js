@@ -52,68 +52,42 @@ class EmpCollapsePanel{
 
     create(title, color=null, iconname=null, keys=null){
 
-        if (color === null){
-            color = "primary";
-        }
-        if (iconname === null){
-            iconname = "fa-question-circle";
-        }
+        if (color === null){ color = "primary"; }
+        if (iconname === null){ iconname = "fa-question-circle"; }
 
-
-        var ecp = this.hb.cePANEL();
-        ecp.id = this.getID(keys);
-        $( ecp ).addClass("panel panel-"+color);
-        $( ecp ).attr("style","margin-bottom: 40px");
+        var cp = this.hb.cePANEL();
+        cp.id = this.getID(keys);
+        $( cp ).addClass("panel panel-"+color);
 
             var ph = this.hb.cePANEL_H();
             ph.id = this.getID_HEADER(keys);
-        $( ecp ).append(ph);
+            $( cp ).append(ph);
+            // building HEADER
+                var r = this.hb.ceROW();
+                $( ph ).append(r);
 
-                var r1 = this.hb.ceROW();
-            $( ph ).append(r1);
+                    var c0 = this.hb.ceCOL("xs", 2);
+                    $( r ).append(c0);
+                        var icon = this.hb.ceFAI(iconname);
+                        icon.id = this.getID_ICON(keys);
+                        $( icon ).addClass("fa-4x");
+                        $( c0 ).append(icon);
 
-                    var d1 = this.hb.ceCOL("xs", 1);
-                $( r1 ).append(d1);
+                    var c1 = this.hb.ceCOL("xs", 10);
+                    $( r ).append(c1);
+                        var ttl = this.hb.ce("DIV");
+                        ttl.id = this.getID_TITLE(keys);
+                        $( ttl ).addClass("huge");
+                        $( ttl ).text(title);
+                        $( c1 ).append(ttl);
 
-                    //     var a1 = this.hb.ce("A");
-                    //     $( a1 ).attr("data-toggle", "collapse");
-                    //     $( a1 ).attr("href", "#"+this.getID_COLLAPSINGPANEL(keys));
-                    // $( d1 ).append(a1);
 
-                        var i1 = this.hb.ceFAI(iconname);
-                        i1.id = this.getID_ICON(keys);
-                        $( i1 ).addClass("fa-4x");
-                    $( d1 ).append(i1);
+            var body = this.hb.cePANEL_B();
+            $( cp ).append(body);
+            body.id = this.getID_COLLAPSINGPANEL(keys);
+            $( body ).addClass("panel-collapse collapse in");
 
-                    var d2 = this.hb.ceCOL("xs", 11);
-                    $( d2 ).addClass("text-left")
-                $( r1 ).append(d2);
-
-                        var d3 = this.hb.ce("DIV");
-                        d3.id = this.getID_TITLE(keys);
-                        $( d3 ).addClass("huge");
-                        $( d3 ).text(title);
-                    $( d2 ).append(d3);
-
-                            var s1 = this.hb.ce("SPAN");
-                            $( s1 ).addClass("pull-right");
-                        $( d3 ).append(s1);
-
-/*
-                                var a1 = this.hb.ce("A");
-                                $( a1 ).attr("data-toggle", "collapse");
-                                $( a1 ).attr("href", "#"+this.getID_COLLAPSINGPANEL(keys));
-                            $( s1 ).append(a1);
-
-                                    var i2 = this.hb.ceFAI("fa-sort text-default");
-                                $( a1 ).append(i2);
-*/
-            var pc = this.hb.cePANEL_B();
-            pc.id = this.getID_COLLAPSINGPANEL(keys);
-            $( pc ).addClass("panel-collapse collapse in");
-        $( ecp ).append(pc);
-
-        return ecp;
+        return cp;
     }
 
     remove(keys){
@@ -156,10 +130,8 @@ class EmpCollapsePanel{
 
     setL2Panel(keys=null){
         //console.log("doing margin");
-        //$( "#"+this.getID_HEADER(keys) ).addClass("hide");
-        $( "#"+this.getID_HEADER(keys) ).css("padding", '0px 10px');
-        $( "#"+this.getID_TITLE(keys) ).addClass("hide");
-        $( "#"+this.getID_ICON(keys) ).removeClass("fa-4x");
+        $( "#"+this.getID(keys) ).removeClass();
+        $( "#"+this.getID_HEADER(keys) ).addClass("hide");
         this.updateMargin(10,20,20,20, keys);
     }
 }

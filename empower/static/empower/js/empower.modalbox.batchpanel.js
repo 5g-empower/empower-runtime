@@ -6,8 +6,8 @@ class EmpBatchModalBox extends EmpModalBox{
     }
 
     initResources(obj){
-        var tag = this.hb.mapName(obj);
-        var title = "Add batch of " + tag;
+        var tag = this.hb.mapName2Tag(obj);
+        var title = "Add batch of " + this.hb.mapName2Title(tag);
 
 // ------------------- Body
         var body = this.hb.ce("DIV");

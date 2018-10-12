@@ -13,6 +13,7 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/vendor/bootstrap-switch-master/dist/css/bootstrap-switch.min.css" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
     <link href="/static/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
@@ -47,7 +48,7 @@
     }
 
     table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected {
-        background-color: #08C;
+        background-color: #d9edf7;
     }
 
     /* KUDOS TO:  https://stackoverflow.com/users/27862/user123444555621 */
@@ -72,14 +73,14 @@
 
 <body>
 
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0"
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0px; height: 50px"
         id="navbar">
     </nav>
 
-    <div  id="wrapper" style="width:96%;margin:10px 2%">
-        <div id="adminpage" style="margin: 100px 0px 10px 0px">
+    <div  id="wrapper" position="fixed" style="width:99%; margin:65px 0px 10px 0px">
+        <div id="adminpage">
         </div>
-        <div id="userpage" style="margin: 100px 0px 10px 0px">
+        <div id="userpage">
         </div>
     </div>
 
@@ -90,6 +91,7 @@
     <script src="/static/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/vendor/bootstrap-switch-master/dist/js/bootstrap-switch.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
     <script src="/static/vendor/metisMenu/metisMenu.min.js"></script>
@@ -113,7 +115,8 @@
     <script src="/static/empower/js/empower.cache.js"></script>
     <script src="/static/empower/js/empower.collapsepanel.js"></script>
     <script src="/static/empower/js/empower.staticscripts.js"></script>
-    <script src="/static/empower/js/empower.formatfunctions.js"></script>
+    <script src="/static/empower/js/empower.formatfunctions.datatable.js"></script>
+    <script src="/static/empower/js/empower.formatfunctions.modal.js"></script>
     <script src="/static/empower/js/empower.validationfunctions.js"></script>
     <script src="/static/empower/js/empower.floatingnavmenu.js"></script>
     <script src="/static/empower/js/empower.adminpage.js"></script>
@@ -123,6 +126,7 @@
     <script src="/static/empower/js/empower.modalbox.batchpanel.js"></script>
     <script src="/static/empower/js/empower.modalbox.showallpanel.js"></script>
     <script src="/static/empower/js/empower.modalbox.updatepanel.js"></script>
+    <script src="/static/empower/js/empower.modalbox.slicepanel.js"></script>
 
     <script src="/static/empower/js/empower.badgebox.js"></script>
     <script src="/static/empower/js/empower.badge.js"></script>
@@ -142,12 +146,20 @@
 
         document.title = '5G-EmPOWER - ' + __USERNAME + ' ( ' + (__ROLE==='user'? ' U )':' A )' );
 
-        var __HB = new HBuilder(__EMP_CONFIG_JSON);
-        var __QE = new EmpQueryEngine( __USERNAME, "{{password}}", __ROLE );
+		var __HB = new HBuilder(__EMP_CONFIG_JSON);
+		var __QE = new EmpQueryEngine( __USERNAME, "{{password}}", __ROLE );
         var __DESC = new EmpDescriptor();
-        var __CACHE = new EmpCache(__HB, __QE);
+		var __CACHE = new EmpCache(__HB, __QE);
 
-        var __DELAY = 2000;
+		var __DELAY = 2000;
+
+        var RED = "#AF0000";
+        var GREEN = "#00AF00";
+        var YELLOW = "#DCDC00";
+        var BLUE = "#0000AF"
+        var PRIMARY = "#337ab7"
+        var ADMIN = "#04579E"
+        var USER = "#6DA2CF"
 
         if( __ROLE ==='user' ){
             var ap = new EmpUserPage();
@@ -157,7 +169,6 @@
         var ap = new EmpAdminPage();
         ap.initAdminPage();
         }
-
 
         window.addEventListener("beforeunload", function(event) {
           event.returnValue = "You may have unsaved Data";

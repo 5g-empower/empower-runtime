@@ -111,6 +111,7 @@ class EmpBadge{
                 var pf = this.hb.cePANEL_F()
                 pf.id = this.getID_FOOTER(keys);
             $( p ).append(pf);
+                $( pf ).css("cursor","pointer");
                     var r = this.hb.ceROW();
                     $( pf ).append(r);
                         var c0 = this.hb.ceCOL("xs", 8);
@@ -119,7 +120,7 @@ class EmpBadge{
                     $( s1 ).addClass("pull-left text-"+color);
                     $( s1 ).text("View details");
                             $( c0 ).append(s1);
-                        var c1 = this.hb.ceCOL("xs", 3);
+                        var c1 = this.hb.ceCOL("xs", 4);
                         $( r ).append(c1);
                     var s2 = this.hb.ce("SPAN");
                     $( s2 ).addClass("pull-right text-"+color);

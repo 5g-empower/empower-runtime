@@ -141,7 +141,7 @@ class HBuilder{
     getKeyValue(obj, key){
         var keyAttr = null;
         var found = null;
-        var tag = this.mapName(obj);
+        var tag = this.mapName2Tag(obj);
 
         for( var a in __DESC.d[tag].attr ){
             if( __DESC.d[tag].attr[a].isKey )
@@ -156,18 +156,87 @@ class HBuilder{
         return found;
     }
 
-    mapName(obj){
+    mapName2Tag(obj){
         var tag = "";
-        if( obj === "components" )
-            tag = "active";
-        else if( __QE.targets[obj.toUpperCase()] )
+        if( __QE.targets[obj.toUpperCase()] )
             tag = __QE.targets[obj.toUpperCase()]
         else
             tag = obj;
         return tag;
     }
 
-    checkDifference(firstList, scndList){ console.log(firstList, scndList)
+    mapName2Obj(tag){
+        var obj = "";
+        switch( tag ){
+            case __QE.targets.COMPONENT: obj = "component"; break;
+            case __QE.targets.TENANT: obj = "tenant"; break;
+            case __QE.targets.ACCOUNT: obj = "account"; break;
+            case __QE.targets.WTP: obj = "wtp"; break;
+            case __QE.targets.CPP: obj = "cpp"; break;
+            case __QE.targets.VBS: obj = "vbs"; break;
+            case __QE.targets.UE: obj = "ue"; break;
+            case __QE.targets.LVAP: obj = "lvap"; break;
+            case __QE.targets.LVNF: obj = "lvnf"; break;
+            case __QE.targets.ACL: obj = "acl"; break;
+            case __QE.targets.TR: obj = "tr"; break;
+            case __QE.targets.SLICE: obj = "slice"; break;
+            case "devices": obj = "devices"; break;
+            case "clients": obj = "clients"; break;
+            default:
+                console.log("mapName2Obj: " + tag + " not defined.");
+        }
+        return obj;
+    }
+
+    mapName2Title(tag){
+        var title = "";
+        switch( tag ){
+            case __QE.targets.COMPONENT: title = "Component"; break;
+            case __QE.targets.TENANT: title = "Tenant"; break;
+            case __QE.targets.ACCOUNT: title = "Account"; break;
+            case __QE.targets.WTP: title = "WTP"; break;
+            case __QE.targets.CPP: title = "CPP"; break;
+            case __QE.targets.VBS: title = "VBS"; break;
+            case __QE.targets.UE: title = "User Equipment"; break;
+            case __QE.targets.LVAP: title = "LVAP"; break;
+            case __QE.targets.LVNF: title = "LVNF"; break;
+            case __QE.targets.ACL: title = "ACL"; break;
+            case __QE.targets.UE_MEASUREMENT: title = "UE Measurement"; break;
+            case __QE.targets.TR: title = "Traffic Rules"; break;
+            case __QE.targets.SLICE: title = "Network Slices"; break;
+            case "endpoints": title = "Endpoints"; break;
+            case "traffic_rules": title = "Traffic Rules"; break;
+            case "wtp": title = "WTP"; break;
+            case "datapath": title = "Datapath"; break;
+            case "supports": title = "Supports"; break;
+            case "cells": title = "Cells"; break;
+            default:
+                console.log("mapName2Title: " + tag + " not defined.");
+        }
+        return title;
+    }
+
+    checkDifferenceArray(frstList, scndList){
+        var onlyFrst = [];
+        var onlyScnd = [];
+        var shared = [];
+        for( var i=0; i<frstList.length; i++ ){ console.log( frstList[i], scndList.indexOf( frstList[i] ))
+            if( scndList.indexOf( frstList[i] ) != -1 ){
+                shared.push( frstList[i] )
+            }
+            else{
+                onlyFrst.push( frstList[i] )
+            }
+        }
+        for( var j=0; j<scndList.length; j++  ){
+            if( frstList.indexOf( scndList[j] ) == -1 ){
+                onlyScnd.push( scndList[j] )
+            }
+        }
+        return [onlyFrst, onlyScnd, shared];
+    }
+
+    checkDifference(firstList, scndList){
         var onlyFrst = [];
         var onlyScnd = [];
         var shared = [];
