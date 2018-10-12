@@ -26,33 +26,41 @@ class EmpDataTableBox{
     }
 
     create(obj, bdata, keys=null){
+        var tag = this.hb.mapName2Tag(obj);
 
         var id = this.getID(keys);
         if ($( "#"+id ).length > 0){
             console.warn("EmpDataTableBox "+id+" already available")
             return null;
         }
+        var box = this.hb.cePANEL();
+        box.id = id;
+        $( box ).addClass("panel panel-info")
 
-        var tag = this.hb.mapName(obj);
+            var boxh = this.hb.cePANEL_H();
+            $( box ).append(boxh);
+            $( boxh  ).css("padding", "5px")
+                var title = this.hb.ce("SPAN");
+                $( boxh ).append(title);
+                var txt = this.hb.mapName2Title(tag);
+                $( title ).text(txt);
 
-        var r =  this.hb.ceROW();
-        r.id = id;
+            var body = this.hb.cePANEL_B();
+            $( box ).append(body);
+            $( body ).css("margin", "10px 20px")
+            $( body ).css("padding", "5px")
+            $( body ).append( this.datatable.create(tag, keys) );
 
-            var rdt = this.hb.ceROW();
-            $( rdt ).attr("style", "margin:10px 20px; padding: 5px;");
-        $( r ).append(rdt)
-
-            $( rdt ).append( this.datatable.create(tag, keys) );
-
-            var rbbx = this.hb.ceROW();
-            $( rbbx  ).attr("style", "margin:0px 20px; padding: 5px;");//" border: 1px solid  #e7e7e7 !important");
-        $( r ).append(rbbx );
-
+            var boxf = this.hb.cePANEL_F();
+            $( box ).append(boxf);
+            $( boxf ).css("padding", "5px");
         //console.log(bdata);
+            $( boxf  ).append( this.buttonbox.create(bdata, keys) );
 
-            $( rbbx  ).append( this.buttonbox.create(bdata, keys));
+            var cf = this.hb.ceCLEARFIX();
+            $( boxf ).append(cf);
 
-        return r;
+        return box;
     }
 
     remove(keys=null){

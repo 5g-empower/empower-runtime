@@ -47,13 +47,15 @@ class EmpButtonBox{
             var sl = this.hb.ce("SPAN");
             sl.id = this.getID_LEFT(keys);
             $( sl ).addClass("pull-left tooltip-henanced");
-            $( sl ).attr("style", "padding: 5px; border: 1px solid  #e7e7e7 !important");
+            $( sl ).attr("style", "padding: 5px;");
+//            $( sl ).attr("style", "padding: 5px; border: 1px solid  #e7e7e7 !important");
         $( bbox ).append(sl);
 
             var sr = this.hb.ce("SPAN");
             sr.id = this.getID_RIGHT(keys);
             $( sr ).addClass("pull-right tooltip-henanced");
-            $( sr ).attr("style", "padding: 5px; border: 1px solid  #e7e7e7 !important");
+            $( sr ).attr("style", "padding: 5px;");
+//            $( sr ).attr("style", "padding: 5px; border: 1px solid  #e7e7e7 !important");
         $( bbox ).append(sr);
 
         //console.log("bdata");

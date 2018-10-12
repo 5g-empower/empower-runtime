@@ -1,79 +1,96 @@
 function createNavbar(){
     var navbar = __HB.ceROW();
-    if( __ROLE === "admin")
-        $( navbar ).css("backgroundColor", "#d9edf7");
-    else
-        $( navbar ).css("backgroundColor", "#fcf8e3");
+    $( navbar ).css("backgroundColor", PRIMARY);
+
+        var c0 = __HB.ceCOL("xs", 6);
+        $( navbar ).append(c0);
+            var r0 = __HB.ceROW();
+            $( c0 ).append(r0);
+            $( r0 ).css("padding-top", "5px");
+                var c00 = __HB.ceCOL("xs",6);
+                $( r0 ).append(c00);
+                var c01 = __HB.ceCOL("xs",6);
+                $( r0 ).append(c01);
 
     var navbarBrand = __HB.ce("DIV");
-    $( navbar ).append(navbarBrand);
+                    $( c00 ).append(navbarBrand);
         $( navbarBrand ).addClass("navbar-header");
-        $( navbarBrand ).attr("style","display:block; padding: 10px 2%; float:left;");
-
+//                    $( navbarBrand ).attr("style","display:block; padding: 10px 2%; float:left;");
         var navbarBrandA = __HB.ce("A");
         $( navbarBrand ).append(navbarBrandA);
             $( navbarBrandA ).addClass("navbar-brand");
-            $( navbarBrandA ).attr("href", "/", "style","padding: 0px;");
-
+                        $( navbarBrandA ).attr("href", "/");
             var navbarBrandAImg = __HB.ce("IMG");
             $( navbarBrandA ).append(navbarBrandAImg);
                 $( navbarBrandAImg ).attr("alt", "Brand");
                 $( navbarBrandAImg ).attr("src", "../../static/pics/empower_logo.png");
                 $( navbarBrandAImg ).attr("style", "float:left");
-
-            var navbarBrandATxt = "&nbsp;5G-EmPOWER v0.1";
+                            var navbarBrandATxt = "&emsp;5G-EmPOWER";
             $( navbarBrandA ).append(navbarBrandATxt);
+                    var pendingQueryStatus = __HB.ce("DIV");
+                    $( c01 ).append(pendingQueryStatus);
+                        $(pendingQueryStatus).addClass("navbar-text");
+                        pendingQueryStatus.id = "navbar_pendingQuery"
+//                        $( pendingQueryStatus ).addClass("hide");
+                        $( pendingQueryStatus ).text(" ");
 
-    var navbarUL = __HB.ce("DIV");
-    $( navbar ).append(navbarUL);
-        $( navbarUL ).addClass("nav navbar-nav navbar-right");
-        $( navbarUL ).attr("style","display:block; padding: 10px 2%; float:left;");
-
-        var pendingQuery = __HB.ce("LI");
-        $( navbarUL ).append(pendingQuery);
-            $(pendingQuery).addClass("navbar-text");
-            pendingQuery.id = "navbar_pendingQuery"
-            $( pendingQuery ).addClass("hide");
-            $( pendingQuery ).text("Loading... ");
-            $( pendingQuery ).css("color", "#FF0000");
-
-        var user = __HB.ce("LI");
-        $( navbarUL ).append(user);
-            $(user).addClass("navbar-text");
-            $(user).html("<strong>" + __USERNAME + "</strong>" + " (" + ( __ROLE==="user"? "USER)":"ADMIN)" ) );
-
-        var refresh = __HB.ce("li");
-        $( navbarUL ).append(refresh);
-            var a = __HB.ce("A");
-            $( refresh ).append(a);
-                $( a ).attr("href","#");
-                $( a ).attr("title","Toggle Autorefresh");
-                var i = __HB.ceFAI("fa-spinner");
-                $( a ).prepend(i);
-                    i.id = "toggle_autorefresh_icon";
-                    $( i ).addClass("fa-fw");
-//                $( a ).click(function(){toggleAutoRefresh("toggle_autorefresh_icon", 10000)});
-
-        var ms = __HB.ce("LI");
-        $( navbarUL ).append(ms);
+        var c1 = __HB.ceCOL("xs",6);
+        $( navbar ).append(c1);
+        if( __ROLE === "admin"){    $( c1 ).css("backgroundColor", ADMIN); }
+        else{                       $( c1 ).css("backgroundColor", USER); }
+            var r1 = __HB.ceROW();
+            $( c1 ).append(r1);
+            $( r1 ).addClass("text-center");
+//            $( r1 ).addClass("nav navbar-nav navbar-right");
+            $( r1 ).css("padding", "2%");
+//            $( r1 ).css("width", "400px");
+//            $( r1 ).css("float", "right");
+            $( r1 ).css("color", "#FFFFFF");
+                var c10 = __HB.ceCOL("xs",6);
+                $( r1 ).append(c10);
+//                $( c10 ).css("padding", "15px 0px");
+                    var span = __HB.ce("SPAN");
+                    $( c10 ).append(span);
+                    $( span ).text("Autorefresh: ")
+                    var refresh = __HB.ce("INPUT");
+                    $( c10 ).append(refresh);
+                    $( refresh ).addClass("switch");
+                    $( refresh ).attr("type", "checkbox");
+                    $( refresh ).attr("data-on-text", "ON");
+                    $( refresh ).attr("data-off-text", "OFF");
+                    $( refresh ).attr("data-on-color", "info");
+                    $( refresh ).attr("data-off-color", "info");
+                    $( refresh ).on('switchChange.bootstrapSwitch', __HB.wrapFunction( toggleAutoRefresh, [refresh] ));
+                    $( refresh ).bootstrapSwitch()
+                var c11 = __HB.ceCOL("xs",4);
+                $( r1 ).append(c11);
+                    var user = __HB.ce("DIV");
+                    $( c11 ).append(user);
+                    $( user ).css("padding-top", "5px");
+//                    $(user).addClass("navbar-text");
+                    $(user).html("<strong>" + __USERNAME + "</strong>" + " (" + ( __ROLE==="user"? "User)":"Admin)" ) );
+                var c12 = __HB.ceCOL("xs",2);
+                $( r1 ).append(c12);
+//                $( c12 ).css("padding", "15px 0px");
+                $( c12 ).css("color", "#FFFFFF");
+                    var ms = __HB.ce("DIV");
+                    $( c12 ).append(ms);
             $( ms ).addClass("dropdown");
-
+                    $( ms ).css("padding-top", "5px");
             var a = __HB.ce("A");
             $( ms ).append(a);
                 $( a ).addClass("dropdown-toggle");
                 $( a ).attr("data-toggle","dropdown", "style", "float:left");
-
                 var i = __HB.ceFAI("fa-user");
                 $( a ).append(i);
                     $( i ).addClass("fa-fw");
-
+                            $( i ).css("color", "#FFFFFF");
                     var i = __HB.ceFAI("fa-caret-down");
                     $( a ).append(i);
-
+                                $( i ).css("color", "#FFFFFF");
             var ul = __HB.ce("UL");
             $( ms ).append(ul);
                 $( ul ).addClass("dropdown-menu dropdown-user");
-
                 var li = __HB.ce("li");
                 $( ul ).append(li);
                     var a = __HB.ce("A");
@@ -90,11 +107,9 @@ function createNavbar(){
                     $( m ).modal({backdrop: 'static'});
                 }
                     $( a ).click( userDetails );
-
                 var li = __HB.ce("li");
                 $( ul ).append(li);
                     $( li ).addClass("divider");
-
                 var li = __HB.ce("li");
                 $( ul ).append(li);
                     var a = __HB.ce("A");
@@ -110,7 +125,7 @@ function createNavbar(){
 
 function createFooter(){
     var footer = __HB.ceROW();
-    $( footer ).attr("style","padding: 2%");
+    $( footer ).attr("style","padding: 5px 2%");
         var sp = __HB.ce("SPAN");
         $( footer ).append(sp);
             $( sp ).addClass("pull-right");
@@ -131,7 +146,6 @@ function createPageWrapper(){
             var r = __HB.ceROW();
             $( r ).attr("style","padding-top:20px");
         $( wrap ).append(r);
-
                 var c = __HB.ceCOL("lg",12);
             $( r ).append(c);
                 $( c ).append(__HB.ceCLEARFIX());
@@ -162,6 +176,7 @@ function generateWarningModal(title, f_YES, f_NO=null){
                 var mh = __HB.ce("DIV");
                 $( mc ).append(mh);
                 $( mh ).addClass("modal-header");
+                $( mh ).css("color", "#FFFFFF");
 
                     var htitle = __HB.ce("H4");
                     $( mh ).append(htitle);
@@ -196,4 +211,30 @@ function generateWarningModal(title, f_YES, f_NO=null){
                     if( f_NO )  $( btf_NO ).click(f_NO);
                     else    $( btf_NO ).attr("data-dismiss", "modal");
     return m;
+}
+
+function toggleAutoRefresh(args){
+    var state = args[0].checked;
+    if( state ){
+        if( __ROLE === "admin" ){
+            var targets = [
+                                __QE.targets.TENANT,
+                                __QE.targets.WTP,
+                                __QE.targets.CPP,
+                                __QE.targets.VBS,
+                                __QE.targets.LVAP,
+                                __QE.targets.UE,
+                                __QE.targets.ACL,
+                                __QE.targets.COMPONENT,
+                                __QE.targets.ACCOUNT,
+                                __QE.targets.TR,
+                                __QE.targets.SLICE,
+                            ];
+            __QE.scheduleQuery("GET", targets, null, null, __CACHE.update.bind(__CACHE));
+        }
+        var ff = function(){
+            toggleAutoRefresh(args);
+        }
+        setTimeout(ff, 5000)
+    }
 }

@@ -464,7 +464,7 @@ class EmpUserPage{
             //console.log("NOW Processing CP "+cp)
             // Create the BB according to the associated recipe
             var p = trp[cp].collapsepanel.parent;
-            var tag = this.hb.mapName(cp);
+            var tag = this.hb.mapName2Tag(cp);
 
             var cpblock = null
             if ( p === null){
@@ -705,7 +705,7 @@ class EmpUserPage{
 
     wrapShowAllFunction(cp){
         var f = function(){
-            var tag = this.hb.mapName(cp);
+            var tag = this.hb.mapName2Tag(cp);
             var cp_keys = this.keys.concat([tag]);
             var mdl = new EmpShowAllModalBox( cp_keys );
             var args = mdl.initResources(cp);
@@ -739,7 +739,7 @@ class EmpUserPage{
 
     wrapRefreshFunction(cp){
         var f = function(){
-            var tag = this.hb.mapName(cp);
+            var tag = this.hb.mapName2Tag(cp);
             this.qe.scheduleQuery("GET", [tag], tenant_id, null, this.cache.update.bind(this.cache));
         };
 
@@ -759,15 +759,12 @@ class EmpUserPage{
         var tenant_name = this.selTnt.tenant_name;
         var tenant_id = this.selTnt.tenant_id;
 
-        var overview = this.resources.pagestruct.cps.overview.collapsepanel.instance;
-        overview.updateTitle("Overview: " + this.selTnt.tenant_name)
-
         var targets = [  this.qe.targets.WTP,
                         this.qe.targets.CPP,
                         this.qe.targets.VBS,
                         this.qe.targets.LVAP,
                         this.qe.targets.UE,
-                        this.qe.targets.ACTIVE,
+                        this.qe.targets.COMPONENT,
                         ];
         this.qe.scheduleQuery("GET", targets, tenant_id, null, this.cache.update.bind(this.cache));
     }

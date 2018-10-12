@@ -43,7 +43,7 @@ class EmpModalBox{
         return this.hb.generateID( keys );
     }
 
-    create(title, body, buttons, f_Close){
+    create(title, body, buttons){
 
         var m = this.hb.ce("DIV");
         m.id = this.getID();
@@ -69,6 +69,8 @@ class EmpModalBox{
                     $( mh ).addClass("modal-header");
                     mh.id = this.getID_HEADER();
                     $( mc ).append(mh);
+                    $( mh ).css("backgroundColor", PRIMARY);
+                    $( mh ).css("color", "#FFFFFF");
 
                         var bth = this.hb.ce("BUTTON");
                         $( bth ).addClass("close");
@@ -76,6 +78,7 @@ class EmpModalBox{
                         $( bth ).attr("data-dismiss", "modal");
                         $( bth ).attr("aria-label", "Close");
                         $( mh ).append(bth);
+                        $( bth ).css("color", "#FFFFFF");
 
                             var bthsp = this.hb.ce("SPAN");
                             $( bthsp ).attr("aria-hidden", "true");
@@ -108,33 +111,8 @@ class EmpModalBox{
 
                             }
                         }
-                        var btf1 = this.hb.ce("BUTTON");
-                        $( btf1 ).addClass("btn btn-default");
-                        $( btf1 ).attr("type", "button");
-                        $( btf1 ).text("Close");
-                        $( mf ).append(btf1);
-                        if( f_Close ){
-                            $( btf1 ).click( f_Close );
-                        }
-                        else{
-                            $( btf1 ).attr("data-dismiss", "modal");
-                        }
 
         return m;
-    }
-
-    f_Close(){
-        var id = this.getID();
-        var m = this.hb.ge(id);
-        $( m ).modal('hide');
-    }
-
-    f_Download(args){
-        var title = args[0];
-        var json = args[1];
-        var txt = JSON.stringify(json, undefined, 4);
-        var filename = __USERNAME.toUpperCase() + "_" + title + "_" +Date.now()+".txt";
-        this.hb.fdownload(txt, filename);
     }
 
 }

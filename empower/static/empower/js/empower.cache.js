@@ -27,12 +27,10 @@ class EmpCache{
                 }
                 results = tmp;
             }
-            else if( tag === "active" ){
+            else if( tag === "components" ){
                 var tmp = [];
-                for( var cmpnt in args[tag] ){
-                    var c = args[tag][cmpnt];
-                    c["component_id"] = cmpnt;
-                    tmp.push(c);
+                for( var user in args[tag] ){
+                    tmp.push( args[tag][user] )
                 }
                 results = tmp;
             }
@@ -50,14 +48,6 @@ class EmpCache{
 
         this.updateBB(tag);
         this.updateDT(tag);
-//        switch(tag){
-//            case this.qe.targets.WTP:
-//            case this.qe.targets.LVAP:
-//            case this.qe.targets.VBS:
-//            case this.qe.targets.UE:
-//                this.updateNG();
-//            break;
-//        }
     }
 
     updateDT(tag){
@@ -76,66 +66,26 @@ class EmpCache{
         }
     }
 
-//    updateNG(){
-////        console.log( this.NGBox );
-//        this.NGBox.removeGraph("topology");
-//        this.NGBox.addGraph("topology", []);
-//    }
+    updateBB(tag){
 
-    updateBB(el){
-
-        var n = this.checkCardinality(el);
-        var tag = "";
-        switch(el){
-            case this.qe.targets.TENANT:
-                tag = "tenant"; break;
-            case this.qe.targets.ACCOUNT:
-                tag = "account"; break;
-            case this.qe.targets.WTP:
-                this.updateBB("devices");
-                tag = "wtp"; break;
-            case this.qe.targets.CPP:
-                this.updateBB("devices");
-                tag = "cpp"; break;
-            case this.qe.targets.VBS:
-                this.updateBB("devices");
-                tag = "vbs"; break;
-            case this.qe.targets.LVAP:
-                this.updateBB("clients");
-                tag = "lvap"; break;
-            case this.qe.targets.UE:
-                this.updateBB("clients");
-                tag = "ue"; break;
-            case this.qe.targets.ACL:
-                tag = "acl"; break;
-            case this.qe.targets.FEED:
-                tag = "feed"; break;
-            case this.qe.targets.ACTIVE:
-                tag = "active"; break;
-            default: tag = el;
-        }
-//        console.log( this.BBlist[tag] )
-        if( this.BBlist[tag] ){
-            $( "#" + this.BBlist[tag] ).text(n)
+        var n = this.checkCardinality(tag);
+        var obj = this.hb.mapName2Obj(tag);
+//        console.log( obj, this.BBlist[obj] )
+        if( this.BBlist[obj] ){
+            $( "#" + this.BBlist[obj] ).text(n)
         }
         else{
-            console.log("EmpCache.updateBB: BBlist[" + tag + "] not exists.")
+            console.log("EmpCache.updateBB: BBlist[" + obj + "] not exists.")
         }
     }
 
     checkCardinality(tag){
-
         var n = 0;
         switch(tag){
-            case this.qe.targets.ACCOUNT:
-            case this.qe.targets.TENANT:
-//                this.checkCardinality("admin");
-                n = this.c[tag].length;
-                break;
             case this.qe.targets.WTP:
             case this.qe.targets.CPP:
             case this.qe.targets.VBS:
-                this.checkCardinality("devices");
+                this.updateBB("devices");
                 n = this.c[tag].length;
                 break;
             case "devices":
@@ -143,30 +93,19 @@ class EmpCache{
                 break;
             case this.qe.targets.LVAP:
             case this.qe.targets.UE:
-                this.checkCardinality("clients");
+                this.updateBB("clients");
                 n = this.c[tag].length;
                 break;
             case "clients":
                 n = this.c[this.qe.targets.LVAP].length + this.c[this.qe.targets.UE].length;
                 break;
-            case this.qe.targets.ACTIVE:
+            default:
                 n = this.c[tag].length;
-                break;
-            case this.qe.targets.LVNF:
-                this.checkCardinality("services");
-                n = this.c[tag].length;
-                break;
-            case "services":
-                n = this.c[this.qe.targets.LVNF].length;
-                break;
-            case this.qe.targets.ACL:
-                n = this.c[tag].length;
-                break;
         }
-
 //        console.log(tag,n);
         return n;
 
     }
 
 }
+
