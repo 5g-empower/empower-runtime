@@ -4,6 +4,7 @@ class EmpDescriptor{
 
         this.dt = {};   // datatypes
         this.dt.STR = {     "unknwn": {"type_id": "unknown", "validation": null, }, // unknown data type
+                            "work": {"type_id": "work", "validation": null, }, // internal working dt - are not shown
                             "def": {"type_id": "default", "validation": vf_STR_def, },        // stringa alfanumerica
                             "mac": {"type_id": "mac", "validation": vf_STR_mac, },            // ethernet address
                             "uuid": {"type_id": "uuid", "validation": null, },          // uuid value
@@ -15,6 +16,7 @@ class EmpDescriptor{
                             "state": {"type_id": "state", "validation": null, },
                             "dpid": {"type_id": "dpid", "validation": null, },
                             "ip_addr": {"type_id": "ip_addr", "validation": null, },
+                            "band": {"type_id": "band", "validation": null, },
 //                            "url": {"type_id": "url", "validation": null, },
                          };
         this.dt.NUM = {  "intgr": {"type_id": "integer", "validation": null, },
@@ -24,33 +26,23 @@ class EmpDescriptor{
                             "d":  {"type_id": "dict", "validation": null, },
                           };
         this.dt.OBJ = {  "lvap": {"type_id": "lvap", "validation": null, },
-//                            "ue":  {"type_id": "ue", "validation": null, },
-//                            "lvnf":  {"type_id": "lvnf", "validation": null, },
                             "wtp":  {"type_id": "wtp", "validation": null, },
                             "cpp":  {"type_id": "cpp", "validation": null, },
-//                            "vbs":  {"type_id": "vbs", "validation": null, },
-//                            "component":  {"type_id": "component", "validation": null, },
-//                            "traffic_rule":  {"type_id": "traffic_rule", "validation": null, },
-//                            "port":  {"type_id": "port", "validation": null, },
-//                            "support":  {"type_id": "support", "validation": null, },
-//                            "cell":  {"type_id": "cell", "validation": null, },
                             "img":  {"type_id": "image", "validation": null, },
-//                            "measurement":  {"type_id": "measurement", "validation": null, },
-//                            "result":  {"type_id": "result", "validation": null, },
                             "datapath":  {"type_id": "datapath", "validation": null, },
-//                            "network_port":  {"type_id": "network_port", "validation": null, },
                             "connection":  {"type_id": "connection", "validation": null, },
                             "ssids":  {"type_id": "ssids", "validation": null, },
                             "networks":  {"type_id": "networks", "validation": null, },
+                            "dscp":  {"type_id": "dscp", "validation": null, },
+                            "match":  {"type_id": "match", "validation": null, },
+                            "tID":  {"type_id": "tID", "validation": null, },  // selector version!
                           };
-        // format function names
-        this.ffn= {
-            "TBL": "tbl",
-            "GET": "get",
-            "SET": "set",
-            "UPD": "upd",
-        }
 
+        this.add = {
+            "M" : "mandatory",   // the value is mandatory for add operation
+            "O" : "optional",    // the value is optional for add operation
+            "E" : "empty",       // the value is not used for add operation
+        }
 
         // Tenant
         this.d = {};
@@ -59,20 +51,22 @@ class EmpDescriptor{
         this.d[targets.TENANT] = { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.TENANT].attr["bssid_type"]    =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.bssid_type };
-            this.d[targets.TENANT].attr["components"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["cpps"]          =  {"isKey": false,   "set": false,  "update": true,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["desc"]          =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.TENANT].attr["lvaps"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["lvnfs"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["owner"]         =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.owner };
-            this.d[targets.TENANT].attr["plmn_id"]       =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.plmnid };
-            this.d[targets.TENANT].attr["tenant_id"]     =  {"isKey": true,    "set": false,  "update": false,  "type": this.dt.STR.uuid};
-            this.d[targets.TENANT].attr["tenant_name"]   =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.TENANT].attr["traffic_rules"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["ues"]           =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["vbses"]         =  {"isKey": false,   "set": false,  "update": true,  "type": this.dt.LIST.d };
-            this.d[targets.TENANT].attr["wtps"]          =  {"isKey": false,   "set": false,  "update": true,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["bssid_type"]    =  {"name": "BSSIS type", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.bssid_type };
+            this.d[targets.TENANT].attr["tenant_id"]     =  {"name": "Tenant ID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.uuid};
+            this.d[targets.TENANT].attr["tenant_name"]   =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.TENANT].attr["components"]    =  {"name": "Components", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["cpps"]          =  {"name": "CPPs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["desc"]          =  {"name": "Description", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.TENANT].attr["endpoints"]    =  {"name": "Endpoints", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["lvaps"]         =  {"name": "LVAPs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["lvnfs"]         =  {"name": "LVNFs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["owner"]         =  {"name": "Owner", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.owner };
+            this.d[targets.TENANT].attr["plmn_id"]       =  {"name": "PLMN id", "isKey": false,   "add": this.add.O,  "update": false,  "type": this.dt.STR.plmnid };
+            this.d[targets.TENANT].attr["slices"] =  {"name": "Network Slices", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["traffic_rules"] =  {"name": "Traffic Rules", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["ues"]           =  {"name": "UEs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["vbses"]         =  {"name": "VBSes", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.TENANT].attr["wtps"]          =  {"name": "WTPs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
 
             this.d[targets.TENANT].ff.TBL = ff_Tenant_Table;
 //            this.d[targets.TENANT].ff.GET = ff_Tenant_Get;
@@ -85,15 +79,15 @@ class EmpDescriptor{
                         "ff" : {},      // format functions
                         };
         this.d["wtp"] = this.d[targets.WTP];
-            this.d[targets.WTP].attr["addr"]         =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.mac };
-            this.d[targets.WTP].attr["connection"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.connection  };
-            this.d[targets.WTP].attr["datapath"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.datapath };
-            this.d[targets.WTP].attr["label"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.WTP].attr["last_seen"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.WTP].attr["last_seen_ts"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.data };
-            this.d[targets.WTP].attr["period"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.WTP].attr["state"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
-            this.d[targets.WTP].attr["supports"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a };
+            this.d[targets.WTP].attr["label"]        =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.WTP].attr["addr"]         =  {"name": "MAC Address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac };
+            this.d[targets.WTP].attr["connection"]   =  {"name": "Connection", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.connection  };
+            this.d[targets.WTP].attr["datapath"]     =  {"name": "Datapath", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.datapath };
+            this.d[targets.WTP].attr["last_seen"]    =  {"name": "Last Seen", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.WTP].attr["last_seen_ts"] =  {"name": "Last Seen (ts)", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.data };
+            this.d[targets.WTP].attr["period"]       =  {"name": "Period", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.WTP].attr["state"]        =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
+            this.d[targets.WTP].attr["supports"]     =  {"name": "Supports", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.a };
 
             this.d[targets.WTP].ff.TBL = ff_Wtp_Table;
 //            this.d[targets.WTP].ff.GET = ff_Wtp_Get;
@@ -105,14 +99,14 @@ class EmpDescriptor{
         this.d[targets.CPP] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.CPP].attr["addr"]         =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.mac };
-            this.d[targets.CPP].attr["connection"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.connection };
-            this.d[targets.CPP].attr["datapath"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.datapath };
-            this.d[targets.CPP].attr["label"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.CPP].attr["last_seen"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.CPP].attr["last_seen_ts"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.data };
-            this.d[targets.CPP].attr["period"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.CPP].attr["state"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
+            this.d[targets.CPP].attr["label"]        =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.CPP].attr["addr"]         =  {"name": "MAC Address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac };
+            this.d[targets.CPP].attr["connection"]   =  {"name": "Connection", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.connection };
+            this.d[targets.CPP].attr["datapath"]     =  {"name": "Datapath", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.datapath };
+            this.d[targets.CPP].attr["last_seen"]    =  {"name": "Last Seen", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.CPP].attr["last_seen_ts"] =  {"name": "Last Seen (ts)", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.data };
+            this.d[targets.CPP].attr["period"]       =  {"name": "Period", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.CPP].attr["state"]        =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
 
             this.d[targets.CPP].ff.TBL = ff_Cpp_Table;
 //            this.d[targets.CPP].ff.GET = ff_Cpp_Get;
@@ -125,15 +119,15 @@ class EmpDescriptor{
                         "ff" : {},      // format functions
                         };
         this.d["vbs"] = this.d[targets.VBS];
-            this.d[targets.VBS].attr["addr"]       =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.mac };
-            this.d[targets.VBS].attr["cells"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a  };
-            this.d[targets.VBS].attr["connection"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.connection };
-            this.d[targets.VBS].attr["datapath"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.datapath };
-            this.d[targets.VBS].attr["label"]      =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.VBS].attr["last_seen"]  =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.VBS].attr["last_seen_ts"]=  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.data };
-            this.d[targets.VBS].attr["period"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.VBS].attr["state"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
+            this.d[targets.VBS].attr["label"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.VBS].attr["addr"]        =  {"name": "MAC Address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac };
+            this.d[targets.VBS].attr["cells"]       =  {"name": "Cells", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.a  };
+            this.d[targets.VBS].attr["connection"]  =  {"name": "Connection", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.connection };
+            this.d[targets.VBS].attr["datapath"]    =  {"name": "Datapath", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.datapath };
+            this.d[targets.VBS].attr["last_seen"]   =  {"name": "Last Seen", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.VBS].attr["last_seen_ts"]=  {"name": "Last Seen (ts)", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.data };
+            this.d[targets.VBS].attr["period"]      =  {"name": "Period", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.VBS].attr["state"]       =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state  };  // "disconnected" - "connected" - "online"
 
             this.d[targets.VBS].ff.TBL = ff_Vbs_Table;
 //            this.d[targets.VBS].ff.GET = ff_Vbs_Get;
@@ -142,31 +136,29 @@ class EmpDescriptor{
 
 
         // COMPONENT ACTIVE    // Gli attributi cambiano in base al servizio/componente, come fare???
-        this.d[targets.ACTIVE] =  { "attr" : {},    // attributes
+        this.d[targets.COMPONENT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.ACTIVE].attr["component_id"] =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.def};
-//            this.d[targets.ACTIVE].attr["every"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.NUM.intgr};
-//            this.d[targets.ACTIVE].attr["params"]        =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.unknwn};
-//            this.d[targets.ACTIVE].attr["modules"]      =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.unknwn};
-//            this.d[targets.ACTIVE].attr["port"]         =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.COMPONENT].attr["name"]     =  {"name": "Name", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.COMPONENT].attr["active"]   =  {"name": "Status", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.NUM.bool};
+            this.d[targets.COMPONENT].attr["desc"]     =  {"name": "Description", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
 
-            this.d[targets.ACTIVE].ff.TBL = ff_Active_Table;
-//            this.d[targets.ACTIVE].ff.GET = ff_Active_Get;
-//            this.d[targets.ACTIVE].ff.SET = ff_Active_Set;
-//            this.d[targets.ACTIVE].ff.UPD = ff_Active_Update;
+            this.d[targets.COMPONENT].ff.TBL = ff_Component_Table;
+//            this.d[targets.COMPONENT].ff.GET = ff_Component_Get;
+//            this.d[targets.COMPONENT].ff.SET = ff_Component_Set;
+//            this.d[targets.COMPONENT].ff.UPD = ff_Component_Update;
 
 
         // ACCOUNT
         this.d[targets.ACCOUNT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.ACCOUNT].attr["email"]      =  {"isKey": false,   "set": true,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["name"]       =  {"isKey": false,   "set": true,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["role"]       =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.role };
-            this.d[targets.ACCOUNT].attr["surname"]    =  {"isKey": false,   "set": true,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["username"]   =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["password"]   =  {"isKey": false,   "set": true,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["email"]      =  {"name": "Mail", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["name"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["role"]       =  {"name": "Role", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.role };
+            this.d[targets.ACCOUNT].attr["surname"]    =  {"name": "Surname", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["username"]   =  {"name": "Username", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["password"]   =  {"name": "Password", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
 
             this.d[targets.ACCOUNT].ff.TBL = ff_Account_Table;
 //            this.d[targets.ACCOUNT].ff.GET = ff_Account_Get;
@@ -178,12 +170,12 @@ class EmpDescriptor{
         this.d[targets.UE] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.UE].attr["imsi"]    =  {"isKey": true,    "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.UE].attr["rnti"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.UE].attr["plmn_id"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.plmnid};
-            this.d[targets.UE].attr["cell"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.UE].attr["vbs"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.UE].attr["state"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state };    // "active" - "ho_in_progress_removing" - "ho_in_progress_adding"
+            this.d[targets.UE].attr["imsi"]    =  {"name": "IMSI", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.UE].attr["rnti"]    =  {"name": "RNTI", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.UE].attr["plmn_id"] =  {"name": "PLMN ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.plmnid};
+            this.d[targets.UE].attr["cell"]    =  {"name": "Cell", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE].attr["vbs"]     =  {"name": "VBS", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE].attr["state"]   =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state };    // "active" - "ho_in_progress_removing" - "ho_in_progress_adding"
 
             this.d[targets.UE].ff.TBL = ff_Ue_Table;
 //            this.d[targets.UE].ff.GET = ff_Ue_Get;
@@ -195,19 +187,19 @@ class EmpDescriptor{
         this.d[targets.LVAP] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.LVAP].attr["addr"]          =  {"isKey": true,    "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d[targets.LVAP].attr["assoc_id"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.LVAP].attr["association_state"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.bool};
-            this.d[targets.LVAP].attr["authentication_state"]  =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.bool};
-            this.d[targets.LVAP].attr["blocks"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a };
-            this.d[targets.LVAP].attr["bssid"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d[targets.LVAP].attr["encap"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d[targets.LVAP].attr["networks"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.networks };
-            this.d[targets.LVAP].attr["pending"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a };
-            this.d[targets.LVAP].attr["ssid"]          =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.LVAP].attr["state"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state };    // "running" - "spawning" - "removing"
-            this.d[targets.LVAP].attr["supported_band"]=  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.LVAP].attr["wtp"]           =  {"isKey": false,   "set": false,  "update": true,  "type": this.dt.OBJ.wtp};
+            this.d[targets.LVAP].attr["addr"]                   =  {"name": "MAC Address", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d[targets.LVAP].attr["assoc_id"]               =  {"name": "Association ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.LVAP].attr["association_state"]      =  {"name": "Association State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.bool};
+            this.d[targets.LVAP].attr["authentication_state"]   =  {"name": "Authentication State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.bool};
+            this.d[targets.LVAP].attr["blocks"]                 =  {"name": "Blocks", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.a };
+            this.d[targets.LVAP].attr["bssid"]                  =  {"name": "BSSID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d[targets.LVAP].attr["encap"]                  =  {"name": "Encapsulation", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d[targets.LVAP].attr["networks"]               =  {"name": "Networks", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.networks };
+            this.d[targets.LVAP].attr["pending"]                =  {"name": "Pending", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.work }; // Runtime working attribute
+            this.d[targets.LVAP].attr["ssid"]                   =  {"name": "SSID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.LVAP].attr["state"]                  =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state };    // "running" - "spawning" - "removing"
+            this.d[targets.LVAP].attr["supported_band"]         =  {"name": "Supported Band", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.LVAP].attr["wtp"]                    =  {"name": "WTP", "isKey": false,   "add": this.add.E,  "update": true,  "type": this.dt.OBJ.wtp};
 
             this.d[targets.LVAP].ff.TBL = ff_Lvap_Table;
 //            this.d[targets.LVAP].ff.GET = ff_Lvap_Get;
@@ -219,13 +211,13 @@ class EmpDescriptor{
         this.d[targets.LVNF] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.LVNF].attr["lvnf_id"]   =  {"isKey": true,   "set": false,  "update": false,  "type": this.dt.STR.uuid};
-            this.d[targets.LVNF].attr["image"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.img};
-            this.d[targets.LVNF].attr["tenant_id"] =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.uuid};
-            this.d[targets.LVNF].attr["cpp"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.OBJ.cpp};
-            this.d[targets.LVNF].attr["state"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.state };  // "spawning" - "running" - "stopping" - "stopped" - "migrating_stop" - "migrating_start"
-            this.d[targets.LVNF].attr["returncode"]=  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.LVNF].attr["ports"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.LVNF].attr["lvnf_id"]   =  {"name": "LVNF ID", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.uuid};
+            this.d[targets.LVNF].attr["image"]     =  {"name": "Image", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.img};
+            this.d[targets.LVNF].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.uuid};
+            this.d[targets.LVNF].attr["cpp"]       =  {"name": "CPP", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.cpp};
+            this.d[targets.LVNF].attr["state"]     =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state };  // "spawning" - "running" - "stopping" - "stopped" - "migrating_stop" - "migrating_start"
+            this.d[targets.LVNF].attr["returncode"]=  {"name": "Return code", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.LVNF].attr["ports"]     =  {"name": "Ports", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
 
             this.d[targets.LVNF].ff.TBL = ff_Lvnf_Table;
 //            this.d[targets.LVNF].ff.GET = ff_Lvnf_Get;
@@ -237,13 +229,13 @@ class EmpDescriptor{
         this.d[targets.UE_MEASUREMENT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.UE_MEASUREMENT].attr["id"]             =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.UE_MEASUREMENT].attr["module_type"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
-            this.d[targets.UE_MEASUREMENT].attr["tenant_id"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.uuid};
-            this.d[targets.UE_MEASUREMENT].attr["callback"]       =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.unknwn};
-            this.d[targets.UE_MEASUREMENT].attr["imsi"]           =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr };
-            this.d[targets.UE_MEASUREMENT].attr["measurements"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.UE_MEASUREMENT].attr["results"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE_MEASUREMENT].attr["id"]             =  {"name": "ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d[targets.UE_MEASUREMENT].attr["module_type"]    =  {"name": "Module Type", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d[targets.UE_MEASUREMENT].attr["tenant_id"]      =  {"name": "Tenant ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.uuid};
+            this.d[targets.UE_MEASUREMENT].attr["callback"]       =  {"name": "Callback", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d[targets.UE_MEASUREMENT].attr["imsi"]           =  {"name": "IMSI", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.UE_MEASUREMENT].attr["measurements"]   =  {"name": "Measurements", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE_MEASUREMENT].attr["results"]        =  {"name": "Results", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
 
 //            this.d[targets.UE_MEASUREMENT].ff.TBL = ff_Rrc_Table;
 //            this.d[targets.UE_MEASUREMENT].ff.GET = ff_Rrc_Get;
@@ -255,13 +247,46 @@ class EmpDescriptor{
         this.d[targets.ACL] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.ACL].attr["addr"]     =  {"isKey": true,    "set": true,  "update": false,  "type": this.dt.STR.mac};
-            this.d[targets.ACL].attr["label"]    =  {"isKey": false,   "set": true,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.ACL].attr["addr"]     =  {"name": "MAC address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac};
+            this.d[targets.ACL].attr["label"]    =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def};
 
             this.d[targets.ACL].ff.TBL = ff_Acl_Table;
 //            this.d[targets.ACL].ff.GET = ff_Acl_Get;
 //            this.d[targets.ACL].ff.SET = ff_Acl_Set;
 //            this.d[targets.ACL].ff.UPD = ff_Acl_Update;
+
+
+        // TRAFFIC RULE
+        this.d[targets.TR] =  { "attr" : {},    // attributes
+                        "ff" : {},      // format functions
+                        };
+            this.d[targets.TR].attr["dscp"]     =  {"name": "DSCP", "isKey": false,    "add": this.add.M,  "update": false,  "type": this.dt.OBJ.dscp};
+            this.d[targets.TR].attr["tenant_id"]    =  {"name": "Tenant ID", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.OBJ.tID};
+            this.d[targets.TR].attr["label"]    =  {"name": "Description", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.TR].attr["match"]    =  {"name": "Match rules", "isKey": true,   "add": this.add.M,  "update": false,  "type": this.dt.OBJ.match};
+            this.d[targets.TR].attr["priority"] =  {"name": "Priority", "isKey": false,   "add": this.add.O,  "update": false,  "type": this.dt.NUM.intgr};
+
+            this.d[targets.TR].ff.TBL = ff_TR_Table;
+//            this.d[targets.TR].ff.GET = ff_TR_Get;
+//            this.d[targets.TR].ff.SET = ff_TR_Set;
+//            this.d[targets.TR].ff.UPD = ff_TR_Update;
+
+
+        // SLICE
+        this.d[targets.SLICE] =  { "attr" : {},    // attributes
+                        "ff" : {},      // format functions
+                        };
+            this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["dscp"]    =  {"name": "DSCP", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["wifi"]    =  {"name": "Wi-Fi", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
+            this.d[targets.SLICE].attr["lte"]     =  {"name": "LTE", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
+
+            this.d[targets.SLICE].ff.TBL = ff_Slice_Table;
+//            this.d[targets.SLICE].ff.GET = ff_Slice_Get;
+//            this.d[targets.SLICE].ff.SET = ff_Slice_Set;
+//            this.d[targets.SLICE].ff.UPD = ff_Slice_Update;
+
+
 
 // OTHER ------------------------------------------------------------------------
 
@@ -269,36 +294,35 @@ class EmpDescriptor{
         this.d["datapath"] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d["datapath"].attr["dpid"]         =  {"isKey": true,    "set": false,  "update": false,  "type": this.dt.STR.dpid};
-            this.d["datapath"].attr["hosts"]        =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
-            this.d["datapath"].attr["ip_addr"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.ip_addr};
-            this.d["datapath"].attr["network_ports"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
+            this.d["datapath"].attr["dpid"]          =  {"name": "DPID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.dpid};
+            this.d["datapath"].attr["hosts"]         =  {"name": "Hosts", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
+            this.d["datapath"].attr["ip_addr"]       =  {"name": "IP Address", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.ip_addr};
+            this.d["datapath"].attr["network_ports"] =  {"name": "Network Ports", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
 
         // NETWORK PORTS
         this.d["network_ports"] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d["network_ports"].attr["dpid"]         =  {"isKey": false,    "set": false,  "update": false,  "type": this.dt.STR.dpid};
-            this.d["network_ports"].attr["hwaddr"]        =  {"isKey": true,   "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d["network_ports"].attr["iface"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.def};
-            this.d["network_ports"].attr["neighbour"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.def};
-            this.d["network_ports"].attr["port_id"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["network_ports"].attr["dpid"]      =  {"name": "DPID", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.dpid};
+            this.d["network_ports"].attr["hwaddr"]    =  {"name": "Hardware Address", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d["network_ports"].attr["iface"]     =  {"name": "Interface", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d["network_ports"].attr["neighbour"] =  {"name": "Neighbour", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d["network_ports"].attr["port_id"]   =  {"name": "Port ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
 
         // SUPPORTS
         this.d["supports"] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d["supports"].attr["addr"]         =  {"isKey": false,    "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d["supports"].attr["band"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.STR.band};
-            this.d["supports"].attr["channel"]      =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d["supports"].attr["ht_supports"]  =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a};
-            this.d["supports"].attr["hwaddr"]       =  {"isKey": true,   "set": false,  "update": false,  "type": this.dt.STR.mac};
-            this.d["supports"].attr["ncqm"]         =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
-            this.d["supports"].attr["supports"]     =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.a};
-            this.d["supports"].attr["traffic_rule_queues"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
-            this.d["supports"].attr["tx_policies"]  =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
-            this.d["supports"].attr["ucqm"]    =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
-            this.d["supports"].attr["wifi_stats"]   =  {"isKey": false,   "set": false,  "update": false,  "type": this.dt.LIST.d};
+            this.d["supports"].attr["addr"]                 =  {"name": "MAC Address", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d["supports"].attr["band"]                 =  {"name": "Band", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.band};
+            this.d["supports"].attr["channel"]              =  {"name": "Channel", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["supports"].attr["ht_supports"]          =  {"name": "HT Supports", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.work};
+            this.d["supports"].attr["hwaddr"]               =  {"name": "Hardware Address", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d["supports"].attr["ncqm"]                 =  {"name": "NCQM", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d["supports"].attr["supports"]             =  {"name": "Supports", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.work};
+            this.d["supports"].attr["tx_policies"]          =  {"name": "TX Policies", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
+            this.d["supports"].attr["ucqm"]                 =  {"name": "UCQM", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.unknwn};
+            this.d["supports"].attr["wifi_stats"]           =  {"name": "Wi-Fi Statistic", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
 
         this.d["blocks"] = this.d["supports"];
 

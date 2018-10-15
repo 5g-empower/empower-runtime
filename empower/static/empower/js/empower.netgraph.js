@@ -108,23 +108,23 @@ class EmpNetGraph{
 //        var ueses = this.cache.c[this.qe.targets.UE];
 ////            console.log(wtps, vbses, lvaps, ueses)
 //
-//            for(var i=0; i<wtps.length; i++){
-//                var id = wtps[i]["addr"]
-//                var title = wtps[i]["label"]
-//                var node = vc.createNode(id, title, "wtp");
+//        for(var i=0; i<wtps.length; i++){
+//            var id = wtps[i]["addr"]
+//            var title = wtps[i]["label"]
+//            var node = vc.createNode(id, title, "wtp");
 //                node.x = 100 + 150*i;
-//                    node.y = 100;
-//                    node.fixed = true;
-//                vc.addNode(node)
-//            }
-//            for(var i=0; i<lvaps.length; i++){
-//                var id = lvaps[i]["addr"]
-//                var title = lvaps[i]["ssid"]
-//                var node = vc.createNode(id, title, "client_lvap");
+//                node.y = 100;
+//                node.fixed = true;
+//            vc.addNode(node)
+//        }
+//        for(var i=0; i<lvaps.length; i++){
+//            var id = lvaps[i]["addr"]
+//            var title = lvaps[i]["ssid"]
+//            var node = vc.createNode(id, title, "client_lvap");
 //                node.x = 100 + 150*i;
 //                node.y = 300;
-//                    node.fixed = true;
-//                vc.addNode(node);
+//                node.fixed = true;
+//            vc.addNode(node);
 //
 //            var wtp = lvaps[i]["wtp"];
 //            for(var j=0; j<wtps.length; j++){
@@ -137,10 +137,10 @@ class EmpNetGraph{
 //                    break;
 //                }
 //            }
-//            }
+//        }
 //
 //
-//            for(var i=0; i<vbses.length; i++){
+//        for(var i=0; i<vbses.length; i++){
 //            var id = vbses[i]["addr"]
 //            var title = vbses[i]["label"]
 //            var node = vc.createNode(id, title, "vbs");
@@ -152,14 +152,14 @@ class EmpNetGraph{
 //        for(var i=0; i<ueses.length; i++){
 //            var id = ueses[i]["imsi"]
 //            var title = ueses[i]["imsi"]
-//                var node = vc.createNode(id, title, "client_ue");
+//            var node = vc.createNode(id, title, "client_ue");
 //                node.x = 100 + 150*i;
-//                    node.y = 700;
-//                    node.fixed = true;
-//                vc.addNode(node);
-//            }
-//
+//                node.y = 700;
+//                node.fixed = true;
+//            vc.addNode(node);
 //        }
+//
+//    }
 //
 //    d_TopologyGraph_ResetOptions(){
 //        var options = {

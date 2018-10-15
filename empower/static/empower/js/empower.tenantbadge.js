@@ -40,7 +40,7 @@ class EmpTenantBadge{
 
         var badge = this.hb.ceCOL(colsize, coln);
         badge.id = this.getID(keys);
-        $( badge ).click(func);
+//        $( badge ).click(func);
 
             var p =  this.hb.cePANEL();
             $( badge ).append(p);
@@ -52,6 +52,7 @@ class EmpTenantBadge{
                 var pf = this.hb.cePANEL_F();
                 $( p ).append(pf);
                 pf.id = this.getID_PANEL_F();
+                $( pf ).click(func)
 
                     var rH = this.hb.ceROW();    // HEADER
                     $( ph ).append(rH);
@@ -93,73 +94,35 @@ class EmpTenantBadge{
                                 $( span ).css("font-size", "10px");
                                 $( span ).text( tenant.tenant_id );
 
+                var pf = this.hb.cePANEL_F()
+                pf.id = this.getID_PANEL_F(keys);
+                $( p ).append(pf);
+                $( pf ).css("cursor","pointer");
+                    var r = this.hb.ceROW();
+                    $( pf ).append(r);
+                        var c0 = this.hb.ceCOL("xs", 8);
+                        $( r ).append(c0);
                     var s1 = this.hb.ce("SPAN");
                     $( s1 ).addClass("pull-left text-"+color);
-                    $( s1 ).text("Select tenant");
-                    $( pf ).append(s1);
-
+                    $( s1 ).text("Select Tenant...");
+                            $( c0 ).append(s1);
+                        var c1 = this.hb.ceCOL("xs", 4);
+                        $( r ).append(c1);
                     var s2 = this.hb.ce("SPAN");
                     $( s2 ).addClass("pull-right text-"+color);
-                    //s2.onclick= func;
-                    $( pf ).append(s2);
-
+                            $( c1 ).append(s2);
                     var i2 = this.hb.ceFAI("fa-arrow-circle-right");
-                        //i2.id = this.getID_FUNCTION(keys);
-                        //$( i2 ).click(func);
+//                                i2.id = this.getID_FUNCTION(keys);
                     $( s2 ).append(i2);
 
                     var cf = this.hb.ceCLEARFIX();
                     $( pf ).append(cf);
 
-//                    var rF = this.hb.ceROW();   // FOOTER with overview infos
-//                    $( pf ).append(rF);
-//                        var overviewList = {};
-//                        overviewList["clients"] = [ "fa-laptop", ["lvaps", "ues"] ];
-//                        overviewList["devices"] = [ "fa-hdd-o", ["wtps", "cpps", "vbses"] ];
-//                        overviewList["components"] = [ "fa-plug", ["components"] ];
-//                        var nCol = Object.keys(overviewList).length*2;
-//                        var c1 = this.hb.ceCOL("xs",(12-nCol)/2);
-//                        $( rF ).append(c1);
-//                        for( var tag in overviewList ){
-//                            var el = overviewList[tag];
-//                            var c = this.hb.ceCOL("xs",2);
-//                            $( rF ).append(c);
-//                            $( c ).css("border", "1px solid #ccc");
-//                            $( c ).css("margin", "2px");
-//                            $( c ).addClass("text-center");
-//                            $( c ).attr("title", tag);
-//                                var r0 = this.hb.ceROW();
-//                                $( c ).append(r0);
-//                                    var c0 = this.hb.ceCOL("xs",12);
-//                                    $( r0 ).append(c0);
-//                                        var i0 = this.hb.ceFAI(el[0]);
-//                                        $( c0 ).append(i0);
-//                                        $( i0 ).addClass("fa-fw");
-//                                var r1 = this.hb.ceROW();
-//                                $( c ).append(r1);
-//                                    var c1 = this.hb.ceCOL("xs",12);
-//                                    $( r1 ).append(c1);
-//                                        var span = this.hb.ce("SPAN");
-//                                        $( c1 ).append(span);
-//                                        var cntr = 0;
-//                                        for( var i=0; i<el[1].length; i++ ){
-//                                            if( this.hb.isArray(tenant[ el[1][i] ]) ){
-//                                                cntr += tenant[ el[1][i] ].length;
-//                                            }
-//                                            else{
-//                                                cntr += Object.keys(tenant[ el[1][i] ]).length;
-//                                            }
-//                                        }
-//                                        $( span ).text(cntr)
-//                        }
-//                        var c2 = this.hb.ceCOL("xs",(12-nCol)/2);
-//                        $( rF ).append(c2);
-
         return badge;
     };
 
     remove(keys=null){
-        var spans = $( "#"+this.getID_FOOTER(keys) ).find("span");
+        var spans = $( "#"+this.getID_PANEL_F(keys) ).find("span");
         for (var i = 0; i , spans.length; i++)
             span[i].unbind();
         $( "#"+this.getID(keys) ).remove();
@@ -172,8 +135,8 @@ class EmpTenantBadge{
 
         if (color !== null){
             $( "#"+this.getID_PANEL(keys) ).removeClass().addClass("panel panel-"+color);
-            $( "#"+this.getID_FOOTER(keys) ).find("span.pull-left").removeClass().addClass("pull-left text-"+color);
-            $( "#"+this.getID_FOOTER(keys) ).find("span.pull-right").removeClass().addClass("pull-right text-"+color);
+            $( "#"+this.getID_PANEL_F(keys) ).find("span.pull-left").removeClass().addClass("pull-left text-"+color);
+            $( "#"+this.getID_PANEL_F(keys) ).find("span.pull-right").removeClass().addClass("pull-right text-"+color);
         }
 
         if (iconname !== null){
@@ -184,11 +147,11 @@ class EmpTenantBadge{
             $( "#"+this.getID_STATUS(keys) ).text(status);
         }
 
-        if (func !== null){
+//        if (func !== null){
 //            $( "#"+this.getID_FUNCTION(keys) ).unbind().click(func);
-            $( "#"+this.getID_FOOTER(keys) ).unbind().click(func);
+//            $( "#"+this.getID_PANEL_F(keys) ).unbind().click(func);
 //            $( "#"+this.getID(keys) ).unbind().click(func);
-        }
+//        }
     }
 
     updateTitle(text, keys=null){

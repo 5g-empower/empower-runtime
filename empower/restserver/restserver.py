@@ -44,7 +44,9 @@ DEFAULT_PORT = 8888
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """Base handler."""
+    """Base Handler.
+
+    This handler is extended by the other handlers that render HTML pages."""
 
     HANDLERS = []
 
@@ -61,13 +63,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class IndexHandler(BaseHandler):
-    """Index page"""
+    """Index handler."""
 
     HANDLERS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
     def get(self, *args, **kwargs):
-        """ Render page. """
+        """Render index page."""
 
         username = self.get_current_user()
         account = RUNTIME.accounts[username]
@@ -87,6 +89,8 @@ class AuthLoginHandler(BaseHandler):
     HANDLERS = [r"/auth/login"]
 
     def get(self, *args, **kwargs):
+        """Render login page."""
+
         self.render("login.html", error=self.get_argument("error", ""))
 
     def post(self, *args, **kwargs):
@@ -109,24 +113,28 @@ class AuthLogoutHandler(BaseHandler):
     HANDLERS = [r"/auth/logout"]
 
     def get(self, *args, **kwargs):
+        """Process logout request."""
+
         self.clear_cookie("username")
         self.redirect("/auth/login")
 
 
 class AllowHandler(EmpowerAPIHandler):
-    """ Allow handler. """
+    """ Allow handler. Used to add/remove allowed Wi-Fi clients."""
 
     HANDLERS = [r"/api/v1/allow/?",
                 r"/api/v1/allow/([a-zA-Z0-9:]*)/?"]
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """ List the entire ACL or just the specified entry.
+        """List the allowed Wi-Fi clients.
 
         Args:
-            addr: the station address
+
+            [0]: the station address
 
         Example URLs:
+
             GET /api/v1/allow
             GET /api/v1/allow/11:22:33:44:55:66
         """
@@ -176,6 +184,7 @@ class AllowHandler(EmpowerAPIHandler):
 
         RUNTIME.remove_allowed(EtherAddress(args[0]))
 
+
 class AccountsHandler(EmpowerAPIHandler):
     """Accounts handler. Used to add/remove accounts."""
 
@@ -189,12 +198,14 @@ class AccountsHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """List the accounts
+        """List the accounts.
 
         Args:
+
             [0]: the username
 
         Example URLs:
+
             GET /api/v1/accounts
             GET /api/v1/accounts/root
         """
@@ -306,14 +317,16 @@ class ComponentsHandler(EmpowerAPIHandler):
 
     @validate(max_args=1)
     def get(self, *args, **kwargs):
-        """ Lists either all the components running in this controller.
+        """Lists components.
 
         Args:
-            [0]: the id of a component
+
+            [0]: the component id (optional)
 
         Example URLs:
+
             GET /api/v1/components
-            GET /api/v1/components/<component>
+            GET /api/v1/components/empower.apps.mobilitymanager.mobilitymanager
         """
 
         components = RUNTIME.load_main_components()
@@ -331,18 +344,23 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Update a component.
 
         Args:
-            [0]: the id of a component
+
+            [0]: the component id
 
         Request:
+
             version: protocol version (1.0)
             params: dictionary of parametes supported by the component
                     as reported by the GET request
 
         Example URLs:
-            PUT /api/v1/components
+
+            PUT /api/v1/components/empower.apps.mobilitymanager.mobilitymanager
             {
               "version" : 1.0,
-              "params": {}
+              "params": {
+                "every": 1000
+              }
             }
         """
 
@@ -367,8 +385,9 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Add a component.
 
         Request:
+
             version: protocol version (1.0)
-            component: module name
+            component: the component id
             params: dictionary of parametes supported by the component
                     as reported by the GET request
 
@@ -376,8 +395,10 @@ class ComponentsHandler(EmpowerAPIHandler):
             POST /api/v1/components
             {
               "version" : 1.0,
-              "component" : "empower.lvapp.bin_counter.bin_counter"
-              "params": {}
+              "component" : "empower.apps.mobilitymanager.mobilitymanager"
+              "params": {
+                "every": 1000
+              }
             }
         """
 
@@ -393,10 +414,13 @@ class ComponentsHandler(EmpowerAPIHandler):
         """Unload a component.
 
         Args:
-            component_id: the id of a component istance
+
+            [0]: the component id
 
         Example URLs:
-            DELETE /api/v1/components/component
+
+            DELETE /api/v1/components/
+              empower.apps.mobilitymanager.mobilitymanager
         """
 
         RUNTIME.unregister(args[0])
@@ -1359,6 +1383,7 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         """List traffic rules .
 
         Args:
+
             tenant_id: network name of a tenant
             module_name: the name of the module
             module_id: the id of the module
@@ -1489,6 +1514,45 @@ class ModuleHandler(EmpowerAPIHandlerUsers):
         self.set_status(204, None)
 
 
+class DocHandler(EmpowerAPIHandlerUsers):
+    """Generates MD documentation."""
+
+    HANDLERS = [r"/api/v1/doc/?"]
+
+    def get(self, *args, **kwargs):
+        """Generates MD documentation.
+
+        Args:
+            None
+
+        Example URLs:
+            GET /api/v1/doc
+        """
+
+        import inspect
+
+        rest_server = RUNTIME.components[RESTServer.__module__]
+
+        accum = []
+
+        handlers = sorted(rest_server.handlers, key=lambda x: x.__name__)
+
+        for handler_class in handlers:
+            accum.append("### %s" % handler_class.__name__)
+            accum.append("%s" % inspect.getdoc(handler_class))
+            if handler_class.HANDLERS:
+                accum.append("#### URLs")
+                for url in handler_class.HANDLERS:
+                    accum.append("    %s" % url)
+            if hasattr(handler_class, "get"):
+                doc = inspect.getdoc(getattr(handler_class, "get"))
+                if doc:
+                    accum.append("#### GET")
+                    accum.append(doc)
+
+        self.write('\n'.join(accum))
+
+
 class RESTServer(tornado.web.Application):
     """Exposes the REST API."""
 
@@ -1505,6 +1569,7 @@ class RESTServer(tornado.web.Application):
         self.port = int(port)
         self.cert = cert
         self.key = key
+        self.handlers = []
         self.log = empower.logger.get_logger()
 
         tornado.web.Application.__init__(self, [], **self.parms)
@@ -1526,13 +1591,15 @@ class RESTServer(tornado.web.Application):
                            TenantSliceHandler, TenantEndpointHandler,
                            TenantEndpointNextHandler, IndexHandler,
                            TenantEndpointPortHandler, TenantTrafficRuleHandler,
-                           TrafficRuleHandler, SliceHandler]
+                           TrafficRuleHandler, SliceHandler, DocHandler]
 
         for handler_class in handler_classes:
             self.add_handler_class(handler_class, http_server)
 
     def add_handler_class(self, handler_class, server):
         """Add a new handler class."""
+
+        self.handlers.append(handler_class)
 
         for url in handler_class.HANDLERS:
             self.add_handler((url, handler_class, dict(server=server)))

@@ -95,5 +95,12 @@ const __EMP_CONFIG_JSON = {
             "buttonbox": "bttbx",
         }
     },
+    "qos": {
+        "tag": "qos",
+        "elements":{
+            "tr": "tr",
+            "slice": "slc",
+        }
+    },
 
 };

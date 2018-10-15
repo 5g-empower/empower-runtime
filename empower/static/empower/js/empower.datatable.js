@@ -75,7 +75,7 @@ class EmpDataTable{
         var trh = this.hb.ce("TR");
         $( thead ).append(trh);
 
-        var tag = this.hb.mapName(obj);
+        var tag = this.hb.mapName2Tag(obj);
         var params = this.desc.d[tag].ff.TBL("h");
         if(params){
             for (var k= 0; k < params.length; k++){
@@ -116,7 +116,7 @@ class EmpDataTable{
 
     ceDtBody(obj){
 
-        var tag = this.hb.mapName(obj);
+        var tag = this.hb.mapName2Tag(obj);
 
         var DTdata = [];
         var results = this.cache.c[tag];
@@ -176,7 +176,7 @@ class EmpDataTable{
                             var c = __HB.ce("SPAN");
                             $( r ).append(c);
                                 var keyAttr = "";
-                                var el = this.hb.mapName( p[i].attr );
+                                var el = this.hb.mapName2Tag( p[i].attr );
                                 for( var a in __DESC.d[el].attr ){
                                     if (__DESC.d[el].attr[a].isKey){
                                         keyAttr = a;
