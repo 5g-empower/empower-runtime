@@ -360,6 +360,10 @@ class Tenant:
             ValueError, if the dscp is not valid
         """
 
+        # check if slice is here
+        if not dscp in self.slices:
+            raise KeyError("Unable to find slice %s" % dscp)
+
         # create new instance
         slc = Slice(dscp, self, request)
         tenant_id = self.tenant_id
