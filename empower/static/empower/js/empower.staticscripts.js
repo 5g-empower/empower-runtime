@@ -1,6 +1,7 @@
 function createNavbar(){
     var navbar = __HB.ceROW();
-    $( navbar ).css("backgroundColor", PRIMARY);
+    if( __ROLE === "admin"){    $( navbar ).css("backgroundColor", ADMIN); }
+    else{                       $( navbar ).css("backgroundColor", USER); }
 
         var c0 = __HB.ceCOL("xs", 6);
         $( navbar ).append(c0);
@@ -36,8 +37,6 @@ function createNavbar(){
 
         var c1 = __HB.ceCOL("xs",6);
         $( navbar ).append(c1);
-        if( __ROLE === "admin"){    $( c1 ).css("backgroundColor", ADMIN); }
-        else{                       $( c1 ).css("backgroundColor", USER); }
             var r1 = __HB.ceROW();
             $( c1 ).append(r1);
             $( r1 ).addClass("text-center");

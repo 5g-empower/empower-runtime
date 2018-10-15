@@ -371,6 +371,9 @@ function ff_DrawStaticVar(tag, a, id, values){
     else if( a === "network_ports" ){
         return ff_DSV_NetworkPorts(tag, a, id, values);
     }
+    else if( a === "wifi_stats" ){
+        return ff_DSV_WifiStats(tag, a, id, values);
+    }
     else if( a === "wtps" || a === "cpps" || a === "vbses" ){
         return ff_DSV_Devices(tag, a, id, values);
     }
@@ -682,12 +685,13 @@ function ff_DSV_Supports(tag, a, id, values){
             $( div ).append(panel);
             panel.id = id + "_" + support["hwaddr"];
             $( panel ).addClass("panel panel-info")
-    //            var ph = __HB.cePANEL_H();
-    //            $( panel ).append(ph);
+                var ph = __HB.cePANEL_H();
+                $( panel ).append(ph);
+                    $( ph ).text("Block " + (i+1))
                 var body = __HB.cePANEL_B();
                 $( panel ).append(body);
-    //            var pf = __HB.cePANEL_F();
-    //            $( panel ).append(pf);
+                var pf = __HB.cePANEL_F();
+                $( panel ).append(pf);
 
                 var attrbts = __DESC.d[a].attr;
                 for( var subA in attrbts ){
@@ -703,14 +707,52 @@ function ff_DSV_Supports(tag, a, id, values){
                         subValue = support[subA];
                     }
                     var d = ff_draw(a, subA, subId, subIsEdit, subValue);
+                    if( subA === "wifi_stats"){
+                        $( pf ).append(d)
+                    }
+                    else{
                     $( body ).append(d)
                 }
         }
+    }
     }
     else{
         $( div ).append( ff_DSV_Empty(tag, a) );
     }
     return div;
+}
+
+function ff_DSV_WifiStats(tag, a, id, values){
+
+    var btn = __HB.ce("BUTTON");
+    $( btn ).attr("type", "button");
+    $( btn ).attr("style", "margin: 0px 2px;");
+    $( btn ).attr("title", "show " + a);
+    $( btn ).text( __HB.mapName2Title(a) );
+
+        var panelID = id.substr(0, id.length-11);
+        var div = __HB.ce("DIV");
+        $( div ).addClass("hide");
+        if( !$.isEmptyObject( values ) ){
+            var graph = new EmpNetGraphBox( [tag, a, panelID.substr(panelID.length-17, panelID.length)] );
+            var params = [tag, a, values];
+            var bar = graph.create();
+            $( div ).append(bar);
+            graph.addGraph("stackedBarGraph", params); // params = [tag, a, values]
+        }
+
+        var f_Click = function(){
+            $( div ).hasClass("hide")? $( div ).removeClass("hide") : $( div ).addClass("hide");
+        }
+        $( btn ).click(f_Click);
+
+
+        var ff = function(){
+            var pb = $( __HB.ge(panelID) )[0].children[1];
+            $( pb ).append(div);
+        }
+        setTimeout(ff, 1/8*__DELAY)
+    return btn;
 }
 
 function ff_DSV_TRs(tag, a, id, values){

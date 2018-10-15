@@ -210,6 +210,8 @@ class HBuilder{
             case "datapath": title = "Datapath"; break;
             case "supports": title = "Supports"; break;
             case "cells": title = "Cells"; break;
+            case "blocks": title = "Blocks"; break;
+            case "wifi_stats": title = "Wi-Fi Statistic"; break;
             default:
                 console.log("mapName2Title: " + tag + " not defined.");
         }
