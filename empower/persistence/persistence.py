@@ -20,7 +20,7 @@
 import uuid
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
+from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.types import TypeDecorator, Unicode
 
 import empower.datatypes.etheraddress as etheraddress
@@ -46,7 +46,8 @@ class UUID(TypeDecorator):
 
         if value and isinstance(value, uuid.UUID):
             return str(value)
-        elif value and not isinstance(value, uuid.UUID):
+
+        if value and not isinstance(value, uuid.UUID):
             raise ValueError('value %s is not a valid uuid.UUID' % value)
         else:
             return None
@@ -55,10 +56,13 @@ class UUID(TypeDecorator):
 
         if value:
             return uuid.UUID(value)
-        else:
-            return None
 
-    def is_mutable(self):
+        return None
+
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
@@ -74,7 +78,8 @@ class EtherAddress(TypeDecorator):
 
         if value and isinstance(value, etheraddress.EtherAddress):
             return value.to_str()
-        elif value and not isinstance(value, etheraddress.EtherAddress):
+
+        if value and not isinstance(value, etheraddress.EtherAddress):
             raise ValueError('value %s is not a valid EtherAddress' % value)
         else:
             return None
@@ -83,10 +88,13 @@ class EtherAddress(TypeDecorator):
 
         if value:
             return etheraddress.EtherAddress(value)
-        else:
-            return None
 
-    def is_mutable(self):
+        return None
+
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
@@ -102,7 +110,8 @@ class SSID(TypeDecorator):
 
         if value and isinstance(value, ssid.SSID):
             return value.to_str()
-        elif value and not isinstance(value, ssid.SSID):
+
+        if value and not isinstance(value, ssid.SSID):
             raise ValueError('value %s is not a valid SSID' % value)
         else:
             return None
@@ -111,10 +120,13 @@ class SSID(TypeDecorator):
 
         if value:
             return ssid.SSID(value)
-        else:
-            return None
 
-    def is_mutable(self):
+        return None
+
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
@@ -130,7 +142,8 @@ class PLMNID(TypeDecorator):
 
         if value and isinstance(value, plmnid.PLMNID):
             return value.to_str()
-        elif value and not isinstance(value, plmnid.PLMNID):
+
+        if value and not isinstance(value, plmnid.PLMNID):
             raise ValueError('value %s is not a valid PLMNID' % value)
         else:
             return None
@@ -139,10 +152,13 @@ class PLMNID(TypeDecorator):
 
         if value:
             return plmnid.PLMNID(value)
-        else:
-            return None
 
-    def is_mutable(self):
+        return None
+
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
@@ -152,7 +168,7 @@ class DSCP(TypeDecorator):
     impl = Unicode
 
     def __init__(self):
-        super().__init__(length=4)
+        super().__init__(length=2)
 
     def process_bind_param(self, value, dialect=None):
 
@@ -163,9 +179,15 @@ class DSCP(TypeDecorator):
 
     def process_result_value(self, value, dialect=None):
 
-        return dscp.DSCP(value)
+        if value:
+            return dscp.DSCP(value)
 
-    def is_mutable(self):
+        return None
+
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
@@ -193,7 +215,10 @@ class Match(TypeDecorator):
 
         return None
 
-    def is_mutable(self):
+    @classmethod
+    def is_mutable(cls):
+        """Object is not mutable."""
+
         return False
 
 
