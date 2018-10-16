@@ -313,7 +313,6 @@ class AccountsHandler(EmpowerAPIHandler):
         account = RUNTIME.accounts[args[0]]
 
         for param in kwargs:
-            print(param)
             setattr(account, param, kwargs[param])
 
     @validate(returncode=204, min_args=1, max_args=1)
