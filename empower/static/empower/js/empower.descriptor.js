@@ -153,12 +153,12 @@ class EmpDescriptor{
         this.d[targets.ACCOUNT] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.ACCOUNT].attr["email"]      =  {"name": "Mail", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["name"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["role"]       =  {"name": "Role", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.role };
-            this.d[targets.ACCOUNT].attr["surname"]    =  {"name": "Surname", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
             this.d[targets.ACCOUNT].attr["username"]   =  {"name": "Username", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
             this.d[targets.ACCOUNT].attr["password"]   =  {"name": "Password", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["email"]      =  {"name": "Mail", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["name"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["surname"]    =  {"name": "Surname", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["role"]       =  {"name": "Role", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.role };
 
             this.d[targets.ACCOUNT].ff.TBL = ff_Account_Table;
 //            this.d[targets.ACCOUNT].ff.GET = ff_Account_Get;
@@ -247,8 +247,8 @@ class EmpDescriptor{
         this.d[targets.ACL] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.ACL].attr["addr"]     =  {"name": "MAC address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac};
             this.d[targets.ACL].attr["label"]    =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.ACL].attr["addr"]     =  {"name": "MAC address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac};
 
             this.d[targets.ACL].ff.TBL = ff_Acl_Table;
 //            this.d[targets.ACL].ff.GET = ff_Acl_Get;
