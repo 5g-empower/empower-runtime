@@ -100,9 +100,33 @@ function createNavbar(){
                         $( a ).prepend(i);
                         $( i ).addClass("fa-fw");
                 var userDetails = function(){
-                    var mdl = new EmpUpdateModalBox( __USERNAME );
-                    var args = mdl.initResources("accounts", true);
-                    var m = mdl.create(args[0], args[1], args[2], args[3]);
+                    var mdl = new EmpModalBox( __USERNAME );
+
+                    var title = "User Details: " + __USERNAME.toUpperCase();
+                    var body = __HB.ce("DIV");
+                        var r = __HB.ceROW();
+                        $( body ).append(r);
+                        var c0 = __HB.ceCOL("xs",2);
+                        $( r ).append(c0);
+                        var c1 = __HB.ceCOL("xs",10);
+                        $( r ).append(c1);
+
+                        var attrbts = __DESC.d[ __QE.targets.ACCOUNT ].attr;
+                        var values = __HB.getKeyValue(__QE.targets.ACCOUNT, __USERNAME );
+                        for( var a in attrbts){
+                            var isInput = false;
+                            var id = "EMP_UserDetails_" + a;
+                            var rr = ff_draw(__QE.targets.ACCOUNT, a, id, isInput, values[a]);
+                            if( a === "role" ){
+                                $( c0 ).append(rr)
+                            }
+                            else{
+                                $( c1 ).append(rr);
+                            }
+                        }
+                        var buttons = [];
+
+                    var m = mdl.create(title, body, buttons);
                     $( m ).modal({backdrop: 'static'});
                 }
                     $( a ).click( userDetails );

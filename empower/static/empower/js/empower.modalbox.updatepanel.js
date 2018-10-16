@@ -30,7 +30,7 @@ class EmpUpdateModalBox extends EmpModalBox{
         return id;
     }
 
-    initResources(obj, userDetails=false){
+    initResources(obj){
         var tag = this.hb.mapName2Tag(obj);
         var title = "Show and update selected " + this.hb.mapName2Title(tag);
 

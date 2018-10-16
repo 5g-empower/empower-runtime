@@ -298,13 +298,13 @@ class EmpNetGraph{
                 $( r1 ).append(c1);
                     var graph = this.hb.ce("DIV");
                     $( c1 ).append(graph);
-                    graph.id = "SBG_" + a;
+                    graph.id = "SBG_" + this.keys[2];
                     var axis = ['x', ['ed', 'rx', 'tx', 'idle']]
                     var labels = ['ed', 'rx', 'tx', 'idle'];
                     var stacked = true;
                     var ff = function(){
                     var graph = Morris.Bar({
-                                    element: "SBG_" + a,
+                                    element: "SBG_" + this.keys[2],
                         data: [],
                         xkey: axis[0],
                         ykeys: axis[1],
@@ -400,133 +400,5 @@ class EmpNetGraph{
         data = data.concat(tmp);
         return data;
     }
-
-
-//    d_StackedBarGraph_WifiStats(tag, values){
-//        var div = this.hb.ce("DIV");
-//
-//        var r0 = this.hb.ceROW();
-//        $( div ).append(r0);
-//            var c = this.hb.ceCOL("xs",2);
-//            $( r0 ).append(c)
-//                var btn = this.hb.ce("BUTTON");
-//                $( c ).append(btn);
-//                btn.id = "BTN_" + values["hwaddr"]
-//                $( btn ).attr("type", "button");
-//                $( btn ).attr("style", "margin: 0px 2px;");
-//                $( btn ).attr("title", "play");
-//                var ico = this.hb.ceFAI("fa-play");
-//                $( ico ).addClass("fa-2x");
-//                $( btn ).prepend(ico);
-//                var f_Play = function(){
-//                    if( this.play ){
-//                        this.play = false;
-//                        $( btn ).attr("title", "play");
-//                        $( btn ).empty();
-//                        var ico = this.hb.ceFAI("fa-play");
-//                        $( ico ).addClass("fa-2x");
-//                        $( btn ).prepend(ico);
-//                    }
-//                    else{
-//                        this.play = true;
-//                        $( btn ).attr("title", "stop");
-//                        $( btn ).empty();
-//                        var ico = this.hb.ceFAI("fa-stop");
-//                        $( ico ).addClass("fa-2x");
-//                        $( btn ).prepend(ico);
-//                        this.f_StackedBarGraph_WifiStats_Play( tag, values )
-//                    }
-//                }
-//                $( btn ).click( f_Play.bind(this) )
-//
-//        var r1 = this.hb.ceROW();
-//        $( div ).append(r1);
-//            var c = this.hb.ceCOL("xs", 12);
-//            $( r1 ).append(c);
-//                var d = this.hb.ce("DIV");
-//                $( c ).append(d);
-//                d.id = "SBG_" + values["hwaddr"]
-//                var ff = function(){
-//                    var axis = ['x', ['ed', 'rx', 'tx', 'idle']]
-//                    var labels = ['ed', 'rx', 'tx', 'idle'];
-//                    var stacked = true;
-//                    var graph = Morris.Bar({
-//                        element: "SBG_" + values["hwaddr"],
-//                        data: [],
-//                        xkey: axis[0],
-//                        ykeys: axis[1],
-//                        labels: labels,
-//                        stacked: stacked,
-//                    });
-//                    this.graph = graph;
-//                    this.f_StackedBarGraph_WifiStats_UpdateBarGraph(values["wifi_stats"]);
-//                }
-//                setTimeout(ff.bind(this), 1/2*this.delay)
-//
-//        return div;
-//    }
-//
-//    f_StackedBarGraph_WifiStats_Play( tag, values ){
-//        this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
-//        var ff = function(){
-//       if( tag === "wtps" )
-//                var supp = this.hb.getKeyValue(tag, values["addr"] )["supports"];
-//            else if( tag === "lvaps"){
-//                var keyValue = Object.keys( values["tx_policies"] )[0]; // TODO EMP_if: barbatrucco?
-//                var supp = this.hb.getKeyValue(tag, keyValue )["blocks"];
-//            }
-//            var el = null
-//            for(var i=0; i<supp.length; i++){
-//                if( supp[i]["hwaddr"] === values["hwaddr"] ){
-//                    el = supp[i];
-//                    break;
-//                }
-//            }
-//            this.f_StackedBarGraph_WifiStats_UpdateBarGraph(el["wifi_stats"]);
-//            var id = this.hb.generateID([this.keys, tag, this.hb.conf.modalbox.tag]);
-//            if( this.play && this.hb.ge(id) != null){
-//                this.f_StackedBarGraph_WifiStats_Play.bind(this)(tag, values);
-//            }
-//        }
-//        setTimeout(ff.bind(this), 1/2*this.delay)
-//    }
-//
-//    f_StackedBarGraph_WifiStats_setData( values ){
-//        var ed = [];
-//        var rx = [];
-//        var tx = [];
-//        var idle = [];
-//        var timestamp = [];
-//        var data = [];
-//        var tmp = [];
-//        for(  var i=0; i<values["ed"].length; i++){
-//            timestamp[i] = values["ed"][i].timestamp;
-//            if( values["ed"][i].sample == 200){
-//                ed[i] = 0;
-//                rx[i] = 0;
-//                tx[i] = 0;
-//                idle[i] = 0;
-//            }
-//            else{
-//                idle[i] = 100 - values["ed"][i].sample;
-//                ed[i] = values["ed"][i].sample - ( values["rx"][i].sample + values["tx"][i].sample );
-//                rx[i] = values["rx"][i].sample;
-//                tx[i] = values["tx"][i].sample
-//            }
-//            data.push({ x: Math.floor(timestamp[i]/1000000), ed: ed[i], rx: rx[i], tx: tx[i], idle: idle[i] })
-//            if( i+1 < values["ed"].length && values["ed"][i].timestamp > values["ed"][i+1].timestamp ){
-//                tmp = JSON.parse(JSON.stringify(data));
-//                data = [];
-//            }
-////            console.log( idle[i] + ed[i] + rx[i] + tx[i] )
-//        }
-//        data = data.concat(tmp);
-//        return data;
-//    }
-//
-//    f_StackedBarGraph_WifiStats_UpdateBarGraph( values ){
-//        var data = this.f_StackedBarGraph_WifiStats_setData(values);
-//        this.graph.setData(data);
-//    }
 
 }
