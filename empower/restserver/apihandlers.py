@@ -84,7 +84,7 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         auth_decoded = base64.b64decode(auth_bytes).decode()
         username, password = auth_decoded.split(':', 2)
 
-        # account does not exists
+        # account does not exist
         if not RUNTIME.check_permission(username, password):
             self.send_error(401)
             return
