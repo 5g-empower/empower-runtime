@@ -38,13 +38,13 @@ class EmpNetGraph{
         $( p ).addClass("panel-info");
         p.id = this.getID();
 
-            var ph = this.hb.cePANEL_H();
-            $( p ).append(ph);
+//            var ph = this.hb.cePANEL_H();
+//            $( p ).append(ph);
             var pb = this.hb.cePANEL_B();
             $( p ).append(pb);
             pb.id = this.getID_BODY();
-            var pf = this.hb.cePANEL_F();
-            $( p ).append(pf);
+//            var pf = this.hb.cePANEL_F();
+//            $( p ).append(pf);
 
                 switch(type){
                     case "topology":
@@ -53,7 +53,7 @@ class EmpNetGraph{
                         $( pb ).append(g);
                         break;
                     case "stackedBarGraph":
-                        $( ph ).text( "Bar graph: " + params[1] );
+//                        $( ph ).text( "Bar graph: " + params[1] );
                         var g = this.d_StackedBarGraph(params);
                         $( pb ).append(g);
                         break;
@@ -257,104 +257,115 @@ class EmpNetGraph{
         var d = null;
         switch(a){
             case "wifi_stats":
-                d = this.d_StackedBarGraph_WifiStats(tag, values);
-                var fff = function(){
-                    this.f_StackedBarGraph_WifiStats_Play( tag, values )
-                }
-                $( d ).ready( fff.bind(this) )
+                d = this.d_StackedBarGraph_WifiStats(tag, a, values);
                 break;
-            default: console.log("BarGrafh_" + a + " not implementes" );
+            default: console.log("BarGraph_" + a + " not implementes" );
         }
         return d;
     }
 
-    d_StackedBarGraph_WifiStats(tag, values){
+    d_StackedBarGraph_WifiStats(tag, a, values){
         var div = this.hb.ce("DIV");
-
         var r0 = this.hb.ceROW();
         $( div ).append(r0);
-            var c = this.hb.ceCOL("xs",2);
-            $( r0 ).append(c)
+                var c0 = this.hb.ceCOL("xs",12);
+                $( r0 ).append(c0);
                 var btn = this.hb.ce("BUTTON");
-                $( c ).append(btn);
-                btn.id = "BTN_" + values["hwaddr"]
+                    $( c0 ).append(btn);
                 $( btn ).attr("type", "button");
                 $( btn ).attr("style", "margin: 0px 2px;");
-                $( btn ).attr("title", "play");
-                var ico = this.hb.ceFAI("fa-play");
-                $( ico ).addClass("fa-2x");
-                $( btn ).prepend(ico);
+
+
                 var f_Play = function(){
                     if( this.play ){
+                            $( btn ).text("Update graph every 3 seconds: OFF");
+                            $( btn ).css("color", RED);
                         this.play = false;
-                        $( btn ).attr("title", "play");
-                        $( btn ).empty();
-                        var ico = this.hb.ceFAI("fa-play");
-                        $( ico ).addClass("fa-2x");
-                        $( btn ).prepend(ico);
                     }
                     else{
+                            $( btn ).text("Update graph every 3 seconds: ON");
+                            $( btn ).css("color", GREEN);
                         this.play = true;
-                        $( btn ).attr("title", "stop");
-                        $( btn ).empty();
-                        var ico = this.hb.ceFAI("fa-stop");
-                        $( ico ).addClass("fa-2x");
-                        $( btn ).prepend(ico);
-                        this.f_StackedBarGraph_WifiStats_Play( tag, values )
+                            this.f_StackedBarGraph_WifiStats_Play(tag, a, values);
                     }
                 }
-                $( btn ).click( f_Play.bind(this) )
+                    $( btn ).click(f_Play.bind(this));
+
 
         var r1 = this.hb.ceROW();
         $( div ).append(r1);
-            var c = this.hb.ceCOL("xs", 12);
-            $( r1 ).append(c);
-                var d = this.hb.ce("DIV");
-                $( c ).append(d);
-                d.id = "SBG_" + values["hwaddr"]
-                var ff = function(){
+                var c1 = this.hb.ceCOL("xs",12);
+                $( r1 ).append(c1);
+                    var graph = this.hb.ce("DIV");
+                    $( c1 ).append(graph);
+                    graph.id = "SBG_" + a;
                     var axis = ['x', ['ed', 'rx', 'tx', 'idle']]
                     var labels = ['ed', 'rx', 'tx', 'idle'];
                     var stacked = true;
+                    var ff = function(){
                     var graph = Morris.Bar({
-                        element: "SBG_" + values["hwaddr"],
+                                    element: "SBG_" + a,
                         data: [],
                         xkey: axis[0],
                         ykeys: axis[1],
+                                    ymax: 100,
                         labels: labels,
                         stacked: stacked,
                     });
                     this.graph = graph;
-                    this.f_StackedBarGraph_WifiStats_UpdateBarGraph(values["wifi_stats"]);
+                        this.f_StackedBarGraph_WifiStats_Play(tag, a, values);
+
+                        this.play = false;
+                        $( btn ).click();
                 }
                 setTimeout(ff.bind(this), 1/2*this.delay)
-
         return div;
     }
 
-    f_StackedBarGraph_WifiStats_Play( tag, values ){
-        this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
-        var ff = function(){
-       if( tag === "wtps" )
-                var supp = this.hb.getKeyValue(tag, values["addr"] )["supports"];
-            else if( tag === "lvaps"){
-                var keyValue = Object.keys( values["tx_policies"] )[0]; // TODO EMP_if: barbatrucco?
-                var supp = this.hb.getKeyValue(tag, keyValue )["blocks"];
-            }
-            var el = null
-            for(var i=0; i<supp.length; i++){
-                if( supp[i]["hwaddr"] === values["hwaddr"] ){
-                    el = supp[i];
+    f_StackedBarGraph_WifiStats_Play(tag, a, values){
+        this.qe.scheduleQuery("GET", [this.qe.targets.LVAP, this.qe.targets.WTP], null, null, this.cache.update.bind(this.cache));
+
+        var keyValue = this.keys[2];
+        var update = function(){
+            var values = [];
+            var found = false;
+            if( tag === "blocks"){
+                var LVAPlist = this.cache.c[this.qe.targets.LVAP];
+                for(var i=0; i<LVAPlist.length; i++){
+                    var blockList = LVAPlist[i]["blocks"];
+                    for(var j=0; j<blockList.length; j++){
+                        if( keyValue === blockList[j]["hwaddr"] ){
+                            found = true;
+                            values = blockList[j]
                     break;
                 }
             }
-            this.f_StackedBarGraph_WifiStats_UpdateBarGraph(el["wifi_stats"]);
-            var id = this.hb.generateID([this.keys, tag, this.hb.conf.modalbox.tag]);
-            if( this.play && this.hb.ge(id) != null){
-                this.f_StackedBarGraph_WifiStats_Play.bind(this)(tag, values);
+                    if(found) break;
             }
         }
-        setTimeout(ff.bind(this), 1/2*this.delay)
+            else if( tag === "supports" ){
+                var WTPlist = this.cache.c[this.qe.targets.WTP];
+                for(var i=0; i<WTPlist.length; i++){
+                    var supportList = WTPlist[i]["supports"];
+                    for(var j=0; j<supportList.length; j++){
+                        if( keyValue === supportList[j]["hwaddr"] ){
+                            found = true;
+                            values = supportList[j]
+                            break;
+                        }
+                    }
+                    if(found) break;
+                }
+            }
+            if( found ){
+                var data = this.f_StackedBarGraph_WifiStats_setData(values[a]);
+                this.graph.setData(data);
+                if(this.play && this.hb.ge(this.getID_BODY()) != null){
+                    this.f_StackedBarGraph_WifiStats_Play(tag, a, values);
+                }
+            }
+        }
+        setTimeout(update.bind(this), this.delay);
     }
 
     f_StackedBarGraph_WifiStats_setData( values ){
@@ -390,9 +401,132 @@ class EmpNetGraph{
         return data;
     }
 
-    f_StackedBarGraph_WifiStats_UpdateBarGraph( values ){
-        var data = this.f_StackedBarGraph_WifiStats_setData(values);
-        this.graph.setData(data);
-    }
+
+//    d_StackedBarGraph_WifiStats(tag, values){
+//        var div = this.hb.ce("DIV");
+//
+//        var r0 = this.hb.ceROW();
+//        $( div ).append(r0);
+//            var c = this.hb.ceCOL("xs",2);
+//            $( r0 ).append(c)
+//                var btn = this.hb.ce("BUTTON");
+//                $( c ).append(btn);
+//                btn.id = "BTN_" + values["hwaddr"]
+//                $( btn ).attr("type", "button");
+//                $( btn ).attr("style", "margin: 0px 2px;");
+//                $( btn ).attr("title", "play");
+//                var ico = this.hb.ceFAI("fa-play");
+//                $( ico ).addClass("fa-2x");
+//                $( btn ).prepend(ico);
+//                var f_Play = function(){
+//                    if( this.play ){
+//                        this.play = false;
+//                        $( btn ).attr("title", "play");
+//                        $( btn ).empty();
+//                        var ico = this.hb.ceFAI("fa-play");
+//                        $( ico ).addClass("fa-2x");
+//                        $( btn ).prepend(ico);
+//                    }
+//                    else{
+//                        this.play = true;
+//                        $( btn ).attr("title", "stop");
+//                        $( btn ).empty();
+//                        var ico = this.hb.ceFAI("fa-stop");
+//                        $( ico ).addClass("fa-2x");
+//                        $( btn ).prepend(ico);
+//                        this.f_StackedBarGraph_WifiStats_Play( tag, values )
+//                    }
+//                }
+//                $( btn ).click( f_Play.bind(this) )
+//
+//        var r1 = this.hb.ceROW();
+//        $( div ).append(r1);
+//            var c = this.hb.ceCOL("xs", 12);
+//            $( r1 ).append(c);
+//                var d = this.hb.ce("DIV");
+//                $( c ).append(d);
+//                d.id = "SBG_" + values["hwaddr"]
+//                var ff = function(){
+//                    var axis = ['x', ['ed', 'rx', 'tx', 'idle']]
+//                    var labels = ['ed', 'rx', 'tx', 'idle'];
+//                    var stacked = true;
+//                    var graph = Morris.Bar({
+//                        element: "SBG_" + values["hwaddr"],
+//                        data: [],
+//                        xkey: axis[0],
+//                        ykeys: axis[1],
+//                        labels: labels,
+//                        stacked: stacked,
+//                    });
+//                    this.graph = graph;
+//                    this.f_StackedBarGraph_WifiStats_UpdateBarGraph(values["wifi_stats"]);
+//                }
+//                setTimeout(ff.bind(this), 1/2*this.delay)
+//
+//        return div;
+//    }
+//
+//    f_StackedBarGraph_WifiStats_Play( tag, values ){
+//        this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
+//        var ff = function(){
+//       if( tag === "wtps" )
+//                var supp = this.hb.getKeyValue(tag, values["addr"] )["supports"];
+//            else if( tag === "lvaps"){
+//                var keyValue = Object.keys( values["tx_policies"] )[0]; // TODO EMP_if: barbatrucco?
+//                var supp = this.hb.getKeyValue(tag, keyValue )["blocks"];
+//            }
+//            var el = null
+//            for(var i=0; i<supp.length; i++){
+//                if( supp[i]["hwaddr"] === values["hwaddr"] ){
+//                    el = supp[i];
+//                    break;
+//                }
+//            }
+//            this.f_StackedBarGraph_WifiStats_UpdateBarGraph(el["wifi_stats"]);
+//            var id = this.hb.generateID([this.keys, tag, this.hb.conf.modalbox.tag]);
+//            if( this.play && this.hb.ge(id) != null){
+//                this.f_StackedBarGraph_WifiStats_Play.bind(this)(tag, values);
+//            }
+//        }
+//        setTimeout(ff.bind(this), 1/2*this.delay)
+//    }
+//
+//    f_StackedBarGraph_WifiStats_setData( values ){
+//        var ed = [];
+//        var rx = [];
+//        var tx = [];
+//        var idle = [];
+//        var timestamp = [];
+//        var data = [];
+//        var tmp = [];
+//        for(  var i=0; i<values["ed"].length; i++){
+//            timestamp[i] = values["ed"][i].timestamp;
+//            if( values["ed"][i].sample == 200){
+//                ed[i] = 0;
+//                rx[i] = 0;
+//                tx[i] = 0;
+//                idle[i] = 0;
+//            }
+//            else{
+//                idle[i] = 100 - values["ed"][i].sample;
+//                ed[i] = values["ed"][i].sample - ( values["rx"][i].sample + values["tx"][i].sample );
+//                rx[i] = values["rx"][i].sample;
+//                tx[i] = values["tx"][i].sample
+//            }
+//            data.push({ x: Math.floor(timestamp[i]/1000000), ed: ed[i], rx: rx[i], tx: tx[i], idle: idle[i] })
+//            if( i+1 < values["ed"].length && values["ed"][i].timestamp > values["ed"][i+1].timestamp ){
+//                tmp = JSON.parse(JSON.stringify(data));
+//                data = [];
+//            }
+////            console.log( idle[i] + ed[i] + rx[i] + tx[i] )
+//        }
+//        data = data.concat(tmp);
+//        return data;
+//    }
+//
+//    f_StackedBarGraph_WifiStats_UpdateBarGraph( values ){
+//        var data = this.f_StackedBarGraph_WifiStats_setData(values);
+//        this.graph.setData(data);
+//    }
 
 }
