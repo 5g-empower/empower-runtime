@@ -263,7 +263,9 @@ class AccountsHandler(EmpowerAPIHandler):
                   "password" : {"type": str, "mandatory": True},
                   "name" : {"type": str, "mandatory": True},
                   "surname" : {"type": str, "mandatory": True},
-                  "email" : {"type": str, "mandatory": True}
+                  "email" : {"type": str, "mandatory": True},
+                  "new_password" : {"type": str, "mandatory": False},
+                  "new_password_ver" : {"type": str, "mandatory": False}
               })
     def put(self, *args, **kwargs):
         """Update an account.
@@ -293,7 +295,42 @@ class AccountsHandler(EmpowerAPIHandler):
             }
         """
 
-        RUNTIME.update_account(args[0], kwargs)
+        try:
+
+            if len(args) != 1:
+                raise ValueError("Invalid url")
+
+            request = tornado.escape.json_decode(self.request.body)
+            username = args[0]
+
+            if 'new_password' in request:
+
+                if 'new_password_ver' not in request:
+                    raise ValueError("missing new password verification")
+
+                if 'new_password_ver' in request and \
+                    request['new_password'] != request['new_password_ver']:
+                    raise ValueError("new passwords are not identical")
+
+                if 'password' not in request:
+                    raise ValueError("missing current password")
+
+                if not RUNTIME.check_permission(username, \
+                    request['password']):
+                    raise ValueError("wrong password for this user")
+
+                request['password'] = request['new_password']
+                del request['new_password']
+                del request['new_password_ver']
+
+            RUNTIME.update_account(username, request)
+
+        except TypeError as ex:
+            self.send_error(400, message=ex)
+        except ValueError as ex:
+            self.send_error(400, message=ex)
+        except KeyError as ex:
+            self.send_error(404, message=ex)
 
     @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):
