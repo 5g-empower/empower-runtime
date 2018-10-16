@@ -260,10 +260,12 @@ class AccountsHandler(EmpowerAPIHandler):
               max_args=1,
               input_schema={
                   "version" : {"type": float, "mandatory": True},
-                  "password" : {"type": str, "mandatory": True},
                   "name" : {"type": str, "mandatory": True},
                   "surname" : {"type": str, "mandatory": True},
-                  "email" : {"type": str, "mandatory": True}
+                  "email" : {"type": str, "mandatory": True},
+                  "password" : {"type": str, "mandatory": False},
+                  "new_password" : {"type": str, "mandatory": False},
+                  "new_password_confirm" : {"type": str, "mandatory": False}
               })
     def put(self, *args, **kwargs):
         """Update an account.
@@ -274,18 +276,19 @@ class AccountsHandler(EmpowerAPIHandler):
         Request:
             version: protocol version (1.0)
             username: username
-            password: password
             role: tole
             name: name
             surname: surname
             email: email
+            password: password
+            new_password: new_password
+            new_password_confirm: new_password_confirm
 
         Example URLs:
             PUT /api/v1/accounts/test
             {
               "version" : 1.0,
               "username" : "foo",
-              "password" : "foo",
               "role" : "user",
               "name" : "foo",
               "surname" : "foo",
@@ -293,7 +296,18 @@ class AccountsHandler(EmpowerAPIHandler):
             }
         """
 
-        RUNTIME.update_account(args[0], kwargs)
+        if 'new_password' in kwargs:
+
+            if kwargs['new_password'] != kwargs['new_password_confirm']:
+                raise ValueError("Passwords do not match")
+
+            if not RUNTIME.check_permission(args[0], kwargs['password']):
+                raise ValueError("Invalid old passwor")
+
+        account = RUNTIME.accounts[args[0]]
+
+        for param in kwargs:
+            setattr(account, param, kwargs[param])
 
     @validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):

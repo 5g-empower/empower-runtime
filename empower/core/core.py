@@ -378,14 +378,6 @@ class EmpowerRuntime:
         for tenant_id in to_be_deleted:
             self.remove_tenant(tenant_id)
 
-    def update_account(self, username, request):
-        """Update an account."""
-
-        account = self.accounts[username]
-
-        for param in request:
-            setattr(account, param, request[param])
-
     def register_app(self, name, init_method, params):
         """Register new app."""
 
