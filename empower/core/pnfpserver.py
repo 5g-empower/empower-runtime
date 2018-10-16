@@ -228,7 +228,7 @@ class PNFPServer:
         """Add PNFDev."""
 
         if addr in self.pnfdevs:
-            raise KeyError(addr)
+            raise ValueError("Device address %s already present" % addr)
 
         self.pnfdevs[addr] = self.PNFDEV(addr, label)
 
