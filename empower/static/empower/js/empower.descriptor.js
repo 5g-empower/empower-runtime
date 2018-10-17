@@ -154,11 +154,13 @@ class EmpDescriptor{
                         "ff" : {},      // format functions
                         };
             this.d[targets.ACCOUNT].attr["username"]   =  {"name": "Username", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["password"]   =  {"name": "Password", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
-            this.d[targets.ACCOUNT].attr["email"]      =  {"name": "Mail", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
             this.d[targets.ACCOUNT].attr["name"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
             this.d[targets.ACCOUNT].attr["surname"]    =  {"name": "Surname", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
             this.d[targets.ACCOUNT].attr["role"]       =  {"name": "Role", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.role };
+            this.d[targets.ACCOUNT].attr["email"]      =  {"name": "Mail", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["password"]   =  {"name": "Password", "isKey": false,   "add": this.add.M,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["new_password"]   =  {"name": "New Password", "isKey": false,   "add": this.add.E,  "update": true,  "type": this.dt.STR.def };
+            this.d[targets.ACCOUNT].attr["new_password_confirm"]   =  {"name": "Confirm Password", "isKey": false,   "add": this.add.E,  "update": true,  "type": this.dt.STR.def };
 
             this.d[targets.ACCOUNT].ff.TBL = ff_Account_Table;
 //            this.d[targets.ACCOUNT].ff.GET = ff_Account_Get;
@@ -260,7 +262,7 @@ class EmpDescriptor{
         this.d[targets.TR] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.TR].attr["dscp"]     =  {"name": "DSCP", "isKey": false,    "add": this.add.M,  "update": false,  "type": this.dt.OBJ.dscp};
+            this.d[targets.TR].attr["dscp"]     =  {"name": "Tag", "isKey": false,    "add": this.add.M,  "update": false,  "type": this.dt.OBJ.dscp};
             this.d[targets.TR].attr["tenant_id"]    =  {"name": "Tenant ID", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.OBJ.tID};
             this.d[targets.TR].attr["label"]    =  {"name": "Description", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.TR].attr["match"]    =  {"name": "Match rules", "isKey": true,   "add": this.add.M,  "update": false,  "type": this.dt.OBJ.match};
@@ -277,7 +279,7 @@ class EmpDescriptor{
                         "ff" : {},      // format functions
                         };
             this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.SLICE].attr["dscp"]    =  {"name": "DSCP", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["dscp"]    =  {"name": "Tag", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.SLICE].attr["wifi"]    =  {"name": "Wi-Fi", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
             this.d[targets.SLICE].attr["lte"]     =  {"name": "LTE", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
 

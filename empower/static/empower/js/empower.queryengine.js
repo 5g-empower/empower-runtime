@@ -255,13 +255,15 @@ class EmpQueryEngine{
                 if( type === "POST"){
                     url = this.POSTQueryURL(target, tenant_id);
                     dataType = "text";
-                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "password" : "' + values.password + '", "role" : "' + values.role + '",'
+                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "role" : "' + values.role + '",'
+                    if( values.password ) data += '"password" : "' + values.password + '", "new_password" : "' + values.new_password + '", "new_password_confirm" : "' + values.new_password_confirm + '",'
                     data += ' "name" : "' + values.name + '", "surname" : "' + values.surname + '", "email" : "' + values.email + '" }';
                 }
                 else if( type === "PUT"){
                     url = this.PUTQueryURL(target, tenant_id) + values.username;
                     dataType = "text";
-                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "password" : "' + values.password + '", "role" : "' + values.role + '",'
+                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "role" : "' + values.role + '",'
+                    if( values.password ) data += '"password" : "' + values.password + '", "new_password" : "' + values.new_password + '", "new_password_confirm" : "' + values.new_password_confirm + '",'
                     data += ' "name" : "' + values.name + '", "surname" : "' + values.surname + '", "email" : "' + values.email + '" }';
                         }
                 else if( type === "DELETE"){

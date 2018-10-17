@@ -319,7 +319,7 @@ function ff_TR_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" 
                          ]);
         params.push( [ { "type": "h", "value": "Tenant ID"},
                          ]);
-        params.push( [ { "type": "h", "value": "DSCP"},
+        params.push( [ { "type": "h", "value": "Tag"},
                          ]);
         params.push( [ { "type": "i", "value": "fa-key"},
                         { "type": "k", "value": "Match",
@@ -349,7 +349,7 @@ function ff_Slice_Table( ctrl ){ // input param: ctrl = "h" for header table / "
     if( ctrl === "h" ){
         params.push( [ { "type": "h", "value": "Tenant ID"},
                          ]);
-        params.push( [ { "type": "h", "value": "DSCP"},
+        params.push( [ { "type": "h", "value": "Tag"},
                          ]);
     }
     else if ( ctrl === "d" ){
