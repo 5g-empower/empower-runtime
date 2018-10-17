@@ -73,7 +73,7 @@ class EmpQueryEngine{
         $( "#navbar_pendingQuery" ).text("Loading...");
         var params = [];
         for (var i = 0; i < targets.length; i++){
-            params.push(t.performQuery(type, targets[i], tenant_id, values) );
+            params.push( t.performQuery(type, targets[i], tenant_id, values) );
         }
         if ( cb !== null){
             return  ($.when.apply(null, params)).then(
@@ -90,6 +90,13 @@ class EmpQueryEngine{
                         }
                     }
                     cb.apply(null, [args]);
+                },
+                function(){
+                        $( "#navbar_pendingQuery" ).text(" ");
+                        var error = JSON.parse(arguments[0].responseText);
+                        var txt = error["code"] + ": " + error["reason"] + "\n";
+                        if( error["message"] ) txt += error["message"];
+                        alert(txt)
                 }
             )
         }
@@ -248,13 +255,15 @@ class EmpQueryEngine{
                 if( type === "POST"){
                     url = this.POSTQueryURL(target, tenant_id);
                     dataType = "text";
-                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "password" : "' + values.password + '", "role" : "' + values.role + '",'
+                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "role" : "' + values.role + '",'
+                    if( values.password ) data += '"password" : "' + values.password + '", "new_password" : "' + values.new_password + '", "new_password_confirm" : "' + values.new_password_confirm + '",'
                     data += ' "name" : "' + values.name + '", "surname" : "' + values.surname + '", "email" : "' + values.email + '" }';
                 }
                 else if( type === "PUT"){
                     url = this.PUTQueryURL(target, tenant_id) + values.username;
                     dataType = "text";
-                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "password" : "' + values.password + '", "role" : "' + values.role + '",'
+                    data = '{ "version" : "1.0", "username" : "' + values.username + '", "role" : "' + values.role + '",'
+                    if( values.password ) data += '"password" : "' + values.password + '", "new_password" : "' + values.new_password + '", "new_password_confirm" : "' + values.new_password_confirm + '",'
                     data += ' "name" : "' + values.name + '", "surname" : "' + values.surname + '", "email" : "' + values.email + '" }';
                         }
                 else if( type === "DELETE"){
@@ -309,8 +318,8 @@ class EmpQueryEngine{
             beforeSend: function (request) {
                 request.setRequestHeader("Authorization", t.BASE_AUTH);
             },
-            error: console.log,
-            success: function(){}
+            success: function(){},
+            error: function(){}
             };
 
 //        console.log("request", request)

@@ -39,7 +39,7 @@ from empower.vbsp import E_SINGLE
 from empower.vbsp import E_SCHED
 from empower.vbsp import E_TRIG
 from empower.vbsp import EP_OPERATION_UNSPECIFIED
-from empower.vbsp import CAPS_REQUEST
+from empower.vbsp import ENB_CAPS_REQUEST
 from empower.vbsp import UE_HO_REQUEST
 from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import UE_REPORT_REQUEST
@@ -48,8 +48,9 @@ from empower.vbsp import EP_UE_REPORT_IDENTITY
 from empower.vbsp import EP_UE_REPORT_STATE
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import EP_ACT_HANDOVER
-from empower.vbsp import CAPS_TYPES
-from empower.vbsp import EP_CAPS_CELL
+from empower.vbsp import ENB_CAPS_TYPES
+from empower.vbsp import EP_CELL_CAPS
+from empower.vbsp import EP_RAN_CAPS
 from empower.vbsp import RAN_MAC_SLICE_REQUEST
 from empower.vbsp import EP_ACT_RAN_MAC_SLICE
 from empower.vbsp import RAN_MAC_SLICE_RBGS
@@ -297,9 +298,9 @@ class VBSPConnection:
         vbs.last_seen_ts = time.time()
 
     def _handle_caps_response(self, vbs, hdr, event, caps):
-        """Handle an incoming CAPS RESPONSE message.
+        """Handle an incoming ENB CAPS RESPONSE message.
         Args:
-            caps, a CAPS messagge
+            caps, a ENB CAPS messagge
         Returns:
             None
         """
@@ -310,25 +311,68 @@ class VBSPConnection:
         # parse capabilities TLVs
         for raw_cap in caps.options:
 
-            # handle new cells
-            if raw_cap.type == EP_CAPS_CELL:
+            if raw_cap.type not in ENB_CAPS_TYPES:
+                self.log.warning("Unknown options %u", raw_cap)
+                continue
 
-                cap = CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
-                cell = Cell(vbs, cap.pci, cap.cap, cap.dl_earfcn, cap.dl_prbs,
-                            cap.ul_earfcn, cap.ul_prbs)
-                vbs.cells[cap.pci] = cell
+            prop = ENB_CAPS_TYPES[raw_cap.type].name
+            option = ENB_CAPS_TYPES[raw_cap.type].parse(raw_cap.data)
+
+            self.log.warning("Processing options %s", prop)
+
+            # handle new cells
+            if raw_cap.type == EP_CELL_CAPS:
+
+                if option.pci not in vbs.cells:
+
+                    cell = Cell(vbs, option.pci)
+                    vbs.cells[option.pci] = cell
+
+                cell = vbs.cells[option.pci]
+
+                cell.features = option.features
+                cell.dl_earfcn = option.dl_earfcn
+                cell.dl_bandwidth = option.dl_bandwidth
+                cell.ul_earfcn = option.ul_earfcn
+                cell.ul_bandwidth = option.ul_bandwidth
+                cell.max_ues = option.max_ues
+
+                if option.features.ue_report:
+                    # activate UE reports
+                    self.send_ue_reports_request()
+
+            # handle ran capabilities
+            if raw_cap.type == EP_RAN_CAPS:
+
+                ran_features = {}
+
+                ran_features['layer1'] = option.layer1
+                ran_features['layer2'] = {}
+
+                ran_features['layer2']['rbg_slicing'] = option.layer2.rbg_slicing
+                ran_features['layer2']['prb_slicing'] = option.layer2.prb_slicing
+
+                ran_features['layer3'] = option.layer3
+                ran_features['mac_sched'] = option.mac_sched
+                ran_features['max_slices'] = option.max_slices
+
+                if option.pci not in vbs.cells:
+
+                    cell = Cell(vbs, option.pci)
+                    vbs.cells[option.pci] = cell
+
+                cell = vbs.cells[option.pci]
+
+                cell.ran_features = ran_features
 
                 # send slice request
-                self.send_ran_mac_slice_request(cap.pci)
+                self.send_ran_mac_slice_request(option.pci)
+
+                # send slices
+                self.update_slices()
 
         # transition to the online state
         vbs.set_online()
-
-        # activate UE reports
-        self.send_ue_reports_request()
-
-        # send slices
-        self.update_slices()
 
     def update_slices(self):
         """Update active Slices."""
@@ -374,7 +418,7 @@ class VBSPConnection:
         for raw_entry in msg.options:
 
             if raw_entry.type not in UE_REPORT_TYPES:
-                self.log.warning("Unknown options %u", raw_entry.raw_entry)
+                self.log.warning("Unknown options %u", raw_entry)
                 continue
 
             prop = UE_REPORT_TYPES[raw_entry.type].name
@@ -412,7 +456,7 @@ class VBSPConnection:
 
                     self.server.send_ue_join_message_to_self(ue)
 
-            elif raw_entry.type == EP_UE_REPORT_STATE:
+            if raw_entry.type == EP_UE_REPORT_STATE:
 
                 ue_id = uuid.uuid4()
 
@@ -531,12 +575,12 @@ class VBSPConnection:
             None
         """
 
-        msg = Container(length=CAPS_REQUEST.sizeof(), dummy=0)
+        msg = Container(length=ENB_CAPS_REQUEST.sizeof(), dummy=0)
 
         self.send_message(msg,
                           E_TYPE_SINGLE,
                           EP_ACT_CAPS,
-                          CAPS_REQUEST)
+                          ENB_CAPS_REQUEST)
 
     def send_ue_reports_request(self):
         """Send a UE Reports message.

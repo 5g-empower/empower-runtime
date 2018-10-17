@@ -159,6 +159,7 @@ function ff_DIF_Match(tag, a, id, values){
             $( c1 ).append(input);
             $( input ).addClass("hide");
             input.id = id;
+            $( input ).css("backgroundColor", "rgb(238, 98, 98)");
 
             var DefineNewMatch = function(){
                 var rr = __HB.ceROW();
@@ -166,10 +167,30 @@ function ff_DIF_Match(tag, a, id, values){
 
                     var cc1 = __HB.ceCOL("xs", 4);
                     $( rr ).append(cc1);
-                        var i1 = __HB.ce("INPUT");
+                        var MatchStructure = ["wildcards", "dl_src", "dl_dst",
+                                                "dl_vlan", "dl_pcp", "pad",
+                                                "dl_type", "nw_tos", "nw_proto",
+                                                "nw_src", "nw_dst", "tp_src",
+                                                "tp_dst"];
+                        var selector = __HB.ce("SELECT");
+                        $( cc1 ).append(selector);
+                        $( selector ).css("width","100%");
+                        $( selector ).css("height","26px");
+                        for(var i=0; i<MatchStructure.length; i++){
+                            var opt = __HB.ce("OPTION");
+                            $( selector ).append(opt);
+                            opt.id = MatchStructure[i]
+                            $( opt ).text(MatchStructure[i])
+                        }
+                        var i1 = __HB.ce("SPAN");
                         $( cc1 ).append(i1);
-                        $( i1 ).attr("placeholder","Field");
-                        $( i1 ).attr("size", 10);
+                        $( i1 ).addClass("hide");
+                        var ff_change = function(){
+                            var el = selector.options[selector.selectedIndex];
+                            $( i1 ).text( el.id )
+                        }
+                        $( selector ).change(ff_change)
+                        setTimeout( function(){ $( selector ).change() }, 1/8*__DELAY )
                     var cc2 = __HB.ceCOL("xs", 1);
                     $( rr ).append(cc2);
                     $( cc2 ).addClass("text-center");
@@ -208,12 +229,16 @@ function ff_DIF_Match(tag, a, id, values){
                         txt += MatchRules[i] + ", "
                     }
                     txt = txt.substr(0, txt.length-2)
-                    $( input ).text(txt)
+                    $( input ).text(txt);
+                    if( MatchRules.length > 0)
+                        $( input ).css("backgroundColor", "rgb(223, 240, 216)");
+                    else
+                        $( input ).css("backgroundColor", "rgb(238, 98, 98)");
                 }
                 var ADDclick = function(){
                     $( btn_REMOVE ).removeClass("hide");
                     $( btn_ADD ).addClass("hide");
-                    var field = $( i1 ).val(); i1.disabled = true;
+                    var field = $( i1 ).text(); selector.disabled = true;
                     var value = $( i3 ).val(); i3.disabled = true;
                     var txt = field + "=" + value
                     if( txt === "=")
@@ -228,7 +253,7 @@ function ff_DIF_Match(tag, a, id, values){
                 var REMOVEclick = function(){
                     $( btn_REMOVE ).addClass("hide");
                     $( btn_ADD ).removeClass("hide");
-                    var field = $( i1 ).val();
+                    var field = $( i1 ).text();
                     var value = $( i3 ).val();
                     var txt = field + "=" + value
                     var idx = MatchRules.indexOf(txt);
@@ -258,7 +283,20 @@ function ff_DIF_TenantID(tag, a, id, values){
             $( c1 ).append(selector);
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
-            var TenantList = __CACHE.c[__QE.targets.TENANT];
+            var TenantList = [];
+                if( __ROLE === "admin "){
+                    TenantList =  __CACHE.c[__QE.targets.TENANT];
+                }
+                else{
+                    var tenant_name = $( "#navbar_tenantname" ).text();
+                    for( var i=0; i<__CACHE.c[__QE.targets.TENANT].length; i++ ){
+                        var tnt = __CACHE.c[__QE.targets.TENANT][i];
+                        if( tnt["tenant_name"] === tenant_name ){
+                            TenantList.push( tnt );
+                            break;
+                        }
+                    }
+                }
             for(var i=0; i<TenantList.length; i++){
                 var opt = __HB.ce("OPTION");
                 $( selector ).append(opt);
@@ -724,15 +762,17 @@ function ff_DSV_Supports(tag, a, id, values){
 
 function ff_DSV_WifiStats(tag, a, id, values){
 
+    var panelID = id.substr(0, id.length-11);
+
     var btn = __HB.ce("BUTTON");
     $( btn ).attr("type", "button");
     $( btn ).attr("style", "margin: 0px 2px;");
     $( btn ).attr("title", "show " + a);
     $( btn ).text( __HB.mapName2Title(a) );
-
-        var panelID = id.substr(0, id.length-11);
+    btn.id = panelID + "_btn";
         var div = __HB.ce("DIV");
         $( div ).addClass("hide");
+        div.id = panelID + "_divgrphbox";
         if( !$.isEmptyObject( values ) ){
             var graph = new EmpNetGraphBox( [tag, a, panelID.substr(panelID.length-17, panelID.length)] );
             var params = [tag, a, values];
@@ -742,7 +782,9 @@ function ff_DSV_WifiStats(tag, a, id, values){
         }
 
         var f_Click = function(){
-            $( div ).hasClass("hide")? $( div ).removeClass("hide") : $( div ).addClass("hide");
+            var id = this.id.substr(0, this.id.length-4);
+            var cnt = __HB.ge(id + "_divgrphbox");
+            $( cnt ).hasClass("hide")? $( div ).removeClass("hide") : $( div ).addClass("hide");
         }
         $( btn ).click(f_Click);
 
@@ -959,4 +1001,58 @@ function ff_DSV_Empty(tag, a){
         var pb = __HB.cePANEL_B();
         $( panel ).append(pb);
     return panel
+}
+
+// ------------------------------------------------------------------------------------- BATCH FIELD
+
+function ff_drawBatch_Object( attr, value, id){
+    var r = [];
+        var r1 = __HB.ceROW();
+        $( r1 ).css("margin", "5px 0px")
+            var c1 = __HB.ceCOL("xs", 6);
+            c1.id = id + "_V";
+            var desc = __DESC.d[attr];
+            var key = "";
+            var str = "{ "
+            if( desc ){
+                for( var a in desc.attr ){
+                    if( desc.attr[a].isKey ){
+                        key = a;
+                        break;
+                    }
+                }
+                str += key + ": " + value[key] + ", ";
+            }
+            else{
+                console.log("ff_Object: no description of " + attr);
+            }
+            str += "...}";
+            $( c1 ).text(str);
+            $( r1 ).append(c1);
+            var c2 = __HB.ceCOL("xs", 2);
+                var btn = __HB.ce("BUTTON");
+                $( c2 ).append(btn);
+                $( btn ).attr("type", "button");
+                $( btn ).attr("title", "click for more details");
+                $( btn ).text("...");
+                $( btn ).click( function(){
+                    $( c3 ).hasClass('hide')? $( c3 ).removeClass('hide') : $( c3 ).addClass('hide')
+                });
+                var ico = __HB.ceFAI("fa-th-list");
+                $( ico ).addClass("fa-1x");
+                $( btn ).prepend(ico);
+            $( r1 ).append(c2);
+        r.push(r1)
+        var r2 = __HB.ceROW();
+        $( r2 ).css("margin", "5px 0px")
+            var c3 = __HB.ceCOL("xs", 10);
+            $( c3 ).addClass("hide");
+                var pre = __HB.ce("PRE");
+                $( c3 ).append(pre);
+                    var txt = JSON.stringify(value, undefined, 4);
+                    $( pre ).html( __HB.syntaxHighlight(txt));
+                    $( pre ).css("margin", "0px 10px");
+            $( r2 ).append(c3)
+        r.push(r2);
+    return r;
 }

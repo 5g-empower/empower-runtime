@@ -315,22 +315,30 @@ function ff_Acl_Table( ctrl ){ // input param: ctrl = "h" for header table / "d"
 function ff_TR_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" for data table
     var params = [];
     if( ctrl === "h" ){
+        params.push( [ { "type": "h", "value": "Name"},
+                         ]);
         params.push( [ { "type": "h", "value": "Tenant ID"},
                          ]);
-        params.push( [ { "type": "h", "value": "DSCP"},
+        params.push( [ { "type": "h", "value": "Tag"},
                          ]);
         params.push( [ { "type": "i", "value": "fa-key"},
                         { "type": "k", "value": "Match",
                             "style": "color:" + BLUE },
                          ]);
+        params.push( [ { "type": "h", "value": "Priority"},
+                         ]);
     }
     else if ( ctrl === "d" ){
+        params.push( [ { "type": "a", "attr": "label"},
+                         ]);
         params.push( [ { "type": "a", "attr": "tenant_id"},
                          ]);
         params.push( [ { "type": "a", "attr": "dscp"},
                          ]);
         params.push( [ { "type": "k", "attr": "match",
                             "style": "color:" + BLUE },
+                         ]);
+        params.push( [ { "type": "a", "attr": "priority"},
                          ]);
     }
     return params;
@@ -341,7 +349,7 @@ function ff_Slice_Table( ctrl ){ // input param: ctrl = "h" for header table / "
     if( ctrl === "h" ){
         params.push( [ { "type": "h", "value": "Tenant ID"},
                          ]);
-        params.push( [ { "type": "h", "value": "DSCP"},
+        params.push( [ { "type": "h", "value": "Tag"},
                          ]);
     }
     else if ( ctrl === "d" ){

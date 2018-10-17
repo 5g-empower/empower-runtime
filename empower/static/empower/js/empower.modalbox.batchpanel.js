@@ -18,10 +18,15 @@ class EmpBatchModalBox extends EmpModalBox{
 
 
 // ------------------- Buttons
-        var ff_Close = this.f_Close.bind(this);
-        var buttons = [];
 
-        return [title, body, buttons, ff_Close];
+        var buttons = [];
+        var ff_Close = this.f_Close.bind(this);
+        var btn_Close = {"text": "Close",
+                         "color": "primary",
+                         "f": ff_Close};
+         buttons.push(btn_Close);
+
+        return [title, body, buttons];
     }
 
     d_BatchBodyPanel(tag){
@@ -351,6 +356,12 @@ class EmpBatchModalBox extends EmpModalBox{
         }
         m = generateWarningModal( tag.toUpperCase() + ": delete old elements", f_YES.bind(this));
         $( m ).modal({backdrop: 'static', keyboard: false});
+    }
+
+    f_Close(){
+        var id = this.getID();
+        var m = this.hb.ge(id);
+        $( m ).modal('hide');
     }
 
 }

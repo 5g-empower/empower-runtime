@@ -28,6 +28,11 @@ function createNavbar(){
                 $( navbarBrandAImg ).attr("style", "float:left");
                             var navbarBrandATxt = "&emsp;5G-EmPOWER";
             $( navbarBrandA ).append(navbarBrandATxt);
+                                var navbarTenantID = __HB.ce("SPAN")
+                                $( navbarBrandA ).append(navbarTenantID);
+                                navbarTenantID.id = "navbar_tenantname"
+                                $( navbarTenantID ).css("margin-left", "30px")
+
                     var pendingQueryStatus = __HB.ce("DIV");
                     $( c01 ).append(pendingQueryStatus);
                         $(pendingQueryStatus).addClass("navbar-text");
@@ -61,14 +66,14 @@ function createNavbar(){
                     $( refresh ).attr("data-off-color", "info");
                     $( refresh ).on('switchChange.bootstrapSwitch', __HB.wrapFunction( toggleAutoRefresh, [refresh] ));
                     $( refresh ).bootstrapSwitch()
-                var c11 = __HB.ceCOL("xs",4);
+                var c11 = __HB.ceCOL("xs",3);
                 $( r1 ).append(c11);
                     var user = __HB.ce("DIV");
                     $( c11 ).append(user);
                     $( user ).css("padding-top", "5px");
 //                    $(user).addClass("navbar-text");
                     $(user).html("<strong>" + __USERNAME + "</strong>" + " (" + ( __ROLE==="user"? "User)":"Admin)" ) );
-                var c12 = __HB.ceCOL("xs",2);
+                var c12 = __HB.ceCOL("xs",3);
                 $( r1 ).append(c12);
 //                $( c12 ).css("padding", "15px 0px");
                 $( c12 ).css("color", "#FFFFFF");
@@ -100,9 +105,12 @@ function createNavbar(){
                         $( a ).prepend(i);
                         $( i ).addClass("fa-fw");
                 var userDetails = function(){
-                    var mdl = new EmpUpdateModalBox( __USERNAME );
-                    var args = mdl.initResources("accounts", true);
-                    var m = mdl.create(args[0], args[1], args[2], args[3]);
+                    var tag = __QE.targets.ACCOUNT;
+                    var cp = __HB.mapName2Obj(tag);
+                        var cp_keys = __USERNAME;
+                    var mdl = new EmpUpdateModalBox( cp_keys );;
+                    var args = mdl.initResources(cp); // return [title, body, buttons];
+                    var m = mdl.create(args[0], args[1], args[2]);
                     $( m ).modal({backdrop: 'static'});
                 }
                     $( a ).click( userDetails );
@@ -230,6 +238,26 @@ function toggleAutoRefresh(args){
                                 __QE.targets.SLICE,
                             ];
             __QE.scheduleQuery("GET", targets, null, null, __CACHE.update.bind(__CACHE));
+        }
+        else{
+            var tenant_name = $( "#navbar_tenantname" ).text();
+            var tenant_id = "";
+            for(var tnt in __CACHE.c["tenants"]){
+                if( __CACHE.c["tenants"]["tenant_name"] === tenant_name ){
+                    tenant_id = __CACHE.c["tenants"]["tenant_id"];
+                    break;
+                }
+            }
+
+            var targets = [  __QE.targets.WTP,
+                            __QE.targets.CPP,
+                            __QE.targets.VBS,
+                            __QE.targets.LVAP,
+                            __QE.targets.UE,
+                            __QE.targets.TR,
+                            __QE.targets.SLICE,
+                            ];
+            __QE.scheduleQuery("GET", targets, tenant_id, null, __CACHE.update.bind(__CACHE));
         }
         var ff = function(){
             toggleAutoRefresh(args);

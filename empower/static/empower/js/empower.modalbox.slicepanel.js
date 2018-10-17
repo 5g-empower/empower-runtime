@@ -53,7 +53,7 @@ class EmpSliceModalBox extends EmpModalBox{
                 title = "Update " + this.hb.mapName2Title(tag);
 
                 this.WIFIdetails = this.selObj["wifi"]["wtps"];
-                this.LTEdetails = this.selObj["lte"]["vbses"];  // TODO EMP_if: HAVE TO BE TESTED!
+                this.LTEdetails = this.selObj["lte"]["vbses"];
                 div = this.d_SliceBodyUpdatePanel( this.selObj );
                 f = this.hb.wrapFunction(this.f_Update.bind(this), [tag]);
             }
@@ -67,7 +67,7 @@ class EmpSliceModalBox extends EmpModalBox{
         var btn_Save = {"text": "Save",
                          "color": "primary",
                          "f": f};
-         buttons.push(btn_Save);
+        buttons.push(btn_Save);
 
         var ff_Close = this.f_Close.bind(this);
         var btn_Close = {"text": "Close",
@@ -217,7 +217,7 @@ class EmpSliceModalBox extends EmpModalBox{
         // Mandatory attributes for creating a new Network slice are: DSCP and a Tenant ID
             var attrbts = {}
             attrbts["tenant_id"] = { "name": "Select Tenant: ", "d": this.d_SliceBodyPanel_SelectTenant.bind(this) };
-            attrbts["dscp"] = { "name": "Select DSCP: ", "d": this.d_SliceBodyPanel_SelectDSCP.bind(this) };
+            attrbts["dscp"] = { "name": "Select Tag: ", "d": this.d_SliceBodyPanel_SelectDSCP.bind(this) };
             for( var a in attrbts){
                 var r = this.hb.ceROW();
                 $( div ).append(r);
@@ -244,7 +244,7 @@ class EmpSliceModalBox extends EmpModalBox{
             var attrbts = {}
             var tnt = this.hb.getKeyValue(this.qe.targets.TENANT, values["tenant_id"]);
             attrbts["tenant_id"] = { "name": "Select Tenant: ", "value": tnt["tenant_name"] };
-            attrbts["dscp"] = { "name": "Select DSCP: ", "value": values["dscp"] };
+            attrbts["dscp"] = { "name": "Select Tag: ", "value": values["dscp"] };
             for( var a in attrbts){
                 var r = this.hb.ceROW();
                 $( div ).append(r);
@@ -310,6 +310,11 @@ class EmpSliceModalBox extends EmpModalBox{
                 $( pf ).css("backgroundColor", "#FFFFFF");
                 var selObj = null;
 
+            if( this.cache.c["vbses"].length == 0 ){
+                $( ph ).text( "No VBSes defined" )
+                return div
+            }
+
             var detailsLTE = this.hb.ce("div");
             $( div ).append(detailsLTE);
             this.d_SliceBodyPanel_ConfigLTE(detailsLTE);
@@ -338,7 +343,6 @@ class EmpSliceModalBox extends EmpModalBox{
                         LTEattrbts["sched_id"] = { "name": "Scheduler ID: ", "ph": "Type here..."};
                         LTEattrbts["rbgs"] = { "name": "RBGs: ", "ph": "Type here..."};
                         LTEattrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]"};
-                        LTEattrbts["cells"] = { "name": "Cells (inside brackets [ , ]) :", "ph": "[CELL_1, CELL_2, ...]"};
                         var ff_change = function(){
                             var el = selector.options[selector.selectedIndex];
                             var id = el.id;
@@ -401,15 +405,13 @@ class EmpSliceModalBox extends EmpModalBox{
                                     case "rntis":
                                         this.LTEdetails[id]["runtime-properties"][a] = txt;
                                         break;
-                                    case "cells":
-                                        this.LTEdetails[id][a] = txt;
-                                        break;
                                 }
                             }
                             this.d_SliceBodyPanel_ConfigLTE(detailsLTE);
                         }
                     }
                     $( btn_ADD ).click( ff_ADDclick.bind(this) );
+
         return div;
     }
 
@@ -483,6 +485,11 @@ class EmpSliceModalBox extends EmpModalBox{
                 $( panel ).append(pf);
                 $( pf ).css("backgroundColor", "#FFFFFF");
                 var selObj = null;
+
+            if( this.cache.c["wtps"].length == 0 ){
+                $( ph ).text( "No WTPs defined" )
+                return div
+            }
 
             var WTPdetails = this.hb.ce("div");
             $( div ).append(WTPdetails);
@@ -571,20 +578,6 @@ class EmpSliceModalBox extends EmpModalBox{
                                     $( i1 ).attr("placeholder", "Type here... ")
                                     $( i1 ).attr("size", 50)
                                     i1.id = this.getID_BODY_SLICEPANEL_ATTR("quantum") + "_" + id;
-                                var r2 = this.hb.ceROW();
-                                $( col1 ).append(r2);
-                                $( r2 ).css("margin", "20px 0px")
-                                var c20 = this.hb.ceCOL("xs", 4);
-                                $( r2 ).append(c20);
-                                $( c20 ).addClass("text-right");
-                                $( c20 ).text( "Blocks (inside brackets [ , ]) :" );
-                                var c21 = this.hb.ceCOL("xs", 8);
-                                $( r2 ).append(c21);
-                                    var i2 = this.hb.ce("INPUT");
-                                    $( c21 ).append(i2);
-                                    $( i2 ).attr("placeholder", "[Block_1, Block_2,... ]")
-                                    $( i2 ).attr("size", 50)
-                                    i2.id = this.getID_BODY_SLICEPANEL_ATTR("blocks") + "_" + id;
                         }
                         $( selector ).change(ff_change.bind(this))
                         setTimeout( function(){ $( selector ).change() }, 1/8*this.delay )
@@ -612,10 +605,6 @@ class EmpSliceModalBox extends EmpModalBox{
                                 tmp = this.hb.ge( this.getID_BODY_SLICEPANEL_ATTR(a) + "_" + id );
                                 txt = $( tmp ).val();
                                 this.WIFIdetails[id]["static-properties"][a] = txt;
-                                a = "blocks"
-                                tmp = this.hb.ge( this.getID_BODY_SLICEPANEL_ATTR(a) + "_" + id );
-                                txt = $( tmp ).val();
-                                this.WIFIdetails[id][a] = txt;
 
                                 this.d_SliceBodyPanel_ConfigWIFI(WTPdetails);
                             }
@@ -633,7 +622,20 @@ class EmpSliceModalBox extends EmpModalBox{
             $( div ).append(selector);
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
-                var TenantList = this.cache.c[this.qe.targets.TENANT];
+            var TenantList = [];
+                if( __ROLE === "admin "){
+                    TenantList = this.cache.c[this.qe.targets.TENANT];
+                }
+                else{
+                    var tenant_name = $( "#navbar_tenantname" ).text();
+                    for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                        var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                        if( tnt["tenant_name"] === tenant_name ){
+                            TenantList.push( tnt );
+                            break;
+                        }
+                    }
+                }
                 for(var i=0; i<TenantList.length; i++){
                     var opt = this.hb.ce("OPTION");
                     $( selector ).append(opt);
@@ -698,7 +700,6 @@ class EmpSliceModalBox extends EmpModalBox{
                 attrbts["sched_id"] = { "name": "Scheduler ID: ", "ph": "Type here...", "value": this.LTEdetails[lte]["static-properties"]["sched_id"]};
                 attrbts["rbgs"] = { "name": "RBGs: ", "ph": "Type here...", "value": this.LTEdetails[lte]["static-properties"]["rbgs"]};
                 attrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]", "value": this.LTEdetails[lte]["runtime-properties"]["rntis"]};
-                attrbts["cells"] = { "name": "Cells (inside brackets [ , ]) :", "ph": "[CELL_1, CELL_2, ...]", "value": this.LTEdetails[lte]["cells"]};
                 for( var a in attrbts){
                     var rr = this.hb.ceROW();
                     $( d ).append(rr);
@@ -755,7 +756,6 @@ class EmpSliceModalBox extends EmpModalBox{
                 var attrbts = {}
                 attrbts["amsdu_aggregation"] = { "name": "AMSDU aggregation: ", "value": this.WIFIdetails[wifi]["static-properties"]["amsdu_aggregation"]};
                 attrbts["quantum"] = { "name": "Quantum: ", "value": this.WIFIdetails[wifi]["static-properties"]["quantum"]};
-                attrbts["blocks"] = { "name": "Blocks: ", "value": this.WIFIdetails[wifi]["blocks"]};
                 for( var a in attrbts){
                     var rr = this.hb.ceROW();
                     $( d ).append(rr);
@@ -833,7 +833,7 @@ class EmpSliceModalBox extends EmpModalBox{
             input["lte"]["vbses"][id] = {};
             input["lte"]["vbses"][id]["static-properties"] = {};
             input["lte"]["vbses"][id]["runtime-properties"] = {};
-            var attrbts = ["sched_id", "rbgs", "rntis", "cells"];
+            var attrbts = ["sched_id", "rbgs", "rntis"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
@@ -844,24 +844,18 @@ class EmpSliceModalBox extends EmpModalBox{
                     case "rntis":
                         input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
                         break;
-                    case "cells":
-                        input["lte"]["vbses"][id][a] = this.LTEdetails[id][a];
-                        break;
                 }
             }
         }
         for(var id in this.WIFIdetails){
             input["wifi"]["wtps"][id] = {};
             input["wifi"]["wtps"][id]["static-properties"] = {};
-            var attrbts = ["amsdu_aggregation", "quantum", "blocks"];
+            var attrbts = ["amsdu_aggregation", "quantum"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
                     case "quantum":
                         input["wifi"]["wtps"][id]["static-properties"][a] = this.WIFIdetails[id]["static-properties"][a];
-                        break;
-                    case "blocks":
-                        input["wifi"]["wtps"][id][a] = this.WIFIdetails[id][a];
                         break;
                     case "amsdu_aggregation":
                         input["wifi"]["wtps"][id]["static-properties"][a] = this.WIFIdetails[id]["static-properties"][a];
@@ -914,7 +908,7 @@ class EmpSliceModalBox extends EmpModalBox{
             input["lte"]["vbses"][id] = {};
             input["lte"]["vbses"][id]["static-properties"] = {};
             input["lte"]["vbses"][id]["runtime-properties"] = {};
-            var attrbts = ["sched_id", "rbgs", "rntis", "cells"];
+            var attrbts = ["sched_id", "rbgs", "rntis"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
@@ -925,24 +919,18 @@ class EmpSliceModalBox extends EmpModalBox{
                     case "rntis":
                         input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
                         break;
-                    case "cells":
-                        input["lte"]["vbses"][id][a] = this.LTEdetails[id][a];
-                        break;
                 }
             }
         }
         for(var id in this.WIFIdetails){
             input["wifi"]["wtps"][id] = {};
             input["wifi"]["wtps"][id]["static-properties"] = {};
-            var attrbts = ["amsdu_aggregation", "quantum", "blocks"];
+            var attrbts = ["amsdu_aggregation", "quantum"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
                     case "quantum":
                         input["wifi"]["wtps"][id]["static-properties"][a] = this.WIFIdetails[id]["static-properties"][a];
-                        break;
-                    case "blocks":
-                        input["wifi"]["wtps"][id][a] = this.WIFIdetails[id][a];
                         break;
                     case "amsdu_aggregation":
                         input["wifi"]["wtps"][id]["static-properties"][a] = this.WIFIdetails[id]["static-properties"][a];

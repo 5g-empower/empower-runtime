@@ -49,11 +49,6 @@ class EmpTenantBadge{
                 var ph = this.hb.cePANEL_H();
                 $( p ).append(ph);
                 ph.id = this.getID_PANEL_H();
-                var pf = this.hb.cePANEL_F();
-                $( p ).append(pf);
-                pf.id = this.getID_PANEL_F();
-                $( pf ).click(func)
-
                     var rH = this.hb.ceROW();    // HEADER
                     $( ph ).append(rH);
                         var c1 = this.hb.ceCOL("xs", 3);
@@ -98,6 +93,7 @@ class EmpTenantBadge{
                 pf.id = this.getID_PANEL_F(keys);
                 $( p ).append(pf);
                 $( pf ).css("cursor","pointer");
+                $( pf ).click(func)
                     var r = this.hb.ceROW();
                     $( pf ).append(r);
                         var c0 = this.hb.ceCOL("xs", 8);
