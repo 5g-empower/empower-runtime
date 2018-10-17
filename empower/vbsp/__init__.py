@@ -97,25 +97,47 @@ E_TRIG = Struct("e_trig",
 HELLO = Struct("hello",
                UBInt32("padding"))
 
-CAPS_REQUEST = Struct("caps_request",
-                      UBInt8("type"),
-                      UBInt8("version"),
-                      Bytes("enbid", 8),
-                      UBInt16("cellid"),
-                      UBInt32("xid"),
-                      BitStruct("flags", Padding(15), Bit("dir")),
-                      UBInt32("seq"),
-                      UBInt16("length"),
-                      UBInt16("action"),
-                      UBInt8("opcode"),
-                      UBInt32("dummy"))
+ENB_CAPS_REQUEST = Struct("caps_request",
+                          UBInt8("type"),
+                          UBInt8("version"),
+                          Bytes("enbid", 8),
+                          UBInt16("cellid"),
+                          UBInt32("xid"),
+                          BitStruct("flags", Padding(15), Bit("dir")),
+                          UBInt32("seq"),
+                          UBInt16("length"),
+                          UBInt16("action"),
+                          UBInt8("opcode"),
+                          UBInt32("dummy"))
 
-CAPS_RESPONSE = Struct("caps_response",
-                       BitStruct("flags", Padding(29),
-                                 Bit("handover"),
-                                 Bit("ue_measure"),
-                                 Bit("ue_report")),
-                       Rename("options", OptionalGreedyRange(OPTIONS)))
+ENB_CAPS_RESPONSE = Struct("caps_response",
+                           Rename("options",
+                                  OptionalGreedyRange(OPTIONS)))
+
+# Cell capabilities. This is a valid TLV for the ENB_CAPS_RESPONSE message.
+CELL_CAPS = Struct("cell_caps",
+                   UBInt16("pci"),
+                   BitStruct("features", Padding(28),
+                             Bit("handover"),
+                             Bit("cell_measure"),
+                             Bit("ue_measure"),
+                             Bit("ue_report")),
+                   UBInt16("dl_earfcn"),
+                   UBInt8("dl_bandwidth"),
+                   UBInt16("ul_earfcn"),
+                   UBInt8("ul_bandwidth"),
+                   UBInt16("max_ues"))
+
+# RAN capabilities. This is a valid TLV for the ENB_CAPS_RESPONSE message.
+RAN_CAPS = Struct("ran_caps",
+                  UBInt16("pci"),
+                  BitStruct("layer1", Padding(32)),
+                  BitStruct("layer2", Padding(30),
+                            Bit("prb_slicing"),
+                            Bit("rbg_slicing")),
+                  BitStruct("layer3", Padding(32)),
+                  UBInt32("mac_sched"),
+                  UBInt16("max_slices"))
 
 RAN_MAC_SLICE_REQUEST = Struct("ran_mac_slice_request",
                                UBInt8("type"),
@@ -188,12 +210,14 @@ UE_REPORT_RESPONSE = Struct("ue_report_response",
                             Rename("options",
                                    OptionalGreedyRange(OPTIONS)))
 
+# UE_REPORT_IDENTITY. This is a valid TLV for the UE_REPORT_RESPONSE message.
 UE_REPORT_IDENTITY = Struct("ue_report_identity",
                             UBInt16("rnti"),
                             Bytes("plmn_id", 4),
                             UBInt64("imsi"),
                             UBInt32("timsi"))
 
+# UE_REPORT_STATE. This is a valid TLV for the UE_REPORT_RESPONSE message.
 UE_REPORT_STATE = Struct("ue_report_state",
                          UBInt16("rnti"),
                          UBInt8("state"))
@@ -220,18 +244,6 @@ UE_HO_RESPONSE = Struct("ue_ho_response",
                         UBInt16("origin_rnti"),
                         UBInt16("target_rnti"))
 
-# Cell capabilities. This is a valid TLV for the CAPS_RESPONSE message.
-CAPS_CELL = Struct("caps_tlv_cell",
-                   UBInt16("pci"),
-                   BitStruct("cap", Padding(29),
-                             Bit("ran_slicing"),
-                             Bit("mac_report"),
-                             Bit("phy_report")),
-                   UBInt16("dl_earfcn"),
-                   UBInt8("dl_prbs"),
-                   UBInt16("ul_earfcn"),
-                   UBInt8("ul_prbs"))
-
 # RBGs to allocate to a slice. This is a valid TLV for the
 # RAN_MAC_SLICE_REQUEST message.
 RAN_MAC_SLICE_RBGS = Struct("ran_mac_slice_rbgs", UBInt16("rbgs"))
@@ -247,10 +259,12 @@ RAN_MAC_SLICE_RNTI_LIST = Struct("ran_mac_slice_rntis",
 
 # TLV dictionaries
 
-EP_CAPS_CELL = 0x0100
+EP_CELL_CAPS = 0x0100
+EP_RAN_CAPS = 0x0503
 
-CAPS_TYPES = {
-    EP_CAPS_CELL: CAPS_CELL
+ENB_CAPS_TYPES = {
+    EP_CELL_CAPS: CELL_CAPS,
+    EP_RAN_CAPS: RAN_CAPS
 }
 
 EP_RAN_MAC_SLICE_SCHED_ID = 0x0502
@@ -276,7 +290,7 @@ PT_TYPES = {PT_BYE: None,
             PT_UE_JOIN: None,
             PT_UE_LEAVE: None,
             EP_ACT_HELLO: HELLO,
-            EP_ACT_CAPS: CAPS_RESPONSE,
+            EP_ACT_CAPS: ENB_CAPS_RESPONSE,
             EP_ACT_RAN_MAC_SLICE: RAN_MAC_SLICE_RESPONSE,
             EP_ACT_UE_REPORT: UE_REPORT_RESPONSE,
             EP_ACT_HANDOVER: UE_HO_RESPONSE}

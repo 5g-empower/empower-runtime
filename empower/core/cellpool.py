@@ -68,16 +68,103 @@ class CellPool(list):
 class Cell:
     """An eNB cell."""
 
-    def __init__(self, vbs, pci, cap, dl_earfcn, dl_prbs, ul_earfcn, ul_prbs):
+    def __init__(self, vbs, pci):
         self.vbs = vbs
         self.pci = pci
-        self.cap = cap
+        self._features = None
+        self._dl_earfcn = None
+        self._dl_bandwidth = None
+        self._ul_earfcn = None
+        self._ul_bandwidth = None
+        self._max_ues = None
+        self._ran_features = {}
+
         self.ue_measurements = {}
         self.mac_reports = {}
-        self.dl_earfcn = dl_earfcn
-        self.dl_prbs = dl_prbs
-        self.ul_earfcn = ul_earfcn
-        self.ul_prbs = ul_prbs
+
+    @property
+    def features(self):
+        """Get the features."""
+
+        return self._features
+
+    @features.setter
+    def features(self, features):
+        """ Set the features. """
+
+        self._features = features
+
+    @property
+    def dl_earfcn(self):
+        """Get the dl_earfcn."""
+
+        return self._dl_earfcn
+
+    @dl_earfcn.setter
+    def dl_earfcn(self, dl_earfcn):
+        """ Set the dl_earfcn. """
+
+        self._dl_earfcn = dl_earfcn
+
+    @property
+    def dl_bandwidth(self):
+        """Get the dl_bandwidth."""
+
+        return self._dl_bandwidth
+
+    @dl_bandwidth.setter
+    def dl_bandwidth(self, dl_bandwidth):
+        """ Set the dl_bandwidth. """
+
+        self._dl_bandwidth = dl_bandwidth
+
+    @property
+    def ul_earfcn(self):
+        """Get the ul_earfcn."""
+
+        return self._ul_earfcn
+
+    @ul_earfcn.setter
+    def ul_earfcn(self, ul_earfcn):
+        """ Set the ul_earfcn. """
+
+        self._ul_earfcn = ul_earfcn
+
+    @property
+    def ul_bandwidth(self):
+        """Get the ul_bandwidth."""
+
+        return self._ul_bandwidth
+
+    @ul_bandwidth.setter
+    def ul_bandwidth(self, ul_bandwidth):
+        """ Set the ul_bandwidth. """
+
+        self._ul_bandwidth = ul_bandwidth
+
+    @property
+    def max_ues(self):
+        """Get the max_ues."""
+
+        return self._max_ues
+
+    @max_ues.setter
+    def max_ues(self, max_ues):
+        """ Set the max_ues. """
+
+        self._max_ues = max_ues
+
+    @property
+    def ran_features(self):
+        """Get the ran_features."""
+
+        return self._ran_features
+
+    @ran_features.setter
+    def ran_features(self, ran_features):
+        """ Set the ran_features. """
+
+        self._ran_features = ran_features
 
     def __repr__(self):
         """Return string representation."""
@@ -100,17 +187,20 @@ class Cell:
         """Return a JSON-serializable dictionary representing the CPP."""
 
         ue_meas = {str(k): v for k, v in self.ue_measurements.items()}
+        ran_features = {str(k): v for k, v in self.ran_features.items()}
 
         out = {}
 
         out['addr'] = self.vbs.addr
         out['pci'] = self.pci
-        out['cap'] = self.cap
+        out['features'] = self.features
         out['dl_earfcn'] = self.dl_earfcn
-        out['dl_prbs'] = self.dl_prbs
+        out['dl_bandwidth'] = self.dl_bandwidth
         out['ul_earfcn'] = self.ul_earfcn
-        out['ul_prbs'] = self.ul_prbs
+        out['ul_bandwidth'] = self.ul_bandwidth
+        out['max_ues'] = self.max_ues
         out['mac_reports'] = self.mac_reports
         out['ue_measurements'] = ue_meas
+        out['ran_features'] = ran_features
 
         return out
