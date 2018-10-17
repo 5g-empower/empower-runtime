@@ -88,7 +88,7 @@ class IBNPServer(tornado.web.Application):
         if tenant_id not in self.rules:
             self.rules[tenant_id] = {}
 
-        if tr.priority >= 50:
+        if tr.priority > 50:
             raise ValueError('priority must not exceed 50')
 
         matches = [match for match in self.rules[tenant_id].keys()
