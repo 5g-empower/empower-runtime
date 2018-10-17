@@ -126,6 +126,19 @@ class HBuilder{
         return func.bind(this, params);
     };
 
+    getKeyFields(tag){
+        var key = "";
+        var attrbts = __DESC.d[tag].attr
+        for( var a in attrbts ){
+            if( attrbts[a].isKey ){
+                key = a;
+                break;
+            }
+        }
+//        console.log(key)
+        return key
+    }
+
     getDTKeyFields(data){
         var key = "";
         for( var i=0; i<data.length; i++){

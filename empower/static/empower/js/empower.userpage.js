@@ -1,6 +1,6 @@
 class EmpUserPage{
 
-    constructor(selTnt){
+    constructor(){
 
         this.hb = __HB;
         this.qe = __QE;
@@ -14,7 +14,7 @@ class EmpUserPage{
         }
         this.keys = keys;
 
-        this.selTnt = selTnt;
+        this.selTnt = null;
         this.resources = null;
     }
 
@@ -56,6 +56,7 @@ class EmpUserPage{
                 var selector = this.hb.ce("DIV");
                 $( c0 ).append(selector);
                 selector.id = this.getID_TENANTSELECTOR();
+                $( selector ).css("margin-top", "30px")
         var r1 = this.hb.ceROW();
         $( "#userpage" ).append(r1);
             var c1 = this.hb.ceCOL("xs",12);
@@ -64,6 +65,7 @@ class EmpUserPage{
                 $( c1 ).append(viewer);
                 viewer.id = this.getID_TENANTVIEWER();
                 $( viewer ).addClass("hide");
+                $( viewer ).css("margin-top", "10px")
 
         this.resources["tenantList"] = [];
         var target = [this.qe.targets.TENANT, this.qe.targets.ACCOUNT];
@@ -71,6 +73,8 @@ class EmpUserPage{
             for( var i=0; i<arguments[0][this.qe.targets.TENANT].length; i++){
                 var tnt = arguments[0][this.qe.targets.TENANT][i];
                 this.resources["tenantList"].push( {"tenant": tnt, "color": "info"} );
+                this.cache.c[this.qe.targets.TENANT].push( tnt );
+
             }
             for( var user in arguments[0][this.qe.targets.ACCOUNT])
                 this.cache.c[this.qe.targets.ACCOUNT].push( arguments[0]["accounts"][user] );
@@ -112,6 +116,9 @@ class EmpUserPage{
         var tnt = args[0]; var p = 1;
         this.selTnt = tnt;
 
+        var cnt = this.hb.ge( "navbar_tenantname" )
+        $( cnt ).text(this.selTnt["tenant_name"])
+
         var tList = this.resources.tenantList;
         for( var i=0; i<tList.length; i++){
             if( tList[i].tenant.tenant_id === tnt.tenant_id ){
@@ -134,12 +141,6 @@ class EmpUserPage{
 // --------------------------------------------------------------------- init VIEWER
 
     initViewerResources(){
-        // Page skeleton
-        if (this.resources !== null){
-            console.warn("EmpAdminPage.initPageResources: "+this.tenant_id+" has already initialized resources");
-            return;
-        }
-        this.resources = {};
 
         var res = this.resources;
 
@@ -162,11 +163,7 @@ class EmpUserPage{
             "clients": {"text": "Clients", "color": "primary", "icon": "fa-laptop"},
             "services": {"text": "Network Services", "color": "primary", "icon": "fa-cogs"},
             "devices": {"text": "Devices", "color": "primary", "icon": "fa-hdd-o"},
-            "component": {"text": "Components", "color": "primary", "icon": "fa-bolt"},
             "qos": {"text": "Quality of Service", "color": "primary", "icon": "fa-bullseye"},
-            "acl": {"text": "ACL", "color": "primary", "icon": "fa-filter"},
-            "tenant": {"text": "Tenants", "color": "primary", "icon": "fa-cubes"},
-            "account": {"text": "Accounts", "color": "primary", "icon": "fa-users"},
         };
 
         res.recipes.collapsepanels_l2 = {
@@ -204,10 +201,10 @@ class EmpUserPage{
         for (var cp in cpl1){
             if (cp === "overview"){             // Overview CP contains all other BB
                 res.recipes.badgeboxes[cp] = [];
-                var excluded = [ "overview", "qos", "services"]
+                var excluded = ["overview", "qos", "services"]
                 var cardinality = Object.keys(cpl1).length - excluded.length;
                 var size = "lg";
-                var slots = 4;
+                var slots = 6;
 
                 for (var cpsub in cpl1){
                     if ( excluded.indexOf(cpsub) == -1 ){
@@ -284,25 +281,11 @@ class EmpUserPage{
             var f_erasea = this.hb.wrapFunction( this.f_EraseAllFunction.bind(this),[cp])
 
             switch(cp){
-                case "component":
-                            // EmpButton.create(text, iconname, color, tooltip, onclick, keys)
-                        res.recipes.datatableboxes.buttonboxes[cp] = [
-                            {   "tag": "show", "left": true,
-                                "params": [ null, "fa-search", "primary", "show selected " + cp.toUpperCase(), f_upd ]
-                            },
-                            {   "tag": "showAll", "left": true,
-                                "params": [ null, "fa-file-text", "primary", "show all " + cp.toUpperCase(), f_showall ]
-                            },
-                            {   "tag": "refresh", "left": true,
-                                "params": [ null, "fa-refresh", "primary", cp.toUpperCase() + " table refresh", f_refresh ]
-                            },
-                            {   "tag": "I/O", "left": false,
-                                "params": [ null, "fa-power-off", "primary", "switch selected "+cp.toUpperCase(), f_switch ]
-                            }
-                        ]
-                break;
                 case "lvap":
                 case "ue":
+                case "wtp":
+                case "cpp":
+                case "vbs":
                             // EmpButton.create(text, iconname, color, tooltip, onclick, keys)
             res.recipes.datatableboxes.buttonboxes[cp] = [
                         {   "tag": "show", "left": true,
@@ -416,24 +399,24 @@ class EmpUserPage{
 
         var tr = this.resources;
 
-        var trp = tr.pagestruct;
+        var trp = tr.pagestruct.cps;
         var trr = tr.recipes;
 
-        $( "#userpage" ).append(tr.pagestruct.floatingnavmenu.create());
+        $( viewer ).append(tr.pagestruct.floatingnavmenu.create());
 
         var pwrapper = createPageWrapper();
-        $( "#userpage" ).append(pwrapper);
+        $( viewer ).append(pwrapper);
 
         // Start deploying CPs
-        for (var cp in trp.cps){
+        for (var cp in trp){
             //console.log("NOW Processing CP "+cp)
             // Create the BB according to the associated recipe
-            var p = trp.cps[cp].collapsepanel.parent;
+            var p = trp[cp].collapsepanel.parent;
             var tag = this.hb.mapName2Tag(cp);
 
             var cpblock = null
-            if ( p === null){   //
-                cpblock = trp.cps[cp].collapsepanel.instance.create(
+            if ( p === null){
+                cpblock = trp[cp].collapsepanel.instance.create(
                     trr.collapsepanels_l1[cp].text,
                     trr.collapsepanels_l1[cp].color,
                     trr.collapsepanels_l1[cp].icon
@@ -441,50 +424,56 @@ class EmpUserPage{
                 $( pwrapper ).append(cpblock);
             }
             else{
-                cpblock = trp.cps[cp].collapsepanel.instance.create(
+                cpblock = trp[cp].collapsepanel.instance.create(
                     trr.collapsepanels_l2[p][cp].text,
                     trr.collapsepanels_l2[p][cp].color,
                     trr.collapsepanels_l2[p][cp].icon
                 )
-                var cpid = trp.cps[p].collapsepanel.instance.getID_COLLAPSINGPANEL();
+                var cpid = trp[p].collapsepanel.instance.getID_COLLAPSINGPANEL();
                 $( "#"+cpid ).append(cpblock);
-                trp.cps[cp].collapsepanel.instance.setL2Panel();
+                trp[cp].collapsepanel.instance.setL2Panel();
             }
             // Deploy the CP
             // $( pwrapper ).append(cpblock);
 
             // Retrieve the ID of the collapsing panel of CP
-            var cpid = trp.cps[cp].collapsepanel.instance.getID_COLLAPSINGPANEL();
+            var cpid = trp[cp].collapsepanel.instance.getID_COLLAPSINGPANEL();
+
+            // Create and deploy GraphBox container (if any) into CP
+            if (typeof trp[cp].graphbox !== "undefined"){
+                //trp[cp].graphbox.deployContainer(cpid);
+                trp[cp].graphbox.deploy(cpid, trr.graphboxes[cp][0]);
+                //console.log("Added GraphBox to "+cp);
+            }
 
             // Create and deploy DataTableBoxes (if any) into CP
-            if (typeof trp.cps[cp].datatablebox !== "undefined"){
-                //console.log(trp.cps[cp].datatablebox);
+            if (typeof trp[cp].datatablebox !== "undefined"){
+                //console.log(trp[cp].datatablebox);
                 //console.log(cp, trr.datatableboxes.buttonboxes[cp]);
 
                     // Create the DTB according to the specified type
-                var dt = trp.cps[cp].datatablebox.create(
+                var dt = trp[cp].datatablebox.create(
                         cp, // get headers descriptor
                         trr.datatableboxes.buttonboxes[cp] // get associated buttons recipes
                     )
-                dt.id = cp
                 $( "#"+cpid ).append( dt );
-                this.cache.DTlist[ tag ] = trp.cps[cp].datatablebox.datatable;
+                this.cache.DTlist[ tag ] = trp[cp].datatablebox.datatable;
 
                 //console.log("Added DataTableBox "+dtb_type+" to "+cp);
 
                 // Hide DTB
-                //trp.cps[cp].datatablebox[cp].show(false);
+                //trp[cp].datatablebox[cp].show(false);
                 // Make DataTable associated to DTB responsive
-                trp.cps[cp].datatablebox.makeResponsive();
+                trp[cp].datatablebox.makeResponsive();
                 // Keep a DataTable instance for faster reference and data handling
-                // trp.cps[cp].datatable[dtb_type] = $("#"+trp.cps[cp].datatablebox[dtb_type].datatable.getID()).DataTable();
+                // trp[cp].datatable[dtb_type] = $("#"+trp[cp].datatablebox[dtb_type].datatable.getID()).DataTable();
 
             }
 
             // Create and deploy BadgeBox (if any) into CP
-            if (typeof trp.cps[cp].badgebox !== "undefined"){
+            if (typeof trp[cp].badgebox !== "undefined"){
                     // Create the BB according to the recipe given for current CP
-                var bb = trp.cps[cp].badgebox.create(trr.badgeboxes[cp]);
+                var bb = trp[cp].badgebox.create(trr.badgeboxes[cp]);
                 // Deploy BB into CP
                 $( "#"+cpid ).append( bb );
                 //console.log("Added BadgeBox to "+cp);
@@ -493,11 +482,11 @@ class EmpUserPage{
                 //console.log("NO BADGEBOX", cp)
             }
 
-            var menu = (trp.cps[cp].collapsepanel.children.length > 0);
+            var menu = (trp[cp].collapsepanel.children.length > 0);
             var label = "DEFAULT_LABEL";
             var icon = "fa-frown-o";
             var l1code = null;
-            var p = trp.cps[cp].collapsepanel.parent;
+            var p = trp[cp].collapsepanel.parent;
             if (p === null){
                 label = trr.collapsepanels_l1[cp].text;
                 icon = trr.collapsepanels_l1[cp].icon;
@@ -513,7 +502,16 @@ class EmpUserPage{
             var ref = null;
             var f = this.hb.wrapFunction(this.switchTo.bind(this), [cp]);
 
-//             console.log( null, menu, label, icon, color, ref, f, l1code );
+//             console.log(
+//                 null, //keys
+//                 menu, //menu
+//                 label, //label
+//                 icon, //icon
+//                 color, //color
+//                 ref, //ref
+//                 f,  //function
+//                 l1code //l1code
+//             );
             tr.pagestruct.floatingnavmenu.addMenuItem(
                 null, //keys
                 menu, //menu
@@ -529,15 +527,26 @@ class EmpUserPage{
 
         }
 
+        tr.pagestruct.floatingnavmenu.addMenuItem(
+                null, //keys
+                false, //menu
+                "Back to Tenant Selector", //label
+                "fa-arrow-left", //icon
+                "red", //color
+                null, //ref
+                this.f_CloseViewer.bind(this),  //function
+                null //l1code
+            );
+
         // Update BadgeBox functions
-        for (var cp in trp.cps){
-            if (typeof trp.cps[cp].badgebox !== "undefined"){
+        for (var cp in trp){
+            if (typeof trp[cp].badgebox !== "undefined"){
                 if (cp === "overview"){
                     for (var cpsub in this.resources.recipes.collapsepanels_l1){
-                        if (cpsub != "overview" ){
+                        if ((cpsub != "overview" )){
 
                             var f = this.hb.wrapFunction(this.switchTo.bind(this), [cpsub]);
-                            trp.cps[cp].badgebox.updateBadge(cpsub,[
+                            trp[cp].badgebox.updateBadge(cpsub,[
                                 null, //title
                                 null, //color
                                 null, //iconname
@@ -551,7 +560,7 @@ class EmpUserPage{
                     //console.log(cp);
                     for (var cpsub in this.resources.recipes.collapsepanels_l2[cp]){
                         var f = this.hb.wrapFunction(this.switchTo.bind(this), [cpsub]);
-                        trp.cps[cp].badgebox.updateBadge(cpsub,[
+                        trp[cp].badgebox.updateBadge(cpsub,[
                             null, //title
                             null, //color
                             null, //iconname
@@ -628,61 +637,149 @@ class EmpUserPage{
         }
     }
 
-    wrapAddFunction(cp){
-        var f = function(){
-        };
-
-        return f.bind(this);
+// DT functions
+    f_AddFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+        var cp_keys = this.keys.concat([tag]);
+        var mdl = null;
+        var args = null;
+        if( tag === this.qe.targets.SLICE ){
+            mdl = new EmpSliceModalBox( cp_keys );
+            args = mdl.initResources(cp, "ADD"); // return [title, body, buttons]
+        }
+        else{
+            mdl = new EmpAddModalBox( cp_keys );
+            args = mdl.initResources(cp); // return [title, body, buttons]
+    }
+        var m = mdl.create(args[0], args[1], args[2]);
+            $( m ).modal({backdrop: 'static'});
     }
 
-    wrapAddBatchFunction(cp){
-        var f = function(){
-        };
-
-        return f.bind(this);
+    f_AddBatchFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+            var cp_keys = this.keys.concat([tag]);
+            var mdl = new EmpBatchModalBox( cp_keys );
+            var args = mdl.initResources(cp);
+        var m = mdl.create(args[0], args[1], args[2]);
+            $( m ).modal({backdrop: 'static'});
     }
 
-    wrapShowAllFunction(cp){
-        var f = function(){
+    f_ShowAllFunction( args ){
+        var cp = args[0];
             var tag = this.hb.mapName2Tag(cp);
             var cp_keys = this.keys.concat([tag]);
             var mdl = new EmpShowAllModalBox( cp_keys );
             var args = mdl.initResources(cp);
-            var m = mdl.create(args[0], args[1], args[2], args[3]);
+        var m = mdl.create(args[0], args[1], args[2]);
             $( m ).modal({backdrop: 'static'});
-        };
-
-        return f.bind(this);
     }
 
-    wrapShowSelectedFunction(cp){
-        var f = function(){
-        };
-
-        return f.bind(this);
+    f_UpdateFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+            var cp_keys = this.keys.concat([tag]);
+        var mdl = null;
+        var args = null;
+        if( tag === this.qe.targets.SLICE ){
+            mdl = new EmpSliceModalBox( cp_keys );
+            args = mdl.initResources(cp, "UPD"); // return [title, body, buttons]
+        }
+        else{
+            mdl = new EmpUpdateModalBox( cp_keys );
+            args = mdl.initResources(cp); // return [title, body, buttons]
+        }
+        var m = mdl.create(args[0], args[1], args[2]);
+            $( m ).modal({backdrop: 'static'});
     }
 
-    wrapEraseSelectedFunction(cp){
-        var f = function(){
-        };
-
-        return f.bind(this);
+    f_SwitchFunction( args ){   // Only for Components!
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+        var dt = this.cache.DTlist[ tag ];
+        var datatable = $( "#"+ dt.getID() ).DataTable();
+        var key = this.hb.getDTKeyFields(datatable.row('.selected').data());
+        var selObj = this.hb.getKeyValue( tag , key);
+        var ff = function(){
+            this.qe.scheduleQuery("GET", [tag, this.qe.targets.TENANT], null, null, this.cache.update.bind(this.cache));
+        }
+        if( selObj.active ){
+            this.qe.scheduleQuery("DELETE", [ tag ],null, selObj, ff.bind(this));
+        }
+        else{
+            this.qe.scheduleQuery("POST", [ tag ],null, selObj, ff.bind(this));
+        }
     }
 
-    wrapEraseAllFunction(cp){
-        var f = function(){
-        };
-
-        return f.bind(this);
+    f_EraseSelectedFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+            var f_YES = function(){
+                var dt = this.cache.DTlist[ tag ];
+                var datatable = $( "#"+ dt.getID() ).DataTable();
+            var input = null;
+            if( tag === this.qe.targets.SLICE ){
+                var data = datatable.row('.selected').data();
+                var tenantID = data[0].substring(11, data[0].length-14)
+                var dscp = data[1].substring(11, data[1].length-14)
+                var found = null;
+                for( var i=0; i<this.cache.c[tag].length; i++){
+                    if( this.cache.c[tag][i]["tenant_id"] === tenantID && this.cache.c[tag][i]["dscp"] === dscp ){
+                        found = this.cache.c[tag][i];
+                    }
                 }
+                input = found;
+            }
+            else{
+                var key = this.hb.getDTKeyFields(datatable.row('.selected').data());
+                input = this.hb.getKeyValue( tag , key);
+            }
+//                console.log(input)
+                var fff = function(){
+                            if( tag === this.qe.targets.TENANT)
+                                this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
+                            else
+                                this.qe.scheduleQuery("GET", [tag, this.qe.targets.TENANT], null, null, this.cache.update.bind(this.cache));
+    }
+                this.qe.scheduleQuery("DELETE", [ tag ],null, input, fff.bind(this) );
 
-    wrapRefreshFunction(cp){
-        var f = function(){
-            var tag = this.hb.mapName2Tag(cp);
-            this.qe.scheduleQuery("GET", [tag], tenant_id, null, this.cache.update.bind(this.cache));
+                $( m ).modal('hide');
+            };
+            var m = generateWarningModal("Remove selected " + cp.toUpperCase(), f_YES.bind(this));
+            $( m ).modal();
         };
 
-        return f.bind(this);
+    f_EraseAllFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+            var f_YES = function(){
+                var dt = this.cache.DTlist[ tag ];
+                var datatable = $( "#"+ dt.getID() ).DataTable();
+                for( var i=0; i<datatable.rows().data().length; i++){
+                    var key = this.hb.getDTKeyFields(datatable.rows().data()[i]);
+                    var input = this.hb.getKeyValue( tag , key);
+//                    console.log(key, input)
+
+                    var fff = function(){
+                                if( tag === this.qe.targets.TENANT)
+                                    this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
+                                else
+                                    this.qe.scheduleQuery("GET", [tag, this.qe.targets.TENANT], null, null, this.cache.update.bind(this.cache));
+                }
+                    this.qe.scheduleQuery("DELETE", [ tag ],null, input, fff.bind(this));
+
+                }
+                $( m ).modal('hide');
+            };
+            var m = generateWarningModal("Remove ALL " + tag.toUpperCase(), f_YES.bind(this));
+            $( m ).modal();
+        };
+
+    f_RefreshFunction( args ){
+        var cp = args[0];
+        var tag = this.hb.mapName2Tag(cp);
+            this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
     }
 
     f_CloseViewer(){
@@ -690,6 +787,9 @@ class EmpUserPage{
         $( selector ).removeClass("hide");
         var viewer = this.hb.ge( this.getID_TENANTVIEWER() );
         $( viewer ).addClass("hide");
+
+        var cnt = this.hb.ge( "navbar_tenantname" )
+        $( cnt ).text("")
     }
 
 // --------------------------------------------------------------------- update VIEWER
@@ -703,7 +803,8 @@ class EmpUserPage{
                         this.qe.targets.VBS,
                         this.qe.targets.LVAP,
                         this.qe.targets.UE,
-                        this.qe.targets.COMPONENT,
+                        this.qe.targets.TR,
+                        this.qe.targets.SLICE,
                         ];
         this.qe.scheduleQuery("GET", targets, tenant_id, null, this.cache.update.bind(this.cache));
     }

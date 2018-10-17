@@ -53,7 +53,7 @@ class EmpSliceModalBox extends EmpModalBox{
                 title = "Update " + this.hb.mapName2Title(tag);
 
                 this.WIFIdetails = this.selObj["wifi"]["wtps"];
-                this.LTEdetails = this.selObj["lte"]["vbses"];  // TODO EMP_if: HAVE TO BE TESTED!
+                this.LTEdetails = this.selObj["lte"]["vbses"];
                 div = this.d_SliceBodyUpdatePanel( this.selObj );
                 f = this.hb.wrapFunction(this.f_Update.bind(this), [tag]);
             }
@@ -67,7 +67,7 @@ class EmpSliceModalBox extends EmpModalBox{
         var btn_Save = {"text": "Save",
                          "color": "primary",
                          "f": f};
-         buttons.push(btn_Save);
+        buttons.push(btn_Save);
 
         var ff_Close = this.f_Close.bind(this);
         var btn_Close = {"text": "Close",
@@ -217,7 +217,7 @@ class EmpSliceModalBox extends EmpModalBox{
         // Mandatory attributes for creating a new Network slice are: DSCP and a Tenant ID
             var attrbts = {}
             attrbts["tenant_id"] = { "name": "Select Tenant: ", "d": this.d_SliceBodyPanel_SelectTenant.bind(this) };
-            attrbts["dscp"] = { "name": "Select DSCP: ", "d": this.d_SliceBodyPanel_SelectDSCP.bind(this) };
+            attrbts["dscp"] = { "name": "Select Tag: ", "d": this.d_SliceBodyPanel_SelectDSCP.bind(this) };
             for( var a in attrbts){
                 var r = this.hb.ceROW();
                 $( div ).append(r);
@@ -244,7 +244,7 @@ class EmpSliceModalBox extends EmpModalBox{
             var attrbts = {}
             var tnt = this.hb.getKeyValue(this.qe.targets.TENANT, values["tenant_id"]);
             attrbts["tenant_id"] = { "name": "Select Tenant: ", "value": tnt["tenant_name"] };
-            attrbts["dscp"] = { "name": "Select DSCP: ", "value": values["dscp"] };
+            attrbts["dscp"] = { "name": "Select Tag: ", "value": values["dscp"] };
             for( var a in attrbts){
                 var r = this.hb.ceROW();
                 $( div ).append(r);
@@ -309,6 +309,11 @@ class EmpSliceModalBox extends EmpModalBox{
                 $( panel ).append(pf);
                 $( pf ).css("backgroundColor", "#FFFFFF");
                 var selObj = null;
+
+            if( this.cache.c["vbses"].length == 0 ){
+                $( ph ).text( "No VBSes defined" )
+                return div
+            }
 
             var detailsLTE = this.hb.ce("div");
             $( div ).append(detailsLTE);
@@ -406,6 +411,7 @@ class EmpSliceModalBox extends EmpModalBox{
                         }
                     }
                     $( btn_ADD ).click( ff_ADDclick.bind(this) );
+
         return div;
     }
 
@@ -479,6 +485,11 @@ class EmpSliceModalBox extends EmpModalBox{
                 $( panel ).append(pf);
                 $( pf ).css("backgroundColor", "#FFFFFF");
                 var selObj = null;
+
+            if( this.cache.c["wtps"].length == 0 ){
+                $( ph ).text( "No WTPs defined" )
+                return div
+            }
 
             var WTPdetails = this.hb.ce("div");
             $( div ).append(WTPdetails);
@@ -611,7 +622,20 @@ class EmpSliceModalBox extends EmpModalBox{
             $( div ).append(selector);
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
-                var TenantList = this.cache.c[this.qe.targets.TENANT];
+            var TenantList = [];
+                if( __ROLE === "admin "){
+                    TenantList = this.cache.c[this.qe.targets.TENANT];
+                }
+                else{
+                    var tenant_name = $( "#navbar_tenantname" ).text();
+                    for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                        var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                        if( tnt["tenant_name"] === tenant_name ){
+                            TenantList.push( tnt );
+                            break;
+                        }
+                    }
+                }
                 for(var i=0; i<TenantList.length; i++){
                     var opt = this.hb.ce("OPTION");
                     $( selector ).append(opt);

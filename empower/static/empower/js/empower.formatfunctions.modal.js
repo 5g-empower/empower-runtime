@@ -283,7 +283,20 @@ function ff_DIF_TenantID(tag, a, id, values){
             $( c1 ).append(selector);
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
-            var TenantList = __CACHE.c[__QE.targets.TENANT];
+            var TenantList = [];
+                if( __ROLE === "admin "){
+                    TenantList =  __CACHE.c[__QE.targets.TENANT];
+                }
+                else{
+                    var tenant_name = $( "#navbar_tenantname" ).text();
+                    for( var i=0; i<__CACHE.c[__QE.targets.TENANT].length; i++ ){
+                        var tnt = __CACHE.c[__QE.targets.TENANT][i];
+                        if( tnt["tenant_name"] === tenant_name ){
+                            TenantList.push( tnt );
+                            break;
+                        }
+                    }
+                }
             for(var i=0; i<TenantList.length; i++){
                 var opt = __HB.ce("OPTION");
                 $( selector ).append(opt);
@@ -769,7 +782,7 @@ function ff_DSV_WifiStats(tag, a, id, values){
         }
 
         var f_Click = function(){
-            var id = this.id.substr(0, this.id.length-4)
+            var id = this.id.substr(0, this.id.length-4);
             var cnt = __HB.ge(id + "_divgrphbox");
             $( cnt ).hasClass("hide")? $( div ).removeClass("hide") : $( div ).addClass("hide");
         }
