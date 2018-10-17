@@ -204,12 +204,24 @@ class IBNPMainHandler(tornado.websocket.WebSocketHandler):
 
             tr_ep = Endpoint(uuid4(), '', dp)
 
-            if dp.network_ports.keys() != {1, 2}:
-                raise ValueError('Network port numbers mismatch, '
-                                 'please restart the WTP')
+            src_port = None
+            dst_port = None
 
-            src_vport = VirtualPort(tr_ep, dp.network_ports[1], 0)
-            dst_vport = VirtualPort(tr_ep, dp.network_ports[2], 1)
+            for port in dp.network_ports.values():
+
+                if port.iface == 'eth0':
+                    src_port = port
+
+                if port.iface == 'empower0':
+                    dst_port = port
+
+            if not src_port:
+                raise KeyError('Cannot find the src network port \"eth0\"')
+            if not dst_port:
+                raise KeyError('Cannot find the dst network port \"empower0\"')
+
+            src_vport = VirtualPort(tr_ep, src_port, 0)
+            dst_vport = VirtualPort(tr_ep, dst_port, 1)
 
             tr_ep.ports[src_vport.virtual_port_id] = src_vport
             tr_ep.ports[dst_vport.virtual_port_id] = dst_vport
