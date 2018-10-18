@@ -333,7 +333,7 @@ class EmpSliceModalBox extends EmpModalBox{
                                 var opt = this.hb.ce("OPTION");
                                 $( selector ).append(opt);
                                 opt.id = VBSesList[i]["addr"]
-                                $( opt ).text(VBSesList[i]["label"])
+                                $( opt ).text(VBSesList[i]["label"] + " - " + VBSesList[i]["addr"])
                             }
                         var input = this.hb.ce("DIV");
                         $( body ).append(input);
@@ -515,7 +515,7 @@ class EmpSliceModalBox extends EmpModalBox{
                             var opt = this.hb.ce("OPTION");
                             $( selector ).append(opt);
                             opt.id = WTPsList[i]["addr"]
-                            $( opt ).text(WTPsList[i]["addr"])
+                            $( opt ).text(WTPsList[i]["label"] + " - " + WTPsList[i]["addr"])
                         }
                     var input = this.hb.ce("DIV");
                     $( body ).append(input);
@@ -623,7 +623,7 @@ class EmpSliceModalBox extends EmpModalBox{
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
             var TenantList = [];
-                if( __ROLE === "admin "){
+                if( __ROLE === "admin"){
                     TenantList = this.cache.c[this.qe.targets.TENANT];
                 }
                 else{

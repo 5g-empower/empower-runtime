@@ -274,6 +274,8 @@ class EmpNetGraph{
                     $( c0 ).append(btn);
                 $( btn ).attr("type", "button");
                 $( btn ).attr("style", "margin: 0px 2px;");
+                $( btn ).text("Update graph every 3 seconds: OFF");
+                $( btn ).css("color", RED);
 
 
                 var f_Play = function(){
@@ -316,6 +318,7 @@ class EmpNetGraph{
                         this.f_StackedBarGraph_WifiStats_Play(tag, a, values);
 
                         this.play = false;
+                        $( btn ).click();
                         $( btn ).click();
                 }
                 setTimeout(ff.bind(this), 1/2*this.delay)

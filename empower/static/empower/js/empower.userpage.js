@@ -779,7 +779,8 @@ class EmpUserPage{
     f_RefreshFunction( args ){
         var cp = args[0];
         var tag = this.hb.mapName2Tag(cp);
-            this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
+        var tenant_id = this.selTnt.tenant_id;
+        this.qe.scheduleQuery("GET", [tag], tenant_id, null, this.cache.update.bind(this.cache));
     }
 
     f_CloseViewer(){
