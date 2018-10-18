@@ -282,7 +282,7 @@ class EmpQueryEngine{
                 break;
             case this.targets.LVAP:
                 if( type === "PUT" ){   // values[ LVAP, new WTP, Block hwaddr ]
-                    url = this.PUTQueryURL(target, tenant_id)+ values[0].addr;
+                    url = this.PUTQueryURL(target, tenant_id)+ values[0].addr; console.log(values)
                     dataType = "text";
                     if( values[2] )
                         data = '{  "version": "1.0", "wtp" : "' + values[1].addr + '", "blocks" : "' + values[2] + '"  }';
@@ -322,7 +322,7 @@ class EmpQueryEngine{
             error: function(){}
             };
 
-//        console.log("request", request)
+        console.log("request", request)
         return request;
     }
 

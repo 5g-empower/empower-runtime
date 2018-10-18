@@ -247,11 +247,11 @@ class EmpUpdateModalBox extends EmpModalBox{
             $( panel ).append(body);
 
             var wtp = this.selObj["wtp"];
-    var div = this.hb.ce("DIV");
+            var div = this.hb.ce("DIV");
             $( body ).append(div);
             $( div ).css("margin", "25px 0px");
-    var r0 = this.hb.ceROW();
-    $( div ).append(r0);
+            var r0 = this.hb.ceROW();
+            $( div ).append(r0);
                 $( r0 ).css("margin", "8px");
                     var c00 = this.hb.ceCOL("xs", 2);
                     $( r0 ).append(c00);
@@ -277,22 +277,22 @@ class EmpUpdateModalBox extends EmpModalBox{
                         var s03 = this.hb.ce("SPAN");
                         $( c03 ).append(s03);
                         s03.id = this.getID_BODY_UPDPANEL_ATTR("wtp");
-                        $( s01 ).text("");
-    var r1 = this.hb.ceROW();
+                        $( s03 ).text("");
+                var r1 = this.hb.ceROW();
                 $( div ).append(r1);
                 $( r1 ).css("margin", "8px");
                     var c10 = this.hb.ceCOL("xs", 2);
-        $( r1 ).append(c10);
+                    $( r1 ).append(c10);
                     $( c10 ).addClass("text-right")
                         var s10 = this.hb.ce("SPAN");
                         $( c10 ).append(s10);
                         $( s10 ).text("Current block: ")
                         $( s10 ).css("fontWeight", 700)
                     var c11 = this.hb.ceCOL("xs", 4);
-        $( r1 ).append(c11);
+                    $( r1 ).append(c11);
                         var s11 = this.hb.ce("SPAN");
-                        $( c11 ).append(s11);
-                        $( s11 ).text( this.selObj["blocks"]["hwaddr"] );
+                        $( c11 ).append(s11); console.log(this.selObj)
+                        $( s11 ).text( this.selObj["blocks"][0]["hwaddr"] );
                     var c12 = this.hb.ceCOL("xs", 2);
                     $( r1 ).append(c12);
                     $( c12 ).addClass("text-right")
@@ -341,47 +341,47 @@ class EmpUpdateModalBox extends EmpModalBox{
                 selector.id = this.getID_SELECTOR()
                 $( selector ).css("width","100%");
                 $( selector ).css("height","35px");
-                        var ff_change = function(){
+                var ff_change = function(){
                     var el = selector.options[selector.selectedIndex];
-                            var id = el.id;
-                            var newWTP = this.hb.getKeyValue(this.qe.targets.WTP, id);
-                            this.selObj["wtp"] = newWTP;
-                    $( s03 ).text( newWTP["label"] + " ( " + newWTP["addr"] + " ) " );
+                    var id = el.id;
+                    var newWTP = this.hb.getKeyValue(this.qe.targets.WTP, id);
+                    this.selObj["wtp"] = newWTP;
+                    $( s03 ).text( newWTP["label"] + " ( " + newWTP["addr"] + " )" );
                     $( s13 ).text("")
-                            this.f_UpdateBlockSelector.bind(this)([newWTP]);
-                            this.toUpdate["lvapWtp"] = true;
-    }
-                        $( selector ).change(ff_change.bind(this));
+                    this.f_UpdateBlockSelector.bind(this)([newWTP]);
+                    this.toUpdate["lvapWtp"] = true;
+                }
+                $( selector ).change(ff_change.bind(this));
 
-                        var ccc00 = this.hb.ceCOL("xs", COL_0);
-                        $( rr1 ).append(ccc00);
-                        $( ccc00 ).addClass("text-right")
-                            var sss00 = this.hb.ce("SPAN");
-                            $( ccc00 ).append(sss00);
-                            $( sss00 ).text("Select a block : ")
-                            $( sss00 ).css("fontWeight", 700)
-                        var ccc01 = this.hb.ceCOL("xs", COL_1);
-                        $( rr1 ).append(ccc01);
-                            var blockSelector = this.hb.ce("SELECT");
-                            $( ccc01 ).append(blockSelector);
-                            blockSelector.id = this.getID_BLOCKSELECTOR()
-                            $( blockSelector ).css("width","100%");
-                            $( blockSelector ).css("height","35px");
-                        var fff_change = function(){
-                            var el = blockSelector.options[blockSelector.selectedIndex];
+                var ccc00 = this.hb.ceCOL("xs", COL_0);
+                $( rr1 ).append(ccc00);
+                $( ccc00 ).addClass("text-right")
+                    var sss00 = this.hb.ce("SPAN");
+                    $( ccc00 ).append(sss00);
+                    $( sss00 ).text("Select a block : ")
+                    $( sss00 ).css("fontWeight", 700)
+                var ccc01 = this.hb.ceCOL("xs", COL_1);
+                $( rr1 ).append(ccc01);
+                    var blockSelector = this.hb.ce("SELECT");
+                    $( ccc01 ).append(blockSelector);
+                    blockSelector.id = this.getID_BLOCKSELECTOR()
+                    $( blockSelector ).css("width","100%");
+                    $( blockSelector ).css("height","35px");
+                var fff_change = function(){
+                    var el = blockSelector.options[blockSelector.selectedIndex];
                     var id = el.id;
                     var txt = "";
-                            if( el.id != "ALL" ){
-                                txt = el.id;
-                            }
+                    if( el.id != "ALL" ){
+                        txt = el.id;
+                    }
                     else{
                         $( s12 ).text("Any block")
                     }
                     $( s13 ).text(txt);
-                    $( s03 ).text( this.selObj["wtp"]["label"] + " ( " + this.selObj["wtp"]["addr"] + " ) " );
+                    $( s03 ).text( this.selObj["wtp"]["label"] + " ( " + this.selObj["wtp"]["addr"] + " )" );
                     this.toUpdate["lvapWtp"] = true;
-                        }
-                        $( blockSelector ).change(fff_change.bind(this));
+                }
+                $( blockSelector ).change(fff_change.bind(this));
 
                 var ff = function(){
                     this.f_UpdateWTPSelector.bind(this)();
@@ -484,13 +484,9 @@ class EmpUpdateModalBox extends EmpModalBox{
             if( attrbts[a].update ){
                 switch(a){
                     case "wtp":
-                        var txt = $( this.hb.ge(id) ).text();
-                        var addr = txt.substring(txt.length-20, txt.length-3);
-                        var block = $( this.hb.ge( id + "_block" ) ).text(); console.log(block, block.length)
-                        if( block.length > 20 ){
-                            block = "";
-                        }
-                        console.log( addr, block)
+                        var txt = $( this.hb.ge(id) ).text(); console.log(txt)
+                        var addr = txt.substring(txt.length-19, txt.length-2); console.log(addr)
+                        var block = $( this.hb.ge( id + "_block" ) ).text();
                         var wtp = this.hb.getKeyValue("wtps", addr);
                         var params = [input, wtp, block]
                     break;
