@@ -42,7 +42,7 @@ class HandoverManager(EmpowerApp):
             [{"earfcn": ue.cell.dl_earfcn,
               "interval": 2000,
               "max_cells": 2,
-              "max_meas": 2}]
+              "max_measure": 2}]
 
         self.ue_measurements(ue=ue, measurements=measurements)
 
