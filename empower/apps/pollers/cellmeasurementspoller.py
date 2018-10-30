@@ -20,14 +20,14 @@
 from empower.core.app import EmpowerApp
 
 
-class MACReportsPoller(EmpowerApp):
-    """MAC Reports Poller Apps.
+class CellMeasurementsPoller(EmpowerApp):
+    """ CellMeasurementsPoller App.
 
     Command Line Parameters:
         tenant_id: tenant id
 
     Example:
-        ./empower-runtime.py apps.pollers.macreportspoller \
+        ./empower-runtime.py apps.pollers.cellmeasurementspoller \
             --tenant_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26D
     """
 
@@ -37,10 +37,10 @@ class MACReportsPoller(EmpowerApp):
 
         for cell in vbs.cells.values():
 
-            self.mac_reports(cell=cell, deadline=2000)
+            self.cell_measurements(cell=cell, interval=2000)
 
 
 def launch(tenant_id):
     """ Initialize the module. """
 
-    return MACReportsPoller(tenant_id=tenant_id)
+    return CellMeasurementsPoller(tenant_id=tenant_id)

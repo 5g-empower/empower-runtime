@@ -227,7 +227,7 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        ue_meas = {str(k): v for k, v in self.ue_measurements.items()}
+        ue_measure = {str(k): v for k, v in self.ue_measurements.items()}
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
@@ -238,7 +238,7 @@ class UE:
                 'cell': self.cell,
                 'vbs': self.vbs,
                 'state': self.state,
-                'ue_measurements': ue_meas}
+                'ue_measurements': ue_measure}
 
     def __str__(self):
         """Return string representation."""

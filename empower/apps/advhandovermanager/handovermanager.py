@@ -66,26 +66,27 @@ class HandoverManager(EmpowerApp):
 
         for cell in vbs.cells:
 
-            report = self.mac_reports(cell=cell,
-                                      deadline=self.every,
-                                      callback=self.mac_reports_callback)
+            report = self.cell_measurements(cell=cell,
+                                            interval=self.every,
+                                            callback=self.cell_measurements_callback)
 
-    def mac_reports_callback(self, report):
+    def cell_measurements_callback(self, report):
         """ New measurements available. """
 
-        self.log.info("New mac report received from %s" % report.cell)
+        self.log.info("New cell measurements received from %s" % report.cell)
 
     def ue_join_callback(self, ue):
         """ New UE. """
 
-        measurements = \
+        rrc_measurements_param = \
             [{"earfcn": ue.cell.DL_earfcn,
               "interval": 2000,
               "max_cells": 2,
-              "max_meas": 2}]
+              "max_measure": 2}]
 
-        self.ue_measurements(ue=ue, measurements=measurements,
-                              callback=self.ue_measurements_callback)
+        self.ue_measurements(ue=ue,
+                             rrc_measurements_param=rrc_measurements_param,
+                             callback=self.ue_measurements_callback)
 
     def ue_measurements_callback(self, ue):
         """ New measurements available. """
@@ -244,19 +245,21 @@ class HandoverManager(EmpowerApp):
 
             for cell in vbs.cells:
 
-                if not cell.mac_reports:
+                if not cell.cell_measurements:
                     continue
 
                 self.log.info("Cell %s: DL: %f / %u / %u", cell,
-                              cell.mac_reports['DL_util_last'], self.s_dl_thr,
-                              self.t_dl_thr)
+                              cell.cell_measurements['mac_prbs_report'] \
+                                ['DL_util_last'], self.s_dl_thr, self.t_dl_thr)
 
                 self.log.info("Cell %s: UL: %f / %u / %u", cell,
-                              cell.mac_reports['UL_util_last'], self.s_ul_thr,
-                              self.t_ul_thr)
+                              cell.cell_measurements['mac_prbs_report'] \
+                                ['UL_util_last'], self.s_ul_thr, self.t_ul_thr)
 
-                if cell.mac_reports['DL_util_last'] > self.s_dl_thr or \
-                   cell.mac_reports['UL_util_last'] > self.s_ul_thr:
+                if cell.cell_measurements['mac_prbs_report']['DL_util_last'] > \
+                    self.s_dl_thr or \
+                    cell.cell_measurements['mac_prbs_report']['UL_util_last'] > \
+                    self.s_ul_thr:
 
                     if vbs.addr not in ho_from_vbses:
                         ho_from_vbses[vbs.addr] = {"vbs": vbs,
@@ -266,8 +269,10 @@ class HandoverManager(EmpowerApp):
 
                     ho_from_vbses[vbs.addr]["cells"].append(cell)
 
-                if cell.mac_reports['DL_util_last'] < self.t_dl_thr or \
-                   cell.mac_reports['UL_util_last'] < self.t_ul_thr:
+                if cell.cell_measurements['mac_prbs_report']['DL_util_last'] < \
+                    self.t_dl_thr or \
+                   cell.cell_measurements['mac_prbs_report']['UL_util_last'] < \
+                    self.t_ul_thr:
 
                     if vbs.addr not in ho_to_vbses:
                         ho_to_vbses[vbs.addr] = {"vbs": vbs,
@@ -302,11 +307,16 @@ class HandoverManager(EmpowerApp):
                             continue
 
                         # pick cell from measurements
-                        if cell not in ue.ue_measurements:
+                        if tvbs not in ue.ue_measurements:
+                            continue
+                        if cell not in ue.ue_measurements[tvbs]:
                             continue
 
-                        current = ue.ue_measurements[ue.cell]["rsrq"]
-                        new = ue.ue_measurements[cell]["rsrq"]
+                        current = ue.ue_measurements[ue.vbs.addr][ue.cell] \
+                            ['rrc_measurements']["rsrq"]
+
+                        new = ue.ue_measurements[tvbs][cell] \
+                            ['rrc_measurements']["rsrq"]
 
                         if new > current and new > self.rsrq_thr:
                             ho_info[ue.ue_id] = {"ue": ue, "cell": cell}

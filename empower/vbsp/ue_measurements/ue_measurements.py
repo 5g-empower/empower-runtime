@@ -26,10 +26,11 @@ from construct import UBInt32
 from construct import Bytes
 from construct import Container
 from construct import Struct
-from construct import Array
 from construct import BitStruct
 from construct import Padding
 from construct import Bit
+from construct import Rename
+from construct import OptionalGreedyRange
 
 from empower.core.app import EmpowerApp
 from empower.core.ue import UE
@@ -38,45 +39,70 @@ from empower.core.module import ModulePeriodic
 from empower.vbsp import E_TYPE_TRIG
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import EP_OPERATION_REM
+from empower.vbsp import OPTIONS
 from empower.main import RUNTIME
 
 
 EP_ACT_UE_MEASURE = 0x05
 
-UE_MEAS_REQUEST = Struct("ue_meas_request",
-                         UBInt8("type"),
-                         UBInt8("version"),
-                         Bytes("enbid", 8),
-                         UBInt16("cellid"),
-                         UBInt32("xid"),
-                         BitStruct("flags", Padding(15), Bit("dir")),
-                         UBInt32("seq"),
-                         UBInt16("length"),
-                         UBInt16("action"),
-                         UBInt8("opcode"),
-                         UBInt8("meas_id"),
-                         UBInt16("rnti"),
-                         UBInt16("earfcn"),
-                         UBInt16("interval"),
-                         UBInt16("max_cells"),
-                         UBInt16("max_meas"))
+UE_MEASUREMENT_REPORT = Struct("ue_measure_report",
+                               UBInt8("type"),
+                               UBInt8("version"),
+                               Bytes("enbid", 8),
+                               UBInt16("cellid"),
+                               UBInt32("xid"),
+                               BitStruct("flags", Padding(15), Bit("dir")),
+                               UBInt32("seq"),
+                               UBInt16("length"),
+                               UBInt16("action"),
+                               UBInt8("opcode"))
 
-UE_MEAS_ENTRY = Struct("ue_meas_entries",
-                       UBInt8("meas_id"),
-                       UBInt16("pci"),
-                       SBInt16("rsrp"),
-                       SBInt16("rsrq"))
+UE_MEASURE_REQUEST = Struct("ue_measure_request",
+                            UBInt8("type"),
+                            UBInt8("version"),
+                            Bytes("enbid", 8),
+                            UBInt16("cellid"),
+                            UBInt32("xid"),
+                            BitStruct("flags", Padding(15), Bit("dir")),
+                            UBInt32("seq"),
+                            UBInt16("length"),
+                            UBInt16("action"),
+                            UBInt8("opcode"),
+                            Rename("options",
+                                   OptionalGreedyRange(OPTIONS)))
 
-UE_MEAS_RESPONSE = Struct("ue_meas_response",
-                          UBInt32("nof_meas"),
-                          Array(lambda ctx: ctx.nof_meas, UE_MEAS_ENTRY))
+UE_MEASURE_RESPONSE = Struct("ue_measure_response",
+                             Rename("options",
+                                    OptionalGreedyRange(OPTIONS)))
+
+RRC_MEASURE_REQUEST = Struct("rrc_measure_request",
+                             UBInt16("measure_id"),
+                             UBInt16("rnti"),
+                             UBInt16("earfcn"),
+                             UBInt16("interval"),
+                             UBInt16("max_cells"),
+                             UBInt16("max_measure"))
+
+RRC_MEASURE_REPORT = Struct("rrc_measure_report",
+                            UBInt16("measure_id"),
+                            UBInt16("pci"),
+                            SBInt16("rsrp"),
+                            SBInt16("rsrq"))
+
+EP_RRC_MEASURE_REQUEST = 0x0600
+EP_RRC_MEASURE_REPORT = 0x0601
+
+UE_MEASURE_TYPES = {
+    EP_RRC_MEASURE_REPORT: RRC_MEASURE_REPORT
+}
 
 
 class UEMeasurements(ModulePeriodic):
     """ UEMurements object. """
 
     MODULE_NAME = "ue_measurements"
-    REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue', 'measurements']
+    REQUIRED = ['module_type', 'worker', 'tenant_id', 'ue', \
+                'rrc_measurements_param']
 
     def __init__(self):
 
@@ -84,10 +110,10 @@ class UEMeasurements(ModulePeriodic):
 
         # parameters
         self._ue = None
-        self._measurements = {}
+        self._rrc_measurements_param = {}
 
         # stats
-        self.results = {}
+        self.rrc_measurements = {}
 
         # set this for auto-cleanup
         self.vbs = None
@@ -95,27 +121,27 @@ class UEMeasurements(ModulePeriodic):
     def __eq__(self, other):
 
         return super().__eq__(other) and self.ue == other.ue and \
-            self.measurements == other.measurements
+            self.rrc_measurements_param == other.rrc_measurements_param
 
     @property
-    def measurements(self):
-        """Return measurements."""
+    def rrc_measurements_param(self):
+        """Return rrc_measurements_param."""
 
-        return self._measurements
+        return self._rrc_measurements_param
 
-    @measurements.setter
-    def measurements(self, values):
-        """Set measurements."""
+    @rrc_measurements_param.setter
+    def rrc_measurements_param(self, values):
+        """Set rrc_measurements_param."""
 
-        self._measurements = {}
+        self._rrc_measurements_param = {}
 
         for i, value in enumerate(values):
-            self._measurements[i] = {
-                "meas_id": i,
+            self._rrc_measurements_param[i] = {
+                "measure_id": i,
                 "earfcn": int(value["earfcn"]),
                 "interval": int(value["interval"]),
                 "max_cells": int(value["max_cells"]),
-                "max_meas": int(value["max_meas"])
+                "max_measure": int(value["max_measure"])
             }
 
     @property
@@ -145,8 +171,8 @@ class UEMeasurements(ModulePeriodic):
         out = super().to_dict()
 
         out['ue'] = self.ue
-        out['measurements'] = self.measurements
-        out['results'] = self.results
+        out['rrc_measurements_param'] = self.rrc_measurements_param
+        out['rrc_measurements'] = self.rrc_measurements
 
         return out
 
@@ -174,95 +200,142 @@ class UEMeasurements(ModulePeriodic):
         if self.vbs == self.ue.vbs:
             return
 
+        # if the vbs exists, first the measurements need to be removed
+
         if self.vbs:
 
-            for i in self.measurements:
-                msg = Container(meas_id=i,
-                                rnti=0,
-                                earfcn=0,
-                                interval=0,
-                                max_cells=0,
-                                max_meas=0,
-                                length=UE_MEAS_REQUEST.sizeof())
+            msg = Container(options=[], length=UE_MEASUREMENT_REPORT.sizeof())
 
-                self.vbs.connection.send_message(msg,
-                                                 E_TYPE_TRIG,
-                                                 EP_ACT_UE_MEASURE,
-                                                 UE_MEAS_REQUEST,
-                                                 cellid=self.ue.cell.pci,
-                                                 opcode=EP_OPERATION_REM,
-                                                 xid=self.module_id)
+            for i in self.rrc_measurements_param:
 
-        self.results = {}
+                # RRC measurements
+                rrc_measure = Container(measure_id=i,
+                                        rnti=0,
+                                        earfcn=0,
+                                        interval=0,
+                                        max_cells=0,
+                                        max_measure=0)
 
-        self.vbs = self.ue.vbs
+                rcc_data = RRC_MEASURE_REQUEST.build(rrc_measure)
+                opt_rrc = Container(type=EP_RRC_MEASURE_REQUEST,
+                                    length=RRC_MEASURE_REQUEST.sizeof(),
+                                    data=rcc_data)
 
-        for i in self.measurements:
+                msg.options.append(opt_rrc)
+                msg.length = msg.length + opt_rrc.length + 4
 
-            measurement = self.measurements[i]
-
-            msg = Container(meas_id=i,
-                            rnti=self.ue.rnti,
-                            earfcn=measurement["earfcn"],
-                            interval=measurement["interval"],
-                            max_cells=measurement["max_cells"],
-                            max_meas=measurement["max_meas"],
-                            length=UE_MEAS_REQUEST.sizeof())
+                # Other future measurements like PHY go here.
 
             self.vbs.connection.send_message(msg,
                                              E_TYPE_TRIG,
                                              EP_ACT_UE_MEASURE,
-                                             UE_MEAS_REQUEST,
+                                             UE_MEASURE_REQUEST,
                                              cellid=self.ue.cell.pci,
-                                             opcode=EP_OPERATION_ADD,
+                                             opcode=EP_OPERATION_REM,
                                              xid=self.module_id)
+
+        self.rrc_measurements = {}
+
+        self.vbs = self.ue.vbs
+
+        msg = Container(options=[], length=UE_MEASUREMENT_REPORT.sizeof())
+
+        for i, measure in self.rrc_measurements_param.items():
+
+            # RRC measurements
+            rrc_measure = Container(measure_id=i,
+                                    rnti=self.ue.rnti,
+                                    earfcn=measure["earfcn"],
+                                    interval=measure["interval"],
+                                    max_cells=measure["max_cells"],
+                                    max_measure=measure["max_measure"])
+
+            rcc_data = RRC_MEASURE_REQUEST.build(rrc_measure)
+            opt_rrc = Container(type=EP_RRC_MEASURE_REQUEST,
+                                length=RRC_MEASURE_REQUEST.sizeof(),
+                                data=rcc_data)
+
+            msg.options.append(opt_rrc)
+            msg.length = msg.length + opt_rrc.length + 4
+            # Other future measurements like PHY go here.
+
+        self.vbs.connection.send_message(msg,
+                                         E_TYPE_TRIG,
+                                         EP_ACT_UE_MEASURE,
+                                         UE_MEASURE_REQUEST,
+                                         cellid=self.ue.cell.pci,
+                                         opcode=EP_OPERATION_ADD,
+                                         xid=self.module_id)
+
 
     def handle_response(self, response):
         """Handle an incoming UE_MEASUREMENTS message.
         Args:
-            meas, a UE_MEASUREMENTS message
+            response, a UE_MEASUREMENTS message
         Returns:
             None
         """
 
-        for entry in response.ue_meas_entries:
+        for raw_entry in response.options:
 
-            # save measurements in this object
-            if entry.meas_id not in self.results:
-                self.results[entry.meas_id] = {}
+            if raw_entry.type not in UE_MEASURE_TYPES:
+                self.log.warning("Unknown options %u", raw_entry)
+                continue
 
-            self.results[entry.meas_id][entry.pci] = {
-                "meas_id": entry.meas_id,
-                "pci": entry.pci,
-                "rsrp": entry.rsrp,
-                "rsrq": entry.rsrq
-            }
+            prop = UE_MEASURE_TYPES[raw_entry.type].name
+            option = UE_MEASURE_TYPES[raw_entry.type].parse(raw_entry.data)
 
-            # check if this measurement refers to a cell that is in this tenant
-            earfcn = self.measurements[entry.meas_id]["earfcn"]
+            self.log.warning("Processing options %s", prop)
 
-            for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
+            if raw_entry.type == EP_RRC_MEASURE_REPORT:
 
-                for cell in vbs.cells.values():
+                # save measurements in this object
+                if option.measure_id not in self.rrc_measurements:
+                    self.rrc_measurements[option.measure_id] = {}
 
-                    if cell.pci == entry.pci and cell.dl_earfcn == earfcn:
+                self.rrc_measurements[option.measure_id][option.pci] = {
+                    "measure_id": option.measure_id,
+                    "rsrp": option.rsrp,
+                    "rsrq": option.rsrq
+                }
 
-                        if vbs.addr not in self.ue.ue_measurements:
-                            self.ue.ue_measurements[vbs.addr] = {}
+                # check if this measurement refers to a cell that is in this tenant
+                earfcn = self.rrc_measurements_param[option.measure_id]["earfcn"]
 
-                        cell.ue_measurements[self.ue.ue_id] = {
-                            "rsrp": entry.rsrp,
-                            "rsrq": entry.rsrq
-                        }
+                for vbs in RUNTIME.tenants[self.tenant_id].vbses.values():
 
-                        self.ue.ue_measurements[vbs.addr][cell.pci] = {
-                            "rsrp": entry.rsrp,
-                            "rsrq": entry.rsrq
-                        }
+                    for cell in vbs.cells.values():
 
-        # call callback
-        self.handle_callback(self)
+                        if cell.pci == option.pci and cell.dl_earfcn == earfcn:
 
+                            if self.ue.ue_id not in cell.ue_measurements:
+                                cell.ue_measurements[self.ue.ue_id] = {}
+
+                            if 'rrc_measurements' \
+                                not in cell.ue_measurements[self.ue.ue_id]:
+                                cell.ue_measurements[self.ue.ue_id] \
+                                    ['rrc_measurements'] = {}
+
+                            cell.ue_measurements[self.ue.ue_id] \
+                                ['rrc_measurements'] = {
+                                    "rsrp": option.rsrp,
+                                    "rsrq": option.rsrq
+                                }
+
+                            if vbs.addr not in self.ue.ue_measurements:
+                                self.ue.ue_measurements[vbs.addr] = {}
+
+                            if cell.pci not in self.ue.ue_measurements[vbs.addr]:
+                                self.ue.ue_measurements[vbs.addr][cell.pci] = {}
+
+                            self.ue.ue_measurements[vbs.addr][cell.pci] \
+                                ['rrc_measurements'] = {
+                                    "rsrp": option.rsrp,
+                                    "rsrq": option.rsrq
+                                }
+
+                # call callback
+                self.handle_callback(self)
 
 class UEMeasurementsWorker(ModuleVBSPWorker):
     """ Counter worker. """
@@ -292,4 +365,4 @@ def launch():
 
     return UEMeasurementsWorker(UEMeasurements,
                                 EP_ACT_UE_MEASURE,
-                                UE_MEAS_RESPONSE)
+                                UE_MEASURE_RESPONSE)

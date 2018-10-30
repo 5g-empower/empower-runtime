@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""PRB utilization module."""
+"""Cell measurements module."""
 
 # the manifest
 MANIFEST = {
-    "name": "empower.vbsp.mac_reports.mac_reports",
-    "desc": "PRB utilization module.",
+    "name": "empower.vbsp.cell_measurements.cell_measurements",
+    "desc": "Cell measurements module.",
 }

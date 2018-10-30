@@ -80,7 +80,7 @@ class Cell:
         self._ran_features = {}
 
         self.ue_measurements = {}
-        self.mac_reports = {}
+        self.cell_measurements = {}
 
     @property
     def features(self):
@@ -186,7 +186,7 @@ class Cell:
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the CPP."""
 
-        ue_meas = {str(k): v for k, v in self.ue_measurements.items()}
+        ue_measure = {str(k): v for k, v in self.ue_measurements.items()}
         ran_features = {str(k): v for k, v in self.ran_features.items()}
 
         out = {}
@@ -199,8 +199,8 @@ class Cell:
         out['ul_earfcn'] = self.ul_earfcn
         out['ul_bandwidth'] = self.ul_bandwidth
         out['max_ues'] = self.max_ues
-        out['mac_reports'] = self.mac_reports
-        out['ue_measurements'] = ue_meas
+        out['cell_measurements'] = self.cell_measurements
+        out['ue_measurements'] = ue_measure
         out['ran_features'] = ran_features
 
         return out
