@@ -194,22 +194,19 @@ class SliceStats(ModulePeriodic):
             None
         """
 
+        tenant = RUNTIME.tenants[self.tenant_id]
+
         # update this object
         self.slice_stats = {
             'tx_bytes': response.tx_bytes,
             'tx_packets': response.tx_packets,
             'deficit_used': response.deficit_used,
-            'max_queue_length': response.max_queue_length
+            'max_queue_length': response.max_queue_length,
+            'tenant': tenant.tenant_name,
+            'dscp': self.dscp
         }
 
-        tenant = RUNTIME.tenants[self.tenant_id]
-        slc = tenant.slices[self.dscp]
-
-        wtp_addr = self.block.radio.addr
-        block = "%s-%s-%s" % (self.block.hwaddr, self.block.channel,
-                              self.block.band)
-
-        slc.wifi['wtps'][wtp_addr]['blocks'][block] = self.slice_stats
+        self.block.slice_stats = self.slice_stats
 
         # call callback
         self.handle_callback(self)

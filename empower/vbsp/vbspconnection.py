@@ -64,10 +64,10 @@ from empower.vbsp import EP_OPERATION_REM
 from empower.vbsp import EP_OPERATION_SET
 from empower.vbsp import REM_RAN_MAC_SLICE_REQUEST
 from empower.vbsp import SET_RAN_MAC_SLICE_REQUEST
-from empower.core.utils import get_xid
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
 from empower.core.ue import UE_REPORT_STATES
+from empower.core.utils import get_xid
 
 from empower.main import RUNTIME
 
@@ -394,8 +394,7 @@ class VBSPConnection:
 
                     for cell in self.vbs.cells.values():
 
-                        if self.vbs.addr not in slc.lte['vbses'] or \
-                            not slc.lte['vbses'][self.vbs.addr]['cells']:
+                        if self.vbs.addr not in slc.lte['vbses']:
 
                             self.vbs.connection. \
                                 send_add_set_ran_mac_slice_request(cell,
@@ -439,12 +438,11 @@ class VBSPConnection:
 
                 # UE already known, update its parameters
                 if ue:
-
                     ue.plmn_id = plmn_id
+                    ue.imsi = option.imsi
                     ue.tmsi = option.timsi
 
                 else:
-
                     cell = vbs.cells[hdr.cellid]
                     ue_id = uuid.uuid4()
 
@@ -535,13 +533,6 @@ class VBSPConnection:
 
         slc = tenant.slices[dscp]
 
-        if vbs.addr not in slc.lte['vbses']:
-            slc.lte['vbses'][vbs.addr] = \
-                {'static-properties': {}, 'runtime-properties': {}, 'cells': {}}
-
-        if hdr.cellid not in slc.lte['vbses'][vbs.addr]['cells']:
-            slc.lte['vbses'][vbs.addr]['cells'][hdr.cellid] = {}
-
         for raw_cap in msg.options:
 
             if raw_cap.type not in RAN_MAC_SLICE_TYPES:
@@ -554,16 +545,47 @@ class VBSPConnection:
             self.log.warning("Processing options %s", prop)
 
             if raw_cap.type == EP_RAN_MAC_SLICE_SCHED_ID:
-                slc.lte['vbses'][vbs.addr] \
-                    ['static-properties']['sched_id'] = option.sched_id
+
+                if option.sched_id != slc.lte['static-properties']['sched_id']:
+
+                    if vbs.addr not in slc.lte['vbses']:
+                        slc.lte['vbses'][vbs.addr] = {
+                            'static-properties': {}
+                        }
+
+                    slc.lte['vbses'][vbs.addr] \
+                        ['static-properties']['sched_id'] = option.sched_id
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RBGS:
-                slc.lte['vbses'][vbs.addr]['static-properties']['rbgs'] = \
-                    option.rbgs
+
+                if option.rbgs != slc.lte['static-properties']['rbgs']:
+
+                    if vbs.addr not in slc.lte['vbses']:
+                        slc.lte['vbses'][vbs.addr] = {
+                            'static-properties': {}
+                        }
+
+                    slc.lte['vbses'][vbs.addr] \
+                        ['static-properties']['rbgs'] = option.rbgs
 
             if raw_cap.type == EP_RAN_MAC_SLICE_RNTI_LIST:
-                slc.lte['vbses'][vbs.addr]['runtime-properties']['rntis'] = \
-                    option.rntis
+
+                rntis = option.rntis
+
+                for ue in list(tenant.ues.values()):
+
+                    if ue.vbs != vbs:
+                        continue
+
+                    # if the UE was attached to this slice, but it is not
+                    # in the information given by the eNB, it should be deleted.
+                    if slc.dscp in ue.slices and ue.rnti not in rntis:
+                        ue.remove_slice(slc.dscp)
+
+                    # if the UE was not attached to this slice, but its RNTI
+                    # is provided by the eNB for this slice, it should added.
+                    if slc.dscp not in ue.slices and ue.rnti in rntis:
+                        ue.add_slice(slc.dscp)
 
         self.log.info("Slice %s updated", slc)
 
@@ -644,7 +666,7 @@ class VBSPConnection:
                           RAN_MAC_SLICE_REQUEST,
                           cellid=cell_id)
 
-    def send_add_set_ran_mac_slice_request(self, cell, slc, opcode):
+    def send_add_set_ran_mac_slice_request(self, cell, slc, opcode, rntis=[]):
         """Send an SET_RAN_MAC_SLICE_REQUEST message.
         Args:
             None
@@ -656,7 +678,6 @@ class VBSPConnection:
 
         sched_id = slc.lte['static-properties']['sched_id']
         rbgs = slc.lte['static-properties']['rbgs']
-        rntis = slc.lte['runtime-properties']['rntis']
 
         if self.vbs.addr in slc.lte['vbses']:
 
@@ -669,13 +690,6 @@ class VBSPConnection:
 
                 if 'rbgs' in static:
                     rbgs = static['rbgs']
-
-            if 'runtime-properties' in slc.lte['vbses'][self.vbs.addr]:
-
-                runtime = slc.lte['vbses'][self.vbs.addr]['runtime-properties']
-
-                if 'rntis' in runtime:
-                    rntis = runtime['rntis']
 
         msg = Container(plmn_id=slc.tenant.plmn_id.to_raw(),
                         dscp=slc.dscp.to_raw(),
@@ -720,6 +734,37 @@ class VBSPConnection:
     def send_del_ran_mac_slice_request(self, cell, plmn_id, dscp):
         """Send an DEL_SLICE message. """
 
+        tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
+
+        # check if tenant is valid
+        if not tenant:
+            self.log.info("Unknown tenant %s", plmn_id)
+            return
+
+        # check if slice is valid
+        if dscp not in tenant.slices:
+            self.log.warning("DSCP %s not found. Removing slice.", dscp)
+            return
+
+        # UEs already present in the slice must be moved to the default slice
+        # before deleting the current slice
+
+        for ue in list(RUNTIME.ues.values()):
+
+            if self.vbs == ue.vbs and dscp in ue.slices:
+
+                current_slices = [x for x in ue.slices]
+                current_slices.remove(DSCP(dscp))
+
+                if not current_slices:
+                    default_slice = tenant.slices[DSCP("0x00")]
+
+                    if default_slice:
+                        current_slices.append(DSCP("0x00"))
+
+                ue.slices = current_slices
+
+        # Then proceed to remove the current slice
         msg = Container(plmn_id=plmn_id.to_raw(),
                         dscp=dscp.to_raw(),
                         padding=b'\x00\x00\x00',

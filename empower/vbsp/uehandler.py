@@ -96,6 +96,11 @@ class UEHandler(EmpowerAPIHandlerUsers):
                 pci = int(request['cell']['pci'])
                 ue.cell = vbs.cells[pci]
 
+            if "slices" in request:
+
+                # Either a slice or a set of slices are admitted.
+                ue.slices = request['slices']
+
         except KeyError as ex:
             self.send_error(404, message=ex)
         except ValueError as ex:
