@@ -29,10 +29,32 @@ MULTI_SLICE_SCHED = 0x00000001
 
 
 class Slice:
-    """The base EmPOWER slice class.
+    """The EmPOWER slice class.
 
-    A slice is defined starting from the following descriptor (in JSON format).
-    Notice how any slice properties can be overridded on a per node-basis.
+    A slice is defined starting from a JSON descriptor like the following:
+
+    {
+        "version": 1.0,
+        "dscp": "0x42",
+        "wifi": {
+            "static-properties": {
+              "amsdu_aggregation": true,
+              "quantum": 12000
+            }
+        },
+        "lte": {
+            "static-properties": {
+              "rbgs": 5,
+              "sched_id": 1
+            }
+        }
+    }
+
+    The descriptor above will create a slice with id 0x42 on every WiFi and LTE
+    node in the network.
+
+    In some cases it may be required to use different slice parameters only on
+    certain nodes. This can be done using a descriptor like the following:
 
     {
         "version": 1.0,
@@ -54,16 +76,19 @@ class Slice:
             "static-properties": {
               "rbgs": 5,
               "sched_id": 1
-            }
+            },
             "vbses": {
                 "aa:bb:cc:dd:ee:ff": {
                     "static-properties": {
                       "rbgs": 2
-                    }
+                    },
                 }
             }
         }
     }
+
+    In this case the slice is still created on all the nodes in the network,
+    but some slice parameters are different for the specified nodes.
     """
 
     def __init__(self, dscp, tenant, descriptor):
