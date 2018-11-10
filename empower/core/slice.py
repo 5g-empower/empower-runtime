@@ -103,7 +103,6 @@ class Slice:
         if 'wtps' in descriptor['wifi']:
             self.__parse_wtps_descriptor(descriptor)
 
-
     def __parse_wifi_static_properties(self, descriptor):
 
         if 'amsdu_aggregation' in descriptor['wifi']['static-properties']:
