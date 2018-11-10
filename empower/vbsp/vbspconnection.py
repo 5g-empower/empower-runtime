@@ -438,11 +438,13 @@ class VBSPConnection:
 
                 # UE already known, update its parameters
                 if ue:
+
                     ue.plmn_id = plmn_id
                     ue.imsi = option.imsi
                     ue.tmsi = option.timsi
 
                 else:
+
                     cell = vbs.cells[hdr.cellid]
                     ue_id = uuid.uuid4()
 
@@ -749,7 +751,6 @@ class VBSPConnection:
 
         # UEs already present in the slice must be moved to the default slice
         # before deleting the current slice
-
         for ue in list(RUNTIME.ues.values()):
 
             if self.vbs == ue.vbs and dscp in ue.slices:
