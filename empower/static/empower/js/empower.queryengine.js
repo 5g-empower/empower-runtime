@@ -147,18 +147,18 @@ class EmpQueryEngine{
                     if( values["lte"]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["static-properties"]["rbgs"] + '",';
                     if( values["lte"]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["static-properties"]["sched_id"] + '",';
                     data = data.substr(0,data.length-1) + ' },'
-                    data += '"runtime-properties": { '
-                    if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
-                    data += ' },'
+                    // data += '"runtime-properties": { '
+                    // if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
+                    // data += ' },'
                     data += '"vbses": { ';
                         for( var vbs in values["lte"]["vbses"] ){
                             data += '"' + vbs + '": { "static-properties": { '
                             if( values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] + '",';
                             if( values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] + '",';
                             data = data.substr(0,data.length-1) + ' },'
-                            data += '"runtime-properties": {'
-                            if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
-                            data += ' },'
+                            // data += '"runtime-properties": {'
+                            // if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
+                            // data += ' },'
                             if( values["lte"]["vbses"][vbs]["cells"] ) data += '"cells" : ' + values["lte"]["vbses"][vbs]["cells"] + ',';
                             data = data.substr(0,data.length-1) + ' },'
                         }
@@ -189,18 +189,18 @@ class EmpQueryEngine{
                     if( values["lte"]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["static-properties"]["rbgs"] + '",';
                     if( values["lte"]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["static-properties"]["sched_id"] + '",';
                     data = data.substr(0,data.length-1) + ' },'
-                    data += '"runtime-properties": { '
-                    if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
-                    data += ' },'
+                    // data += '"runtime-properties": { '
+                    // if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
+                    // data += ' },'
                     data += '"vbses": { ';
                         for( var vbs in values["lte"]["vbses"] ){
                             data += '"' + vbs + '": { "static-properties": { '
                             if( values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] + '",';
                             if( values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] + '",';
                             data = data.substr(0,data.length-1) + ' },'
-                            data += '"runtime-properties": {'
-                            if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
-                            data += ' },'
+                            // data += '"runtime-properties": {'
+                            // if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
+                            // data += ' },'
                             if( values["lte"]["vbses"][vbs]["cells"] ) data += '"cells" : ' + values["lte"]["vbses"][vbs]["cells"] + ',';
                             data = data.substr(0,data.length-1) + ' },'
                         }

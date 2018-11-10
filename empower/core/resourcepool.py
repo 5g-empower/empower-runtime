@@ -133,12 +133,13 @@ class ResourceBlock:
         self._hwaddr = hwaddr
         self._channel = channel
         self._band = band
-        self.ucqm = {}
-        self.ncqm = {}
-        self.wifi_stats = {}
         self.tx_policies = TxPolicyProp(self)
         self._supports = set()
         self._ht_supports = set()
+        self.ucqm = {}
+        self.ncqm = {}
+        self.wifi_stats = {}
+        self.slice_stats = {}
 
         if self.channel > 14:
             self.supports = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]

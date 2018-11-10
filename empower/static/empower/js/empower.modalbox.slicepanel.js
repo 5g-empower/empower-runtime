@@ -267,11 +267,11 @@ class EmpSliceModalBox extends EmpModalBox{
             var attrbts = {}
             attrbts["sched_id"] = { "name": "Scheduler ID: ", "ph": "Type here..."};
             attrbts["rbgs"] = { "name": "RBGs: ", "ph": "Type here..."};
-            attrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]"};
+            // attrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]"};
             if( values != null ){
                 attrbts["sched_id"]["value"] = values["lte"]["static-properties"]["sched_id"];
                 attrbts["rbgs"]["value"] = values["lte"]["static-properties"]["rbgs"];
-                attrbts["rntis"]["value"] = values["lte"]["runtime-properties"]["rntis"];
+                // attrbts["rntis"]["value"] = values["lte"]["runtime-properties"]["rntis"];
             }
             for( var a in attrbts){
                 var r = this.hb.ceROW();
@@ -342,7 +342,7 @@ class EmpSliceModalBox extends EmpModalBox{
                         var LTEattrbts = {}
                         LTEattrbts["sched_id"] = { "name": "Scheduler ID: ", "ph": "Type here..."};
                         LTEattrbts["rbgs"] = { "name": "RBGs: ", "ph": "Type here..."};
-                        LTEattrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]"};
+                        // LTEattrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]"};
                         var ff_change = function(){
                             var el = selector.options[selector.selectedIndex];
                             var id = el.id;
@@ -392,7 +392,7 @@ class EmpSliceModalBox extends EmpModalBox{
                         }
                         else{
                             this.LTEdetails[id] = {};
-                            this.LTEdetails[id]["runtime-properties"] = {};
+                            // this.LTEdetails[id]["runtime-properties"] = {};
                             this.LTEdetails[id]["static-properties"] = {};
                             for( var a in LTEattrbts){
                                 var tmp = this.hb.ge( this.getID_BODY_SLICEPANEL_ATTR(a) + "_" + id );
@@ -402,9 +402,9 @@ class EmpSliceModalBox extends EmpModalBox{
                                     case "rbgs":
                                         this.LTEdetails[id]["static-properties"][a] = txt;
                                         break;
-                                    case "rntis":
-                                        this.LTEdetails[id]["runtime-properties"][a] = txt;
-                                        break;
+                                    // case "rntis":
+                                    //     this.LTEdetails[id]["runtime-properties"][a] = txt;
+                                    //     break;
                                 }
                             }
                             this.d_SliceBodyPanel_ConfigLTE(detailsLTE);
@@ -699,7 +699,7 @@ class EmpSliceModalBox extends EmpModalBox{
                 var attrbts = {}
                 attrbts["sched_id"] = { "name": "Scheduler ID: ", "ph": "Type here...", "value": this.LTEdetails[lte]["static-properties"]["sched_id"]};
                 attrbts["rbgs"] = { "name": "RBGs: ", "ph": "Type here...", "value": this.LTEdetails[lte]["static-properties"]["rbgs"]};
-                attrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]", "value": this.LTEdetails[lte]["runtime-properties"]["rntis"]};
+                // attrbts["rntis"] = { "name": "RNTIs (inside brackets [ , ]) :", "ph": "[RNTI_1, RNTI_2, ...]", "value": this.LTEdetails[lte]["runtime-properties"]["rntis"]};
                 for( var a in attrbts){
                     var rr = this.hb.ceROW();
                     $( d ).append(rr);
@@ -797,10 +797,11 @@ class EmpSliceModalBox extends EmpModalBox{
 
     f_Add(){
         var tag = this.qe.targets.SLICE;
-        var attrbts = ["tenant_id", "dscp", "sched_id", "rbgs", "rntis", "amsdu_aggregation", "quantum"];
+        // var attrbts = ["tenant_id", "dscp", "sched_id", "rbgs", "rntis", "amsdu_aggregation", "quantum"];
+        var attrbts = ["tenant_id", "dscp", "sched_id", "rbgs", "amsdu_aggregation", "quantum"];
         var input = {};
         input["lte"] = {};
-        input["lte"]["runtime-properties"] = {};
+        // input["lte"]["runtime-properties"] = {};
         input["lte"]["static-properties"] = {};
         input["lte"]["vbses"] = {};
         input["wifi"] = {};
@@ -818,9 +819,9 @@ class EmpSliceModalBox extends EmpModalBox{
                 case "sched_id":
                     input["lte"]["static-properties"][a] = $( tmp ).val();
                     break;
-                case "rntis":
-                    input["lte"]["runtime-properties"][a] = $( tmp ).val();
-                    break;
+                // case "rntis":
+                //     input["lte"]["runtime-properties"][a] = $( tmp ).val();
+                //     break;
                 case "quantum":
                     input["wifi"]["static-properties"][a] = $( tmp ).val();
                     break;
@@ -832,8 +833,9 @@ class EmpSliceModalBox extends EmpModalBox{
         for(var id in this.LTEdetails){
             input["lte"]["vbses"][id] = {};
             input["lte"]["vbses"][id]["static-properties"] = {};
-            input["lte"]["vbses"][id]["runtime-properties"] = {};
-            var attrbts = ["sched_id", "rbgs", "rntis"];
+            // input["lte"]["vbses"][id]["runtime-properties"] = {};
+            // var attrbts = ["sched_id", "rbgs", "rntis"];
+            var attrbts = ["sched_id", "rbgs"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
@@ -841,9 +843,9 @@ class EmpSliceModalBox extends EmpModalBox{
                     case "sched_id":
                         input["lte"]["vbses"][id]["static-properties"][a] = this.LTEdetails[id]["static-properties"][a];
                         break;
-                    case "rntis":
-                        input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
-                        break;
+                    // case "rntis":
+                    //     input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
+                    //     break;
                 }
             }
         }
@@ -876,10 +878,11 @@ class EmpSliceModalBox extends EmpModalBox{
 
     f_Update(){
         var tag = this.qe.targets.SLICE;
-        var attrbts = ["sched_id", "rbgs", "rntis", "amsdu_aggregation", "quantum"];
+        // var attrbts = ["sched_id", "rbgs", "rntis", "amsdu_aggregation", "quantum"];
+        var attrbts = ["sched_id", "rbgs", "amsdu_aggregation", "quantum"];
         var input = jQuery.extend(true, {}, this.selObj) ;
         input["lte"] = {};
-        input["lte"]["runtime-properties"] = {};
+        // input["lte"]["runtime-properties"] = {};
         input["lte"]["static-properties"] = {};
         input["lte"]["vbses"] = {};
         input["wifi"] = {};
@@ -893,9 +896,9 @@ class EmpSliceModalBox extends EmpModalBox{
                 case "sched_id":
                     input["lte"]["static-properties"][a] = $( tmp ).val();
                     break;
-                case "rntis":
-                    input["lte"]["runtime-properties"][a] = $( tmp ).val();
-                    break;
+                // case "rntis":
+                //     input["lte"]["runtime-properties"][a] = $( tmp ).val();
+                //     break;
                 case "quantum":
                     input["wifi"]["static-properties"][a] = $( tmp ).val();
                     break;
@@ -907,8 +910,9 @@ class EmpSliceModalBox extends EmpModalBox{
         for(var id in this.LTEdetails){
             input["lte"]["vbses"][id] = {};
             input["lte"]["vbses"][id]["static-properties"] = {};
-            input["lte"]["vbses"][id]["runtime-properties"] = {};
-            var attrbts = ["sched_id", "rbgs", "rntis"];
+            // input["lte"]["vbses"][id]["runtime-properties"] = {};
+            // var attrbts = ["sched_id", "rbgs", "rntis"];
+            var attrbts = ["sched_id", "rbgs"];
             for( var i=0; i<attrbts.length; i++){
                 var a = attrbts[i];
                 switch(a){
@@ -916,9 +920,9 @@ class EmpSliceModalBox extends EmpModalBox{
                     case "sched_id":
                         input["lte"]["vbses"][id]["static-properties"][a] = this.LTEdetails[id]["static-properties"][a];
                         break;
-                    case "rntis":
-                        input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
-                        break;
+                    // case "rntis":
+                    //     input["lte"]["vbses"][id]["runtime-properties"][a] = this.LTEdetails[id]["runtime-properties"][a];
+                    //     break;
                 }
             }
         }

@@ -809,14 +809,22 @@ class LVAPPConnection:
 
         slc = tenant.slices[dscp]
 
-        if wtp.addr not in slc.wifi['wtps']:
-            slc.wifi['wtps'][wtp.addr] = {'static-properties': {}, 'blocks': {}}
+        if slc.wifi['static-properties']['quantum'] != status.quantum:
 
-        slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
-            status.quantum
+            if wtp.addr not in slc.wifi['wtps']:
+                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
 
-        slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
-            bool(status.flags.amsdu_aggregation)
+                slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
+                status.quantum
+
+        if slc.wifi['static-properties']['amsdu_aggregation'] != \
+            bool(status.flags.amsdu_aggregation):
+
+            if wtp.addr not in slc.wifi['wtps']:
+                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+
+            slc.wifi['wtps'][wtp.addr]['static-properties'] \
+                ['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
 
         self.log.info("Slice %s updated", slc)
 
@@ -1006,7 +1014,7 @@ class LVAPPConnection:
                         networks=[])
 
         for network in lvap.networks:
-            msg.length += 6 + WIFI_NWID_MAXSIZE + 1
+            msg.length = msg.length + 6 + WIFI_NWID_MAXSIZE + 1
             msg.networks.append(Container(bssid=network[0].to_raw(),
                                           ssid=network[1].to_raw()))
 

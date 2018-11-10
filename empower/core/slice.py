@@ -24,6 +24,9 @@ from empower.datatypes.etheraddress import EtherAddress
 
 import empower.logger
 
+ROUND_ROBIN_UE_SCHED = 0x80000001
+MULTI_SLICE_SCHED = 0x00000001
+
 
 class Slice:
     """The base EmPOWER slice class.
@@ -51,24 +54,11 @@ class Slice:
             "static-properties": {
               "rbgs": 5,
               "sched_id": 1
-            },
-            "runtime-properties": {
-              "rntis": [
-                12345,
-                22233
-              ]
-            },
+            }
             "vbses": {
                 "aa:bb:cc:dd:ee:ff": {
                     "static-properties": {
                       "rbgs": 2
-                    },
-                    "runtime-properties": {
-                      "rntis": [
-                        555555
-                      ]
-                    },
-                    "cells": {
                     }
                 }
             }
@@ -96,11 +86,8 @@ class Slice:
 
         self.lte = {
             'static-properties': {
-                'sched_id': 0,
+                'sched_id': ROUND_ROBIN_UE_SCHED,
                 'rbgs': 6
-            },
-            'runtime-properties': {
-                'rntis': []
             },
             'vbses': {}
         }
@@ -181,10 +168,6 @@ class Slice:
                         self.wifi['wtps'][wtp_addr]['static-properties'] \
                         ['quantum'] = int(quantum)
 
-            if 'blocks' in descriptor['wifi']['wtps'][addr]:
-                self.wifi['wtps'][wtp_addr]['blocks'] = \
-                    descriptor['wifi']['wtps'][addr]['blocks']
-
     def __parse_lte_descriptor(self, descriptor):
 
         if not self.tenant.plmn_id:
@@ -193,9 +176,6 @@ class Slice:
 
         if 'static-properties' in descriptor['lte']:
             self.__parse_lte_static_properties(descriptor)
-
-        if 'runtime-properties' in descriptor['lte']:
-            self.__parse_lte_runtime_descriptor(descriptor)
 
         if 'vbses' in descriptor['lte']:
             self.__parse_vbses_descriptor(descriptor)
@@ -220,18 +200,6 @@ class Slice:
             else:
                 self.lte['static-properties']['rbgs'] = int(rbgs)
 
-    def __parse_lte_runtime_descriptor(self, descriptor):
-
-        if 'rntis' in descriptor['lte']['runtime-properties']:
-
-            rntis = descriptor['lte']['runtime-properties']['rntis']
-
-            if isinstance(rntis, list):
-                self.lte['runtime-properties']['rntis'] = \
-                    [int(x) for x in rntis]
-            else:
-                self.lte['runtime-properties']['rntis'] = [int(rntis)]
-
     def __parse_vbses_descriptor(self, descriptor):
 
         for addr in descriptor['lte']['vbses']:
@@ -241,10 +209,9 @@ class Slice:
             if vbs_addr not in self.tenant.vbses:
                 raise KeyError("Unable to find VBS %s" % addr)
 
-            self.lte['vbses'][vbs_addr] = \
-                {'static-properties': {},
-                 'runtime-properties': {},
-                 'cells': {}}
+            self.lte['vbses'][vbs_addr] = {
+                'static-properties': {}
+            }
 
             if 'static-properties' in descriptor['lte']['vbses'][addr]:
 
@@ -273,25 +240,6 @@ class Slice:
                     else:
                         self.lte['vbses'][vbs_addr]['static-properties'] \
                             ['rbgs'] = int(rbgs)
-
-            if 'runtime-properties' in descriptor['lte']['vbses'][addr]:
-
-                if 'rntis' in \
-                    descriptor['lte']['vbses'][addr]['runtime-properties']:
-
-                    rntis = descriptor['lte']['vbses'][addr] \
-                        ['runtime-properties']['rntis']
-
-                    if isinstance(rntis, list):
-                        self.lte['vbses'][vbs_addr]['runtime-properties'] \
-                        ['rntis'] = [int(x) for x in rntis]
-                    else:
-                        self.lte['vbses'][vbs_addr]['runtime-properties'] \
-                        ['rntis'] = [int(rntis)]
-
-            if 'cells' in descriptor['lte']['vbses'][addr]:
-                self.lte['vbses'][vbs_addr]['cells'] = \
-                    descriptor['lte']['vbses'][addr]['cells']
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
