@@ -300,6 +300,9 @@ class UE:
     def add_slice(self, slc):
         """Add a slice to the set of slices of the UE."""
 
+        if slc in self.slices:
+            return
+
         self._slices.append(slc)
 
     def remove_slice(self, slc):
