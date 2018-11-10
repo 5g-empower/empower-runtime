@@ -528,7 +528,7 @@ class VBSPConnection:
         # check if slice is valid
         if dscp not in tenant.slices:
             self.log.warning("DSCP %s not found. Removing slice.", dscp)
-            # self.send_del_slice(valid[0], ssid, dscp)
+            self.send_del_slice(valid[0], ssid, dscp)
             return
 
         slc = tenant.slices[dscp]
@@ -578,7 +578,8 @@ class VBSPConnection:
                         continue
 
                     # if the UE was attached to this slice, but it is not
-                    # in the information given by the eNB, it should be deleted.
+                    # in the information given by the eNB, it should be
+                    # deleted.
                     if slc.dscp in ue.slices and ue.rnti not in rntis:
                         ue.remove_slice(slc.dscp)
 
