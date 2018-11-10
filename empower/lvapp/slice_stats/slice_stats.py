@@ -194,19 +194,19 @@ class SliceStats(ModulePeriodic):
             None
         """
 
-        tenant = RUNTIME.tenants[self.tenant_id]
-
         # update this object
         self.slice_stats = {
             'tx_bytes': response.tx_bytes,
             'tx_packets': response.tx_packets,
             'deficit_used': response.deficit_used,
-            'max_queue_length': response.max_queue_length,
-            'tenant': tenant.tenant_name,
-            'dscp': self.dscp
+            'max_queue_length': response.max_queue_length
         }
 
-        self.block.slice_stats = self.slice_stats
+        if self.tenant_id not in self.block.slice_stats:
+            self.block.slice_stats[self.tenant_id] = {}
+
+        self.block.slice_stats[self.tenant_id][self.dscp] = \
+            self.slice_stats
 
         # call callback
         self.handle_callback(self)
