@@ -328,27 +328,27 @@ class Tenant:
         # create slice on WTPs
         for wtp_addr in self.wtps:
 
-                wtp = self.wtps[wtp_addr]
+            wtp = self.wtps[wtp_addr]
 
-                if not wtp.is_online():
-                    continue
+            if not wtp.is_online():
+                continue
 
-                for block in wtp.supports:
-                    wtp.connection.send_set_slice(block, slc)
+            for block in wtp.supports:
+                wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
         for vbs_addr in self.vbses:
 
-                vbs = self.vbses[vbs_addr]
+            vbs = self.vbses[vbs_addr]
 
-                if not vbs.is_online():
-                    continue
+            if not vbs.is_online():
+                continue
 
-                for cell in vbs.cells.values():
-                    vbs.connection.\
-                        send_add_set_ran_mac_slice_request(cell,
-                                                           slc,
-                                                           EP_OPERATION_ADD)
+            for cell in vbs.cells.values():
+                vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_ADD)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
