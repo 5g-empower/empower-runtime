@@ -245,8 +245,6 @@ class UE:
             if not isinstance(slc, DSCP):
                 raise TypeError("Invalid type: %s" % type(slc))
 
-        # mod_slices = list(set(slice_pool) ^ set(self._slices))
-
         for slc_id in slice_pool:
 
             current_rntis = []

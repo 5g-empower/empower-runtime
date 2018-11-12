@@ -446,7 +446,7 @@ class VBSPConnection:
                 else:
 
                     cell = vbs.cells[hdr.cellid]
-                    ue_id = uuid.uuid4()
+                    ue_id = uuid.UUID(int=option.rnti)
 
                     ue = UE(ue_id, option.rnti, option.imsi, option.timsi,
                             cell, tenant)
@@ -530,7 +530,10 @@ class VBSPConnection:
         # check if slice is valid
         if dscp not in tenant.slices:
             self.log.warning("DSCP %s not found. Removing slice.", dscp)
-            self.send_del_slice(valid[0], ssid, dscp)
+
+            cell = vbs.cells[hdr.cellid]
+            self.send_del_ran_mac_slice_request(cell, plmn_id, dscp)
+
             return
 
         slc = tenant.slices[dscp]
@@ -745,26 +748,25 @@ class VBSPConnection:
             return
 
         # check if slice is valid
-        if dscp not in tenant.slices:
+        if dscp in tenant.slices:
+            # UEs already present in the slice must be moved to the default slice
+            # before deleting the current slice
+            for ue in list(RUNTIME.ues.values()):
+
+                if self.vbs == ue.vbs and dscp in ue.slices:
+
+                    current_slices = [x for x in ue.slices]
+                    current_slices.remove(DSCP(dscp))
+
+                    if not current_slices:
+                        default_slice = tenant.slices[DSCP("0x00")]
+
+                        if default_slice:
+                            current_slices.append(DSCP("0x00"))
+
+                    ue.slices = current_slices
+        else:
             self.log.warning("DSCP %s not found. Removing slice.", dscp)
-            return
-
-        # UEs already present in the slice must be moved to the default slice
-        # before deleting the current slice
-        for ue in list(RUNTIME.ues.values()):
-
-            if self.vbs == ue.vbs and dscp in ue.slices:
-
-                current_slices = [x for x in ue.slices]
-                current_slices.remove(DSCP(dscp))
-
-                if not current_slices:
-                    default_slice = tenant.slices[DSCP("0x00")]
-
-                    if default_slice:
-                        current_slices.append(DSCP("0x00"))
-
-                ue.slices = current_slices
 
         # Then proceed to remove the current slice
         msg = Container(plmn_id=plmn_id.to_raw(),
