@@ -303,13 +303,12 @@ class LVAPPConnection:
 
         if lvap.state == PROCESS_RUNNING \
                 and lvap.source_blocks \
-                and len(lvap.source_blocks) > 0 \
+                and lvap.source_blocks \
                 and lvap.source_blocks[0] is not None:
+
             self.server.send_lvap_handover_message_to_self(lvap,
                                                            lvap.source_blocks)
             lvap.source_blocks = None
-
-
 
     @classmethod
     def _handle_del_lvap_response(cls, _, status):
