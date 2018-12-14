@@ -459,19 +459,11 @@ class VBSPConnection:
 
             if raw_entry.type == EP_UE_REPORT_STATE:
 
-                ue_id = uuid.uuid4()
+                ue_id = uuid.UUID(int=option.imsi)
 
-                ue = RUNTIME.find_ue_by_rnti(option.rnti, hdr.cellid, vbs)
-
-                if not ue:
-                    continue
-
-                try:
-                    ue.state = UE_REPORT_STATES[option.state]
-                except IOError:
-                    self.log.error("Invalid transistion %s -> %s" \
-                                    %(ue.state, UE_REPORT_STATES[option.state]))
-
+                self.log.error("UE %s state %s (%s)",
+                               ue_id, option.state,
+                               UE_REPORT_STATES[option.state])
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.
