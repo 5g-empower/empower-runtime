@@ -434,10 +434,12 @@ class VBSPConnection:
                     self.log.info("Unknown tenant %s", plmn_id)
                     continue
 
-                ue = RUNTIME.find_ue_by_rnti(option.rnti, hdr.cellid, vbs)
+                ue_id = uuid.UUID(int=ue.imsi)
 
                 # UE already known, update its parameters
-                if ue:
+                if ue_id in RUNTIME.ues:
+
+                    ue = RUNTIME.ues[ue_id]
 
                     ue.plmn_id = plmn_id
                     ue.imsi = option.imsi
@@ -446,7 +448,6 @@ class VBSPConnection:
                 else:
 
                     cell = vbs.cells[hdr.cellid]
-                    ue_id = uuid.UUID(int=option.rnti)
 
                     ue = UE(ue_id, option.rnti, option.imsi, option.timsi,
                             cell, tenant)
