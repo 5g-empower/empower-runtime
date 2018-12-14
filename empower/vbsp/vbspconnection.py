@@ -434,7 +434,7 @@ class VBSPConnection:
                     self.log.info("Unknown tenant %s", plmn_id)
                     continue
 
-                ue_id = uuid.UUID(int=ue.imsi)
+                ue_id = uuid.UUID(int=option.imsi)
 
                 # UE already known, update its parameters
                 if ue_id in RUNTIME.ues:
