@@ -19,13 +19,14 @@
 
 
 def conflicting_match(matches, new_match):
+    """Check if two rules are in conflict."""
 
     for match in matches:
 
         common = {cond: value for cond, value in new_match.match.items()
                   if cond in match.match and value == match.match[cond]}
 
-        if common == new_match.match or common == match.match:
+        if common in (new_match.match, match.match):
             return match
 
     return None

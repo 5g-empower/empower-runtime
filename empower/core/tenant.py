@@ -327,24 +327,28 @@ class Tenant:
 
         # create slice on WTPs
         for wtp_addr in self.wtps:
-            if not slc.wifi['wtps'] or (slc.wifi['wtps'] and wtp_addr in slc.wifi['wtps']):
-                wtp = self.wtps[wtp_addr]
-                if not wtp.is_online():
-                    continue
-                for block in wtp.supports:
-                    wtp.connection.send_set_slice(block, slc)
+
+            wtp = self.wtps[wtp_addr]
+
+            if not wtp.is_online():
+                continue
+
+            for block in wtp.supports:
+                wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
         for vbs_addr in self.vbses:
-            if not slc.lte['vbses'] or (slc.lte['vbses'] and vbs_addr in slc.lte['vbses']):
-                vbs = self.vbses[vbs_addr]
-                if not vbs.is_online():
-                    continue
-                for cell in vbs.cells.values():
-                    vbs.connection.\
-                        send_add_set_ran_mac_slice_request(cell,
-                                                           slc,
-                                                           EP_OPERATION_ADD)
+
+            vbs = self.vbses[vbs_addr]
+
+            if not vbs.is_online():
+                continue
+
+            for cell in vbs.cells.values():
+                vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_ADD)
 
     def set_slice(self, dscp, request):
         """Update a slice in the Tenant.
@@ -437,23 +441,39 @@ class Tenant:
         self.slices[dscp] = slc
 
         # create slice on WTPs
-        for wtp_addr in slc.wifi['wtps']:
+        for wtp_addr in self.wtps:
+
             wtp = self.wtps[wtp_addr]
+
             if not wtp.is_online():
                 continue
+
             for block in wtp.supports:
                 wtp.connection.send_set_slice(block, slc)
 
         # create slice on VBSes
-        for vbs_addr in slc.lte['vbses']:
+        for vbs_addr in self.vbses:
+
             vbs = self.vbses[vbs_addr]
+
             if not vbs.is_online():
                 continue
+
+            current_rntis = []
+
+            # The UEs in the slice must be confirmed
+
+            for ue in list(self.ues.values()):
+
+                if vbs == ue.vbs and dscp in ue.slices:
+                    current_rntis.append(ue.rnti)
+
             for cell in vbs.cells.values():
                 vbs.connection.\
                     send_add_set_ran_mac_slice_request(cell,
                                                        slc,
-                                                       EP_OPERATION_SET)
+                                                       EP_OPERATION_SET,
+                                                       current_rntis)
 
     def del_slice(self, dscp):
         """Del slice from.
@@ -515,14 +535,24 @@ class Tenant:
             raise ValueError()
 
         # delete it from the WTPs
-        for wtp_addr in self.slices[dscp].wifi['wtps']:
+        for wtp_addr in self.wtps:
+
             wtp = self.wtps[wtp_addr]
+
+            if not wtp.is_online():
+                continue
+
             for block in wtp.supports:
                 wtp.connection.send_del_slice(block, self.tenant_name, dscp)
 
         # delete it from the VBSes
-        for vbs_addr in self.slices[dscp].lte['vbses']:
+        for vbs_addr in self.vbses:
+
             vbs = self.vbses[vbs_addr]
+
+            if not vbs.is_online():
+                continue
+
             for cell in vbs.cells.values():
                 vbs.connection.send_del_ran_mac_slice_request(cell,
                                                               self.plmn_id,

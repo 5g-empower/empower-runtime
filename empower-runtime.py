@@ -40,7 +40,7 @@ if __name__ == "__main__":
              'lvapp.summary.summary',
 
              'vbsp.ue_measurements.ue_measurements',
-             'vbsp.mac_reports.mac_reports',
+             'vbsp.cell_measurements.cell_measurements',
 
              'lvnfp.lvnf_get.lvnf_get',
              'lvnfp.lvnf_set.lvnf_set',

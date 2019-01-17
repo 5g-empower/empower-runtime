@@ -23,6 +23,7 @@ class EmpAdminPage{
         $( "#footer" ).append(createFooter());
 
         this.createAdminPage();
+
     }
 
     initAdminPageResources(){

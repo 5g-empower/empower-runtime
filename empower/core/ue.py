@@ -21,6 +21,9 @@ import time
 
 from empower.core.cellpool import Cell
 from empower.core.cellpool import CellPool
+from empower.datatypes.dscp import DSCP
+from empower.main import RUNTIME
+from empower.vbsp import EP_OPERATION_SET
 
 import empower.logger
 
@@ -69,6 +72,9 @@ class UE:
 
         # the current cell
         self._cell = cell
+
+        # current slices to which the UE is subscribed
+        self._slices = []
 
         # the ue state
         self._state = PROCESS_RUNNING
@@ -213,6 +219,99 @@ class UE:
             IOError("Setting blocks on invalid state: %s" % self.state)
 
     @property
+    def slices(self):
+        """Get the slices."""
+
+        return self._slices
+
+    @slices.setter
+    def slices(self, slices):
+        """Assign a list slices to the UE. Accepts as input either an Slice ID
+            or a list of Slice IDs.
+
+        Args:
+            slices: A list of Slice IDs or a Slice ID
+        """
+
+        if not slices:
+            return
+
+        if isinstance(slices, list):
+            slice_pool = [DSCP(x) for x in slices]
+        else:
+            slice_pool = [DSCP(slices)]
+
+        for slc in slice_pool:
+            if not isinstance(slc, DSCP):
+                raise TypeError("Invalid type: %s" % type(slc))
+
+        for slc_id in slice_pool:
+
+            current_rntis = []
+            slc = self.tenant.slices[slc_id]
+
+            # If an slice has been added to a UE, the VBS must be updated.
+            if slc_id in self.slices:
+                continue
+
+            current_rntis = [self.rnti]
+
+            for ue in list(self.tenant.ues.values()):
+                if self.vbs == ue.vbs and slc_id in ue.slices:
+                    current_rntis.append(ue.rnti)
+
+            for cell in self.vbs.cells.values():
+
+                self.vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_SET,
+                                                       current_rntis)
+
+        # If it has been removed, the RNTI must not notified to the VBS.
+        for slc_id in self.slices:
+
+            if slc_id in slice_pool:
+                continue
+
+            current_rntis = []
+            slc = self.tenant.slices[slc_id]
+
+            for ue in list(RUNTIME.ues.values()):
+
+                if ue == self:
+                    continue
+
+                if self.vbs == ue.vbs and slc_id in ue.slices:
+                    current_rntis.append(ue.rnti)
+
+            for cell in self.vbs.cells.values():
+
+                self.vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_SET,
+                                                       current_rntis)
+
+        self._slices = slice_pool
+
+    def add_slice(self, slc):
+        """Add a slice to the set of slices of the UE."""
+
+        if slc in self.slices:
+            return
+
+        self._slices.append(slc)
+
+    def remove_slice(self, slc):
+        """Remove a slice from the set of slices of the UE."""
+
+        if slc not in self.slices:
+            return
+
+        self._slices.remove(slc)
+
+    @property
     def vbs(self):
         """Get the VBS."""
 
@@ -227,7 +326,7 @@ class UE:
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
 
-        ue_meas = {str(k): v for k, v in self.ue_measurements.items()}
+        ue_measure = {str(k): v for k, v in self.ue_measurements.items()}
 
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
@@ -237,8 +336,9 @@ class UE:
                 'plmn_id': self.tenant.plmn_id,
                 'cell': self.cell,
                 'vbs': self.vbs,
+                'slices': self.slices,
                 'state': self.state,
-                'ue_measurements': ue_meas}
+                'ue_measurements': ue_measure}
 
     def __str__(self):
         """Return string representation."""

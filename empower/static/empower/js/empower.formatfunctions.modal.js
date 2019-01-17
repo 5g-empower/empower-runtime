@@ -284,7 +284,7 @@ function ff_DIF_TenantID(tag, a, id, values){
             $( selector ).css("width","100%");
             $( selector ).css("height","35px");
             var TenantList = [];
-                if( __ROLE === "admin "){
+                if( __ROLE === "admin"){
                     TenantList =  __CACHE.c[__QE.targets.TENANT];
                 }
                 else{

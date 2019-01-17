@@ -202,14 +202,11 @@ class SliceStats(ModulePeriodic):
             'max_queue_length': response.max_queue_length
         }
 
-        tenant = RUNTIME.tenants[self.tenant_id]
-        slc = tenant.slices[self.dscp]
+        if self.tenant_id not in self.block.slice_stats:
+            self.block.slice_stats[self.tenant_id] = {}
 
-        wtp_addr = self.block.radio.addr
-        block = "%s-%s-%s" % (self.block.hwaddr, self.block.channel,
-                              self.block.band)
-
-        slc.wifi['wtps'][wtp_addr]['blocks'][block] = self.slice_stats
+        self.block.slice_stats[self.tenant_id][self.dscp] = \
+            self.slice_stats
 
         # call callback
         self.handle_callback(self)

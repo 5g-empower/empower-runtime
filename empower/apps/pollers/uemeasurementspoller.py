@@ -34,13 +34,14 @@ class UEMeasurementsPoller(EmpowerApp):
     def ue_join(self, ue):
         """ New UE. """
 
-        measurements = \
+        rrc_measurements_param = \
             [{"earfcn": ue.cell.dl_earfcn,
               "interval": 2000,
               "max_cells": 2,
-              "max_meas": 2}]
+              "max_measure": 2}]
 
-        self.ue_measurements(ue=ue, measurements=measurements)
+        self.ue_measurements(ue=ue,
+                             rrc_measurements_param=rrc_measurements_param)
 
 
 def launch(tenant_id):
