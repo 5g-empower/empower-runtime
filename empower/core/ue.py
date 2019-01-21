@@ -33,24 +33,6 @@ PROCESS_RUNNING = "running"
 # del ue message(s) sent, no status(es) received - ho
 PROCESS_REMOVING = "removing"
 
-# desconnection ue message received from the enb
-PROCESS_DISCONNECTING = "disconnecting"
-
-# UE states at the eNB
-INVALID = 0x00
-RADIO_CONNECT = 0x01
-RADIO_DISCONNECT = 0x02
-RRC_IDLE = 0x03
-RRC_CONNECT = 0x04
-
-UE_REPORT_STATES = {
-    INVALID: "invalid",
-    RADIO_CONNECT: "running",
-    RADIO_DISCONNECT: "disconnecting",
-    RRC_IDLE: "rrc_idle",
-    RRC_CONNECT: "rrc_connect"
-}
-
 
 class UE:
     """User Equipment."""
@@ -60,15 +42,11 @@ class UE:
         # read only parameters
         self.ue_id = ue_id
         self.tenant = tenant
+        self.imsi = imsi
+        self.timsi = timsi
 
         # set on different situations, e.g. after an handover
         self.rnti = rnti
-
-        # imsi
-        self.imsi = imsi
-
-        # temporal imsi
-        self.timsi = timsi
 
         # the current cell
         self._cell = cell
@@ -178,15 +156,6 @@ class UE:
 
         # send ho request message
         self.vbs.connection.send_ue_ho_request(self, self.target_cell)
-
-    def _running_disconnecting(self):
-
-        self._state = PROCESS_DISCONNECTING
-
-        from empower.main import RUNTIME
-
-        # remove UE from the RUNTIME
-        RUNTIME.remove_ue(self.ue_id)
 
     @property
     def cell(self):

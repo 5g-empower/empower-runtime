@@ -434,16 +434,18 @@ class VBSPConnection:
                     self.log.info("Unknown tenant %s", plmn_id)
                     continue
 
+                # TODO: Implement fallback mechanism IMSI->TMSI->RNTI
                 ue_id = uuid.UUID(int=option.imsi)
 
                 # UE already known, update its parameters
                 if ue_id in RUNTIME.ues:
 
                     ue = RUNTIME.ues[ue_id]
+                    ue.rnti = option.rnti
 
-                    ue.plmn_id = plmn_id
-                    ue.imsi = option.imsi
-                    ue.tmsi = option.timsi
+                    # UE is disconnecting
+                    if option.state == 1:
+                        RUNTIME.remove_ue(ue_id)
 
                 else:
 
@@ -455,15 +457,9 @@ class VBSPConnection:
                     RUNTIME.ues[ue.ue_id] = ue
                     tenant.ues[ue.ue_id] = ue
 
-                    self.server.send_ue_join_message_to_self(ue)
-
-            if raw_entry.type == EP_UE_REPORT_STATE:
-
-                ue_id = uuid.UUID(int=option.imsi)
-
-                self.log.error("UE %s state %s (%s)",
-                               ue_id, option.state,
-                               UE_REPORT_STATES[option.state])
+                    # UE is connected
+                    if option.state == 0:
+                        self.server.send_ue_join_message_to_self(ue)
 
     def _handle_ue_ho_response(self, vbs, hdr, event, ho):
         """Handle an incoming UE_HO_RESPONSE message.
