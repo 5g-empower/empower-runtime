@@ -435,8 +435,6 @@ class VBSPConnection:
                 # RNTI is considered. This gives to the ID a little of context.
                 rnti_id = uuid.UUID(int=vbs.addr.to_int() << 32 | hdr.cellid << 16 | option.rnti)
 
-                print("\tIMSI=", imsi_id, "\n\tRNTI=", rnti_id)
-
                 plmn_id = PLMNID(option.plmn_id)
                 tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
@@ -492,6 +490,7 @@ class VBSPConnection:
 
                 # UE not known
                 else:
+                    # Reporting on and entry which switched to offline; ignore
                     if option.state == 1:
                         continue
 
