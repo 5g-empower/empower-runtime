@@ -37,13 +37,13 @@ PROCESS_REMOVING = "removing"
 class UE:
     """User Equipment."""
 
-    def __init__(self, ue_id, rnti, imsi, timsi, cell, tenant):
+    def __init__(self, ue_id, rnti, imsi, tmsi, cell, tenant):
 
         # read only parameters
         self.ue_id = ue_id
         self.tenant = tenant
         self.imsi = imsi
-        self.timsi = timsi
+        self.tmsi = tmsi
 
         # set on different situations, e.g. after an handover
         self.rnti = rnti
@@ -300,7 +300,7 @@ class UE:
         return {'ue_id': self.ue_id,
                 'rnti': self.rnti,
                 'imsi': self.imsi,
-                'timsi': self.timsi,
+                'tmsi': self.tmsi,
                 'tenant_id': self.tenant.tenant_id,
                 'plmn_id': self.tenant.plmn_id,
                 'cell': self.cell,

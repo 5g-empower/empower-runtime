@@ -45,7 +45,6 @@ from empower.vbsp import EP_ACT_UE_REPORT
 from empower.vbsp import UE_REPORT_REQUEST
 from empower.vbsp import UE_REPORT_TYPES
 from empower.vbsp import EP_UE_REPORT_IDENTITY
-from empower.vbsp import EP_UE_REPORT_STATE
 from empower.vbsp import EP_OPERATION_ADD
 from empower.vbsp import EP_ACT_HANDOVER
 from empower.vbsp import ENB_CAPS_TYPES
@@ -66,7 +65,6 @@ from empower.vbsp import REM_RAN_MAC_SLICE_REQUEST
 from empower.vbsp import SET_RAN_MAC_SLICE_REQUEST
 from empower.core.cellpool import Cell
 from empower.core.ue import UE
-from empower.core.ue import UE_REPORT_STATES
 from empower.core.utils import get_xid
 
 from empower.main import RUNTIME
@@ -427,6 +425,16 @@ class VBSPConnection:
 
             if raw_entry.type == EP_UE_REPORT_IDENTITY:
 
+                # NOTE: These ID generation should fallback to a data-type like for PLMNID
+                imsi_id = uuid.UUID(int=option.imsi)
+                #tmsi_id = uuid.UUID(int=option.tmsi)
+                # Why this?
+                # VBS can have multiple carriers (cells), and each carrier can allocate
+                # its own RNTI range independently. This means that on UUID generation
+                # by RNTI you can get multiple different UEs with the same UUID if only
+                # RNTI is considered. This gives to the ID a little of context.
+                rnti_id = uuid.UUID(int=vbs.addr.to_int() << 32 | hdr.cellid << 16 | option.rnti)
+
                 plmn_id = PLMNID(option.plmn_id)
                 tenant = RUNTIME.load_tenant_by_plmn_id(plmn_id)
 
@@ -434,24 +442,61 @@ class VBSPConnection:
                     self.log.info("Unknown tenant %s", plmn_id)
                     continue
 
-                # TODO: Implement fallback mechanism IMSI->TMSI->RNTI
-                ue_id = uuid.UUID(int=option.imsi)
+                # Basic fallback mechanism for UE unique ID generation
+                #
+                # IMSI
+                #   UE ID is generated using the Subscriber Identity, thus it 
+                #   will remain stable through multiple connection/disconnection
+                if option.imsi != 0:
+                    ue_id = imsi_id
+
+                # TMSI
+                #   UE ID is generated using Temporary ID assigned by the Core
+                #   Network, and will be stable depending on the CN ID generation
+                #   behavior
+                # elif option.tmsi != 0:
+                #     ue_id = tmsi_id
+                    
+                # RNTI
+                #   UE ID is generated using the Radio Network Temporary
+                #   Identifier. This means that at any event where such identifier
+                #   is changed update, the UE ID will potentially will change too
+                else:
+                    ue_id = rnti_id
 
                 # UE already known, update its parameters
                 if ue_id in RUNTIME.ues:
 
                     ue = RUNTIME.ues[ue_id]
-                    ue.rnti = option.rnti
+                    
+                    # RNTI must always be set, but just in case handle the event
+                    if option.rnti != 0:
+                        ue.rnti = option.rnti
+                    else:
+                        self.log.info("UE is missing RNTI identifier!")
+                        continue
+
+                    # Update the TMSI if has been renew for some reason
+                    if option.tmsi != 0:
+                        ue.tmsi = option.tmsi
+
+                    # Fill IMSI only if it was not previously set
+                    if option.imsi != 0 and ue.imsi != 0:
+                        ue.imsi = option.imsi
 
                     # UE is disconnecting
                     if option.state == 1:
                         RUNTIME.remove_ue(ue_id)
 
+                # UE not known
                 else:
+                    # Reporting on and entry which switched to offline; ignore
+                    if option.state == 1:
+                        continue
 
                     cell = vbs.cells[hdr.cellid]
 
-                    ue = UE(ue_id, option.rnti, option.imsi, option.timsi,
+                    ue = UE(ue_id, option.rnti, option.imsi, option.tmsi,
                             cell, tenant)
 
                     RUNTIME.ues[ue.ue_id] = ue
