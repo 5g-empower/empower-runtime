@@ -427,8 +427,8 @@ class VBSPConnection:
 
                 # NOTE: These ID generation should fallback to a data-type like for PLMNID
                 imsi_id = uuid.UUID(int=option.imsi)
-                #tmsi_id = uuid.UUID(int=option.tmsi)
-                # Why this?
+                tmsi_id = uuid.UUID(int=option.tmsi)
+
                 # VBS can have multiple carriers (cells), and each carrier can allocate
                 # its own RNTI range independently. This means that on UUID generation
                 # by RNTI you can get multiple different UEs with the same UUID if only
@@ -445,7 +445,7 @@ class VBSPConnection:
                 # Basic fallback mechanism for UE unique ID generation
                 #
                 # IMSI
-                #   UE ID is generated using the Subscriber Identity, thus it 
+                #   UE ID is generated using the Subscriber Identity, thus it
                 #   will remain stable through multiple connection/disconnection
                 if option.imsi != 0:
                     ue_id = imsi_id
@@ -454,9 +454,9 @@ class VBSPConnection:
                 #   UE ID is generated using Temporary ID assigned by the Core
                 #   Network, and will be stable depending on the CN ID generation
                 #   behavior
-                # elif option.tmsi != 0:
-                #     ue_id = tmsi_id
-                    
+                elif option.tmsi != 0:
+                    ue_id = tmsi_id
+
                 # RNTI
                 #   UE ID is generated using the Radio Network Temporary
                 #   Identifier. This means that at any event where such identifier
@@ -468,7 +468,7 @@ class VBSPConnection:
                 if ue_id in RUNTIME.ues:
 
                     ue = RUNTIME.ues[ue_id]
-                    
+
                     # RNTI must always be set, but just in case handle the event
                     if option.rnti != 0:
                         ue.rnti = option.rnti

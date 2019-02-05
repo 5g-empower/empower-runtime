@@ -218,11 +218,6 @@ UE_REPORT_IDENTITY = Struct("ue_report_identity",
                             UBInt32("tmsi"),
                             UBInt8("state"))
 
-# UE_REPORT_STATE. This is a valid TLV for the UE_REPORT_RESPONSE message.
-#UE_REPORT_STATE = Struct("ue_report_state",
-#                         UBInt16("rnti"),
-#                         UBInt8("state"))
-
 UE_HO_REQUEST = Struct("ue_ho_request",
                        UBInt8("type"),
                        UBInt8("version"),
