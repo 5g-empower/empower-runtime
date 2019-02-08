@@ -619,13 +619,13 @@ class VBSPConnection:
                     # if the UE was attached to this slice, but it is not
                     # in the information given by the eNB, it should be
                     # deleted.
-                    if slc.dscp in ue.slices and ue.rnti not in rntis:
-                        ue.remove_slice(slc.dscp)
+                    if slc.dscp == ue.slice and ue.rnti not in rntis:
+                        ue.slice = DSCP("0x00")
 
                     # if the UE was not attached to this slice, but its RNTI
                     # is provided by the eNB for this slice, it should added.
-                    if slc.dscp not in ue.slices and ue.rnti in rntis:
-                        ue.add_slice(slc.dscp)
+                    elif slc.dscp != ue.slice and ue.rnti in rntis:
+                        ue.slice = slc.dscp
 
         self.log.info("Slice %s updated", slc)
 
@@ -787,18 +787,8 @@ class VBSPConnection:
             # before deleting the current slice
             for ue in list(RUNTIME.ues.values()):
 
-                if self.vbs == ue.vbs and dscp in ue.slices:
-
-                    current_slices = [x for x in ue.slices]
-                    current_slices.remove(DSCP(dscp))
-
-                    if not current_slices:
-                        default_slice = tenant.slices[DSCP("0x00")]
-
-                        if default_slice:
-                            current_slices.append(DSCP("0x00"))
-
-                    ue.slices = current_slices
+                if self.vbs == ue.vbs and dscp == ue.slice:
+                    ue.slice = DSCP("0x00")
         else:
             self.log.warning("DSCP %s not found. Removing slice.", dscp)
 

@@ -51,8 +51,8 @@ class UE:
         # the current cell
         self._cell = cell
 
-        # current slices to which the UE is subscribed
-        self._slices = []
+        # current slice to which the UE is subscribed
+        self._slice = DSCP("0x00")
 
         # the ue state
         self._state = PROCESS_RUNNING
@@ -188,97 +188,65 @@ class UE:
             IOError("Setting blocks on invalid state: %s" % self.state)
 
     @property
-    def slices(self):
-        """Get the slices."""
+    def slice(self):
+        """Get the slice."""
 
-        return self._slices
+        return self._slice
 
-    @slices.setter
-    def slices(self, slices):
-        """Assign a list slices to the UE. Accepts as input either an Slice ID
-            or a list of Slice IDs.
+    @slice.setter
+    def slice(self, slice_id):
+        """Assign a slice to the UE. Accepts as input an Slice ID
 
         Args:
-            slices: A list of Slice IDs or a Slice ID
+            slice_id: An Slice ID
         """
 
-        if not slices:
-            return
+        if not isinstance(slice_id, DSCP):
+            slice_id = DSCP(slice_id)
 
-        if isinstance(slices, list):
-            slice_pool = [DSCP(x) for x in slices]
-        else:
-            slice_pool = [DSCP(slices)]
+        current_rntis = []
+        new_slc = self.tenant.slices[slice_id]
 
-        for slc in slice_pool:
-            if not isinstance(slc, DSCP):
-                raise TypeError("Invalid type: %s" % type(slc))
+        # If an slice has been added to a UE, the VBS must be updated.
+        if new_slc.dscp == self.slice:
+            raise ValueError("Slice %s already assigned" % new_slc)
 
-        for slc_id in slice_pool:
+        current_rntis = [self.rnti]
 
-            current_rntis = []
-            slc = self.tenant.slices[slc_id]
+        for ue in list(self.tenant.ues.values()):
+            if self.vbs == ue.vbs and slice_id == ue.slice:
+                current_rntis.append(ue.rnti)
 
-            # If an slice has been added to a UE, the VBS must be updated.
-            if slc_id in self.slices:
-                continue
+        for cell in self.vbs.cells.values():
 
-            current_rntis = [self.rnti]
-
-            for ue in list(self.tenant.ues.values()):
-                if self.vbs == ue.vbs and slc_id in ue.slices:
-                    current_rntis.append(ue.rnti)
-
-            for cell in self.vbs.cells.values():
-
-                self.vbs.connection.\
-                    send_add_set_ran_mac_slice_request(cell,
-                                                       slc,
-                                                       EP_OPERATION_SET,
-                                                       current_rntis)
+            self.vbs.connection.\
+                send_add_set_ran_mac_slice_request(cell,
+                                                   new_slc,
+                                                   EP_OPERATION_SET,
+                                                   current_rntis)
 
         # If it has been removed, the RNTI must not notified to the VBS.
-        for slc_id in self.slices:
+        current_rntis = []
+        old_slc = self.tenant.slices[self.slice]
 
-            if slc_id in slice_pool:
+
+        for ue in list(RUNTIME.ues.values()):
+
+            if ue == self:
                 continue
 
-            current_rntis = []
-            slc = self.tenant.slices[slc_id]
+            if self.vbs == ue.vbs and self.slice == ue.slice:
+                current_rntis.append(ue.rnti)
 
-            for ue in list(RUNTIME.ues.values()):
+        for cell in self.vbs.cells.values():
 
-                if ue == self:
-                    continue
+            self.vbs.connection.\
+                send_add_set_ran_mac_slice_request(cell,
+                                                   old_slc,
+                                                   EP_OPERATION_SET,
+                                                   current_rntis)
 
-                if self.vbs == ue.vbs and slc_id in ue.slices:
-                    current_rntis.append(ue.rnti)
-
-            for cell in self.vbs.cells.values():
-
-                self.vbs.connection.\
-                    send_add_set_ran_mac_slice_request(cell,
-                                                       slc,
-                                                       EP_OPERATION_SET,
-                                                       current_rntis)
-
-        self._slices = slice_pool
-
-    def add_slice(self, slc):
-        """Add a slice to the set of slices of the UE."""
-
-        if slc in self.slices:
-            return
-
-        self._slices.append(slc)
-
-    def remove_slice(self, slc):
-        """Remove a slice from the set of slices of the UE."""
-
-        if slc not in self.slices:
-            return
-
-        self._slices.remove(slc)
+        self._slice = slice_id
 
     @property
     def vbs(self):
@@ -305,7 +273,7 @@ class UE:
                 'plmn_id': self.tenant.plmn_id,
                 'cell': self.cell,
                 'vbs': self.vbs,
-                'slices': self.slices,
+                'slice': self.slice,
                 'state': self.state,
                 'ue_measurements': ue_measure}
 
