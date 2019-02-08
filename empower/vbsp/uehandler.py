@@ -91,7 +91,7 @@ class UEHandler(EmpowerAPIHandlerUsers):
 
             elif "cell" in request:
 
-                vbs_addr = (request['vbs']['cell'])
+                vbs_addr = EtherAddress(request['vbs']['cell'])
                 vbs = RUNTIME.vbses[vbs_addr]
                 pci = int(request['cell']['pci'])
                 ue.cell = vbs.cells[pci]
