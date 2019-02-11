@@ -201,52 +201,31 @@ class UE:
             slice_id: An Slice ID
         """
 
-        if not isinstance(slice_id, DSCP):
-            slice_id = DSCP(slice_id)
+        slice_id = DSCP(slice_id)
 
-        current_rntis = []
-        new_slc = self.tenant.slices[slice_id]
-
-        # If an slice has been added to a UE, the VBS must be updated.
-        if new_slc.dscp == self.slice:
-            raise ValueError("Slice %s already assigned" % new_slc)
-
-        current_rntis = [self.rnti]
-
-        for ue in list(self.tenant.ues.values()):
-            if self.vbs == ue.vbs and slice_id == ue.slice:
-                current_rntis.append(ue.rnti)
-
-        for cell in self.vbs.cells.values():
-
-            self.vbs.connection.\
-                send_add_set_ran_mac_slice_request(cell,
-                                                   new_slc,
-                                                   EP_OPERATION_SET,
-                                                   current_rntis)
-
-        # If it has been removed, the RNTI must not notified to the VBS.
-        current_rntis = []
-        old_slc = self.tenant.slices[self.slice]
-
-
-        for ue in list(RUNTIME.ues.values()):
-
-            if ue == self:
-                continue
-
-            if self.vbs == ue.vbs and self.slice == ue.slice:
-                current_rntis.append(ue.rnti)
-
-        for cell in self.vbs.cells.values():
-
-            self.vbs.connection.\
-                send_add_set_ran_mac_slice_request(cell,
-                                                   old_slc,
-                                                   EP_OPERATION_SET,
-                                                   current_rntis)
+        if slice_id not in self.tenant.slices:
+            raise ValueError("Slice %u not found" % slice_id)
 
         self._slice = slice_id
+
+        for slc in self.tenant.slices.values():
+
+            rntis = list()
+
+            for ue in self.tenant.ues.values():
+
+                if self.vbs != ue.vbs:
+                    break
+
+                if slc.dscp == ue.slice:
+                    rntis.append(ue.rnti)
+
+            for cell in self.vbs.cells.values():
+                self.vbs.connection.\
+                    send_add_set_ran_mac_slice_request(cell,
+                                                       slc,
+                                                       EP_OPERATION_SET,
+                                                       rntis)
 
     @property
     def vbs(self):
