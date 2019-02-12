@@ -465,7 +465,7 @@ class Tenant:
 
             for ue in list(self.ues.values()):
 
-                if vbs == ue.vbs and dscp in ue.slices:
+                if vbs == ue.vbs and dscp == ue.slice:
                     current_rntis.append(ue.rnti)
 
             for cell in vbs.cells.values():
