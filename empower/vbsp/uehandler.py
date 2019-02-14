@@ -83,18 +83,18 @@ class UEHandler(EmpowerAPIHandlerUsers):
             ue_id = uuid.UUID(args[0])
             ue = RUNTIME.ues[ue_id]
 
-            if "vbs" in request:
+            if "cell" in request and "vbs" in request:
+
+                vbs_addr = EtherAddress(request['vbs'])
+                vbs = RUNTIME.vbses[vbs_addr]
+                pci = int(request['cell']['pci'])
+                ue.cell = vbs.cells[pci]
+
+            elif "vbs" in request:
 
                 vbs_addr = EtherAddress(request['vbs'])
                 vbs = RUNTIME.vbses[vbs_addr]
                 ue.vbs = vbs
-
-            elif "cell" in request:
-
-                vbs_addr = EtherAddress(request['vbs']['cell'])
-                vbs = RUNTIME.vbses[vbs_addr]
-                pci = int(request['cell']['pci'])
-                ue.cell = vbs.cells[pci]
 
             if "slice" in request:
 
