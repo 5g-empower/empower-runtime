@@ -11,9 +11,9 @@ EmPOWER is a new network operating system designed for heterogeneous mobile netw
 * REST API and native (Python) API for accessing the Northbound abstractions
 * Support for Click-based Lightweight Virtual Networks Functions
 * Declarative VNF chaning on precise portion of the flowspace
-* Flexible southbound interface supporting WiFi APs LTE eNBs
+* Flexible southbound interface supporting WiFi APs and LTE eNBs
 
-Checkout out our [website](http://empower.create-net.org/) and our [wiki](https://github.com/5g-empower/empower-runtime/wiki)
+Checkout out our [website](http://5g-empower.io/) and our [wiki](https://github.com/5g-empower/5g-empower.github.io/wiki)
 
 This repository includes the reference controller implementation and the associated SDK.
 
