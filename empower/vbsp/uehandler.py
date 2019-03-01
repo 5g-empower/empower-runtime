@@ -83,23 +83,23 @@ class UEHandler(EmpowerAPIHandlerUsers):
             ue_id = uuid.UUID(args[0])
             ue = RUNTIME.ues[ue_id]
 
-            if "vbs" in request:
+            if "cell" in request and "vbs" in request:
+
+                vbs_addr = EtherAddress(request['vbs'])
+                vbs = RUNTIME.vbses[vbs_addr]
+                pci = int(request['cell']['pci'])
+                ue.cell = vbs.cells[pci]
+
+            elif "vbs" in request:
 
                 vbs_addr = EtherAddress(request['vbs'])
                 vbs = RUNTIME.vbses[vbs_addr]
                 ue.vbs = vbs
 
-            elif "cell" in request:
+            if "slice" in request:
 
-                vbs_addr = EtherAddress(request['cell']['vbs'])
-                vbs = RUNTIME.vbses[vbs_addr]
-                pci = int(request['cell']['pci'])
-                ue.cell = vbs.cells[pci]
-
-            if "slices" in request:
-
-                # Either a slice or a set of slices are admitted.
-                ue.slices = request['slices']
+                # Just a slice is admitted.
+                ue.slice = request['slice']
 
         except KeyError as ex:
             self.send_error(404, message=ex)

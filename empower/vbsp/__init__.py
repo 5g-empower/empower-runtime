@@ -215,12 +215,8 @@ UE_REPORT_IDENTITY = Struct("ue_report_identity",
                             UBInt16("rnti"),
                             Bytes("plmn_id", 4),
                             UBInt64("imsi"),
-                            UBInt32("timsi"))
-
-# UE_REPORT_STATE. This is a valid TLV for the UE_REPORT_RESPONSE message.
-UE_REPORT_STATE = Struct("ue_report_state",
-                         UBInt16("rnti"),
-                         UBInt8("state"))
+                            UBInt32("tmsi"),
+                            UBInt8("state"))
 
 UE_HO_REQUEST = Struct("ue_ho_request",
                        UBInt8("type"),
@@ -281,8 +277,7 @@ EP_UE_REPORT_IDENTITY = 0x0700
 EP_UE_REPORT_STATE = 0x0701
 
 UE_REPORT_TYPES = {
-    EP_UE_REPORT_IDENTITY: UE_REPORT_IDENTITY,
-    EP_UE_REPORT_STATE: UE_REPORT_STATE
+    EP_UE_REPORT_IDENTITY: UE_REPORT_IDENTITY
 }
 
 PT_TYPES = {PT_BYE: None,

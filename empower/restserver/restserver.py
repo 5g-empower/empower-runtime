@@ -787,6 +787,9 @@ class TenantSliceHandler(EmpowerAPIHandlerUsers):
 
             dscp = DSCP(args[1])
 
+            if dscp == DSCP("0x00"):
+                raise ValueError("Invalid Slice")
+
             tenant.del_slice(dscp)
 
         except ValueError as ex:
