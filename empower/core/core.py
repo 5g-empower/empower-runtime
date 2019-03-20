@@ -533,6 +533,10 @@ class EmpowerRuntime:
         for dscp in list(tenant.slices):
             tenant.del_slice(dscp)
 
+        # remove lvaps in this tenant
+        for lvap_addr in list(tenant.lvaps):
+            self.remove_lvap(lvap_addr)
+
         # remove tenant
         del self.tenants[tenant_id]
 
