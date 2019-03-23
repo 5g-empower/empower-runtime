@@ -146,7 +146,7 @@ class Slice:
 
             quantum = descriptor['wifi']['static-properties']['quantum']
 
-            if isinstance(amsdu_aggregation, int):
+            if isinstance(quantum, int):
                 self.wifi['static-properties']['quantum'] = quantum
             else:
                 self.wifi['static-properties']['quantum'] = int(quantum)
