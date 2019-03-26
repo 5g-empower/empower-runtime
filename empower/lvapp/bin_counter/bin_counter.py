@@ -71,7 +71,7 @@ class BinCounter(ModulePeriodic):
 
     For example:
         self.bin_counter(bins=[512, 1514, 8192],
-                         2000,
+                         every=2000,
                          callback=self.counters_callback)
 
     This classifies the traffic TX/RX by the client lvap into the specified
