@@ -55,7 +55,7 @@ class ResourcePool(list):
     """
 
     def sort_by_rssi(self, addr):
-        """Return list sorted by rssi for the spcified address."""
+        """Return list sorted by rssi for the specific address."""
 
         filtered = [x for x in self if addr in x.ucqm]
 
@@ -66,7 +66,7 @@ class ResourcePool(list):
         return ResourcePool(blocks)
 
     def filter_by_channel(self, channel):
-        """Return list sorted filered by channel."""
+        """Return list sorted filtered by channel."""
 
         blocks = []
 
@@ -77,7 +77,7 @@ class ResourcePool(list):
         return ResourcePool(blocks)
 
     def filter_by_band(self, band):
-        """Return list sorted filered by band."""
+        """Return list sorted filtered by band."""
 
         blocks = []
 
