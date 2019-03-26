@@ -63,7 +63,19 @@ SLICE_STATS_RESPONSE = \
 
 
 class SliceStats(ModulePeriodic):
-    """ SliceStats object. """
+    """SliceStats object.
+
+    This primitive tracks the statisitcs of a certain slice.
+
+    For example (from within an app):
+        self.slice_stats(block=block,
+                         every=2000,
+                         callback=self.slices_stats_ callback)
+
+    This will call the method self.slices_stats_ callback every 2 seconds and
+    will report some information about the slice, including: tx/rx bytes, the
+    deficit used, and the maximum length of the queue.
+    """
 
     MODULE_NAME = "slice_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
