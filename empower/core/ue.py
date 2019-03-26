@@ -237,7 +237,7 @@ class UE:
     def vbs(self, vbs):
         """ Set the vbs. """
 
-        self.cell = next(iter(vbs.cells.values()))
+        self.cell = vbs.cells().first()
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary representing the UE """
