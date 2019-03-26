@@ -221,7 +221,7 @@ class SliceStatsWorker(ModuleLVAPPWorker):
 def slice_stats(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[SliceStats.__module__]
+    worker = RUNTIME.components[SliceStatsWorker.__module__]
     return worker.add_module(**kwargs)
 
 
