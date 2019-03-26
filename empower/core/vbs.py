@@ -42,8 +42,19 @@ class VBS(BasePNFDev):
         super().__init__(addr, label)
         self.cells = {}
 
+    def cells(self):
+        """Return all cells supported by this VBS."""
+
+        pool = CellPool()
+
+        # Update the pool with all the available cells
+        for cell in self.cells.values():
+            pool.append(cell)
+
+        return pool
+
     def to_dict(self):
-        """Return a JSON-serializable dictionary representing the CPP."""
+        """Return a JSON-serializable dictionary representing the VBS."""
 
         out = super().to_dict()
         out['cells'] = self.cells
