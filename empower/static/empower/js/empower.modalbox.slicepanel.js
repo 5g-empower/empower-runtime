@@ -42,12 +42,17 @@ class EmpSliceModalBox extends EmpModalBox{
             if( datatable.row('.selected').data() ){
                 var data = datatable.row('.selected').data();
                 var tenantID = data[0].substring(11, data[0].length-14)
-                var dscp = data[1].substring(11, data[1].length-14)
+                var dscp = $( data[1] )[0]["attributes"]['key']['value'];
+                //var dscp = data[1].substring(11, data[1].length-14)
                 var found = null;
                 for( var i=0; i<this.cache.c[tag].length; i++){
                     if( this.cache.c[tag][i]["tenant_id"] === tenantID && this.cache.c[tag][i]["dscp"] === dscp ){
                         found = this.cache.c[tag][i];
+                        break;
                     }
+                }
+                if (found === null){
+                    console.error("NOT FOUND", found);
                 }
                 this.selObj = found;
                 title = "Update " + this.hb.mapName2Title(tag);
@@ -662,7 +667,7 @@ class EmpSliceModalBox extends EmpModalBox{
             $( selector ).css("height","35px");
                 // DSCP are manually controlled
                 var DSCPList = ["0x00", "0x01", "0x02", "0x03", "0x04",
-                                "0x08", "0x0A", "0x0C", "0x0C", "0x0E",
+                "0x08", "0x0A", "0x0C", "0x0E",
                                 "0x10", "0x12", "0x14", "0x16", "0x18",
                                 "0x1A", "0x1C", "0x1E", "0x20", "0x22",
                                 "0x24", "0x26", "0x28", "0x2C", "0x2E", "0x30", "0x38"];
