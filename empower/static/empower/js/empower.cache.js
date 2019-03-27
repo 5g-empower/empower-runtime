@@ -125,204 +125,204 @@ class EmpCache{
 
 
 
-// // TO BE DELETED
+// TO BE DELETED
 
-// test_vbs = {
-// 	"addr": "00:00:00:00:BA:C0",
-// 	"cells": {
-// 		"3": {
-// 			"addr": "00:00:00:00:BA:C0",
-// 			"cell_measurements": {},
-// 			"dl_bandwidth": 25,
-// 			"dl_earfcn": 3400,
-// 			"features": {
-// 				"cell_measure": 1,
-// 				"handover": 0,
-// 				"ue_measure": 1,
-// 				"ue_report": 1
-// 			},
-// 			"max_ues": 2,
-// 			"pci": 3,
-// 			"ran_features": {
-// 				"layer1": {},
-// 				"layer2": {
-// 					"prb_slicing": 0,
-// 					"rbg_slicing": 1
-// 				},
-// 				"layer3": {},
-// 				"mac_sched": 1,
-// 				"max_slices": 8
-// 			},
-// 			"ue_measurements": {},
-// 			"ul_bandwidth": 25,
-// 			"ul_earfcn": 21400
-// 		}
-// 	},
-// 	"connection": [
-// 		"10.244.5.177",
-// 		41524
-// 	],
-// 	"datapath": null,
-// 	"label": "debug_vbs",
-// 	"last_seen": 751,
-// 	"last_seen_ts": "2019-02-12T15:29:49.872198Z",
-// 	"period": 2000,
-// 	"state": "online"
-// };
+test_vbs = {
+	"addr": "00:00:00:00:BA:C0",
+	"cells": {
+		"3": {
+			"addr": "00:00:00:00:BA:C0",
+			"cell_measurements": {},
+			"dl_bandwidth": 25,
+			"dl_earfcn": 3400,
+			"features": {
+				"cell_measure": 1,
+				"handover": 0,
+				"ue_measure": 1,
+				"ue_report": 1
+			},
+			"max_ues": 2,
+			"pci": 3,
+			"ran_features": {
+				"layer1": {},
+				"layer2": {
+					"prb_slicing": 0,
+					"rbg_slicing": 1
+				},
+				"layer3": {},
+				"mac_sched": 1,
+				"max_slices": 8
+			},
+			"ue_measurements": {},
+			"ul_bandwidth": 25,
+			"ul_earfcn": 21400
+		}
+	},
+	"connection": [
+		"10.244.5.177",
+		41524
+	],
+	"datapath": null,
+	"label": "debug_vbs",
+	"last_seen": 751,
+	"last_seen_ts": "2019-02-12T15:29:49.872198Z",
+	"period": 2000,
+	"state": "online"
+};
 
-// test_ues= [
-// 	{
-// 		"cell": {
-// 			"addr": "00:00:00:00:01:9B",
-// 			"cell_measurements": {},
-// 			"dl_bandwidth": 25,
-// 			"dl_earfcn": 3400,
-// 			"features": {
-// 				"cell_measure": 1,
-// 				"handover": 0,
-// 				"ue_measure": 1,
-// 				"ue_report": 1
-// 			},
-// 			"max_ues": 2,
-// 			"pci": 3,
-// 			"ran_features": {
-// 				"layer1": {},
-// 				"layer2": {
-// 					"prb_slicing": 0,
-// 					"rbg_slicing": 1
-// 				},
-// 				"layer3": {},
-// 				"mac_sched": 1,
-// 				"max_slices": 8
-// 			},
-// 			"ue_measurements": {},
-// 			"ul_bandwidth": 25,
-// 			"ul_earfcn": 21400
-// 		},
-// 		"imsi": 222930000000001,
-// 		"plmn_id": "222f93",
-// 		"rnti": 79,
-// 		"state": "running",
-// 		"tenant_id": "e1cc2da1-3012-48b9-946d-e8ea9848a60d",
-// 		"tmsi": 1,
-// 		"ue_id": "8c99af0f-bedb-4cb1-9f19-ef39e2b7cc29",
-// 		"ue_measurements": {},
-// 		"vbs": {
-// 			"addr": "00:00:00:00:01:9B",
-// 			"cells": {
-// 				"3": {
-// 					"addr": "00:00:00:00:01:9B",
-// 					"cell_measurements": {},
-// 					"dl_bandwidth": 25,
-// 					"dl_earfcn": 3400,
-// 					"features": {
-// 						"cell_measure": 1,
-// 						"handover": 0,
-// 						"ue_measure": 1,
-// 						"ue_report": 1
-// 					},
-// 					"max_ues": 2,
-// 					"pci": 3,
-// 					"ran_features": {
-// 						"layer1": {},
-// 						"layer2": {
-// 							"prb_slicing": 0,
-// 							"rbg_slicing": 1
-// 						},
-// 						"layer3": {},
-// 						"mac_sched": 1,
-// 						"max_slices": 8
-// 					},
-// 					"ue_measurements": {},
-// 					"ul_bandwidth": 25,
-// 					"ul_earfcn": 21400
-// 				}
-// 			},
-// 			"connection": ["10.244.5.177", 41524],
-// 			"datapath": null,
-// 			"label": "myvbs",
-// 			"last_seen": 751,
-// 			"last_seen_ts": "2019-02-12T15:29:49.872198Z",
-// 			"period": 2000,
-// 			"state": "online"
-// 		}
-// 	}, {
-// 		"cell": {
-// 			"addr": "00:00:00:00:01:9B",
-// 			"cell_measurements": {},
-// 			"dl_bandwidth": 25,
-// 			"dl_earfcn": 3400,
-// 			"features": {
-// 				"cell_measure": 1,
-// 				"handover": 0,
-// 				"ue_measure": 1,
-// 				"ue_report": 1
-// 			},
-// 			"max_ues": 2,
-// 			"pci": 3,
-// 			"ran_features": {
-// 				"layer1": {},
-// 				"layer2": {
-// 					"prb_slicing": 0,
-// 					"rbg_slicing": 1
-// 				},
-// 				"layer3": {},
-// 				"mac_sched": 1,
-// 				"max_slices": 8
-// 			},
-// 			"ue_measurements": {},
-// 			"ul_bandwidth": 25,
-// 			"ul_earfcn": 21400
-// 		},
-// 		"imsi": 222930000000001,
-// 		"plmn_id": "222f93",
-// 		"rnti": 82,
-// 		"state": "running",
-// 		"tenant_id": "e1cc2da1-3012-48b9-946d-e8ea9848a60d",
-// 		"tmsi": 1,
-// 		"ue_id": "91cb5379-7768-4635-9729-8917e9c95fda",
-// 		"ue_measurements": {},
-// 		"vbs": {
-// 			"addr": "00:00:00:00:01:9B",
-// 			"cells": {
-// 				"3": {
-// 					"addr": "00:00:00:00:01:9B",
-// 					"cell_measurements": {},
-// 					"dl_bandwidth": 25,
-// 					"dl_earfcn": 3400,
-// 					"features": {
-// 						"cell_measure": 1,
-// 						"handover": 0,
-// 						"ue_measure": 1,
-// 						"ue_report": 1
-// 					},
-// 					"max_ues": 2,
-// 					"pci": 3,
-// 					"ran_features": {
-// 						"layer1": {},
-// 						"layer2": {
-// 							"prb_slicing": 0,
-// 							"rbg_slicing": 1
-// 						},
-// 						"layer3": {},
-// 						"mac_sched": 1,
-// 						"max_slices": 8
-// 					},
-// 					"ue_measurements": {},
-// 					"ul_bandwidth": 25,
-// 					"ul_earfcn": 21400
-// 				}
-// 			},
-// 			"connection": ["10.244.5.177", 41524],
-// 			"datapath": null,
-// 			"label": "myvbs",
-// 			"last_seen": 751,
-// 			"last_seen_ts": "2019-02-12T15:29:49.872198Z",
-// 			"period": 2000,
-// 			"state": "online"
-// 		}
-// 	}
-// ]
+test_ues= [
+	{
+		"cell": {
+			"addr": "00:00:00:00:01:9B",
+			"cell_measurements": {},
+			"dl_bandwidth": 25,
+			"dl_earfcn": 3400,
+			"features": {
+				"cell_measure": 1,
+				"handover": 0,
+				"ue_measure": 1,
+				"ue_report": 1
+			},
+			"max_ues": 2,
+			"pci": 3,
+			"ran_features": {
+				"layer1": {},
+				"layer2": {
+					"prb_slicing": 0,
+					"rbg_slicing": 1
+				},
+				"layer3": {},
+				"mac_sched": 1,
+				"max_slices": 8
+			},
+			"ue_measurements": {},
+			"ul_bandwidth": 25,
+			"ul_earfcn": 21400
+		},
+		"imsi": 222930000000001,
+		"plmn_id": "222f93",
+		"rnti": 79,
+		"state": "running",
+		"tenant_id": "e1cc2da1-3012-48b9-946d-e8ea9848a60d",
+		"tmsi": 1,
+		"ue_id": "8c99af0f-bedb-4cb1-9f19-ef39e2b7cc29",
+		"ue_measurements": {},
+		"vbs": {
+			"addr": "00:00:00:00:01:9B",
+			"cells": {
+				"3": {
+					"addr": "00:00:00:00:01:9B",
+					"cell_measurements": {},
+					"dl_bandwidth": 25,
+					"dl_earfcn": 3400,
+					"features": {
+						"cell_measure": 1,
+						"handover": 0,
+						"ue_measure": 1,
+						"ue_report": 1
+					},
+					"max_ues": 2,
+					"pci": 3,
+					"ran_features": {
+						"layer1": {},
+						"layer2": {
+							"prb_slicing": 0,
+							"rbg_slicing": 1
+						},
+						"layer3": {},
+						"mac_sched": 1,
+						"max_slices": 8
+					},
+					"ue_measurements": {},
+					"ul_bandwidth": 25,
+					"ul_earfcn": 21400
+				}
+			},
+			"connection": ["10.244.5.177", 41524],
+			"datapath": null,
+			"label": "myvbs",
+			"last_seen": 751,
+			"last_seen_ts": "2019-02-12T15:29:49.872198Z",
+			"period": 2000,
+			"state": "online"
+		}
+	}, {
+		"cell": {
+			"addr": "00:00:00:00:01:9B",
+			"cell_measurements": {},
+			"dl_bandwidth": 25,
+			"dl_earfcn": 3400,
+			"features": {
+				"cell_measure": 1,
+				"handover": 0,
+				"ue_measure": 1,
+				"ue_report": 1
+			},
+			"max_ues": 2,
+			"pci": 3,
+			"ran_features": {
+				"layer1": {},
+				"layer2": {
+					"prb_slicing": 0,
+					"rbg_slicing": 1
+				},
+				"layer3": {},
+				"mac_sched": 1,
+				"max_slices": 8
+			},
+			"ue_measurements": {},
+			"ul_bandwidth": 25,
+			"ul_earfcn": 21400
+		},
+		"imsi": 222930000000001,
+		"plmn_id": "222f93",
+		"rnti": 82,
+		"state": "running",
+		"tenant_id": "e1cc2da1-3012-48b9-946d-e8ea9848a60d",
+		"tmsi": 1,
+		"ue_id": "91cb5379-7768-4635-9729-8917e9c95fda",
+		"ue_measurements": {},
+		"vbs": {
+			"addr": "00:00:00:00:01:9B",
+			"cells": {
+				"3": {
+					"addr": "00:00:00:00:01:9B",
+					"cell_measurements": {},
+					"dl_bandwidth": 25,
+					"dl_earfcn": 3400,
+					"features": {
+						"cell_measure": 1,
+						"handover": 0,
+						"ue_measure": 1,
+						"ue_report": 1
+					},
+					"max_ues": 2,
+					"pci": 3,
+					"ran_features": {
+						"layer1": {},
+						"layer2": {
+							"prb_slicing": 0,
+							"rbg_slicing": 1
+						},
+						"layer3": {},
+						"mac_sched": 1,
+						"max_slices": 8
+					},
+					"ue_measurements": {},
+					"ul_bandwidth": 25,
+					"ul_earfcn": 21400
+				}
+			},
+			"connection": ["10.244.5.177", 41524],
+			"datapath": null,
+			"label": "myvbs",
+			"last_seen": 751,
+			"last_seen_ts": "2019-02-12T15:29:49.872198Z",
+			"period": 2000,
+			"state": "online"
+		}
+	}
+]
 
 
 // test_lvaps= [{
