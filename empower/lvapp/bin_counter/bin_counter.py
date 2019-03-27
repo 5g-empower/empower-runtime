@@ -63,15 +63,15 @@ STATS_RESPONSE = \
 
 
 class BinCounter(ModulePeriodic):
-    """ PacketsCounter object.
+    """BinCounter object.
 
     This primitive tracks the packets/bytes sent and received by a LVAP (which
     is the virtual AP running in the WTP). Traffic is classified in the
     specifed bins.
 
-    For example:
+    For example (from within an app):
         self.bin_counter(bins=[512, 1514, 8192],
-                         2000,
+                         every=2000,
                          callback=self.counters_callback)
 
     This classifies the traffic TX/RX by the client lvap into the specified
@@ -79,7 +79,7 @@ class BinCounter(ModulePeriodic):
     first bin there will be all the packets whose length is smaller than or
     uqual to 512 bytes, in the second bin there will be all the packets whose
     length is smaller than or equal to 1514 bytes, in the last bin there will
-    be all the packets whose length is smaller than or equal to 8192 bytes,
+    be all the packets whose length is smaller than or equal to 8192 bytes.
     """
 
     MODULE_NAME = "bin_counter"
