@@ -1682,6 +1682,7 @@ class UE_HO_UP_Panel{
         console.log ("SELECTED UE:", ue);
         this.hb = __HB;
         this.desc = __DESC;
+        this.qe = __QE;
         this.cache = __CACHE;
         var selected_vbs = ue["vbs"];
         console.log ("SELECTED VBS:", selected_vbs);
@@ -1705,6 +1706,30 @@ class UE_HO_UP_Panel{
             "label": "VBSes:",
             "selected_obj": selected_vbs,
             "tag": null
+        }
+
+        if( __ROLE !== "admin"){
+            var tenant = null;
+            var tenant_name = $( "#navbar_tenantname" ).text();
+            for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                console.log("candidate tenant name", tnt["tenant_name"]);
+                if( tnt["tenant_name"] === tenant_name ){
+                    tenant = tnt;
+                    console.log("FOUND candidate tenant", tenant)
+                    break;
+                }
+            }
+            if (tenant === null){
+                params_vbs.candidates = [];
+            }
+            else{
+                var vbses = tenant["vbses"];
+                params_vbs.candidates = [];
+                for (var i in vbses){
+                    params_vbs.candidates.push(vbses[i]);
+                }
+            }
         }
 
         this._vbs_pnc= new VBS_PNC(params_vbs);
@@ -1772,6 +1797,7 @@ class LVAP_HO_UP_Panel{
         this.hb = __HB;
         this.desc = __DESC;
         this.cache = __CACHE;
+        this.qe = __QE;
         var selected_wtp = lvap["wtp"];
         var blocks = selected_wtp["supports"];
         console.log ("SELECTED WTP:", selected_wtp);
@@ -1790,6 +1816,30 @@ class LVAP_HO_UP_Panel{
             "label": "WTPs:",
             "selected_obj": selected_wtp,
             "tag": null
+        }
+
+        if( __ROLE !== "admin"){
+            var tenant = null;
+            var tenant_name = $( "#navbar_tenantname" ).text();
+            for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                console.log("candidate tenant name", tnt["tenant_name"]);
+                if( tnt["tenant_name"] === tenant_name ){
+                    tenant = tnt;
+                    console.log("FOUND candidate tenant", tenant)
+                    break;
+                }
+            }
+            if (tenant === null){
+                params_wtp.candidates = [];
+            }
+            else{
+                var wtps = tenant["wtps"];
+                params_wtp.candidates = [];
+                for (var i in wtps){
+                    params_wtp.candidates.push(wtps[i]);
+                }
+            }
         }
 
         this._wtp_pnc= new WTP_PNC(params_wtp);
