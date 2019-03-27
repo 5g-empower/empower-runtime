@@ -120,7 +120,7 @@ function ff_DIF_DSCP(tag, a, id, values){
             $( selector ).css("height","35px");
                 // DSCP are manually controlled
                 var DSCPList = ["0x00", "0x01", "0x02", "0x03", "0x04",
-                                "0x08", "0x0A", "0x0C", "0x0C", "0x0E",
+                                "0x08", "0x0A", "0x0C", "0x0E",
                                 "0x10", "0x12", "0x14", "0x16", "0x18",
                                 "0x1A", "0x1C", "0x1E", "0x20", "0x22",
                                 "0x24", "0x26", "0x28", "0x2C", "0x2E", "0x30", "0x38"];
@@ -332,6 +332,7 @@ function ff_DIF_Bool(tag, a, id, values){
         $( c0 ).addClass("text-right");
         $( c0 ).text( __DESC.d[tag].attr[a].name + ": " );
         var c1 = __HB.ceCOL("xs", COL_1);
+        $( c1 ).addClass("text-left");
         $( r ).append(c1);
             var swtch = __HB.ce("INPUT");
             $( c1 ).append(swtch);
@@ -364,6 +365,9 @@ function ff_DrawStaticVar(tag, a, id, values){
         case __DESC.dt.STR.data:
         case __DESC.dt.STR.dpid:
         case __DESC.dt.STR.ip_addr:
+        case __DESC.dt.STR.tmsi:
+        case __DESC.dt.STR.tenantid:
+        case __DESC.dt.STR.ueid:
         case __DESC.dt.NUM.intgr:
         case __DESC.dt.OBJ.dscp:
         case __DESC.dt.OBJ.match:
@@ -393,6 +397,10 @@ function ff_DrawStaticVar(tag, a, id, values){
     }
     if( a === "blocks" || a === "supports" ){
         return ff_DSV_Supports(tag, a, id, values);
+    }
+    else if( a === "cells"){
+        console.log("Formatting cells...")
+        return ff_DSV_Cells(tag, a, id, values);
     }
     else if( a === "components" ){
         return ff_DSV_Components(tag, a, id, values);
@@ -433,6 +441,7 @@ function ff_DSV_String(tag, a, id, values){
         $( c0 ).text( __DESC.d[tag].attr[a].name + ": " );
         var c1 = __HB.ceCOL("xs", COL_1);
         $( r ).append(c1);
+        $( c1 ).addClass("text-left");
         c1.id = id;
         $( c1 ).text(values);
     return r;
@@ -497,9 +506,12 @@ function ff_DSV_State(tag, a, id, values){
                     else if( values === "online") clr = GREEN;
                 break;
                 case __QE.targets.UE:
-                    if( values === "ho_in_progress_removing") clr = RED;
-                    else if( values === "ho_in_progress_adding") clr = YELLOW;
-                    else if( values === "active") clr = GREEN;
+                    if( values === "stopped") clr = RED;
+                    else if( values === "stopping") clr = YELLOW;
+                    else if( values === "running") clr = GREEN;
+                    else if( values === "spawning") clr = BLUE;
+                    else if( values === "migrating_stop") clr = YELLOW;
+                    else if( values === "migrating_start") clr = YELLOW;
                 break;
                 case __QE.targets.LVAP:
                     if( values === "stopped") clr = RED;
@@ -712,6 +724,70 @@ function ff_DSV_Datapath(tag, a, id, values){
 }
 
 // ---------------------------- DSV of LIST
+
+function ff_DSV_Cell(tag, cell){
+
+    var fields = __HB.ceCOL("xs", 12);
+
+    var attrbts = __DESC.d[tag].attr;
+
+    // console.log("ff_DSV_Cell");
+    for( var a in attrbts ){
+        // var a = attrbts[i];
+        var isEdit = false;
+        var value = cell[a];
+
+        if (a in cell){
+
+            var attr_id = a+"_id";
+
+            // console.log("DRAW:",tag, a, attr_id, isEdit, value);
+
+            var field = ff_draw(tag, a, attr_id, isEdit, value)
+
+            if ((field != null) && (field != undefined)){
+                $( fields ).append(field);
+            }
+        }
+    }
+
+    return fields;
+}
+
+function ff_DSV_Cells(tag, a, id, values){
+    //console.log(" ff_DSV_Cells:",tag, a, id, values);
+    var div = __HB.ce("DIV");
+    var counter = 0
+    div.id = id;
+    for(var c in values){
+        var cell = values[c];
+
+        var panel = __HB.cePANEL();
+        $( div ).append(panel);
+        panel.id = id + "_" + cell["pci"];
+        $( panel ).addClass("panel panel-info")
+            var ph = __HB.cePANEL_H();
+            $( panel ).append(ph);
+                $( ph ).text("Cell " + c +"(PCI)")
+            var body = __HB.cePANEL_B();
+            $( panel ).append(body);
+            var pf = __HB.cePANEL_F();
+            $( panel ).append(pf);
+
+            if (tag === "vbses"){
+                body.append(this.ff_DSV_Cell(a, cell));
+            }
+            else{
+                body.append(this.ff_DSV_Cell(tag, cell));
+            }
+
+        counter += 1;
+    }
+    if (counter === 0){
+        $( div ).append( ff_DSV_Empty(tag, a) );
+    }
+    return div;
+}
 
 function ff_DSV_Supports(tag, a, id, values){
     var div = __HB.ce("DIV");

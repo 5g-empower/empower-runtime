@@ -17,7 +17,10 @@ class EmpDescriptor{
                             "dpid": {"type_id": "dpid", "validation": null, },
                             "ip_addr": {"type_id": "ip_addr", "validation": null, },
                             "band": {"type_id": "band", "validation": null, },
-//                            "url": {"type_id": "url", "validation": null, },
+//                          "url": {"type_id": "url", "validation": null, },
+                            "tmsi": {"type_id": "tmsi", "validation": null, },
+                            "tenantid": {"type_id": "tenantid", "validation": null, },
+                            "ueid": {"type_id": "ueid", "validation": null, },
                          };
         this.dt.NUM = {  "intgr": {"type_id": "integer", "validation": null, },
                          "bool": {"type_id": "boolean", "validation": null, },
@@ -36,6 +39,10 @@ class EmpDescriptor{
                             "dscp":  {"type_id": "dscp", "validation": null, },
                             "match":  {"type_id": "match", "validation": null, },
                             "tID":  {"type_id": "tID", "validation": null, },  // selector version!
+                            "slice":  {"type_id": "slice", "validation": null, }, 
+                            "vbs":  {"type_id": "vbs", "validation": null, },  
+                            "uemeasurements":  {"type_id": "ue_measurements", "validation": null, },  
+                            "cell":  {"type_id": "cell", "validation": null, },  
                           };
 
         this.add = {
@@ -121,7 +128,7 @@ class EmpDescriptor{
         this.d["vbs"] = this.d[targets.VBS];
             this.d[targets.VBS].attr["label"]       =  {"name": "Name", "isKey": false,   "add": this.add.M,  "update": false,  "type": this.dt.STR.def };
             this.d[targets.VBS].attr["addr"]        =  {"name": "MAC Address", "isKey": true,    "add": this.add.M,  "update": false,  "type": this.dt.STR.mac };
-            this.d[targets.VBS].attr["cells"]       =  {"name": "Cells", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.a  };
+            this.d[targets.VBS].attr["cells"]       =  {"name": "Cells", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d  };
             this.d[targets.VBS].attr["connection"]  =  {"name": "Connection", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.connection };
             this.d[targets.VBS].attr["datapath"]    =  {"name": "Datapath", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.datapath };
             this.d[targets.VBS].attr["last_seen"]   =  {"name": "Last Seen", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
@@ -172,12 +179,18 @@ class EmpDescriptor{
         this.d[targets.UE] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.UE].attr["imsi"]    =  {"name": "IMSI", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
+            this.d[targets.UE].attr["imsi"]    =  {"name": "IMSI", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
             this.d[targets.UE].attr["rnti"]    =  {"name": "RNTI", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr };
             this.d[targets.UE].attr["plmn_id"] =  {"name": "PLMN ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.plmnid};
-            this.d[targets.UE].attr["cell"]    =  {"name": "Cell", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
-            this.d[targets.UE].attr["vbs"]     =  {"name": "VBS", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d };
+            this.d[targets.UE].attr["cell"]    =  {"name": "Cell", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.cell };
+            this.d[targets.UE].attr["vbs"]     =  {"name": "VBS", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.vbs };
             this.d[targets.UE].attr["state"]   =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state };    // "active" - "ho_in_progress_removing" - "ho_in_progress_adding"
+            
+            this.d[targets.UE].attr["slice"]   =  {"name": "Slice", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.slice };
+            this.d[targets.UE].attr["ue_id"]   =  {"name": "UE ID", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.ueid };
+            this.d[targets.UE].attr["tmsi"]   =  {"name": "TMSI", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.tmsi };
+            this.d[targets.UE].attr["tenant_id"]   =  {"name": "tenant ID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.tenantid };
+            this.d[targets.UE].attr["ue_measurements"]   =  {"name": "Measurements", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.uemeasurements };
 
             this.d[targets.UE].ff.TBL = ff_Ue_Table;
 //            this.d[targets.UE].ff.GET = ff_Ue_Get;
@@ -201,7 +214,7 @@ class EmpDescriptor{
             this.d[targets.LVAP].attr["ssid"]                   =  {"name": "SSID", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.LVAP].attr["state"]                  =  {"name": "State", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.state };    // "running" - "spawning" - "removing"
             this.d[targets.LVAP].attr["supported_band"]         =  {"name": "Supported Band", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
-            this.d[targets.LVAP].attr["wtp"]                    =  {"name": "WTP", "isKey": false,   "add": this.add.E,  "update": true,  "type": this.dt.OBJ.wtp};
+            this.d[targets.LVAP].attr["wtp"]                    =  {"name": "WTP", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.OBJ.wtp};
 
             this.d[targets.LVAP].ff.TBL = ff_Lvap_Table;
 //            this.d[targets.LVAP].ff.GET = ff_Lvap_Get;
@@ -278,8 +291,8 @@ class EmpDescriptor{
         this.d[targets.SLICE] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
-            this.d[targets.SLICE].attr["dscp"]    =  {"name": "Tag", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["dscp"]    =  {"name": "Tag", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.SLICE].attr["wifi"]    =  {"name": "Wi-Fi", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
             this.d[targets.SLICE].attr["lte"]     =  {"name": "LTE", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
 
@@ -327,6 +340,20 @@ class EmpDescriptor{
             this.d["supports"].attr["wifi_stats"]           =  {"name": "Wi-Fi Statistic", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
 
         this.d["blocks"] = this.d["supports"];
+
+        // CELLS
+
+        this.d["cells"] =  { "attr" : {},    // attributes
+                        "ff" : {},      // format functions
+                        };
+            this.d["cells"].attr["addr"]                =  {"name": "Address", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.mac};
+            this.d["cells"].attr["max_ues"]             =  {"name": "Max UEs", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d["cells"].attr["pci"]                 =  {"name": "PCI", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["cells"].attr["dl_bandwidth"]        =  {"name": "DL Bandwidth", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["cells"].attr["dl_earfcn"]           =  {"name": "DL EARFCN", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["cells"].attr["ul_bandwidth"]        =  {"name": "UL Bandwidth", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+            this.d["cells"].attr["ul_earfcn"]           =  {"name": "UL EARFCN", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.NUM.intgr};
+
 
     }
 }
