@@ -164,6 +164,7 @@ class HBuilder{
         for( var i=0; i<__CACHE.c[tag].length; i++){
             if( __CACHE.c[tag][i][keyAttr] === key ){
                 found = __CACHE.c[tag][i];
+                break;
             }
         }
         return found;
@@ -225,6 +226,9 @@ class HBuilder{
             case "cells": title = "Cells"; break;
             case "blocks": title = "Blocks"; break;
             case "wifi_stats": title = "Wi-Fi Statistic"; break;
+            case "vbs": title = "VBS"; break;
+            case "cell": title = "Cell"; break;
+            case "slice": title = "Slice"; break;
             default:
                 console.log("mapName2Title: " + tag + " not defined.");
         }

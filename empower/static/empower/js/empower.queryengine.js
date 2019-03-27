@@ -21,6 +21,7 @@ class EmpQueryEngine{
         this.targets.LVNF = "lvnfs";
         this.targets.ACL = "acl";
         this.targets.UE_MEASUREMENT = "ue_measurements";
+        this.targets.UE = "ues";
         this.targets.TR = "trs";
         this.targets.SLICE = "slices";
 
@@ -50,13 +51,22 @@ class EmpQueryEngine{
                 // console.log("processQueryQueue: qstatus ", t.querystatus);
                 t.querystatus = 1;
                 var data = t.queryqueue.shift();
-                return t.runQuery.bind(this).apply(null, data).promise().then(
-                    function(){
-                        t.querystatus = t.querystatus - 1;
-                        // console.log("processQueryQueue: DONE qstatus ", t.querystatus);
-                        return t.processQueryQueue(t);
-                    }
-                )
+                try{
+                    return t.runQuery.bind(this).apply(null, data).promise().then(
+                        function(){
+                            t.querystatus = t.querystatus - 1;
+                            // console.log("processQueryQueue: DONE qstatus ", t.querystatus);
+                            return t.processQueryQueue(t);
+                        }
+                    )
+                }
+                catch(e){
+                    console.log (e);
+                    t.querystatus = t.querystatus - 1;
+                    // console.log("processQueryQueue: DONE qstatus ", t.querystatus);
+                    $( "#navbar_pendingQuery" ).text("Last query FAILED!");
+                    return t.processQueryQueue(t);
+                }
             }
             else if (this.querystatus === 1){
                 // console.log("processQueryQueue: qstatus ", this.querystatus);
@@ -103,7 +113,7 @@ class EmpQueryEngine{
     }
 
     performQuery(type="GET",target,  tenant_id, values){
-                return $.ajax(this.getRequestParams(type, target, tenant_id, values));
+        return $.ajax(this.getRequestParams(type, target, tenant_id, values));
     }
 
     getRequestParams(type, target, tenant_id, values){
@@ -281,14 +291,65 @@ class EmpQueryEngine{
                         }
                 break;
             case this.targets.LVAP:
-                if( type === "PUT" ){   // values[ LVAP, new WTP, Block hwaddr ]
-                    url = this.PUTQueryURL(target, tenant_id)+ values[0].addr; console.log(values)
+                if( type === "PUT" ){   
+                    console.warn("VALUES: ",values);
+
+                    data = {
+                        version: "1.0"
+                    }
+                    if (values.wtp)
+                        data.wtp =  values.wtp.addr;
+                    
+                    if (values.block)
+                        data.blocks = values.block.hwaddr;
+
+                    data = JSON.stringify(data);
+
+                    console.log(data);
+
+                    if (values.lvap === null){
+                        console.error("Missing LVAP params");
+                    }
+
+                    url = this.PUTQueryURL(target, tenant_id)+values.lvap.addr; 
+
+                    console.log(url);
+                    
+                    dataType = "text";                   
+                }
+                break;
+            case this.targets.UE:
+                if( type === "PUT" ){
+
+                    console.warn("VALUES: ",values);
+
+                    data = {
+                        version: "1.0"
+                    }
+
+                    if (values.vbs)
+                        data.vbs =  values.vbs.addr;
+                    
+                    if (values.cell)
+                        data.cell = values.cell;
+
+                    if (values.slice)
+                        data.slice = values.slice.dscp;
+
+                    data = JSON.stringify(data);
+
+                    console.log(data);
+
+                    if (values.ue === null){
+                        console.error("Missing UE params");
+                    }
+
+                    url = this.PUTQueryURL(target, tenant_id)+values.ue.ue_id; 
+
+                    console.log(url);
+                    
                     dataType = "text";
-                    if( values[2] )
-                        data = '{  "version": "1.0", "wtp" : "' + values[1].addr + '", "blocks" : "' + values[2] + '"  }';
-                    else
-                    data = '{  "version": "1.0", "wtp" : "' + values[1].addr + '"  }';
-                        }
+                }
                 break;
             case this.targets.CPP:
             case this.targets.VBS:
@@ -451,6 +512,7 @@ class EmpQueryEngine{
         switch(target){
             case this.targets.ACCOUNT:
             case this.targets.LVAP:
+            case this.targets.UE:
             case this.targets.SLICE:
                 if (tenant_id) {
                     url = "/api/v1/tenants/" + tenant_id + "/" + target  + "/"
