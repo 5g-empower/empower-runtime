@@ -94,7 +94,8 @@ class SliceStats(ModulePeriodic):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.block == other.block
+        return super().__eq__(other) and self.block == other.block and \
+          self.dscp == other.dscp
 
     @property
     def dscp(self):
