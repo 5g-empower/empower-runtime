@@ -16,4 +16,5 @@ Checkout out our [website](http://5g-empower.io/) and our [wiki](https://github.
 
 This repository includes the 5G-EmPOWER controller and the associated SDK.
 
+### License
 Code is released under the Apache License, Version 2.0.
