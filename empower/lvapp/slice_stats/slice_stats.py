@@ -26,6 +26,7 @@ from construct import Struct
 from empower.core.app import EmpowerApp
 from empower.datatypes.etheraddress import EtherAddress
 from empower.datatypes.dscp import DSCP
+from empower.datatypes.ssid import WIFI_NWID_MAXSIZE
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import ModulePeriodic
 from empower.core.resourcepool import ResourceBlock
@@ -47,7 +48,7 @@ SLICE_STATS_REQUEST = \
            UBInt8("channel"),
            UBInt8("band"),
            UBInt8("dscp"),
-           Bytes("ssid", lambda ctx: ctx.length - 23))
+           Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
 SLICE_STATS_RESPONSE = \
     Struct("slice_stats_response", UBInt8("version"),
@@ -63,7 +64,19 @@ SLICE_STATS_RESPONSE = \
 
 
 class SliceStats(ModulePeriodic):
-    """ SliceStats object. """
+    """SliceStats object.
+
+    This primitive tracks the statisitcs of a certain slice.
+
+    For example (from within an app):
+        self.slice_stats(block=block,
+                         every=2000,
+                         callback=self.slices_stats_ callback)
+
+    This will call the method self.slices_stats_ callback every 2 seconds and
+    will report some information about the slice, including: tx/rx bytes, the
+    deficit used, and the maximum length of the queue.
+    """
 
     MODULE_NAME = "slice_stats"
     REQUIRED = ['module_type', 'worker', 'tenant_id', 'block']
@@ -81,7 +94,8 @@ class SliceStats(ModulePeriodic):
 
     def __eq__(self, other):
 
-        return super().__eq__(other) and self.block == other.block
+        return super().__eq__(other) and self.block == other.block and \
+          self.dscp == other.dscp
 
     @property
     def dscp(self):
@@ -174,7 +188,7 @@ class SliceStats(ModulePeriodic):
 
         stats_req = Container(version=PT_VERSION,
                               type=PT_SLICE_STATS_REQUEST,
-                              length=23+len(tenant.tenant_name),
+                              length=SLICE_STATS_REQUEST.sizeof(),
                               seq=wtp.seq,
                               module_id=self.module_id,
                               hwaddr=self.block.hwaddr.to_raw(),
@@ -221,7 +235,7 @@ class SliceStatsWorker(ModuleLVAPPWorker):
 def slice_stats(**kwargs):
     """Create a new module."""
 
-    worker = RUNTIME.components[SliceStats.__module__]
+    worker = RUNTIME.components[SliceStatsWorker.__module__]
     return worker.add_module(**kwargs)
 
 
