@@ -825,6 +825,14 @@ class LVAPPConnection:
             slc.wifi['wtps'][wtp.addr]['static-properties'] \
                 ['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
 
+        if slc.wifi['static-properties']['airtime_scheduler'] != status.airtime_scheduler:
+
+            if wtp.addr not in slc.wifi['wtps']:
+                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+
+                slc.wifi['wtps'][wtp.addr]['static-properties']['airtime_scheduler'] = \
+                status.airtime_scheduler
+
         self.log.info("Slice %s updated", slc)
 
     def _handle_status_vap(self, wtp, status):
@@ -1046,6 +1054,7 @@ class LVAPPConnection:
 
         amsdu_aggregation = slc.wifi['static-properties']['amsdu_aggregation']
         quantum = slc.wifi['static-properties']['quantum']
+        airtime_scheduler = slc.wifi['static-properties']['airtime_scheduler']
 
         if self.wtp.addr in slc.wifi['wtps']:
 
@@ -1057,6 +1066,9 @@ class LVAPPConnection:
             if 'quantum' in static:
                 quantum = static['quantum']
 
+            if 'airtime_scheduler' in static:
+                airtime_scheduler = static['airtime_scheduler']
+
         flags = Container(amsdu_aggregation=amsdu_aggregation)
 
         msg = Container(length=SET_SLICE.sizeof(),
@@ -1065,6 +1077,7 @@ class LVAPPConnection:
                         channel=block.channel,
                         band=block.band,
                         quantum=quantum,
+                        airtime_scheduler=airtime_scheduler,
                         dscp=slc.dscp.to_raw(),
                         ssid=ssid.to_raw())
 

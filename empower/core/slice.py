@@ -101,7 +101,8 @@ class Slice:
         self.wifi = {
             'static-properties': {
                 'amsdu_aggregation': False,
-                'quantum': 12000
+                'quantum': 12000,
+                'airtime_scheduler': 0
             },
             'wtps': {}
         }
@@ -153,6 +154,18 @@ class Slice:
             else:
                 self.wifi['static-properties']['quantum'] = int(quantum)
 
+        if 'airtime_scheduler' in descriptor['wifi']['static-properties']:
+
+            airtime_scheduler = \
+                descriptor['wifi']['static-properties']['airtime_scheduler']
+
+            if isinstance(airtime_scheduler, int):
+                self.wifi['static-properties']['airtime_scheduler'] = \
+                    airtime_scheduler
+            else:
+                self.wifi['static-properties']['airtime_scheduler'] = \
+                    int(airtime_scheduler)
+
     def __parse_wtps_descriptor(self, descriptor):
 
         for addr in descriptor['wifi']['wtps']:
@@ -193,6 +206,19 @@ class Slice:
                     else:
                         self.wifi['wtps'][wtp_addr]['static-properties'] \
                         ['quantum'] = int(quantum)
+
+                if 'airtime_scheduler' in \
+                    descriptor['wifi']['wtps'][addr]['static-properties']:
+
+                    airtime_scheduler = descriptor['wifi']['wtps'][addr] \
+                        ['static-properties']['airtime_scheduler']
+
+                    props = self.wifi['wtps'][wtp_addr]['static-properties']
+
+                    if isinstance(airtime_scheduler, int):
+                        props['airtime_scheduler'] = airtime_scheduler
+                    else:
+                        props['airtime_scheduler'] = int(airtime_scheduler)
 
     def __parse_lte_descriptor(self, descriptor):
 
