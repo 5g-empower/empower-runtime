@@ -112,7 +112,9 @@ class Slice:
         self.lte = {
             'static-properties': {
                 'sched_id': ROUND_ROBIN_UE_SCHED,
-                'rbgs': 6
+                'rbgs': 6,
+                'window': 1,
+                'period': 1
             },
             'vbses': {}
         }
@@ -224,6 +226,24 @@ class Slice:
             else:
                 self.lte['static-properties']['rbgs'] = int(rbgs)
 
+        if 'window' in descriptor['lte']['static-properties']:
+
+            window = descriptor['lte']['static-properties']['window']
+
+            if isinstance(window, int):
+                self.lte['static-properties']['window'] = window
+            else:
+                self.lte['static-properties']['window'] = int(window)
+
+        if 'period' in descriptor['lte']['static-properties']:
+
+            period = descriptor['lte']['static-properties']['period']
+
+            if isinstance(period, int):
+                self.lte['static-properties']['period'] = period
+            else:
+                self.lte['static-properties']['period'] = int(period)
+
     def __parse_vbses_descriptor(self, descriptor):
 
         for addr in descriptor['lte']['vbses']:
@@ -264,6 +284,32 @@ class Slice:
                     else:
                         self.lte['vbses'][vbs_addr]['static-properties'] \
                             ['rbgs'] = int(rbgs)
+
+                if 'window' in \
+                    descriptor['lte']['vbses'][addr]['static-properties']:
+
+                    window = descriptor['lte']['vbses'][addr] \
+                        ['static-properties']['window']
+
+                    if isinstance(window, int):
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['window'] = window
+                    else:
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['window'] = int(window)
+
+                if 'period' in \
+                    descriptor['lte']['vbses'][addr]['static-properties']:
+
+                    period = descriptor['lte']['vbses'][addr] \
+                        ['static-properties']['period']
+
+                    if isinstance(period, int):
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['period'] = period
+                    else:
+                        self.lte['vbses'][vbs_addr]['static-properties'] \
+                            ['period'] = int(period)
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
