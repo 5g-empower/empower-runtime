@@ -39,7 +39,8 @@ class Slice:
         "wifi": {
             "static-properties": {
               "amsdu_aggregation": true,
-              "quantum": 12000
+              "quantum": 12000,
+              "scheduler": 0
             }
         },
         "lte": {
@@ -62,7 +63,8 @@ class Slice:
         "wifi": {
             "static-properties": {
               "amsdu_aggregation": true,
-              "quantum": 12000
+              "quantum": 12000,
+              "scheduler":0
             },
             "wtps": {
               "00:0D:B9:2F:56:64": {
@@ -89,6 +91,9 @@ class Slice:
 
     In this case the slice is still created on all the nodes in the network,
     but some slice parameters are different for the specified nodes.
+
+    The scheduler indicates the way the stations are given the resources within
+    a slice. 0 corresponds to a Round Robin policy, 1 to airtime fairness.
     """
 
     def __init__(self, dscp, tenant, descriptor):
@@ -101,7 +106,8 @@ class Slice:
         self.wifi = {
             'static-properties': {
                 'amsdu_aggregation': False,
-                'quantum': 12000
+                'quantum': 12000,
+                'scheduler': 0
             },
             'wtps': {}
         }
@@ -153,6 +159,18 @@ class Slice:
             else:
                 self.wifi['static-properties']['quantum'] = int(quantum)
 
+        if 'scheduler' in descriptor['wifi']['static-properties']:
+
+            scheduler = \
+                descriptor['wifi']['static-properties']['scheduler']
+
+            if isinstance(scheduler, int):
+                self.wifi['static-properties']['scheduler'] = \
+                    scheduler
+            else:
+                self.wifi['static-properties']['scheduler'] = \
+                    int(scheduler)
+
     def __parse_wtps_descriptor(self, descriptor):
 
         for addr in descriptor['wifi']['wtps']:
@@ -193,6 +211,19 @@ class Slice:
                     else:
                         self.wifi['wtps'][wtp_addr]['static-properties'] \
                         ['quantum'] = int(quantum)
+
+                if 'scheduler' in \
+                    descriptor['wifi']['wtps'][addr]['static-properties']:
+
+                    scheduler = descriptor['wifi']['wtps'][addr] \
+                        ['static-properties']['scheduler']
+
+                    props = self.wifi['wtps'][wtp_addr]['static-properties']
+
+                    if isinstance(scheduler, int):
+                        props['scheduler'] = scheduler
+                    else:
+                        props['scheduler'] = int(scheduler)
 
     def __parse_lte_descriptor(self, descriptor):
 
