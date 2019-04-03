@@ -24,8 +24,15 @@ from empower.datatypes.etheraddress import EtherAddress
 
 import empower.logger
 
-ROUND_ROBIN_UE_SCHED = 0x80000001
-MULTI_SLICE_SCHED = 0x00000001
+LTE_SLICE_SCHED = {
+    'ROUND_ROBIN_UE_SCHED': 0x80000001,
+    'MULTI_SLICE_SCHED': 0x00000001
+}
+
+WIFI_SLICE_SCHED = {
+    'ROUND_ROBIN': 0x00000000,
+    'AIRTIME_FAIRNESS': 0x00000001
+}
 
 
 class Slice:
@@ -107,7 +114,7 @@ class Slice:
             'static-properties': {
                 'amsdu_aggregation': False,
                 'quantum': 12000,
-                'scheduler': 0
+                'scheduler': WIFI_SLICE_SCHED['ROUND_ROBIN']
             },
             'wtps': {}
         }
@@ -117,7 +124,7 @@ class Slice:
 
         self.lte = {
             'static-properties': {
-                'sched_id': ROUND_ROBIN_UE_SCHED,
+                'sched_id': LTE_SLICE_SCHED['ROUND_ROBIN_UE_SCHED'],
                 'rbgs': 6,
                 'window': 1,
                 'period': 1
@@ -143,12 +150,10 @@ class Slice:
             amsdu_aggregation = \
                 descriptor['wifi']['static-properties']['amsdu_aggregation']
 
-            if isinstance(amsdu_aggregation, bool):
-                self.wifi['static-properties']['amsdu_aggregation'] = \
-                    amsdu_aggregation
-            else:
-                self.wifi['static-properties']['amsdu_aggregation'] = \
-                    json.loads(amsdu_aggregation.lower())
+            if not isinstance(amsdu_aggregation, bool):
+                amsdu_aggregation = json.loads(amsdu_aggregation.lower())
+
+            self.wifi['static-properties']['amsdu_aggregation'] = amsdu_aggregation
 
         if 'quantum' in descriptor['wifi']['static-properties']:
 
@@ -164,12 +169,13 @@ class Slice:
             scheduler = \
                 descriptor['wifi']['static-properties']['scheduler']
 
-            if isinstance(scheduler, int):
-                self.wifi['static-properties']['scheduler'] = \
-                    scheduler
-            else:
-                self.wifi['static-properties']['scheduler'] = \
-                    int(scheduler)
+            if not isinstance(scheduler, int):
+                scheduler = int(scheduler)
+
+            if scheduler not in WIFI_SLICE_SCHED.values():
+                raise ValueError("Invalid Wi-Fi slice scheduler")
+
+            self.wifi['static-properties']['scheduler'] = scheduler
 
     def __parse_wtps_descriptor(self, descriptor):
 
@@ -192,11 +198,10 @@ class Slice:
 
                     props = self.wifi['wtps'][wtp_addr]['static-properties']
 
-                    if isinstance(amsdu_aggregation, bool):
-                        props['amsdu_aggregation'] = amsdu_aggregation
-                    else:
-                        props['amsdu_aggregation'] = \
-                            json.loads(amsdu_aggregation.lower())
+                    if not isinstance(amsdu_aggregation, bool):
+                        amsdu_aggregation = json.loads(amsdu_aggregation.lower())
+
+                    props['amsdu_aggregation'] = amsdu_aggregation
 
                 if 'quantum' in \
                     descriptor['wifi']['wtps'][addr]['static-properties']:
@@ -205,12 +210,10 @@ class Slice:
                         descriptor['wifi']['wtps'][addr]['static-properties'] \
                             ['quantum']
 
-                    if isinstance(quantum, int):
-                        self.wifi['wtps'][wtp_addr]['static-properties'] \
-                            ['quantum'] = quantum
-                    else:
-                        self.wifi['wtps'][wtp_addr]['static-properties'] \
-                        ['quantum'] = int(quantum)
+                    if not isinstance(quantum, int):
+                        quantum = int(quantum)
+
+                    self.wifi['wtps'][wtp_addr]['static-properties']['quantum'] = quantum
 
                 if 'scheduler' in \
                     descriptor['wifi']['wtps'][addr]['static-properties']:
@@ -220,10 +223,13 @@ class Slice:
 
                     props = self.wifi['wtps'][wtp_addr]['static-properties']
 
-                    if isinstance(scheduler, int):
-                        props['scheduler'] = scheduler
-                    else:
-                        props['scheduler'] = int(scheduler)
+                    if not isinstance(scheduler, int):
+                        scheduler = int(scheduler)
+
+                    if scheduler not in WIFI_SLICE_SCHED.values():
+                        raise ValueError("Invalid Wi-Fi slice scheduler")
+
+                    props['scheduler'] = scheduler
 
     def __parse_lte_descriptor(self, descriptor):
 
@@ -243,37 +249,40 @@ class Slice:
 
             sched_id = descriptor['lte']['static-properties']['sched_id']
 
-            if isinstance(sched_id, int):
-                self.lte['static-properties']['sched_id'] = sched_id
-            else:
-                self.lte['static-properties']['sched_id'] = int(sched_id)
+            if not isinstance(sched_id, int):
+                sched_id = int(sched_id)
+
+            if sched_id not in LTE_SLICE_SCHED.values():
+                raise ValueError("Invalid LTE slice scheduler")
+
+            self.lte['static-properties']['sched_id'] = sched_id
 
         if 'rbgs' in descriptor['lte']['static-properties']:
 
             rbgs = descriptor['lte']['static-properties']['rbgs']
 
-            if isinstance(rbgs, int):
-                self.lte['static-properties']['rbgs'] = rbgs
-            else:
-                self.lte['static-properties']['rbgs'] = int(rbgs)
+            if not isinstance(rbgs, int):
+                rbgs = int(rbgs)
+
+            self.lte['static-properties']['rbgs'] = rbgs
 
         if 'window' in descriptor['lte']['static-properties']:
 
             window = descriptor['lte']['static-properties']['window']
 
-            if isinstance(window, int):
-                self.lte['static-properties']['window'] = window
-            else:
-                self.lte['static-properties']['window'] = int(window)
+            if not isinstance(window, int):
+                window = int(window)
+
+            self.lte['static-properties']['window'] = window
 
         if 'period' in descriptor['lte']['static-properties']:
 
             period = descriptor['lte']['static-properties']['period']
 
-            if isinstance(period, int):
-                self.lte['static-properties']['period'] = period
-            else:
-                self.lte['static-properties']['period'] = int(period)
+            if not isinstance(period, int):
+                period = int(period)
+
+            self.lte['static-properties']['period'] = period
 
     def __parse_vbses_descriptor(self, descriptor):
 
@@ -296,12 +305,13 @@ class Slice:
                     sched_id = descriptor['lte']['vbses'][addr] \
                         ['static-properties']['sched_id']
 
-                    if isinstance(sched_id, int):
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                        ['sched_id'] = sched_id
-                    else:
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                        ['sched_id'] = int(sched_id)
+                    if not isinstance(sched_id, int):
+                        sched_id = int(sched_id)
+
+                    if sched_id not in LTE_SLICE_SCHED.values():
+                        raise ValueError("Invalid LTE slice scheduler")
+
+                    self.lte['vbses'][vbs_addr]['static-properties']['sched_id'] = sched_id
 
                 if 'rbgs' in \
                     descriptor['lte']['vbses'][addr]['static-properties']:
@@ -309,12 +319,10 @@ class Slice:
                     rbgs = descriptor['lte']['vbses'][addr] \
                         ['static-properties']['rbgs']
 
-                    if isinstance(rbgs, int):
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['rbgs'] = rbgs
-                    else:
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['rbgs'] = int(rbgs)
+                    if not isinstance(rbgs, int):
+                        rbgs = int(rbgs)
+
+                    self.lte['vbses'][vbs_addr]['static-properties']['rbgs'] = rbgs
 
                 if 'window' in \
                     descriptor['lte']['vbses'][addr]['static-properties']:
@@ -322,12 +330,10 @@ class Slice:
                     window = descriptor['lte']['vbses'][addr] \
                         ['static-properties']['window']
 
-                    if isinstance(window, int):
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['window'] = window
-                    else:
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['window'] = int(window)
+                    if not isinstance(window, int):
+                        int(window)
+
+                    self.lte['vbses'][vbs_addr]['static-properties']['window'] = window
 
                 if 'period' in \
                     descriptor['lte']['vbses'][addr]['static-properties']:
@@ -335,12 +341,10 @@ class Slice:
                     period = descriptor['lte']['vbses'][addr] \
                         ['static-properties']['period']
 
-                    if isinstance(period, int):
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['period'] = period
-                    else:
-                        self.lte['vbses'][vbs_addr]['static-properties'] \
-                            ['period'] = int(period)
+                    if not isinstance(period, int):
+                        period = int(period)
+
+                    self.lte['vbses'][vbs_addr]['static-properties']['period'] = period
 
     def __repr__(self):
         return "%s:%s" % (self.tenant.tenant_name, self.dscp)
