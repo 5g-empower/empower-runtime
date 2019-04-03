@@ -343,6 +343,7 @@ SET_SLICE = \
            UBInt8("channel"),
            UBInt8("band"),
            UBInt32("quantum"),
+           UBInt32("scheduler"),
            UBInt8("dscp"),
            Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 
@@ -371,6 +372,7 @@ STATUS_SLICE = \
            UBInt8("channel"),
            UBInt8("band"),
            UBInt32("quantum"),
+           UBInt32("scheduler"),
            UBInt8("dscp"),
            Bytes("ssid", WIFI_NWID_MAXSIZE + 1))
 

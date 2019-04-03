@@ -95,7 +95,6 @@ class LVAPPServer(PNFPServer, TCPServer):
         self.log.info('Incoming connection from %r', address)
         self.connection = LVAPPConnection(stream, address, server=self)
 
-
     def send_lvap_leave_message_to_self(self, lvap):
         """Send an LVAP_LEAVE message to self."""
 
