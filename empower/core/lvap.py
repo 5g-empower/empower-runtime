@@ -164,9 +164,16 @@ class LVAP:
 
         self.pending.remove(xid)
 
-        # all pending processed
-        if not self.pending:
+        # there are still pending transactions
+        if self.pending:
+            return
+
+        # all blocks removed, transition to spawning state
+        if self.target_blocks:
             self.state = PROCESS_SPAWNING
+            return
+
+        self.log.error("Del lvap response received without target blocks")
 
     def handle_add_lvap_response(self, xid, _):
         """Received as result of a add lvap command."""
@@ -182,9 +189,12 @@ class LVAP:
 
         self.pending.remove(xid)
 
-        # all pending processed
-        if not self.pending:
-            self.state = PROCESS_RUNNING
+        # there are still pending transactions
+        if self.pending:
+            return
+
+        # all blocks removed, transition to running state
+        self.state = PROCESS_RUNNING
 
     @property
     def state(self):
