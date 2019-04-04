@@ -291,7 +291,7 @@ class EmpDescriptor{
         this.d[targets.SLICE] =  { "attr" : {},    // attributes
                         "ff" : {},      // format functions
                         };
-            this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": false,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
+            this.d[targets.SLICE].attr["tenant_id"] =  {"name": "Tenant ID", "isKey": true,    "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.SLICE].attr["dscp"]    =  {"name": "Tag", "isKey": true,   "add": this.add.E,  "update": false,  "type": this.dt.STR.def};
             this.d[targets.SLICE].attr["wifi"]    =  {"name": "Wi-Fi", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};
             this.d[targets.SLICE].attr["lte"]     =  {"name": "LTE", "isKey": false,   "add": this.add.E,  "update": false,  "type": this.dt.LIST.d};

@@ -56,7 +56,6 @@ function createNavbar(){
 
                 var c10 = __HB.ceCOL("xs",4);
                 $( c10 ).addClass("text-left vertical-align");
-                $( c10 ).css("height", "100%");
                 $( r1 ).append(c10);
                 var navbarTenantID = __HB.ce("SPAN")
                 $( navbarTenantID ).css("font-size", "20px");

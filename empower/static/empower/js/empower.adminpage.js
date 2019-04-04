@@ -595,40 +595,46 @@ class EmpAdminPage{
     f_EraseSelectedFunction( args ){
         var cp = args[0];
         var tag = this.hb.mapName2Tag(cp);
-            var f_YES = function(){
-                var dt = this.cache.DTlist[ tag ];
-                var datatable = $( "#"+ dt.getID() ).DataTable();
+        var f_YES = function(){
+            var dt = this.cache.DTlist[ tag ];
+            var datatable = $( "#"+ dt.getID() ).DataTable();
             var input = null;
             if( tag === this.qe.targets.SLICE ){
                 var data = datatable.row('.selected').data();
-                var tenantID = data[0].substring(11, data[0].length-14)
-                var dscp = data[1].substring(11, data[1].length-14)
+                console.log("data to be erased ", data);
+                // console.log("$(data[0])", $(data[0]).text());
+                var tenantID = $(data[0]).attr('key').trim();
+                // console.log("$(data[1])", $(data[1]).attr('key'));
+                var dscp = $(data[1]).attr('key').trim();
                 var found = null;
                 for( var i=0; i<this.cache.c[tag].length; i++){
-                    if( this.cache.c[tag][i]["tenant_id"] === tenantID && this.cache.c[tag][i]["dscp"] === dscp ){
+                    var slice = this.cache.c[tag][i];
+                    // console.log("slice", slice);
+                    if( slice["tenant_id"] === tenantID && slice["dscp"] === dscp ){
                         found = this.cache.c[tag][i];
+                        break;
                     }
                 }
                 input = found;
-            }
+            }   
             else{
                 var key = this.hb.getDTKeyFields(datatable.row('.selected').data());
                 input = this.hb.getKeyValue( tag , key);
             }
-//                console.log(input)
-                var fff = function(){
-                            if( tag === this.qe.targets.TENANT)
-                                this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
-                            else
-                                this.qe.scheduleQuery("GET", [tag, this.qe.targets.TENANT], null, null, this.cache.update.bind(this.cache));
-                        }
-                this.qe.scheduleQuery("DELETE", [ tag ],null, input, fff.bind(this) );
+            // console.log(input)
+            var fff = function(){
+                if( tag === this.qe.targets.TENANT)
+                    this.qe.scheduleQuery("GET", [tag], null, null, this.cache.update.bind(this.cache));
+                else
+                    this.qe.scheduleQuery("GET", [tag, this.qe.targets.TENANT], null, null, this.cache.update.bind(this.cache));
+            }
+            this.qe.scheduleQuery("DELETE", [ tag ],null, input, fff.bind(this) );
 
-                $( m ).modal('hide');
-            };
-            var m = generateWarningModal("Remove selected " + cp.toUpperCase(), f_YES.bind(this));
-            $( m ).modal();
+            $( m ).modal('hide');
         };
+        var m = generateWarningModal("Remove selected " + cp.toUpperCase(), f_YES.bind(this));
+        $( m ).modal();
+    };
 
     f_EraseAllFunction( args ){
         var cp = args[0];

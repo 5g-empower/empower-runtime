@@ -114,6 +114,29 @@ class EmpDataTable{
         return thead;
     }
 
+    f_get_tenant_name(tenant_id){
+        if( __ROLE === "admin"){
+            for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                if( tnt["tenant_id"] === tenant_id ){
+                    return tnt["tenant_name"];
+                }
+            }
+        }
+        else{
+            var tenant_name = $( "#navbar_tenantname" ).text();
+            for( var i=0; i<this.cache.c[this.qe.targets.TENANT].length; i++ ){
+                var tnt = this.cache.c[this.qe.targets.TENANT][i];
+                if( tnt["tenant_id"] === tenant_id ){
+                    if (tnt["tenant_name"] === tenant_name){
+                        return tenant_name;
+                    }
+                }
+            }
+        }
+        return "NOT FOUND: ";
+    }
+
     ceDtBody(obj){
 
         var tag = this.hb.mapName2Tag(obj);
@@ -132,6 +155,21 @@ class EmpDataTable{
                 var p = params[j];
                 for( var i = 0; i<p.length; i++){
                     switch( p[i].type ){
+
+                        case "f":
+                            var c = __HB.ce("SPAN");
+                            $( r ).append(c);
+                            // console.log(p[i]);
+                            var f_name = "f_"+p[i].fname;
+                            // console.warn(f_name)
+                            $( c ).text( this[f_name](item[p[i].attr]));
+                        break;
+
+                        case "s":
+                            var c = __HB.ce("SPAN");
+                            $( r ).append(c);
+                            $( c ).text( p[i].txt);
+                        break;
 
                         case "d":
                             var c = __HB.ce("SPAN");
