@@ -148,92 +148,23 @@ class EmpQueryEngine{
                     url = this.DELETEQueryURL(target, values.tenant_id) + values.match;
                 }
                 break;
-            case this.targets.SLICE:
+                case this.targets.SLICE:
                 if( type === "POST"){
                     url = this.POSTQueryURL(target, values.tenant_id);
                     dataType = "text";
-                    data = '{ "version" : "1.0", "dscp" : "' + values["dscp"] + '",';
-                    data += '"lte": { "static-properties": { '
-                    if( values["lte"]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["static-properties"]["rbgs"] + '",';
-                    if( values["lte"]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["static-properties"]["sched_id"] + '",';
-                    data = data.substr(0,data.length-1) + ' },'
-                    // data += '"runtime-properties": { '
-                    // if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
-                    // data += ' },'
-                    data += '"vbses": { ';
-                        for( var vbs in values["lte"]["vbses"] ){
-                            data += '"' + vbs + '": { "static-properties": { '
-                            if( values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] + '",';
-                            if( values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] + '",';
-                            data = data.substr(0,data.length-1) + ' },'
-                            // data += '"runtime-properties": {'
-                            // if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
-                            // data += ' },'
-                            if( values["lte"]["vbses"][vbs]["cells"] ) data += '"cells" : ' + values["lte"]["vbses"][vbs]["cells"] + ',';
-                            data = data.substr(0,data.length-1) + ' },'
-                        }
-                    data = data.substr(0,data.length-1) + ' }'
-                    data += ' },'
-                    data += '"wifi": { "static-properties": {'
-                    if( values["wifi"]["static-properties"]["quantum"] ) data += '"quantum" : "' + values["wifi"]["static-properties"]["quantum"] + '",';
-                    if( values["wifi"]["static-properties"]["amsdu_aggregation"] ) data += '"amsdu_aggregation" : "' + values["wifi"]["static-properties"]["amsdu_aggregation"] + '",';
-                    data = data.substr(0,data.length-1) + ' },'
-                    data += '"wtps": { ';
-                        for( var wtp in values["wifi"]["wtps"] ){
-                            data += '"' + wtp + '": { "static-properties": { '
-                            if( values["wifi"]["wtps"][wtp]["static-properties"]["quantum"] ) data += '"quantum" : "' + values["wifi"]["wtps"][wtp]["static-properties"]["quantum"] + '",';
-                            if( values["wifi"]["wtps"][wtp]["static-properties"]["amsdu_aggregation"] ) data += '"amsdu_aggregation" : "' + values["wifi"]["wtps"][wtp]["static-properties"]["amsdu_aggregation"] + '",';
-                            data = data.substr(0,data.length-1) + ' },'
-                            if( values["wifi"]["wtps"][wtp]["blocks"] ) data += '"blocks" : ' + values["wifi"]["wtps"][wtp]["blocks"] + ',';
-                            data = data.substr(0,data.length-1) + ' },'
-                        }
-                    data = data.substr(0,data.length-1) + ' }'
-                    data += ' }'
-                    data += ' }'
+                    data = values;
+                    data.version = "1.0";
+                    data = JSON.stringify(data);
                 }
                 else if( type === "PUT"){
                     url = this.PUTQueryURL(target, values.tenant_id) + values.dscp;
                     dataType = "text";
-                    data = '{ "version" : "1.0", ';
-                    data += '"lte": { "static-properties": { '
-                    if( values["lte"]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["static-properties"]["rbgs"] + '",';
-                    if( values["lte"]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["static-properties"]["sched_id"] + '",';
-                    data = data.substr(0,data.length-1) + ' },'
-                    // data += '"runtime-properties": { '
-                    // if( values["lte"]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["runtime-properties"]["rntis"] + '';
-                    // data += ' },'
-                    data += '"vbses": { ';
-                        for( var vbs in values["lte"]["vbses"] ){
-                            data += '"' + vbs + '": { "static-properties": { '
-                            if( values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] ) data += '"rbgs" : "' + values["lte"]["vbses"][vbs]["static-properties"]["rbgs"] + '",';
-                            if( values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] ) data += '"sched_id" : "' + values["lte"]["vbses"][vbs]["static-properties"]["sched_id"] + '",';
-                            data = data.substr(0,data.length-1) + ' },'
-                            // data += '"runtime-properties": {'
-                            // if( values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] ) data += '"rntis" : ' + values["lte"]["vbses"][vbs]["runtime-properties"]["rntis"] + '';
-                            // data += ' },'
-                            if( values["lte"]["vbses"][vbs]["cells"] ) data += '"cells" : ' + values["lte"]["vbses"][vbs]["cells"] + ',';
-                            data = data.substr(0,data.length-1) + ' },'
-                        }
-                    data = data.substr(0,data.length-1) + ' }'
-                    data += ' },'
-                    data += '"wifi": { "static-properties": {'
-                    if( values["wifi"]["static-properties"]["quantum"] ) data += '"quantum" : "' + values["wifi"]["static-properties"]["quantum"] + '",';
-                    if( values["wifi"]["static-properties"]["amsdu_aggregation"] ) data += '"amsdu_aggregation" : "' + values["wifi"]["static-properties"]["amsdu_aggregation"] + '",';
-                    data = data.substr(0,data.length-1) + ' },'
-                    data += '"wtps": { ';
-                        for( var wtp in values["wifi"]["wtps"] ){
-                            data += '"' + wtp + '": { "static-properties": { '
-                            if( values["wifi"]["wtps"][wtp]["static-properties"]["quantum"] ) data += '"quantum" : "' + values["wifi"]["wtps"][wtp]["static-properties"]["quantum"] + '",';
-                            if( values["wifi"]["wtps"][wtp]["static-properties"]["amsdu_aggregation"] ) data += '"amsdu_aggregation" : "' + values["wifi"]["wtps"][wtp]["static-properties"]["amsdu_aggregation"] + '",';
-                            data = data.substr(0,data.length-1) + ' },'; console.log( values["wifi"]["wtps"][wtp]["blocks"] )
-                            if( values["wifi"]["wtps"][wtp]["blocks"] ) data += '"blocks" : ' + values["wifi"]["wtps"][wtp]["blocks"] + ',';
-                            data = data.substr(0,data.length-1) + ' },'
-                        }
-                    data = data.substr(0,data.length-1) + ' }'
-                    data += ' }'
-                    data += ' }'
+                    data = values;
+                    data.version = "1.0";
+                    data = JSON.stringify(data);
                 }
                 else if( type === "DELETE"){
+                    console.log(values);
                     url = this.DELETEQueryURL(target, values.tenant_id) + values.dscp;
                 }
                 break;

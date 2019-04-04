@@ -98,6 +98,7 @@ class EmpAddModalBox extends EmpModalBox{
                         case "match":
                         case "dscp":
                         case "tenant_id":
+                        case "owner":
                             value = $( "#" + id ).text();
                         break;
                         default:

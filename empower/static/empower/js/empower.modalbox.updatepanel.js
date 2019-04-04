@@ -670,6 +670,21 @@ class EmpUpdateModalBox extends EmpModalBox{
                 str += a + " ";
             }
         }
+        if (this.instances.lvapho){
+            if (this.instances.lvapho._wtp_pnc.has_been_modified() || this.instances.lvapho._block_pnc.has_been_modified()){
+                str += "LVAP_HandOver "
+            }
+        }
+        if (this.instances.ueho){
+            if (this.instances.ueho._vbs_pnc.has_been_modified() || this.instances.ueho._cell_pnc.has_been_modified()){
+                str += "UE_HandOver "
+            }
+        }
+        if (this.instances.ueslice){
+            if (this.instances.ueslice._slice_pnc.has_been_modified() ){
+                str += "UE_Slice "
+            }
+        }
         if( str.length != 0){
             var f_YES = function(){
                     $( modal ).modal('hide');
