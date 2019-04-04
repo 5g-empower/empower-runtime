@@ -36,6 +36,11 @@ class EmpUpdateModalBox extends EmpModalBox{
 
     initResources(obj){
         var tag = this.hb.mapName2Tag(obj);
+
+        this.__tag = tag;
+
+        console.log(this.__tag);
+
         var title = "Show and update selected " + this.hb.mapName2Title(tag);
 
 // ------------------- Body
@@ -92,8 +97,10 @@ class EmpUpdateModalBox extends EmpModalBox{
         var btn_Upd = {"text": "Save",
                          "color": "primary",
                          "f": ff_Upd};
-        if( __ROLE === "admin" || tag === this.qe.targets.ACCOUNT)
-            buttons.push(btn_Upd);
+        if( __ROLE === "admin" || tag === this.qe.targets.ACCOUNT){
+            if (tag !== this.qe.targets.TENANT)
+                buttons.push(btn_Upd);
+        }
 
         var ff_Close = this.f_WarningClose.bind(this);
         var btn_Close = {"text": "Close",
@@ -664,6 +671,13 @@ class EmpUpdateModalBox extends EmpModalBox{
     }
 
     f_WarningClose(){
+        console.log(this.__tag);
+        if (this.__tag === this.qe.targets.TENANT){
+            var id = this.getID();
+            var m = this.hb.ge(id);
+            $( m ).modal('hide');
+            return;
+        }
         var str = "";
         for( var a in this.toUpdate ){
             if( this.toUpdate[a] ){
@@ -735,7 +749,7 @@ class EmpUpdateModalBox extends EmpModalBox{
 
 class SelectorOptionDescriptor{
 
-    __ANY_KEY = SelectorOptionDescriptor.get_generic_key();
+    // __ANY_KEY = SelectorOptionDescriptor.get_generic_key();
 
     constructor(params){
 
@@ -757,13 +771,17 @@ class SelectorOptionDescriptor{
 
     }
 
+    static __ANY_KEY(){
+        return SelectorOptionDescriptor.get_generic_key();
+    }
+
     set_from_tag(tag, obj){
         this.txt = null;
         this.key = null;
         switch(tag){
-            case this.__ANY_KEY:
+            case SelectorOptionDescriptor.__ANY_KEY():
                 this.txt = "ANY";
-                this.key = this.__ANY_KEY;
+                this.key = SelectorOptionDescriptor.__ANY_KEY();
                 break;
             case "wtps":
                 this.txt= obj['label']+"("+obj['addr']+")";
@@ -1437,7 +1455,7 @@ class Entity_PNC extends PickNCheck{
                                 console.log("SELECTED OBJ3: ", selected_obj);
                                 if ((selected_obj === null || selected_obj === undefined) && this._with_any_option){
                                     sod = SelectorOptionDescriptor.get_generic("");
-                                    this.update_rightinfo(sod.__ANY_KEY, this._any_text);
+                                    this.update_rightinfo(SelectorOptionDescriptor.__ANY_KEY(), this._any_text);
                                     console.log("updating ANY");
                                 }
                                 else if (selected_obj != undefined){
@@ -1513,7 +1531,7 @@ class Entity_PNC extends PickNCheck{
             opts.push(sod);
         }
         if (this._with_any_option){
-            //var params = {"txt": "ANY", "key": SelectorOptionDescriptor.__ANY_KEY};
+            //var params = {"txt": "ANY", "key": SelectorOptionDescriptor.__ANY_KEY()};
             var sod = SelectorOptionDescriptor.get_generic(this._any_text);
             opts.push(sod);
             console.log("Added ANY option", sod)

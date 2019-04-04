@@ -918,26 +918,69 @@ class EmpSliceModalBox extends EmpModalBox{
         for( var i=0; i<attrbts.length; i++){
             var a = attrbts[i];
             var tmp = this.hb.ge( this.getID_BODY_SLICEPANEL_ATTR(a) );
+            var txt = null;
             switch(a){
                 case "tenant_id":
                 case "dscp":
                     input[a] = $( tmp ).text();
                     break;
                 case "rbgs":
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "6"
+                    }
                 case "sched_id":
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "2147483649"
+                    }
                 case "window":
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "1"
+                    }
                 case "period":
-                    input["lte"]["static-properties"][a] = $( tmp ).val();
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "1"
+                    }
+                    input["lte"]["static-properties"][a] = txt;
                     break;
                 // case "rntis":
                 //     input["lte"]["runtime-properties"][a] = $( tmp ).val();
                 //     break;
                 case "quantum":
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "12000"
+                    }
                 case "scheduler":
-                    input["wifi"]["static-properties"][a] = $( tmp ).val();
+                    if (txt === null){
+                        txt = $( tmp ).val()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "0"
+                    }
+                    input["wifi"]["static-properties"][a] = txt;
                     break;
                 case "amsdu_aggregation":
-                    input["wifi"]["static-properties"][a] = $( tmp ).text();
+                    if (txt === null){
+                        txt = $( tmp ).text()
+                    }
+                    if ((txt === null) || (txt === undefined) || (String(txt).length === 0)){
+                        txt = "false"
+                    }
+                    input["wifi"]["static-properties"][a] = txt;
                     break;
             }
         }

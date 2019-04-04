@@ -567,6 +567,7 @@ class EmpAdminPage{
             args = mdl.initResources(cp, "UPD"); // return [title, body, buttons]
         }
         else{
+            console.log("going to use EmpUpdateModalBox...");
             mdl = new EmpUpdateModalBox( cp_keys );
             args = mdl.initResources(cp); // return [title, body, buttons]
         }
