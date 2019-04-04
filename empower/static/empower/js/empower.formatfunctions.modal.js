@@ -13,6 +13,13 @@ function ff_draw(tag, a, id, isInput, values=null){
 // ---------------------------- DRAW INPUT
 
 function ff_DrawInput(tag, a, id, values){
+
+    //console.log(tag, a, id, values)
+
+    if ((tag ===__QE.targets.TENANT) && (a === "owner")){
+        return ff_DIF_TenantOwner(tag, a, id, values);
+    }
+
     var type = __DESC.d[tag].attr[a].type;
     switch( type ){
         case __DESC.dt.LIST.a:
@@ -302,6 +309,50 @@ function ff_DIF_TenantID(tag, a, id, values){
                 $( selector ).append(opt);
                 opt.id = TenantList[i]["tenant_id"]
                 $( opt ).text(TenantList[i]["tenant_name"])
+            }
+            var ff_change = function(){
+                var el = selector.options[selector.selectedIndex];
+                var input = __HB.ge( id );
+                $( input ).text( el.id )
+            }
+            $( selector ).change(ff_change)
+            setTimeout( function(){ $( selector ).change() }, 1/8*__DELAY )
+            var input = __HB.ce("SPAN");
+            $( c1 ).append(input);
+            $( input ).addClass("hide");
+            input.id = id;
+    return r;
+}
+
+function ff_DIF_TenantOwner(tag, a, id, values){
+    var r = __HB.ceROW();
+    $( r ).css("margin", "8px")
+        var c0 = __HB.ceCOL("xs", COL_0);
+        $( r ).append(c0);
+        $( c0 ).addClass("text-right");
+        $( c0 ).text( __DESC.d[tag].attr[a].name + ": " );
+        var c1 = __HB.ceCOL("xs", COL_1);
+        $( r ).append(c1);
+
+            var selector = __HB.ce("SELECT");
+            $( c1 ).append(selector);
+            $( selector ).css("width","100%");
+            $( selector ).css("height","35px");
+
+            selected_owners = [];
+            owner_list =  __CACHE.c[__QE.targets.ACCOUNT];
+            for(var i=0; i<owner_list.length; i++){
+                var o = owner_list[i];
+                // console.log(o);
+                if (o.role != "admin"){
+                    selected_owners.push(o);
+                }
+            }
+            for(var i=0; i<selected_owners.length; i++){
+                var opt = __HB.ce("OPTION");
+                $( selector ).append(opt);
+                opt.id = selected_owners[i]["username"]
+                $( opt ).text(selected_owners[i]["username"])
             }
             var ff_change = function(){
                 var el = selector.options[selector.selectedIndex];

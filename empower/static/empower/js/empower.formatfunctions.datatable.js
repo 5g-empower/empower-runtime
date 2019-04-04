@@ -358,15 +358,21 @@ function ff_TR_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" 
 function ff_Slice_Table( ctrl ){ // input param: ctrl = "h" for header table / "d" for data table
     var params = [];
     if( ctrl === "h" ){
-        params.push( [ { "type": "h", "value": "Tenant ID"},
+        params.push( [ { "type": "i", "value": "fa-key"},
+                        { "type": "k", "value": "Tenant ID",
+                        "style": "color:" + BLUE }
                          ]);
         params.push( [ { "type": "i", "value": "fa-key"},
-                         { "type": "h", "value": "Tag",
+                         { "type": "k", "value": "Tag",
                          "style": "color:" + BLUE }
                           ]);
     }
     else if ( ctrl === "d" ){
-        params.push( [ { "type": "a", "attr": "tenant_id"},
+        params.push( [ { "type": "f", "attr": "tenant_id",
+                        "fname": "get_tenant_name" },
+                        { "type": "s", "txt": ": "},
+                        { "type": "k", "attr": "tenant_id",
+                        "style": "color:" + BLUE },
                          ]);
         params.push( [ { "type": "k", "attr": "dscp",
                          "style": "color:" + BLUE }
