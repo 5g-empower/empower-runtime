@@ -301,15 +301,6 @@ class LVAPPConnection:
 
         lvap.handle_add_lvap_response(status.module_id, status.status)
 
-        if lvap.state == PROCESS_RUNNING \
-                and lvap.source_blocks \
-                and lvap.source_blocks \
-                and lvap.source_blocks[0] is not None:
-
-            self.server.send_lvap_handover_message_to_self(lvap,
-                                                           lvap.source_blocks)
-            lvap.source_blocks = None
-
     @classmethod
     def _handle_del_lvap_response(cls, _, status):
         """Handle an incoming DEL_LVAP_RESPONSE message.

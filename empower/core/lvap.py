@@ -193,8 +193,18 @@ class LVAP:
         if self.pending:
             return
 
-        # all blocks removed, transition to running state
+        # all blocks add, transition to running state
         self.state = PROCESS_RUNNING
+
+        # this add was the result of a handover, trigger event
+        if self.state == PROCESS_RUNNING \
+                and self.source_blocks \
+                and self.source_blocks[0] is not None:
+
+            self.blocks[0].radio.connection.server.\
+                send_lvap_handover_message_to_self(self, self.source_blocks)
+
+            self.source_blocks = None
 
     @property
     def state(self):
@@ -448,9 +458,10 @@ class LVAP:
             self.association_state = False
             self.authentication_state = False
 
-        # save target block
+        # save source blocks
         self.source_blocks = self.blocks
-        # save target block
+
+        # save target blocks
         self.target_blocks = pool
 
         if self.state is None:
