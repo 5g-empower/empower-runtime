@@ -798,31 +798,24 @@ class LVAPPConnection:
             return
 
         slc = tenant.slices[dscp]
+        sprop = slc.wifi['static-properties']
 
-        if slc.wifi['static-properties']['quantum'] != status.quantum:
+        if sprop['quantum'] != status.quantum:
+            if wtp.addr not in slc.wifi['wtps']:
+                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+                sprop['quantum'] = status.quantum
+
+        if sprop['amsdu_aggregation'] != bool(status.flags.amsdu_aggregation):
 
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
 
-                slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
-                status.quantum
+            sprop['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
 
-        if slc.wifi['static-properties']['amsdu_aggregation'] != \
-            bool(status.flags.amsdu_aggregation):
-
+        if sprop['scheduler'] != status.scheduler:
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-
-            slc.wifi['wtps'][wtp.addr]['static-properties'] \
-                ['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
-
-        if slc.wifi['static-properties']['scheduler'] != status.scheduler:
-
-            if wtp.addr not in slc.wifi['wtps']:
-                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-
-                slc.wifi['wtps'][wtp.addr]['static-properties']['scheduler'] = \
-                status.scheduler
+                sprop['scheduler'] = status.scheduler
 
         self.log.info("Slice %s updated", slc)
 
