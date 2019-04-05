@@ -157,7 +157,7 @@ class LVAP:
             self.log.error("Xid %u not in pending list, ignoring", xid)
             return
 
-        if self.state != PROCESS_REMOVING:
+        if self.state not in [PROCESS_REMOVING]:
             self.log.error("Del lvap response received in state %s, ignoring",
                            self.state)
             return
@@ -168,7 +168,7 @@ class LVAP:
         if self.pending:
             return
 
-        # all blocks removed, transition to spawning state
+        # all blocks added, transition to spawning state
         if self.target_blocks:
             self.state = PROCESS_SPAWNING
             return
@@ -182,7 +182,7 @@ class LVAP:
             self.log.error("Xid %u not in pending list, ignoring", xid)
             return
 
-        if self.state != PROCESS_SPAWNING:
+        if self.state not in [PROCESS_SPAWNING, PROCESS_RUNNING]:
             self.log.error("Add lvap response received in state %s, ignoring",
                            self.state)
             return
@@ -289,6 +289,10 @@ class LVAP:
         # reset uplink and downlink
         self._downlink = None
         self._uplink = []
+
+    def _running_running(self):
+
+        pass
 
     def commit(self):
         """Send add lvap message for downlink and uplinks blocks."""
@@ -477,8 +481,7 @@ class LVAP:
         dl_block.radio.connection.send_set_transmission_policy(txp)
 
         # send add_lvap message
-        xid = dl_block.radio.connection.send_add_lvap(self, dl_block, True)
-        self.pending.append(xid)
+        dl_block.radio.connection.send_add_lvap(self, dl_block, True)
 
         # save block
         self._downlink = dl_block
@@ -489,8 +492,7 @@ class LVAP:
         for block in ul_blocks:
 
             # send add_lvap message
-            xid = block.radio.connection.send_add_lvap(self, block, False)
-            self.pending.append(xid)
+            block.radio.connection.send_add_lvap(self, block, False)
 
             # save block into the list
             self._uplink.append(block)
