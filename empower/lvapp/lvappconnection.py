@@ -1025,7 +1025,9 @@ class LVAPPConnection:
             msg.networks.append(Container(bssid=network[0].to_raw(),
                                           ssid=network[1].to_raw()))
 
-        return self.send_message(PT_ADD_LVAP, msg)
+        xid = self.send_message(PT_ADD_LVAP, msg)
+
+        lvap.pending.append(xid)
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""
