@@ -784,6 +784,9 @@ class LVAPPConnection:
             self.log.info("Slice status from unknown tenant %s", ssid)
             return
 
+        if not wtp.is_online():
+            return
+
         # Check if block is valid
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
@@ -798,24 +801,25 @@ class LVAPPConnection:
             return
 
         slc = tenant.slices[dscp]
-        sprop = slc.wifi['static-properties']
+        prop = slc.wifi['static-properties']
+        spec_prop = slc.wifi['wtps'][wtp.addr]
 
-        if sprop['quantum'] != status.quantum:
+        if prop['quantum'] != status.quantum:
             if wtp.addr not in slc.wifi['wtps']:
-                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-                sprop['quantum'] = status.quantum
+                spec_prop = {'static-properties': {}}
+                spec_prop['static-properties']['quantum'] = status.quantum
 
-        if sprop['amsdu_aggregation'] != bool(status.flags.amsdu_aggregation):
+        if prop['amsdu_aggregation'] != bool(status.flags.amsdu_aggregation):
 
             if wtp.addr not in slc.wifi['wtps']:
-                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+                spec_prop = {'static-properties': {}}
+                spec_prop['static-properties']['amsdu_aggregation'] = \
+                    bool(status.flags.amsdu_aggregation)
 
-            sprop['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
-
-        if sprop['scheduler'] != status.scheduler:
+        if prop['scheduler'] != status.scheduler:
             if wtp.addr not in slc.wifi['wtps']:
-                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-                sprop['scheduler'] = status.scheduler
+                spec_prop = {'static-properties': {}}
+                spec_prop['static-properties']['scheduler'] = status.scheduler
 
         self.log.info("Slice %s updated", slc)
 
