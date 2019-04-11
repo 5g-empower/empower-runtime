@@ -806,19 +806,19 @@ class LVAPPConnection:
         if prop['quantum'] != status.quantum:
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-                slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = status.quantum
+            slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = status.quantum
 
         if prop['amsdu_aggregation'] != bool(status.flags.amsdu_aggregation):
 
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-                slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
-                    bool(status.flags.amsdu_aggregation)
+            slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
+                bool(status.flags.amsdu_aggregation)
 
         if prop['scheduler'] != status.scheduler:
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-                slc.wifi['wtps'][wtp.addr]['static-properties']['scheduler'] = status.scheduler
+            slc.wifi['wtps'][wtp.addr]['static-properties']['scheduler'] = status.scheduler
 
         self.log.info("Slice %s updated", slc)
 
