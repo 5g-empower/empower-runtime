@@ -1197,7 +1197,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9_=,]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9_:.=,]*)/?"]
 
     def get(self, *args, **kwargs):
         """List traffic rules .
