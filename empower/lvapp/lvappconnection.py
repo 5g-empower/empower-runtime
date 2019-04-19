@@ -19,6 +19,7 @@
 
 import time
 import tornado.ioloop
+from tornado.iostream import StreamClosedError
 
 from construct import Container
 
@@ -158,8 +159,13 @@ class LVAPPConnection:
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        line = future.result()
-        self.__buffer = self.__buffer + line
+        try:
+            line = future.result()
+            self.__buffer = self.__buffer + line
+        except StreamClosedError as stream_ex:
+            self.log.error(stream_ex)
+            return
+
         hdr = HEADER.parse(self.__buffer)
 
         if len(self.__buffer) < hdr.length:
