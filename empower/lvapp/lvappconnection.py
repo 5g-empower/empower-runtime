@@ -805,7 +805,7 @@ class LVAPPConnection:
 
         slc = tenant.slices[dscp]
         prop = slc.wifi['static-properties']
-        #spec_prop = slc.wifi['wtps'][wtp.addr]
+        spec_prop = slc.wifi['wtps'][wtp.addr]
 
         if prop['quantum'] != status.quantum:
             if wtp.addr not in slc.wifi['wtps']:
