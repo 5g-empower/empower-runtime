@@ -30,8 +30,8 @@ LTE_SLICE_SCHED = {
 }
 
 WIFI_SLICE_SCHED = {
-    'ROUND_ROBIN': 0x00000000,
-    'AIRTIME_FAIRNESS': 0x00000001
+    'DEFICIT_ROUND_ROBIN': 0x00000000,
+    'BITRATE_FAIRNESS': 0x00000001
 }
 
 
@@ -100,7 +100,7 @@ class Slice:
     but some slice parameters are different for the specified nodes.
 
     The scheduler indicates the way the stations are given the resources within
-    a slice. 0 corresponds to a Round Robin policy, 1 to airtime fairness.
+    a slice. 0 corresponds to a Deficit Round Robin policy, 1 to bitrate fairness.
     """
 
     def __init__(self, dscp, tenant, descriptor):
@@ -114,7 +114,7 @@ class Slice:
             'static-properties': {
                 'amsdu_aggregation': False,
                 'quantum': 12000,
-                'scheduler': WIFI_SLICE_SCHED['ROUND_ROBIN']
+                'scheduler': WIFI_SLICE_SCHED['DEFICIT_ROUND_ROBIN']
             },
             'wtps': {}
         }
