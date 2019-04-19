@@ -152,18 +152,20 @@ class LVAPPConnection:
                               self.addr)
                 self.stream.close()
 
-    def _on_read(self, line):
+    def _on_read(self, future):
         """ Appends bytes read from socket to a buffer. Once the full packet
         has been read the parser is invoked and the buffers is cleared. The
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
+        line = future.result()
         self.__buffer = self.__buffer + line
         hdr = HEADER.parse(self.__buffer)
 
         if len(self.__buffer) < hdr.length:
             remaining = hdr.length - len(self.__buffer)
-            self.stream.read_bytes(remaining, self._on_read)
+            future = self.stream.read_bytes(remaining)
+            future.add_done_callback(self._on_read)
             return
 
         try:
@@ -226,7 +228,8 @@ class LVAPPConnection:
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
         self.__buffer = b''
-        self.stream.read_bytes(6, self._on_read)
+        future = self.stream.read_bytes(6)
+        future.add_done_callback(self._on_read)
 
     def _on_disconnect(self):
         """ Handle WTP disconnection """
@@ -802,7 +805,7 @@ class LVAPPConnection:
 
         slc = tenant.slices[dscp]
         prop = slc.wifi['static-properties']
-        spec_prop = slc.wifi['wtps'][wtp.addr]
+        #spec_prop = slc.wifi['wtps'][wtp.addr]
 
         if prop['quantum'] != status.quantum:
             if wtp.addr not in slc.wifi['wtps']:

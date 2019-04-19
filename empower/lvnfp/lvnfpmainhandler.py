@@ -98,7 +98,8 @@ class LVNFPMainHandler(tornado.websocket.WebSocketHandler):
             cpp = RUNTIME.cpps[addr]
         except KeyError:
             LOG.error("Unknown CPP (%s), closing connection", addr)
-            self.stream.close()
+            #self.stream.close()
+            self.close()
             return
 
         valid = [PT_HELLO]
