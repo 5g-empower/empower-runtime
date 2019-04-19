@@ -1197,20 +1197,20 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
     """Tenat traffic rule queue handler."""
 
     HANDLERS = [r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/?",
-                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9_:.=,]*)/?"]
+                r"/api/v1/tenants/([a-zA-Z0-9-]*)/trs/([a-zA-Z0-9_=,]*)/?"]
 
     def get(self, *args, **kwargs):
         """List traffic rules .
 
         Args:
             tenant_id: network name of a tenant
-            match: the openflow match rule (e.g. dl_vlan=100;tp_dst=80)
+            match: the openflow match rule (e.g. dl_vlan=100,tp_dst=80)
 
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
-              dl_vlan=100;tp_dst=80
+              dl_vlan=100,tp_dst=80
         """
 
         try:
@@ -1302,7 +1302,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
         Example URLs:
 
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
-              dl_vlan=100;tp_dst=80
+              dl_vlan=100,tp_dst=80
 
         """
 
