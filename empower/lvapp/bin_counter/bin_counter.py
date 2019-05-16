@@ -210,8 +210,8 @@ class BinCounter(ModulePeriodic):
 
         [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
 
-        Each 2-tuple has format [ size, count ] where count is the number of
-        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+        Each 2-tuple has format [ size, count ] where count is the number of packets and
+        size is the size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
 
         """
 
@@ -237,8 +237,8 @@ class BinCounter(ModulePeriodic):
 
         [[60, 3], [66, 2], [74, 1], [98, 40], [167, 2], [209, 2], [1466, 1762]]
 
-        Each 2-tuple has format [ size, count ] where count is the number of
-        size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
+        Each 2-tuple has format [ size, count ] where count is the number of packets and
+        size is the size-long (bytes, including the Ethernet 2 header) TX/RX by the LVAP.
 
         """
 
@@ -246,7 +246,7 @@ class BinCounter(ModulePeriodic):
         out = [0] * len(self.bins)
 
         for entry in samples:
-            if entry:
+            if not entry:
                 continue
             size = entry[0]
             count = entry[1]

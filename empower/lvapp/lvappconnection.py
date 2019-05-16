@@ -19,6 +19,7 @@
 
 import time
 import tornado.ioloop
+from tornado.iostream import StreamClosedError
 
 from construct import Container
 
@@ -152,18 +153,25 @@ class LVAPPConnection:
                               self.addr)
                 self.stream.close()
 
-    def _on_read(self, line):
+    def _on_read(self, future):
         """ Appends bytes read from socket to a buffer. Once the full packet
         has been read the parser is invoked and the buffers is cleared. The
         parsed packet is then passed to the suitable method or dropped if the
         packet type in unknown. """
 
-        self.__buffer = self.__buffer + line
+        try:
+            line = future.result()
+            self.__buffer = self.__buffer + line
+        except StreamClosedError as stream_ex:
+            self.log.error(stream_ex)
+            return
+
         hdr = HEADER.parse(self.__buffer)
 
         if len(self.__buffer) < hdr.length:
             remaining = hdr.length - len(self.__buffer)
-            self.stream.read_bytes(remaining, self._on_read)
+            future = self.stream.read_bytes(remaining)
+            future.add_done_callback(self._on_read)
             return
 
         try:
@@ -226,7 +234,8 @@ class LVAPPConnection:
     def _wait(self):
         """ Wait for incoming packets on signalling channel """
         self.__buffer = b''
-        self.stream.read_bytes(6, self._on_read)
+        future = self.stream.read_bytes(6)
+        future.add_done_callback(self._on_read)
 
     def _on_disconnect(self):
         """ Handle WTP disconnection """
@@ -300,15 +309,6 @@ class LVAPPConnection:
         lvap = RUNTIME.lvaps[sta]
 
         lvap.handle_add_lvap_response(status.module_id, status.status)
-
-        if lvap.state == PROCESS_RUNNING \
-                and lvap.source_blocks \
-                and lvap.source_blocks \
-                and lvap.source_blocks[0] is not None:
-
-            self.server.send_lvap_handover_message_to_self(lvap,
-                                                           lvap.source_blocks)
-            lvap.source_blocks = None
 
     @classmethod
     def _handle_del_lvap_response(cls, _, status):
@@ -793,6 +793,9 @@ class LVAPPConnection:
             self.log.info("Slice status from unknown tenant %s", ssid)
             return
 
+        if not wtp.is_online():
+            return
+
         # Check if block is valid
         valid = wtp.get_block(status.hwaddr, status.channel, status.band)
 
@@ -807,31 +810,24 @@ class LVAPPConnection:
             return
 
         slc = tenant.slices[dscp]
+        prop = slc.wifi['static-properties']
 
-        if slc.wifi['static-properties']['quantum'] != status.quantum:
+        if prop['quantum'] != status.quantum:
+            if wtp.addr not in slc.wifi['wtps']:
+                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+            slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = status.quantum
+
+        if prop['amsdu_aggregation'] != bool(status.flags.amsdu_aggregation):
 
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
+            slc.wifi['wtps'][wtp.addr]['static-properties']['amsdu_aggregation'] = \
+                bool(status.flags.amsdu_aggregation)
 
-                slc.wifi['wtps'][wtp.addr]['static-properties']['quantum'] = \
-                status.quantum
-
-        if slc.wifi['static-properties']['amsdu_aggregation'] != \
-            bool(status.flags.amsdu_aggregation):
-
+        if prop['scheduler'] != status.scheduler:
             if wtp.addr not in slc.wifi['wtps']:
                 slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-
-            slc.wifi['wtps'][wtp.addr]['static-properties'] \
-                ['amsdu_aggregation'] = bool(status.flags.amsdu_aggregation)
-
-        if slc.wifi['static-properties']['scheduler'] != status.scheduler:
-
-            if wtp.addr not in slc.wifi['wtps']:
-                slc.wifi['wtps'][wtp.addr] = {'static-properties': {}}
-
-                slc.wifi['wtps'][wtp.addr]['static-properties']['scheduler'] = \
-                status.scheduler
+            slc.wifi['wtps'][wtp.addr]['static-properties']['scheduler'] = status.scheduler
 
         self.log.info("Slice %s updated", slc)
 
@@ -1025,7 +1021,9 @@ class LVAPPConnection:
             msg.networks.append(Container(bssid=network[0].to_raw(),
                                           ssid=network[1].to_raw()))
 
-        return self.send_message(PT_ADD_LVAP, msg)
+        xid = self.send_message(PT_ADD_LVAP, msg)
+
+        lvap.pending.append(xid)
 
     def send_bye_message_to_self(self):
         """Send a unsollicited BYE message to senf."""

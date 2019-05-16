@@ -144,9 +144,9 @@ class AllowHandler(EmpowerAPIHandler):
 
     @validate(returncode=201,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
-                  "sta" : {"type": EtherAddress, "mandatory": True},
-                  "label" : {"type": str, "mandatory": False}
+                  "version": {"type": float, "mandatory": True},
+                  "sta": {"type": EtherAddress, "mandatory": True},
+                  "label": {"type": str, "mandatory": False}
               })
     def post(self, *args, **kwargs):
         """ Add new entry to ACL.
@@ -215,13 +215,13 @@ class AccountsHandler(EmpowerAPIHandler):
 
     @validate(returncode=201,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
-                  "username" : {"type": str, "mandatory": True},
-                  "password" : {"type": str, "mandatory": True},
-                  "role" : {"type": str, "mandatory": True},
-                  "name" : {"type": str, "mandatory": True},
-                  "surname" : {"type": str, "mandatory": True},
-                  "email" : {"type": str, "mandatory": True}
+                  "version": {"type": float, "mandatory": True},
+                  "username": {"type": str, "mandatory": True},
+                  "password": {"type": str, "mandatory": True},
+                  "role": {"type": str, "mandatory": True},
+                  "name": {"type": str, "mandatory": True},
+                  "surname": {"type": str, "mandatory": True},
+                  "email": {"type": str, "mandatory": True}
               })
     def post(self, *args, **kwargs):
         """Create a new account.
@@ -259,13 +259,13 @@ class AccountsHandler(EmpowerAPIHandler):
               min_args=1,
               max_args=1,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
-                  "name" : {"type": str, "mandatory": True},
-                  "surname" : {"type": str, "mandatory": True},
-                  "email" : {"type": str, "mandatory": True},
-                  "password" : {"type": str, "mandatory": False},
-                  "new_password" : {"type": str, "mandatory": False},
-                  "new_password_confirm" : {"type": str, "mandatory": False}
+                  "version": {"type": float, "mandatory": True},
+                  "name": {"type": str, "mandatory": True},
+                  "surname": {"type": str, "mandatory": True},
+                  "email": {"type": str, "mandatory": True},
+                  "password": {"type": str, "mandatory": False},
+                  "new_password": {"type": str, "mandatory": False},
+                  "new_password_confirm": {"type": str, "mandatory": False}
               })
     def put(self, *args, **kwargs):
         """Update an account.
@@ -357,8 +357,8 @@ class ComponentsHandler(EmpowerAPIHandler):
               min_args=1,
               max_args=1,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": True}
+                  "version": {"type": float, "mandatory": True},
+                  "params": {"type": dict, "mandatory": True}
               })
     def put(self, *args, **kwargs):
         """Update a component.
@@ -397,9 +397,9 @@ class ComponentsHandler(EmpowerAPIHandler):
 
     @validate(returncode=201,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
+                  "version": {"type": float, "mandatory": True},
                   "component": {"type": str, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": False}
+                  "params": {"type": dict, "mandatory": False}
               })
     def post(self, *args, **kwargs):
         """Add a component.
@@ -474,8 +474,8 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
               min_args=2,
               max_args=2,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": True}
+                  "version": {"type": float, "mandatory": True},
+                  "params": {"type": dict, "mandatory": True}
               })
     def put(self, *args, **kwargs):
         """Update a component.
@@ -512,9 +512,9 @@ class TenantComponentsHandler(EmpowerAPIHandlerUsers):
               min_args=1,
               max_args=1,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
+                  "version": {"type": float, "mandatory": True},
                   "component": {"type": str, "mandatory": True},
-                  "params" : {"type": dict, "mandatory": True}
+                  "params": {"type": dict, "mandatory": True}
               })
     def post(self, *args, **kwargs):
         """ Add a component.
@@ -585,11 +585,11 @@ class TenantHandler(EmpowerAPIHandler):
               min_args=0,
               max_args=1,
               input_schema={
-                  "version" : {"type": float, "mandatory": True},
+                  "version": {"type": float, "mandatory": True},
                   "owner": {"type": str, "mandatory": True},
-                  "desc" : {"type": str, "mandatory": True},
+                  "desc": {"type": str, "mandatory": True},
                   "tenant_name": {"type": SSID, "mandatory": True},
-                  "bssid_type" : {"type": str, "mandatory": False},
+                  "bssid_type": {"type": str, "mandatory": False},
                   "plmn_id": {"type": PLMNID, "mandatory": False}
               })
     def post(self, *args, **kwargs):
@@ -1204,13 +1204,13 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 
         Args:
             tenant_id: network name of a tenant
-            match: the openflow match rule (e.g. dl_vlan=100;tp_dst=80)
+            match: the openflow match rule (e.g. dl_vlan=100,tp_dst=80)
 
         Example URLs:
 
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs
             GET /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
-              dl_vlan=100;tp_dst=80
+              dl_vlan=100,tp_dst=80
         """
 
         try:
@@ -1276,7 +1276,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
             match = Match(request["match"])
 
             if "priority" in request:
-                tenant.add_traffic_rule(match, dscp, request["label"], \
+                tenant.add_traffic_rule(match, dscp, request["label"],
                                         request["priority"])
             else:
                 tenant.add_traffic_rule(match, dscp, request["label"])
@@ -1302,7 +1302,7 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
         Example URLs:
 
             DELETE /api/v1/tenants/52313ecb-9d00-4b7d-b873-b55d3d9ada26/trs/ \
-              dl_vlan=100;tp_dst=80
+              dl_vlan=100,tp_dst=80
 
         """
 
@@ -1329,7 +1329,6 @@ class TenantTrafficRuleHandler(EmpowerAPIHandlerUsers):
 class TrafficRuleHandler(EmpowerAPIHandler):
     """TrafficRule handler. Used to view traffic rules."""
 
-
     HANDLERS = [r"/api/v1/trs/?"]
 
     @validate()
@@ -1353,6 +1352,7 @@ class TrafficRuleHandler(EmpowerAPIHandler):
                 traffic_rules.append(rule)
 
         return traffic_rules
+
 
 class SliceHandler(EmpowerAPIHandler):
     """Slice handler. Used to view slices."""
