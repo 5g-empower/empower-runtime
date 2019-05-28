@@ -1073,6 +1073,14 @@ class InfoFrame{
             // console.log("ENTRY!");
             $( existing_entry ).replaceWith(field)
         }
+
+        // if (a === "band"){
+        //     console.log("DEBUG BAND BAND");
+        //     console.log("TAG",tag);
+        //     console.log("A",a);
+        //     console.log("VALUE",value);
+        //     console.log(field);
+        // }
     }
 
     set_generic(text){
@@ -1107,6 +1115,12 @@ class InfoFrame{
                 // var a = attrbts[i];
                 var isEdit = false;
                 var value = ref_obj[a];
+                if (a === "band"){
+                    var band = value
+                    var channel = ref_obj['channel']
+                    value = [band, channel]
+                }
+            
 
                 // console.log(a, value)
 

@@ -231,8 +231,23 @@ class EmpQueryEngine{
                     if (values.wtp)
                         data.wtp =  values.wtp.addr;
                     
-                    if (values.block)
-                        data.blocks = values.block.hwaddr;
+                    if (values.block){
+                        if (values.block !== null){
+                            data.blocks = [];
+                            var block = {}
+                            if (values.wtp)
+                                block.wtp = values.wtp.addr;
+                            else
+                                console.warn("NO WTP provided for LVAP WTP block update")
+                            block.hwaddr = values.block.hwaddr;
+                            block.channel = values.block.channel;
+                            block.band = values.block.band;
+
+                            // console.log(data);
+                            // console.log(data.blocks);
+                            data.blocks.push(block);
+                        }
+                    }
 
                     data = JSON.stringify(data);
 
