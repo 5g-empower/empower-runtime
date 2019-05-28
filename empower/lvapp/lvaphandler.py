@@ -86,13 +86,7 @@ class LVAPHandler(EmpowerAPIHandler):
 
             lvap = RUNTIME.lvaps[lvap_addr]
 
-            if "wtp" in request:
-
-                wtp_addr = EtherAddress(request['wtp'])
-                wtp = RUNTIME.wtps[wtp_addr]
-                lvap.wtp = wtp
-
-            elif "blocks" in request:
+            if "blocks" in request:
 
                 pool = []
 
@@ -108,6 +102,12 @@ class LVAPHandler(EmpowerAPIHandler):
                     pool.append(r_block)
 
                 lvap.blocks = pool
+
+            elif "wtp" in request:
+
+                wtp_addr = EtherAddress(request['wtp'])
+                wtp = RUNTIME.wtps[wtp_addr]
+                lvap.wtp = wtp
 
             if "encap" in request:
 
