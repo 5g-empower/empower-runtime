@@ -28,6 +28,8 @@ from construct import UBInt16
 from construct import UBInt32
 from construct import Array
 
+from datetime import datetime
+
 from empower.datatypes.etheraddress import EtherAddress
 from empower.lvapp.lvappserver import ModuleLVAPPWorker
 from empower.core.module import ModulePeriodic
@@ -303,6 +305,42 @@ class BinCounter(ModulePeriodic):
                 self.update_stats(delta, old_tx_packets, self.tx_packets)
             self.rx_packets_per_second = \
                 self.update_stats(delta, old_rx_packets, self.rx_packets)
+
+        samples = []
+        timestamp = datetime.utcnow()
+        for index in range(0, len(self.bins)):
+
+            data = {
+                'tx_bytes': self.tx_bytes[index],
+                'rx_bytes': self.rx_bytes[index],
+                'tx_packets': self.tx_packets[index],
+                'rx_packets': self.rx_packets[index]
+            }
+            if self.last:
+                data = {**data,
+                        'tx_bytes_per_second':
+                            self.tx_bytes_per_second[index],
+                        'rx_bytes_per_second':
+                            self.rx_bytes_per_second[index],
+                        'tx_packets_per_second':
+                            self.tx_packets_per_second[index],
+                        'rx_packets_per_second':
+                            self.rx_packets_per_second[index],
+                        }
+
+            sample = {
+                "measurement": "counter",
+                "tags": {
+                    "tenant": str(self.tenant_id),
+                    "lvap": str(self.lvap),
+                    "bin": self.bins[index]
+                },
+                "time": timestamp,
+                "fields": data
+            }
+            samples.append(sample)
+
+        self.update_db(samples)
 
         self.last = time.time()
 
