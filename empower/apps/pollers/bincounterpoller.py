@@ -35,7 +35,8 @@ class BinCounterPoller(EmpowerApp):
     def lvap_join(self, lvap):
         """New LVAP."""
 
-        self.bin_counter(lvap=lvap.addr)
+        self.bin_counter(lvap=lvap.addr,
+                         bins=[512, 1514, 8192])
 
 
 def launch(tenant_id):
