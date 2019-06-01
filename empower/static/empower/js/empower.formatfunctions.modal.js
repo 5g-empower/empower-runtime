@@ -687,13 +687,15 @@ function ff_DSV_Band(tag, a, id, values){   // values [band, channel]
             var channel = values[1];
             switch(band){
                 case "L20":
-                    if( channel < 14 ) txt = "801.11a"
-                    else txt = "801.11g"
+                    if( channel < 14 ) txt = "802.11g"
+                    else txt = "802.11a"
                 break;
-                case "HT20": txt = "801.11n"
+                case "HT20": txt = "802.11n"
                 break;
-                case "HT40": txt = "801.11n"
+                case "HT40": txt = "802.11n"
                 break;
+                default:
+                    console.log("ff_DSV_Band, unknown band: ",band);
             }
             var span = __HB.ce("SPAN");
             $( c1 ).append(span)
@@ -841,6 +843,7 @@ function ff_DSV_Cells(tag, a, id, values){
 }
 
 function ff_DSV_Supports(tag, a, id, values){
+    console.log("ff_DSV_Supports");
     var div = __HB.ce("DIV");
     div.id = id;
     if( values.length ){

@@ -30,6 +30,7 @@ from tornado.ioloop import IOLoop
 
 import empower.logger
 
+from empower.core.utils import get_module
 from empower.core.jsonserializer import EmpowerEncoder
 from empower.main import RUNTIME
 
@@ -88,6 +89,16 @@ class Module:
         """Remove this module."""
 
         self.worker.remove_module(self.module_id)
+
+    def update_db(self, samples):
+        """Update InfluxDB with the latest measurements"""
+
+        from empower.statssender.statssender import StatsSender
+        stats_sender = get_module(StatsSender.__module__)
+        if stats_sender:
+            stats_sender.send_stat(points=samples,
+                                   database=self.MODULE_NAME,
+                                   time_precision='u')
 
     def handle_callback(self, serializable):
         """Handle an module callback.

@@ -23,6 +23,7 @@ import tornado.httpserver
 from empower.datatypes.etheraddress import EtherAddress
 from empower.restserver.apihandlers import EmpowerAPIHandler
 from empower.core.resourcepool import ResourceBlock
+from empower.core.resourcepool import REVERSE_BANDS
 
 from empower.main import RUNTIME
 
@@ -86,13 +87,7 @@ class LVAPHandler(EmpowerAPIHandler):
 
             lvap = RUNTIME.lvaps[lvap_addr]
 
-            if "wtp" in request:
-
-                wtp_addr = EtherAddress(request['wtp'])
-                wtp = RUNTIME.wtps[wtp_addr]
-                lvap.wtp = wtp
-
-            elif "blocks" in request:
+            if "blocks" in request:
 
                 pool = []
 
@@ -102,12 +97,18 @@ class LVAPHandler(EmpowerAPIHandler):
                     wtp = RUNTIME.wtps[wtp_addr]
                     hwaddr = EtherAddress(block['hwaddr'])
                     channel = int(block['channel'])
-                    band = int(block['band'])
+                    band = block['band']
 
-                    r_block = ResourceBlock(wtp, hwaddr, channel, band)
+                    r_block = ResourceBlock(wtp, hwaddr, channel, REVERSE_BANDS[band])
                     pool.append(r_block)
 
                 lvap.blocks = pool
+
+            elif "wtp" in request:
+
+                wtp_addr = EtherAddress(request['wtp'])
+                wtp = RUNTIME.wtps[wtp_addr]
+                lvap.wtp = wtp
 
             if "encap" in request:
 
