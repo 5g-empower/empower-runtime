@@ -20,6 +20,7 @@
 from construct import UBInt8
 from construct import UBInt16
 from construct import UBInt32
+from construct import UBInt64
 from construct import Bytes
 from construct import Sequence
 from construct import Container
@@ -43,7 +44,7 @@ PT_WIFI_STATS_RESPONSE = 0x38
 
 ENTRY_TYPE = Sequence("entries",
                       UBInt8("type"),
-                      UBInt32("timestamp"),
+                      UBInt64("timestamp"),
                       UBInt32("sample"))
 
 WIFI_STATS_REQUEST = Struct("wifi_stats_request", UBInt8("version"),
@@ -198,28 +199,53 @@ class WiFiStats(ModulePeriodic):
         # update this object
         self.wifi_stats.clear()
 
+        # entry[0] = stat type [0, 1, 2] -> [tx, rx, ed]
+        # entry[1] = agent timestamp
+        # entry[2] = stat value
+
         # pre-processing: ed = ed - (rx + tx)
         # tx: 0:100, rx: 100:200, ed: 200:300
         for index in range(200, 300):
             response.entries[index][2] -= (response.entries[index - 100][2]
                                            + response.entries[index - 200][2])
 
-        # at the beginning, create the map between runtime and agent timestamps
-        # entry[0] = stat type [0, 1, 2] -> [tx, rx, ed]
-        # entry[1] = agent timestamp
-        # entry[2] = stat value
-        if self.agent_ts_ref == 0:
-            for entry in response.entries:
-                if entry[1] > self.agent_ts_ref:
-                    self.agent_ts_ref = entry[1]
-            self.runtime_ts_ref = datetime.utcnow()
+            first_ts = datetime.utcfromtimestamp(
+                response.entries[index - 1][1] / 1000000)
+            second_ts = datetime.utcfromtimestamp(
+                response.entries[index][1] / 1000000)
+            if second_ts - first_ts > timedelta(days=1):
+                # ignore sample buffers with mixed timestamps
+                return
+
+        generic_ts = datetime.utcfromtimestamp(response.entries[0][1] / 1000000)
+        shift_ts = False
+
+        if datetime.utcnow() - generic_ts > timedelta(days=1):
+            # in case the wtp has not a valid datetime, shift its sample
+            # timestamps to the controller datetime
+            shift_ts = True
+
+            if self.agent_ts_ref == 0:
+                # at the beginning, create the map
+                # between runtime and agent timestamps
+                for entry in response.entries:
+                    if entry[1] > self.agent_ts_ref:
+                        self.agent_ts_ref = entry[1]
+                self.runtime_ts_ref = datetime.utcnow()
 
         for entry in response.entries:
 
             stat_type = ["tx", "rx", "ed"][entry[0]]
             if stat_type not in self.wifi_stats:
                 self.wifi_stats[stat_type] = []
-            ts_delta = timedelta(microseconds=(entry[1] - self.agent_ts_ref))
+
+            if shift_ts:
+                ts_delta = timedelta(microseconds=(entry[1] -
+                                                   self.agent_ts_ref))
+                sample_ts = self.runtime_ts_ref + ts_delta
+            else:
+                sample_ts = datetime.utcfromtimestamp(entry[1] / 1000000)
+
             value = entry[2] / 180.0
 
             # skip invalid samples
@@ -232,7 +258,7 @@ class WiFiStats(ModulePeriodic):
                     "tenant": str(self.tenant_id),
                     "block": str(self._block)
                 },
-                "time": self.runtime_ts_ref + ts_delta,
+                "time": sample_ts,
                 "fields": {
                     "value": value
                 }
