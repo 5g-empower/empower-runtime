@@ -190,6 +190,11 @@ class VirtualPortNextProp(dict):
         match = Match(key)
         self.my_virtual_port.network_port.add_match(match, rule_uuid)
 
+        priority = None
+        if 'priority' in match.match:
+            priority = int(match.match['priority'])
+            del match.match['priority']
+
         # set/update intent
         intent = {'version': '1.0',
                   'uuid': rule_uuid,
@@ -198,6 +203,10 @@ class VirtualPortNextProp(dict):
                   'stp_uuid': self.my_virtual_port.endpoint.uuid,
                   'stp_vport': self.my_virtual_port.virtual_port_id,
                   'match': match.match}
+
+        # custom priorities start at 250 in Ryu, the priority value is summed
+        if priority is not None:
+            intent['priority'] = priority
 
         # add new virtual link
         if key in self.__uuids__:

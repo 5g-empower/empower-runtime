@@ -142,9 +142,6 @@ class TenantLVNFNextHandler(EmpowerAPIHandlerUsers):
             elif next_type == "ep":
                 next_obj = tenant.endpoints[next_id]
 
-            if next_id == lvnf_id:
-                raise ValueError("Loop detected")
-
             next_port_id = int(request['next']['port_id'])
             next_port = next_obj.ports[next_port_id]
 
