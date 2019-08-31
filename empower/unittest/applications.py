@@ -130,6 +130,25 @@ class TestApplications(BaseTest):
              "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
         self.delete(params, 204)
 
+    def test_register_existing_app_invalid_creds(self):
+        """test_register_existing_app_invalid_creds."""
+
+        data = {
+            "owner": "foo",
+            "desc": "Test project",
+            "wifi_props": {
+                "ssid": "EmPOWER"
+            }
+        }
+
+        params = \
+            ("foo", "foo", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 401)
+
+        params = \
+            ("root", "foo", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 401)
+
     def test_modify_app_invalid_param_name(self):
         """test_modify_app_invalid_param_name."""
 

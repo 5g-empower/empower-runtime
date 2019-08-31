@@ -114,6 +114,10 @@ class TestAccounts(BaseTest):
             "email": "dummy@empower.io"
         }
 
+        self.post(("foo", "foo", "/accounts"), data, 401)
+
+        self.post(("root", "foo", "/accounts"), data, 401)
+
         self.post(("root", "root", "/accounts"), data, 201)
 
         data = {
@@ -131,12 +135,11 @@ class TestAccounts(BaseTest):
 
         self.put(("dummy", "dummy", "/accounts/dummy"), data, 401)
 
-        data = {
-            "new_password": "dummy",
-            "new_password_confirm": "dummy"
-        }
-
         self.put(("dummy", "ciccio", "/accounts/dummy"), data, 204)
+
+        self.put(("foo", "foo", "/accounts/dummy"), data, 401)
+
+        self.put(("root", "root", "/accounts/dummy"), data, 204)
 
 
 if __name__ == '__main__':

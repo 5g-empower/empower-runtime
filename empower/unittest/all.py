@@ -35,6 +35,7 @@ def full_suite():
     suite = unittest.TestSuite()
 
     suite.addTest(TestWorkers('test_register_new_worker'))
+    suite.addTest(TestWorkers('test_register_new_worker_invalid_creds'))
     suite.addTest(TestWorkers('test_register_existing_worker'))
     suite.addTest(TestWorkers('test_modify_worker_invalid_param_name'))
     suite.addTest(TestWorkers('test_modify_worker_param'))
@@ -51,13 +52,13 @@ def full_suite():
     suite.addTest(TestProjects('test_simple_gets'))
     suite.addTest(TestProjects('test_create_new_project'))
     suite.addTest(TestProjects('test_create_wifi_project'))
-
     suite.addTest(TestProjects('test_create_wifi_project_default_bssid_type'))
     suite.addTest(TestProjects('test_create_wifi_project_wrong_bssid_type'))
     suite.addTest(TestProjects('test_create_lte_project'))
     suite.addTest(TestProjects('test_create_lte_project_wrong_plmnid'))
 
     suite.addTest(TestACLs('test_add_acls'))
+    suite.addTest(TestACLs('test_add_acls_invalid_creds'))
 
     suite.addTest(TestWTPs('test_create_new_device_empty_body'))
     suite.addTest(TestWTPs('test_create_new_device_wrong_address'))
@@ -78,6 +79,7 @@ def full_suite():
     suite.addTest(TestLTESlices('test_delete_default_lte_slice'))
 
     suite.addTest(TestApplications('test_register_new_app'))
+    suite.addTest(TestApplications('test_register_existing_app_invalid_creds'))
     suite.addTest(TestApplications('test_register_existing_app'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_name'))
     suite.addTest(TestApplications('test_modify_app_param'))

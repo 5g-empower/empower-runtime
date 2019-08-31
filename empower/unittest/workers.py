@@ -82,6 +82,21 @@ class TestWorkers(BaseTest):
         params = ("root", "root", loc)
         self.get(params, 404)
 
+    def test_register_new_worker_invalid_creds(self):
+        """test_register_new_worker_invalid_creds."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+        }
+
+        params = ("foo", "foo", "/workers")
+        self.post(params, data, 401)
+
+        params = ("root", "foo", "/workers")
+        self.post(params, data, 401)
+
     def test_modify_worker_invalid_param_name(self):
         """test_modify_worker_invalid_param_name."""
 

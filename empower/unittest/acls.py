@@ -67,7 +67,7 @@ class TestACLs(BaseTest):
         }
 
         params = \
-            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+            ("foo", "foo", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
         self.put(params, data, 204)
 
         data = {
@@ -87,6 +87,58 @@ class TestACLs(BaseTest):
 
         self.delete(("foo", "foo",
                      "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 204)
+
+    def test_add_acls_invalid_creds(self):
+        """test_add_acls_invalid_creds."""
+
+        data = {
+            "owner": "foo",
+            "desc": "Test project",
+            "wifi_props": {
+                "ssid": "EmPOWER",
+                "allowed": [
+                    "04:46:65:49:e0:1f",
+                    "04:46:65:49:e0:11",
+                    "04:46:65:49:e0:11"
+                ]
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("foo", "foo",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("bar", "bar",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        data = {
+            "owner": "foo",
+            "desc": "Test project",
+            "wifi_props": {
+                "ssid": "EmPOWER",
+                "allowed": [
+                    "04:46:65:49:e0:1f"
+                ]
+            }
+        }
+
+        params = \
+            ("bar", "bar", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.put(params, data, 401)
+
+        params = \
+            ("foo", "bar", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.put(params, data, 401)
+
+        params = \
+            ("foo", "foo", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.put(params, data, 204)
 
 
 if __name__ == '__main__':
