@@ -53,10 +53,7 @@ class Slice:
         self.log = logging.getLogger(self.__class__.__module__)
 
         # parse properties
-        if properties:
-            self.properties = self._parse_properties(properties)
-        else:
-            self.properties = self.default_properties
+        self.properties = self._parse_properties(properties)
 
         # parse per device properties
         self.devices = {}
@@ -122,9 +119,12 @@ class WiFiSlice(Slice):
                       self.properties['quantum'],
                       WIFI_SLICE_SCHEDULERS[self.properties['sta_scheduler']])
 
-    def _parse_properties(self, descriptor):
+    def _parse_properties(self, descriptor=None):
 
-        properties = self.default_properties
+        properties = {**self.default_properties}
+
+        if not descriptor:
+            return properties
 
         if 'amsdu_aggregation' in descriptor:
 
@@ -177,9 +177,12 @@ class LTESlice(Slice):
                       self.properties['rbgs'],
                       UE_SLICE_SCHEDULERS[self.properties['ue_scheduler']])
 
-    def _parse_properties(self, descriptor):
+    def _parse_properties(self, descriptor=None):
 
-        properties = self.default_properties
+        properties = {**self.default_properties}
+
+        if not descriptor:
+            return properties
 
         if 'rbgs' in descriptor:
 

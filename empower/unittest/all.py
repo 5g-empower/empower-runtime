@@ -71,10 +71,12 @@ def full_suite():
     suite.addTest(TestVBSes('test_create_new_device_custom_desc'))
 
     suite.addTest(TestWiFiSlices('test_create_new_wifi_slice'))
+    suite.addTest(TestWiFiSlices('test_create_new_wifi_slice_after_prj'))
     suite.addTest(TestWiFiSlices('test_update_wifi_slice'))
     suite.addTest(TestWiFiSlices('test_delete_default_wifi_slice'))
 
     suite.addTest(TestLTESlices('test_create_new_lte_slice'))
+    suite.addTest(TestLTESlices('test_create_new_lte_slice_after_prj'))
     suite.addTest(TestLTESlices('test_update_lte_slice'))
     suite.addTest(TestLTESlices('test_delete_default_lte_slice'))
 

@@ -30,7 +30,13 @@ from empower.cli.devices import do_list_wtps, do_list_vbses
 
 from empower.cli.projects import do_list_projects
 
-from empower.cli.wifislices import pa_list_wifi_slices, do_list_wifi_slices
+from empower.cli.wifislices import pa_list_wifi_slices, do_list_wifi_slices, \
+    pa_upsert_wifi_slice, do_upsert_wifi_slice, pa_delete_wifi_slice, \
+    do_delete_wifi_slice
+
+from empower.cli.lteslices import pa_list_lte_slices, do_list_lte_slices, \
+    pa_upsert_lte_slice, do_upsert_lte_slice, pa_delete_lte_slice, \
+    do_delete_lte_slice
 
 from empower.cli.applications import pa_list_apps, do_list_apps, \
     do_list_apps_catalog, pa_load_app, do_load_app, pa_unload_app, \
@@ -53,14 +59,19 @@ def connect(gargs, cmd, expected=200, request=None, headers=None):
 
     response = method(url + cmd[1], headers=headers, json=request)
 
-    if response.status_code != expected:
-        print("%s %s" % (response.status_code, response.reason))
-        sys.exit()
-
     try:
         data = json.loads(response.text)
     except json.decoder.JSONDecodeError:
         data = {}
+
+    if response.status_code != expected:
+
+        msg = "Result: %u %s (%s)" % \
+            (data['status_code'], data['reason'], data['message'])
+
+        print(msg)
+
+        sys.exit()
 
     return response, data
 
@@ -151,6 +162,12 @@ CMDS = {
     'list-apps': (pa_list_apps, do_list_apps),
 
     'list-wifi-slices': (pa_list_wifi_slices, do_list_wifi_slices),
+    'upsert-wifi-slice': (pa_upsert_wifi_slice, do_upsert_wifi_slice),
+    'delete-wifi-slice': (pa_delete_wifi_slice, do_delete_wifi_slice),
+
+    'list-lte-slices': (pa_list_lte_slices, do_list_lte_slices),
+    'upsert-lte-slice': (pa_upsert_lte_slice, do_upsert_lte_slice),
+    'delete-lte-slice': (pa_delete_lte_slice, do_delete_lte_slice),
 
     'load-app': (pa_load_app, do_load_app),
     'unload-app': (pa_unload_app, do_unload_app),
@@ -161,6 +178,7 @@ CMDS = {
     'unload-worker': (pa_unload_worker, do_unload_worker),
     'unload-all-workers': (pa_none, do_unload_all_workers),
     'set-worker-params': (pa_set_worker_params, do_set_worker_params),
+
 }
 
 
@@ -182,6 +200,12 @@ DESCS = {
     'list-apps-catalog': "List available apps.",
 
     'list-wifi-slices': "List Wi-Fi slices.",
+    'upsert-wifi-slice': "Create/Update a Wi-Fi slice",
+    'delete-wifi-slice': "Delete a Wi-Fi slice",
+
+    'list-lte-slices': "List LTE slices.",
+    'upsert-lte-slice': "Create/Update a LTE slice",
+    'delete-lte-slice': "Delete a LTE slice",
 
     'worker-info': "Show the details of a worker",
     'application-info': "Show the details of an application",
@@ -194,6 +218,7 @@ DESCS = {
     'load-worker': "Load a worker",
     'unload-worker': "Unload a worker",
     'unload-all-workers': "Unload all workers",
+    'set-worker-params': "Set worker parameter",
 }
 
 

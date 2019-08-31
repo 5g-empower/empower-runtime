@@ -36,14 +36,14 @@ def do_list_projects(gargs, args, leftovers):
 
         if 'wifi_props' in entry and entry['wifi_props']:
 
-            accum.append("\n  wi-fi properties\n")
-            accum.append("    ssid: %s\n" % entry['wifi_props']['ssid'])
-            accum.append("    bssid Type: %s\n" %
+            accum.append("\n  wi-fi properties")
+            accum.append("\n    ssid: %s" % entry['wifi_props']['ssid'])
+            accum.append("\n    bssid Type: %s" %
                          entry['wifi_props']['bssid_type'])
 
         if 'lte_props' in entry and entry['lte_props']:
 
-            accum.append("\n  lte properties\n")
-            accum.append("    plmnid: %s\n" % entry['lte_props']['plmnid'])
+            accum.append("\n  lte properties")
+            accum.append("\n    plmnid: %s" % entry['lte_props']['plmnid'])
 
         print(''.join(accum))

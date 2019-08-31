@@ -240,9 +240,6 @@ class Project(Env):
     def upsert_wifi_slice(self, **kwargs):
         """Upsert new slice."""
 
-        if 'properties' not in kwargs:
-            kwargs['properties'] = WiFiSlice.default_properties
-
         slc = WiFiSlice(**kwargs)
 
         for wtp in self.lvapp_manager.devices.values():
@@ -258,9 +255,6 @@ class Project(Env):
 
     def upsert_lte_slice(self, **kwargs):
         """Upsert new slice."""
-
-        if 'properties' not in kwargs:
-            kwargs['properties'] = WiFiSlice.default_properties
 
         slc = LTESlice(**kwargs)
 

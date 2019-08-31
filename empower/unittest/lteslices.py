@@ -117,6 +117,108 @@ class TestLTESlices(BaseTest):
              "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
         self.get(params, 404)
 
+    def test_create_new_lte_slice_after_prj(self):
+        """test_create_new_lte_slice_after_prj."""
+
+        data = {
+            "owner": "foo",
+            "desc": "Test project",
+            "lte_props": {
+                "plmnid": "222f93"
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("foo", "foo",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("bar", "bar",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_slices")
+        self.get(params, 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices")
+        self.get(params, 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_slices/0")
+        self.get(params, 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices/0")
+        self.get(params, 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_slices/82")
+        self.get(params, 404)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices/82")
+        self.get(params, 404)
+
+        data = {
+            "slice_id": 82,
+            "properties": {
+                "rbgs": 5,
+                "ue_scheduler": 0
+            },
+            "devices": {
+                "11:22:33:44:55:66": {
+                    "rbgs": 3,
+                    "ue_scheduler": 0
+                }
+            }
+        }
+
+        params = ("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices")
+        self.post(params, data, 201)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_slices/82")
+        self.get(params, 404)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices/82")
+        self.get(params, 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices/82")
+        self.delete(params, 204)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lte_slices/82")
+        self.get(params, 404)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.delete(params, 204)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.get(params, 404)
+
     def test_update_lte_slice(self):
         """test_update_lte_slice."""
 
