@@ -39,6 +39,13 @@ class EApp(EService):
                          project_id=project_id,
                          **kwargs)
 
+    def primitive(self, name, **kwargs):
+
+        name = "empower.primitives.%s.%s" % (name, name)
+        app = self.context.get_service(name, kwargs)
+
+        return app
+
     def start(self, load):
         """Start worker."""
 

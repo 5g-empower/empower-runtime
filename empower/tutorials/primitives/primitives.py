@@ -17,6 +17,8 @@
 
 """Tutorial: Primitives."""
 
+import pprint
+
 from empower.core.app import EApp
 from empower.core.app import EVERY
 
@@ -59,8 +61,6 @@ class TutorialPrimitives(EApp):
     def counters_callback(self, counters):
         """Called when a new measurement is available."""
 
-        import pprint
-
         pprint.pprint(counters)
         accum = []
 
@@ -76,9 +76,7 @@ class TutorialPrimitives(EApp):
     def lvap_join(self, lvap):
         """Called when an LVAP joins."""
 
-        name = "empower.primitives.lvapbincounter.lvapbincounter"
-        params = {"sta": lvap.addr}
-        app = self.context.get_service(name, params)
+        app = self.primitive("lvapbincounter", sta=lvap.addr)
         app.add_callback("counters", self.counters_callback)
 
         self.counters[lvap.addr] = app
