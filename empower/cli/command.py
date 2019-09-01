@@ -66,8 +66,11 @@ def connect(gargs, cmd, expected=200, request=None, headers=None):
 
     if response.status_code != expected:
 
-        msg = "Result: %u %s (%s)" % \
-            (data['status_code'], data['reason'], data['message'])
+        if 'message' in data:
+            msg = "Result: %u %s (%s)" % \
+                (data['status_code'], data['reason'], data['message'])
+        else:
+            msg = "Result: %u %s" % (data['status_code'], data['reason'])
 
         print(msg)
 

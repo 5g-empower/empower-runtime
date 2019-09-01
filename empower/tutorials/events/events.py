@@ -20,7 +20,7 @@
 from empower.core.app import EApp
 
 
-class Events(EApp):
+class TutorialEvents(EApp):
     """Tutorial: Events.
 
     Parameters:
@@ -58,4 +58,6 @@ class Events(EApp):
 def launch(service_id, project_id, every=-1):
     """Initialize the app."""
 
-    return Events(service_id=service_id, project_id=project_id, every=every)
+    return TutorialEvents(service_id=service_id,
+                          project_id=project_id,
+                          every=every)

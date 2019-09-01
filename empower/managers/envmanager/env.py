@@ -17,7 +17,8 @@
 
 """Runtime configuration."""
 
-from uuid import UUID
+import uuid
+
 from importlib import import_module
 from pymodm import MongoModel, fields
 
@@ -56,6 +57,31 @@ class Env(MongoModel):
         # Save pointer to VBSPManager
         self.vbsp_manager = \
             srv_or_die("empower.managers.ranmanager.vbsp.vbspmanager")
+
+    def get_service(self, name, params=None):
+        """Get a service instance.
+
+        If service with same name and param is available in the project, then
+        return it, otherwise start a new one
+        """
+
+        if not params:
+            params = {}
+
+        params['service_id'] = uuid.uuid4()
+        params['project_id'] = self.project_id
+
+        init_method = getattr(import_module(name), "launch")
+        requested = init_method(**params)
+
+        for service in self.services.values():
+            if service == requested:
+                return service
+
+        service = self.register_service(service_id=uuid.uuid4(), name=name,
+                                        params=params)
+
+        return service
 
     def register_service(self, service_id, name, params):
         """Register new service."""
@@ -124,13 +150,13 @@ class Env(MongoModel):
         for service_id in self.bootstrap:
             name = self.bootstrap[service_id]['name']
             params = self.bootstrap[service_id]['params']
-            self._start_service(UUID(service_id), name, params)
+            self._start_service(uuid.UUID(service_id), name, params)
 
     def stop_services(self):
         """Start registered services."""
 
         for service_id in self.bootstrap:
-            self._stop_service(UUID(service_id))
+            self._stop_service(uuid.UUID(service_id))
 
     def _start_service(self, service_id, name, params):
         """Start an service."""

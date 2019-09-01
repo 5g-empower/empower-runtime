@@ -27,8 +27,8 @@ from empower.core.app import EApp
 from empower.core.app import EVERY
 
 
-PT_WIFI_RC_STATS_REQUEST = 0x30
-PT_WIFI_RC_STATS_RESPONSE = 0x31
+PT_WIFI_RC_STATS_REQUEST = 0x80
+PT_WIFI_RC_STATS_RESPONSE = 0x81
 
 WIFI_RC_STATS_REQUEST = Struct(
     "version" / Int8ub,

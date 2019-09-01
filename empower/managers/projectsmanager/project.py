@@ -279,7 +279,7 @@ class Project(Env):
 
         for wtp in self.lvapp_manager.devices.values():
             for block in wtp.blocks.values():
-                wtp.connection.send_del_slice(self, slc, block)
+                wtp.connection.send_del_slice(self, slc.slice_id, block)
 
         del self.wifi_slices[slice_id]
 
@@ -296,7 +296,7 @@ class Project(Env):
 
         for vbs in self.vbsp_manager.devices.values():
             for cell in vbs.cells.values():
-                vbs.connection.send_del_slice(self, slc, cell)
+                vbs.connection.send_del_slice(self, slc.slice_id, cell)
 
         del self.lte_slices[slice_id]
 

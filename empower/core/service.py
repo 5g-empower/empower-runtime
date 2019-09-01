@@ -242,6 +242,7 @@ class EService:
 
     @classmethod
     def walk_module(cls, package):
+        """Inspect the specified module for 5G-EmPOWER services."""
 
         results = {}
 
@@ -272,3 +273,25 @@ class EService:
             results[name] = manifest
 
         return results
+
+    def to_str(self):
+        """Return an ASCII representation of the object."""
+
+        return "%s" % self.name
+
+    def __str__(self):
+        return self.to_str()
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        if isinstance(other, EService):
+            return self.name == other.name
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        return self.__class__.__name__ + "('" + self.to_str() + "')"

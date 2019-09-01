@@ -17,15 +17,11 @@
 
 """Tutorial: Primitives."""
 
-import uuid
-
 from empower.core.app import EApp
 from empower.core.app import EVERY
 
-from empower.primitives.lvapbincounter.lvapbincounter import LVAPBinCounter
 
-
-class HelloWorld(EApp):
+class TutorialPrimitives(EApp):
     """Tutorial: Primitives.
 
     This app shows how to use the LVAPBinCounter primitive inside another app.
@@ -51,9 +47,16 @@ class HelloWorld(EApp):
                          project_id=project_id,
                          every=every)
 
-        self.cnts = {}
+        self.counters = {}
 
-    def counter_callback(self, counters):
+    def to_dict(self):
+        """Return JSON-serializable representation of the object."""
+
+        output = super().to_dict()
+        output['counters'] = self.counters
+        return output
+
+    def counters_callback(self, counters):
         """Called when a new measurement is available."""
 
         import pprint
@@ -73,35 +76,17 @@ class HelloWorld(EApp):
     def lvap_join(self, lvap):
         """Called when an LVAP joins."""
 
-        self.cnts[lvap.addr] = \
-            LVAPBinCounter(service_id=uuid.uuid4(), project_id=self.project_id,
-                           sta=lvap.addr, every=self.every)
+        name = "empower.primitives.lvapbincounter.lvapbincounter"
+        params = {"sta": lvap.addr}
+        app = self.context.get_service(name, params)
+        app.add_callback("counters", self.counters_callback)
 
-        self.cnts[lvap.addr].start(False)
-
-        self.cnts[lvap.addr].add_callback("counters", self.counter_callback)
-
-    def lvap_leave(self, lvap):
-        """Called when an LVAP joins."""
-
-        if lvap.addr not in self.cnts:
-            return
-
-        self.cnts[lvap.addr].stop(False)
-        del self.cnts[lvap.addr]
-
-    def stop(self, save):
-        """Stop app."""
-
-        for cnt in self.cnts:
-            self.cnts[cnt].stop(False)
-
-        super().stop(save)
+        self.counters[lvap.addr] = app
 
 
 def launch(service_id, project_id, every=EVERY):
     """ Initialize the module. """
 
-    return HelloWorld(service_id=service_id,
-                      project_id=project_id,
-                      every=every)
+    return TutorialPrimitives(service_id=service_id,
+                              project_id=project_id,
+                              every=every)

@@ -425,10 +425,12 @@ class LVAPPConnection(RANConnection):
     def _handle_slice_status_response(self, status):
         """Handle an incoming SLICE_STATUS_RESPONSE message."""
 
+        iface_id = status.iface_id
         slice_id = str(status.slice_id)
         ssid = SSID(status.ssid)
 
         project = self.manager.projects_manager.load_project_by_ssid(ssid)
+        block = self.device.blocks[iface_id]
 
         if not project:
             self.log.warning("Slice status from unknown SSID %s", ssid)
@@ -436,7 +438,7 @@ class LVAPPConnection(RANConnection):
 
         if slice_id not in project.wifi_slices:
             self.log.warning("Slice %s not found. Removing slice.", slice_id)
-            project.delete_del_slice(slice_id)
+            self.send_del_slice(project, int(slice_id), block)
             return
 
         slc = project.wifi_slices[slice_id]
@@ -673,14 +675,16 @@ class LVAPPConnection(RANConnection):
 
         return self.send_message(self.proto.PT_SET_SLICE, msg)
 
-    def send_del_slice(self, project, slc, block):
+    def send_del_slice(self, project, slice_id, block):
         """Send an DEL_SLICEs message. """
 
         ssid = project.wifi_props.ssid
 
         msg = Container(length=self.proto.DEL_SLICE.sizeof(),
                         iface_id=block.block_id,
-                        slice_id=slc.slice_id,
+                        slice_id=slice_id,
                         ssid=ssid.to_raw())
+
+        print(msg)
 
         return self.send_message(self.proto.PT_DEL_SLICE, msg)

@@ -30,8 +30,8 @@ from empower.core.etheraddress import EtherAddress
 from empower.core.app import EApp
 from empower.core.app import EVERY
 
-PT_BIN_COUNTERS_REQUEST = 0x18
-PT_BIN_COUNTERS_RESPONSE = 0x19
+PT_BIN_COUNTERS_REQUEST = 0x82
+PT_BIN_COUNTERS_RESPONSE = 0x83
 
 BIN_COUNTERS_REQUEST = Struct(
     "version" / Int8ub,
@@ -118,6 +118,12 @@ class LVAPBinCounter(EApp):
 
         # Last seen time
         self.last = None
+
+    def __eq__(self, other):
+        if isinstance(other, LVAPBinCounter):
+            return self.sta == other.sta and self.bins == other.bins and \
+                   self.every == other.every
+        return False
 
     @property
     def sta(self):

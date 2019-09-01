@@ -30,8 +30,8 @@ from empower.core.etheraddress import EtherAddress
 from empower.core.app import EApp
 from empower.core.app import EVERY
 
-PT_TXP_BIN_COUNTERS_REQUEST = 0x35
-PT_TXP_BIN_COUNTERS_RESPONSE = 0x36
+PT_TXP_BIN_COUNTERS_REQUEST = 0x84
+PT_TXP_BIN_COUNTERS_RESPONSE = 0x85
 
 TXP_BIN_COUNTERS_REQUEST = Struct(
     "version" / Int8ub,
