@@ -76,7 +76,8 @@ class TutorialPrimitives(EApp):
     def lvap_join(self, lvap):
         """Called when an LVAP joins."""
 
-        app = self.primitive("lvapbincounter", sta=lvap.addr)
+        name = "empower.primitives.lvapbincounter.lvapbincounter"
+        app = self.get_service(name, sta=lvap.addr)
         app.add_callback("counters", self.counters_callback)
 
         self.counters[lvap.addr] = app

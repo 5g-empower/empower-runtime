@@ -58,33 +58,8 @@ class Env(MongoModel):
         self.vbsp_manager = \
             srv_or_die("empower.managers.ranmanager.vbsp.vbspmanager")
 
-    def get_service(self, name, params=None):
-        """Get a service instance.
-
-        If service with same name and param is available in the project, then
-        return it, otherwise start a new one
-        """
-
-        if not params:
-            params = {}
-
-        params['service_id'] = uuid.uuid4()
-        params['project_id'] = self.project_id
-
-        init_method = getattr(import_module(name), "launch")
-        requested = init_method(**params)
-
-        for service in self.services.values():
-            if service == requested:
-                return service
-
-        service = self.register_service(service_id=uuid.uuid4(), name=name,
-                                        params=params)
-
-        return service
-
     def register_service(self, service_id, name, params):
-        """Register new service."""
+        """Register service."""
 
         if str(service_id) in self.bootstrap:
             raise ValueError("Worker %s already registered" % service_id)
@@ -104,7 +79,7 @@ class Env(MongoModel):
         return self.services[service_id]
 
     def unregister_service(self, service_id):
-        """Unregister new service."""
+        """Unregister service."""
 
         if str(service_id) not in self.bootstrap:
             raise ValueError("Application %s not registered" % service_id)
@@ -153,13 +128,13 @@ class Env(MongoModel):
             self._start_service(uuid.UUID(service_id), name, params)
 
     def stop_services(self):
-        """Start registered services."""
+        """Stop registered services."""
 
         for service_id in self.bootstrap:
             self._stop_service(uuid.UUID(service_id))
 
     def _start_service(self, service_id, name, params):
-        """Start an service."""
+        """Start a service."""
 
         if service_id in self.services:
             raise ValueError("Service %s is already running" % service_id)
@@ -173,7 +148,7 @@ class Env(MongoModel):
         return service
 
     def _stop_service(self, service_id):
-        """Stop an service."""
+        """Stop a service."""
 
         if service_id not in self.services:
             raise ValueError("Service %s not running" % service_id)

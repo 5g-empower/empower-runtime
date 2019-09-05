@@ -22,6 +22,8 @@ import uuid
 import logging
 import tornado.ioloop
 
+from importlib import import_module
+
 from empower.main import srv_or_die
 
 
@@ -65,6 +67,34 @@ class EService:
         for param in kwargs:
             self.params[param] = None
             setattr(self, param, kwargs[param])
+
+    def get_service(self, name, **kwargs):
+        """Get a service.
+
+        Return a service with the same name and parameters if already running
+        or start a new one."""
+
+        if not self.context:
+            return None
+
+        if not kwargs:
+            kwargs = {}
+
+        kwargs['service_id'] = uuid.uuid4()
+        kwargs['project_id'] = self.project_id
+
+        init_method = getattr(import_module(name), "launch")
+        requested = init_method(**kwargs)
+
+        for service in self.context.services.values():
+            if service == requested:
+                return service
+
+        service = \
+            self.context.register_service(service_id=uuid.uuid4(), name=name,
+                                          params=kwargs)
+
+        return service
 
     def handle_callbacks(self, name):
         """Invoke all the callback registered on a given attrbute."""
