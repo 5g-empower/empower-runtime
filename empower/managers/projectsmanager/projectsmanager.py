@@ -47,10 +47,10 @@ class ProjectsManager(EService):
     projects = {}
     accounts_manager = None
 
-    def start(self, load):
+    def start(self):
         """Start projects manager."""
 
-        super().start(load)
+        super().start()
 
         self.accounts_manager = \
             srv_or_die("empower.managers.accountsmanager.accountsmanager")

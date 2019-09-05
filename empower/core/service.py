@@ -20,9 +20,10 @@
 import pkgutil
 import uuid
 import logging
-import tornado.ioloop
 
 from importlib import import_module
+
+import tornado.ioloop
 
 from empower.main import srv_or_die
 
@@ -58,15 +59,23 @@ class EService:
         # Pointer to an Env or a Project object (can be null)
         self.context = None
 
-        # List of attributes to be saved (only if a context is set)
-        self.to_storage = []
+        # Persistent dict
+        self.storage = {}
 
         # Service parameters
         self.params = {}
 
+        # Set service parameters
         for param in kwargs:
-            self.params[param] = None
             setattr(self, param, kwargs[param])
+
+    def save_service_state(self):
+        """Save service state."""
+
+        if not self.context:
+            return
+
+        self.context.save_service_state(self.service_id)
 
     def get_service(self, name, **kwargs):
         """Get a service.
@@ -77,24 +86,7 @@ class EService:
         if not self.context:
             return None
 
-        if not kwargs:
-            kwargs = {}
-
-        kwargs['service_id'] = uuid.uuid4()
-        kwargs['project_id'] = self.project_id
-
-        init_method = getattr(import_module(name), "launch")
-        requested = init_method(**kwargs)
-
-        for service in self.context.services.values():
-            if service == requested:
-                return service
-
-        service = \
-            self.context.register_service(service_id=uuid.uuid4(), name=name,
-                                          params=kwargs)
-
-        return service
+        return self.context.get_service(name, **kwargs)
 
     def handle_callbacks(self, name):
         """Invoke all the callback registered on a given attrbute."""
@@ -108,38 +100,6 @@ class EService:
         for callback in self.callbacks[name]:
             value = getattr(self, name)
             callback(value)
-
-    def load(self):
-        """Load configuration from storage."""
-
-        if not self.context:
-            return
-
-        if str(self.service_id) not in self.context.storage:
-            self.context.storage[str(self.service_id)] = {}
-
-        storage = self.context.storage[str(self.service_id)]
-
-        for attribute in self.to_storage:
-            if attribute in storage and hasattr(self, attribute):
-                setattr(self, attribute, storage[attribute])
-
-    def save(self):
-        """Save configuration to storage."""
-
-        if not self.context:
-            return
-
-        if str(self.service_id) not in self.context.storage:
-            self.context.storage[str(self.service_id)] = {}
-
-        storage = self.context.storage[str(self.service_id)]
-
-        for attribute in self.to_storage:
-            if hasattr(self, attribute):
-                storage[attribute] = getattr(self, attribute)
-
-        self.context.save()
 
     def add_callback(self, attribute, method):
         """Add a new callback."""
@@ -164,6 +124,7 @@ class EService:
 
         output['name'] = self.name
         output['params'] = self.params
+        output['storage'] = self.storage
 
         return output
 
@@ -215,17 +176,11 @@ class EService:
 
         self.params["every"] = int(value)
 
-        if not self.worker:
-            return
+        if self.worker:
+            self.stop()
+            self.start()
 
-        self.worker.stop()
-
-        self.worker = \
-            tornado.ioloop.PeriodicCallback(self.loop, self.every)
-
-        self.worker.start()
-
-    def start(self, load):
+    def start(self):
         """Start control loop."""
 
         # Register handlers for this services
@@ -237,10 +192,6 @@ class EService:
         for handler in self.HANDLERS:
             handler.service = self
 
-        # load configuration from database
-        if load:
-            self.load()
-
         # Not supposed to run a loop
         if self.every == -1:
             return
@@ -251,12 +202,11 @@ class EService:
 
         self.worker.start()
 
-    def stop(self, save):
+    def stop(self):
         """Stop control loop."""
 
-        # save configuration to database
-        if save:
-            self.save()
+        # save state
+        self.save()
 
         # Not supposed to run a loop
         if self.every == -1:
@@ -264,6 +214,7 @@ class EService:
 
         # stop the control loop
         self.worker.stop()
+        self.worker = None
 
     def loop(self):
         """Control loop."""

@@ -17,7 +17,6 @@
 
 """Base worker class."""
 
-from empower.main import srv_or_die
 from empower.core.service import EService
 
 EVERY = 2000
@@ -34,13 +33,3 @@ class EWorker(EService):
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          **kwargs)
-
-    def start(self, load):
-        """Start worker."""
-
-        # Set pointer to context
-        env_manager = srv_or_die("empower.managers.envmanager.envmanager")
-        self.context = env_manager.env
-
-        # start the service
-        super().start(load)

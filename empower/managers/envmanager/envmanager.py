@@ -39,10 +39,10 @@ class EnvManager(EService):
 
     env = None
 
-    def start(self, load):
+    def start(self):
         """Start configuration manager."""
 
-        super().start(load)
+        super().start()
 
         if not Env.objects.all().count():
             Env(project_id=uuid.uuid4()).save()

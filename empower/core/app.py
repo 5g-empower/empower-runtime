@@ -19,7 +19,6 @@
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.main import srv_or_die
 from empower.core.service import EService
 from empower.core.resourcepool import ResourcePool
 from empower.core.cellpool import CellPool
@@ -39,14 +38,8 @@ class EApp(EService):
                          project_id=project_id,
                          **kwargs)
 
-    def start(self, load):
-        """Start worker."""
-
-        # Set pointer to context
-        projects_manager = \
-            srv_or_die("empower.managers.projectsmanager.projectsmanager")
-
-        self.context = projects_manager.projects[self.project_id]
+    def start(self):
+        """Start app."""
 
         # Register default callbacks (LVAPP)
         lvapp.register_callback(lvapp.PT_CLIENT_LEAVE, self._lvap_leave)
@@ -54,20 +47,20 @@ class EApp(EService):
         lvapp.register_callback(lvapp.PT_DEVICE_UP, self._wtp_up)
         lvapp.register_callback(lvapp.PT_DEVICE_DOWN, self._wtp_down)
 
-        # start the service
-        super().start(load)
+        # start the app
+        super().start()
 
-    def stop(self, save):
+    def stop(self):
         """Stop app."""
 
-        # Unegister default callbacks (LVAPP)
+        # Unregister default callbacks (LVAPP)
         lvapp.unregister_callback(lvapp.PT_CLIENT_LEAVE, self._lvap_leave)
         lvapp.unregister_callback(lvapp.PT_CLIENT_JOIN, self._lvap_join)
         lvapp.unregister_callback(lvapp.PT_DEVICE_UP, self._wtp_up)
         lvapp.unregister_callback(lvapp.PT_DEVICE_DOWN, self._wtp_down)
 
-        # stop the service
-        super().stop(save)
+        # stop the app
+        super().stop()
 
     def cells(self):
         """Return all available cells in this tenant."""

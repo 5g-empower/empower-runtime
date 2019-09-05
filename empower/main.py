@@ -202,7 +202,7 @@ def _do_launch(components, components_order):
         try:
 
             logging.info("Starting service: %s", name)
-            SERVICES[name].start(False)
+            SERVICES[name].start()
 
         except TypeError as ex:
             logging.error("Error starting service %s", name)

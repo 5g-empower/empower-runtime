@@ -29,10 +29,10 @@ class AccountsManager(EService):
 
     accounts = {}
 
-    def start(self, load):
+    def start(self):
         """Start accounts manager."""
 
-        super().start(load)
+        super().start()
 
         for account in Account.objects.all():
             self.accounts[account.username] = account

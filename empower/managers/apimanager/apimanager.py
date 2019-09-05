@@ -426,10 +426,10 @@ class APIManager(EService):
 
         self.params["port"] = int(value)
 
-    def start(self, load):
+    def start(self):
         """Start api manager."""
 
-        super().start(load)
+        super().start()
 
         self.accounts_manager = \
             srv_or_die("empower.managers.accountsmanager.accountsmanager")

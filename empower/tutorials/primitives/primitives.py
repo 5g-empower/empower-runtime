@@ -18,6 +18,7 @@
 """Tutorial: Primitives."""
 
 import pprint
+import time
 
 from empower.core.app import EApp
 from empower.core.app import EVERY
@@ -51,6 +52,19 @@ class TutorialPrimitives(EApp):
 
         self.counters = {}
 
+    @property
+    def last_run(self):
+        """Return last_run."""
+
+        return self.storage["last_run"]
+
+    @last_run.setter
+    def last_run(self, value):
+        """Set last_run."""
+
+        self.storage["last_run"] = value
+        self.save_service_state()
+
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
@@ -70,6 +84,8 @@ class TutorialPrimitives(EApp):
         accum.append("rx_bytes %s " % counters['rx_bytes'])
         accum.append("tx_packets %s " % counters['tx_packets'])
         accum.append("tx_packets %s " % counters['tx_packets'])
+
+        self.last_run = time.time()
 
         self.log.info("New counters: %s", "".join(accum))
 
