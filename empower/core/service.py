@@ -206,7 +206,7 @@ class EService:
         """Stop control loop."""
 
         # save state
-        self.save()
+        self.save_service_state()
 
         # Not supposed to run a loop
         if self.every == -1:

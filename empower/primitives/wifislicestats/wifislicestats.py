@@ -29,7 +29,7 @@ from empower.core.app import EVERY
 
 
 PT_WIFI_SLICE_STATS_REQUEST = 0x4C
-PT_WIFI_SLICE_STATS_RESPONSE = 0x4F
+PT_WIFI_SLICE_STATS_RESPONSE = 0x4D
 
 WIFI_SLICE_STATS_REQUEST = Struct(
     "version" / Int8ub,
@@ -124,6 +124,7 @@ class SliceStats(EApp):
 
         out = super().to_dict()
 
+        out['ssid'] = self.context.wifi_props.ssid
         out['slice_id'] = self.slice_id
         out['stats'] = self.stats
 
@@ -138,6 +139,7 @@ class SliceStats(EApp):
                 continue
 
             msg = Container(length=WIFI_SLICE_STATS_REQUEST.sizeof(),
+                            ssid=self.context.wifi_props.ssid.to_raw(),
                             slice_id=self.slice_id)
 
             wtp.connection.send_message(PT_WIFI_SLICE_STATS_REQUEST,
