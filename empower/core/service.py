@@ -21,8 +21,6 @@ import pkgutil
 import uuid
 import logging
 
-from importlib import import_module
-
 import tornado.ioloop
 
 from empower.main import srv_or_die
