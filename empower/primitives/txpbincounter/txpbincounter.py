@@ -19,8 +19,6 @@
 
 import time
 
-from datetime import datetime
-
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -288,51 +286,8 @@ class TXPBinCounter(EApp):
         # handle callbacks
         self.handle_callbacks("counters")
 
-        # export to database
-        self.update_db()
-
         # set last iteration time
         self.last = time.time()
-
-    def update_db(self):
-        """Update Influx DB."""
-
-        samples = []
-        timestamp = datetime.utcnow()
-
-        for idx, _ in enumerate(self.bins):
-
-            data = {
-                'tx_bytes': self.counters["tx_bytes"][idx],
-                'tx_packets': self.counters["tx_packets"][idx],
-            }
-
-            if self.last:
-
-                data = {**data,
-                        'tx_bytes_per_second':
-                            self.counters["tx_bytes_per_second"][idx],
-                        'tx_packets_per_second':
-                            self.counters["tx_packets_per_second"][idx],
-                        }
-
-            sample = {
-                "measurement": "counter",
-                "tags": {
-                    "tenant": str(self.project_id),
-                    "addr": str(self.addr),
-                    "bin": self.bins[idx]
-                },
-                "time": timestamp,
-                "fields": data
-            }
-
-            samples.append(sample)
-
-        # TODO: save to database
-        # stats_manager.send_stats(points=samples,
-        #                          database=self.name,
-        #                          time_precision='u')
 
 
 def launch(service_id, project_id, iface_id, addr, bins="8192", every=EVERY):
