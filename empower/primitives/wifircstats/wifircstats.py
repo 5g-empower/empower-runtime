@@ -17,6 +17,8 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
+import time
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -45,6 +47,11 @@ RC_ENTRY = Struct(
     "rate" / Int8ub,
     "prob" / Int32ub,
     "cur_prob" / Int32ub,
+    "cur_tp" / Int32ub,
+    "last_attempts" / Int32ub,
+    "last_successes" / Int32ub,
+    "hist_attempts" / Int32ub,
+    "hist_successes" / Int32ub
 )
 RC_ENTRY.name = "rc_entry"
 
@@ -102,8 +109,16 @@ class RCStats(EApp):
         lvapp.register_message(PT_WIFI_RC_STATS_RESPONSE,
                                WIFI_RC_STATS_RESPONSE)
 
-        self.rates = {}
-        self.best_prob = None
+        # Data structures
+        self.stats = {
+            "sta": self.sta,
+            "rates": {},
+            "best_prob": None,
+            "best_tp": None
+        }
+
+        # Last seen time
+        self.last = None
 
     @property
     def sta(self):
@@ -123,8 +138,10 @@ class RCStats(EApp):
         out = super().to_dict()
 
         out['sta'] = self.sta
-        out['rates'] = self.rates
-        out['best_prob'] = self.best_prob
+        out['rates'] = self.stats['rates']
+        out['best_prob'] = self.stats['best_prob']
+        out['best_tp'] = self.stats['best_tp']
+        out['last'] = self.last
 
         return out
 
@@ -149,27 +166,42 @@ class RCStats(EApp):
         lvap = self.context.lvaps[self.sta]
 
         # update this object
-        self.rates = {}
+        self.stats = {
+            "sta": self.sta,
+            "rates": {},
+            "best_prob": None,
+            "best_tp": None
+        }
 
         for entry in response.stats:
 
             rate = entry.rate if lvap.ht_caps else entry.rate / 2.0
 
-            value = {'prob': entry.prob / 180.0,
-                     'cur_prob': entry.cur_prob / 180.0, }
+            value = {
+                'prob': entry.prob / 180.0,
+                'cur_prob': entry.cur_prob / 180.0,
+                'cur_tp': entry.cur_tp / ((18000 << 10) / 96) / 10,
+                'last_attempts': entry.last_attempts,
+                'last_successes': entry.last_successes,
+                'hist_attempts': entry.hist_attempts,
+                'hist_successes': entry.hist_successes,
+            }
 
-            self.rates[rate] = value
+            self.stats["rates"][rate] = value
 
-        max_idx = max(self.rates.keys(),
-                      key=(lambda key: self.rates[key]['prob']))
-        max_val = self.rates[max_idx]['prob']
+        self.stats['best_prob'] = \
+            max(self.stats["rates"].keys(),
+                key=(lambda key: self.stats["rates"][key]['prob']))
 
-        self.best_prob = \
-            max([k for k, v in self.rates.items() if v['prob'] == max_val])
+        self.stats['best_tp'] = \
+            max(self.stats["rates"].keys(),
+                key=(lambda key: self.stats["rates"][key]['cur_tp']))
 
         # handle callbacks
-        self.handle_callbacks("rates")
-        self.handle_callbacks("best_prob")
+        self.handle_callbacks("stats")
+
+        # set last iteration time
+        self.last = time.time()
 
 
 def launch(service_id, project_id, sta, every=EVERY):

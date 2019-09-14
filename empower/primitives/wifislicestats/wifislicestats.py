@@ -17,6 +17,8 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
+import time
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -105,7 +107,14 @@ class SliceStats(EApp):
         lvapp.register_message(PT_WIFI_SLICE_STATS_RESPONSE,
                                WIFI_SLICE_STATS_RESPONSE)
 
-        self.stats = {}
+        # Data structures
+        self.stats = {
+            'slice_id': self.slice_id,
+            "wtps": {}
+        }
+
+        # Last seen time
+        self.last = None
 
     @property
     def slice_id(self):
@@ -124,9 +133,9 @@ class SliceStats(EApp):
 
         out = super().to_dict()
 
-        out['ssid'] = self.context.wifi_props.ssid
         out['slice_id'] = self.slice_id
-        out['stats'] = self.stats
+        out['wtps'] = self.stats['wtps']
+        out['last'] = self.last
 
         return out
 
@@ -152,12 +161,12 @@ class SliceStats(EApp):
         wtp = EtherAddress(response.device)
 
         # update this object
-        if wtp not in self.stats:
-            self.stats[wtp] = {}
+        if wtp not in self.stats['wtps']:
+            self.stats['wtps'][wtp] = {}
 
         for entry in response.stats:
 
-            self.stats[wtp][entry.iface_id] = {
+            self.stats['wtps'][wtp][entry.iface_id] = {
                 'deficit_used': entry.deficit_used,
                 'max_queue_length': entry.max_queue_length,
                 'tx_packets': entry.tx_packets,
@@ -166,6 +175,9 @@ class SliceStats(EApp):
 
         # handle callbacks
         self.handle_callbacks("stats")
+
+        # set last iteration time
+        self.last = time.time()
 
 
 def launch(service_id, project_id, slice_id=0, every=EVERY):
