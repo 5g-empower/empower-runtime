@@ -99,7 +99,7 @@ class Env(MongoModel):
     def register_service(self, service_id, name, params):
         """Register service."""
 
-        if str(service_id) in self.services:
+        if service_id in self.services:
             raise ValueError("Service %s already registered" % service_id)
 
         params['service_id'] = service_id
@@ -115,7 +115,7 @@ class Env(MongoModel):
     def unregister_service(self, service_id):
         """Unregister service."""
 
-        if str(service_id) not in self.services:
+        if service_id not in self.services:
             raise ValueError("Service %s not registered" % service_id)
 
         self.stop_service(service_id)
@@ -128,7 +128,7 @@ class Env(MongoModel):
     def reconfigure_service(self, service_id, params):
         """Reconfigure service."""
 
-        if str(service_id) not in self.services:
+        if service_id not in self.services:
             raise ValueError("Service %s not registered" % service_id)
 
         service = self.services[service_id]
