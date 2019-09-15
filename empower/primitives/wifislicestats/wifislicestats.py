@@ -17,8 +17,6 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
-import time
-
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -94,11 +92,13 @@ class SliceStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, slice_id, every=EVERY):
+    def __init__(self, service_id, project_id, slice_id, dump=None,
+                 every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          slice_id=slice_id,
+                         dump=dump,
                          every=every)
 
         # Register messages
@@ -108,13 +108,11 @@ class SliceStats(EApp):
                                WIFI_SLICE_STATS_RESPONSE)
 
         # Data structures
-        self.stats = {
-            'slice_id': self.slice_id,
-            "wtps": {}
-        }
+        self.stats = {}
 
-        # Last seen time
-        self.last = None
+        # Columns to be logged
+        self.columns = ["wtp", "iface_id", "deficit_used", "max_queue_length",
+                        "tx_packets", "tx_bytes"]
 
     @property
     def slice_id(self):
@@ -134,8 +132,7 @@ class SliceStats(EApp):
         out = super().to_dict()
 
         out['slice_id'] = self.slice_id
-        out['wtps'] = self.stats['wtps']
-        out['last'] = self.last
+        out['stats'] = self.stats
 
         return out
 
@@ -161,27 +158,34 @@ class SliceStats(EApp):
         wtp = EtherAddress(response.device)
 
         # update this object
-        if wtp not in self.stats['wtps']:
-            self.stats['wtps'][wtp] = {}
+        if wtp not in self.stats:
+            self.stats[wtp] = {}
 
         for entry in response.stats:
 
-            self.stats['wtps'][wtp][entry.iface_id] = {
+            self.stats[wtp][entry.iface_id] = {
                 'deficit_used': entry.deficit_used,
                 'max_queue_length': entry.max_queue_length,
                 'tx_packets': entry.tx_packets,
                 'tx_bytes': entry.tx_bytes,
             }
 
+            # log
+            row = [wtp,
+                   entry.iface_id,
+                   self.stats[wtp][entry.iface_id]['deficit_used'],
+                   self.stats[wtp][entry.iface_id]['max_queue_length'],
+                   self.stats[wtp][entry.iface_id]['tx_packets'],
+                   self.stats[wtp][entry.iface_id]['tx_bytes']]
+
+            self.add_sample(row)
+
         # handle callbacks
-        self.handle_callbacks("stats")
-
-        # set last iteration time
-        self.last = time.time()
+        self.handle_callbacks()
 
 
-def launch(service_id, project_id, slice_id=0, every=EVERY):
+def launch(service_id, project_id, slice_id=0, dump=None, every=EVERY):
     """ Initialize the module. """
 
     return SliceStats(service_id=service_id, project_id=project_id,
-                      slice_id=slice_id, every=every)
+                      dump=dump, slice_id=slice_id, every=every)

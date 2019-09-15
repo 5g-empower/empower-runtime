@@ -19,8 +19,6 @@
 
 import time
 
-from datetime import datetime
-
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -91,11 +89,13 @@ class LVAPBinCounter(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, bins="8192", every=EVERY):
+    def __init__(self, service_id, project_id, sta, dump=None, bins="8192",
+                 every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          sta=sta,
+                         dump=dump,
                          bins=bins,
                          every=every)
 
@@ -105,7 +105,6 @@ class LVAPBinCounter(EApp):
 
         # Data structures
         self.counters = {
-            "sta": self.sta,
             "tx_packets": [],
             "rx_packets": [],
             "tx_bytes": [],
@@ -115,6 +114,9 @@ class LVAPBinCounter(EApp):
             "tx_bytes_per_second": [],
             "rx_bytes_per_second": []
         }
+
+        # Columns to be logged
+        self.columns = ["sta", "bin"] + list(self.counters)
 
         # Last seen time
         self.last = None
@@ -175,7 +177,6 @@ class LVAPBinCounter(EApp):
         out['bins'] = self.bins
         out['sta'] = self.sta
         out['counters'] = self.counters
-        out['last'] = self.last
 
         return out
 
@@ -276,6 +277,11 @@ class LVAPBinCounter(EApp):
         self.counters["tx_packets"] = self.fill_packets_samples(tx_samples)
         self.counters["rx_packets"] = self.fill_packets_samples(rx_samples)
 
+        self.counters["tx_bytes_per_second"] = [0] * len(self.bins)
+        self.counters["rx_bytes_per_second"] = [0] * len(self.bins)
+        self.counters["tx_packets_per_second"] = [0] * len(self.bins)
+        self.counters["rx_packets_per_second"] = [0] * len(self.bins)
+
         if self.last:
 
             delta = time.time() - self.last
@@ -296,64 +302,31 @@ class LVAPBinCounter(EApp):
                 self.update_stats(delta, old_rx_packets,
                                   self.counters["rx_packets"])
 
-        # handle callbacks
-        self.handle_callbacks("counters")
+        # generate sample
+        for idx, bin_value in enumerate(self.bins):
 
-        # export to database
-        self.update_db()
+            row = [self.sta,
+                   bin_value,
+                   self.counters["tx_bytes"][idx],
+                   self.counters["rx_bytes"][idx],
+                   self.counters["tx_packets"][idx],
+                   self.counters["rx_packets"][idx],
+                   self.counters["tx_bytes_per_second"][idx],
+                   self.counters["rx_bytes_per_second"][idx],
+                   self.counters["tx_packets_per_second"][idx],
+                   self.counters["rx_packets_per_second"][idx]]
+
+            self.add_sample(row)
+
+        # handle callbacks
+        self.handle_callbacks()
 
         # set last iteration time
         self.last = time.time()
 
-    def update_db(self):
-        """Update Influx DB."""
 
-        samples = []
-        timestamp = datetime.utcnow()
-
-        for idx, _ in enumerate(self.bins):
-
-            data = {
-                'tx_bytes': self.counters["tx_bytes"][idx],
-                'rx_bytes': self.counters["rx_bytes"][idx],
-                'tx_packets': self.counters["tx_packets"][idx],
-                'rx_packets': self.counters["rx_packets"][idx]
-            }
-
-            if self.last:
-
-                data = {**data,
-                        'tx_bytes_per_second':
-                            self.counters["tx_bytes_per_second"][idx],
-                        'rx_bytes_per_second':
-                            self.counters["rx_bytes_per_second"][idx],
-                        'tx_packets_per_second':
-                            self.counters["tx_packets_per_second"][idx],
-                        'rx_packets_per_second':
-                            self.counters["rx_packets_per_second"][idx],
-                        }
-
-            sample = {
-                "measurement": "counter",
-                "tags": {
-                    "tenant": str(self.project_id),
-                    "sta": str(self.sta),
-                    "bin": self.bins[idx]
-                },
-                "time": timestamp,
-                "fields": data
-            }
-
-            samples.append(sample)
-
-        # TODO: save to database
-        # stats_manager.send_stats(points=samples,
-        #                          database=self.name,
-        #                          time_precision='u')
-
-
-def launch(service_id, project_id, sta, bins="8192", every=EVERY):
+def launch(service_id, project_id, sta, dump=None, bins="8192", every=EVERY):
     """ Initialize the module. """
 
     return LVAPBinCounter(service_id=service_id, project_id=project_id,
-                          sta=sta, bins=bins, every=every)
+                          sta=sta, dump=dump, bins=bins, every=every)

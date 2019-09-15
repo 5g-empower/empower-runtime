@@ -17,8 +17,6 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
-import time
-
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -96,11 +94,12 @@ class RCStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, every=EVERY):
+    def __init__(self, service_id, project_id, sta, dump=None, every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          sta=sta,
+                         dump=dump,
                          every=every)
 
         # Register messages
@@ -110,15 +109,14 @@ class RCStats(EApp):
                                WIFI_RC_STATS_RESPONSE)
 
         # Data structures
-        self.stats = {
-            "sta": self.sta,
-            "rates": {},
-            "best_prob": None,
-            "best_tp": None
-        }
+        self.rates = {}
+        self.best_prob = None
+        self.best_tp = None
 
-        # Last seen time
-        self.last = None
+        # Columns to be logged
+        self.columns = ["sta", "mcs", "prob", "cur_prob", "cur_tp",
+                        "last_attempts", "last_successes", "hist_attempts",
+                        "hist_successes"]
 
     @property
     def sta(self):
@@ -138,10 +136,9 @@ class RCStats(EApp):
         out = super().to_dict()
 
         out['sta'] = self.sta
-        out['rates'] = self.stats['rates']
-        out['best_prob'] = self.stats['best_prob']
-        out['best_tp'] = self.stats['best_tp']
-        out['last'] = self.last
+        out['rates'] = self.rates
+        out['best_prob'] = self.best_prob
+        out['best_tp'] = self.best_tp
 
         return out
 
@@ -166,12 +163,9 @@ class RCStats(EApp):
         lvap = self.context.lvaps[self.sta]
 
         # update this object
-        self.stats = {
-            "sta": self.sta,
-            "rates": {},
-            "best_prob": None,
-            "best_tp": None
-        }
+        self.rates = {}
+        self.best_prob = None
+        self.best_tp = None
 
         for entry in response.stats:
 
@@ -187,25 +181,34 @@ class RCStats(EApp):
                 'hist_successes': entry.hist_successes,
             }
 
-            self.stats["rates"][rate] = value
+            self.rates[rate] = value
 
-        self.stats['best_prob'] = \
-            max(self.stats["rates"].keys(),
-                key=(lambda key: self.stats["rates"][key]['prob']))
+            # log
+            row = [self.sta,
+                   rate,
+                   self.rates[rate]['prob'],
+                   self.rates[rate]['cur_prob'],
+                   self.rates[rate]['cur_tp'],
+                   self.rates[rate]['last_attempts'],
+                   self.rates[rate]['last_successes'],
+                   self.rates[rate]['hist_attempts'],
+                   self.rates[rate]['hist_successes']]
 
-        self.stats['best_tp'] = \
-            max(self.stats["rates"].keys(),
-                key=(lambda key: self.stats["rates"][key]['cur_tp']))
+            self.add_sample(row)
+
+        # compute statistics
+        self.best_prob = \
+            max(self.rates.keys(), key=(lambda key: self.rates[key]['prob']))
+
+        self.best_tp = \
+            max(self.rates.keys(), key=(lambda key: self.rates[key]['cur_tp']))
 
         # handle callbacks
-        self.handle_callbacks("stats")
-
-        # set last iteration time
-        self.last = time.time()
+        self.handle_callbacks()
 
 
-def launch(service_id, project_id, sta, every=EVERY):
+def launch(service_id, project_id, sta, dump=None, every=EVERY):
     """ Initialize the module. """
 
     return RCStats(service_id=service_id, project_id=project_id,
-                   sta=sta, every=every)
+                   sta=sta, dump=dump, every=every)

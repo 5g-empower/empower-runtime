@@ -70,10 +70,11 @@ class ChannelStats(EWorker):
         every: the polling period in ms (optional, default: 2000)
     """
 
-    def __init__(self, service_id, project_id, every):
+    def __init__(self, service_id, project_id, dump, every):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
+                         dump=dump,
                          every=every)
 
         lvapp.register_message(PT_WCS_REQUEST, WCS_REQUEST)
@@ -151,15 +152,11 @@ class ChannelStats(EWorker):
                 continue
 
             sample = {
-                "measurement": stat_type,
-                "tags": {
-                    "block_id": str(block_id)
-                },
+                "type": stat_type,
                 "time": self.runtime_ts_ref[block_id] + ts_delta,
-                "fields": {
-                    "value": value
-                }
+                "value": value
             }
+
             self.channel_stats[block_id].append(sample)
 
         # update wifi_stats module
@@ -167,23 +164,13 @@ class ChannelStats(EWorker):
         block.channel_stats = self.channel_stats[block_id]
 
         # handle callbacks
-        self.handle_callbacks("channel_stats")
-
-        # export to database
-        self.update_db()
-
-    def update_db(self):
-        """Update Influx DB."""
-
-        # TODO: save to database
-        # stats_manager.send_stats(points=self.channel_stats[block_id],
-        #                          database=self.name,
-        #                          time_precision='u')
+        self.handle_callbacks()
 
 
-def launch(service_id, project_id, every=2000):
+def launch(service_id, project_id, dump=None, every=2000):
     """ Initialize the module. """
 
     return ChannelStats(service_id=service_id,
                         project_id=project_id,
+                        dump=None,
                         every=every)

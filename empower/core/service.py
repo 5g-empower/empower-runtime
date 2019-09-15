@@ -21,6 +21,9 @@ import pkgutil
 import uuid
 import logging
 
+from datetime import datetime
+
+import pandas as pd
 import tornado.ioloop
 
 from empower.main import srv_or_die
@@ -39,11 +42,11 @@ class EService:
         if 'every' not in kwargs:
             kwargs['every'] = -1
 
-        # Service's callbacks. Invoke the method 'handle_callbacks' passing as
-        # single parameter the name of an attribute that was just modified in
-        # order to have all the registered callbacks invoked with the value of
-        # the attribute passed as parameter
-        self.callbacks = {}
+        if 'dump' not in kwargs:
+            kwargs['dump'] = None
+
+        # Service's callbacks
+        self.callbacks = set()
 
         # Human readable name
         self.name = "%s" % self.__class__.__module__
@@ -67,6 +70,9 @@ class EService:
         for param in kwargs:
             setattr(self, param, kwargs[param])
 
+        # Columns to be logged
+        self.columns = []
+
     def save_service_state(self):
         """Save service state."""
 
@@ -86,34 +92,21 @@ class EService:
 
         return self.context.get_service(name, **kwargs)
 
-    def handle_callbacks(self, name):
-        """Invoke all the callback registered on a given attrbute."""
+    def handle_callbacks(self):
+        """Invoke registered callbacks."""
 
-        if name not in self.callbacks:
-            return
+        for callback in self.callbacks:
+            callback(self)
 
-        if not hasattr(self, name):
-            return
-
-        for callback in self.callbacks[name]:
-            value = getattr(self, name)
-            callback(value)
-
-    def add_callback(self, attribute, method):
+    def add_callback(self, method):
         """Add a new callback."""
 
-        if attribute not in self.callbacks:
-            self.callbacks[attribute] = set()
+        self.callbacks.add(method)
 
-        self.callbacks[attribute].add(method)
+    def remove_callback(self, method):
+        """Remove a callback."""
 
-    def remove_callback(self, attribute, method):
-        """Add a new callback."""
-
-        if attribute not in self.callbacks:
-            return
-
-        self.callbacks[attribute].remove(method)
+        self.callbacks.remove(method)
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -123,6 +116,7 @@ class EService:
         output['name'] = self.name
         output['params'] = self.params
         output['storage'] = self.storage
+        output['dump'] = self.dump
 
         return output
 
@@ -178,6 +172,18 @@ class EService:
             self.stop()
             self.start()
 
+    @property
+    def dump(self):
+        """ Return the dump path. """
+
+        return self.params['dump']
+
+    @dump.setter
+    def dump(self, value):
+        """ Set the dump path. """
+
+        self.params['dump'] = str(value)
+
     def start(self):
         """Start control loop."""
 
@@ -189,6 +195,12 @@ class EService:
         # Set pointer to this service
         for handler in self.HANDLERS:
             handler.service = self
+
+        # Prepare log
+        if self.dump:
+            self.columns = ["timestamp"] + self.columns
+            with open(self.dump, "w") as flog:
+                flog.write(",".join(self.columns)+"\n")
 
         # Not supposed to run a loop
         if self.every == -1:
@@ -213,6 +225,40 @@ class EService:
         # stop the control loop
         self.worker.stop()
         self.worker = None
+
+    def dataframes(self):
+        """Get samples as Pandas dataframe."""
+
+        if not self.dump:
+            return None
+
+        return pd.read_csv(self.dump, sep=',', index_col=0, parse_dates=True)
+
+    def add_sample(self, row):
+        """Add new sample."""
+
+        timestamp = datetime.utcnow()
+        row = [timestamp] + row
+
+        if len(self.columns) != len(row):
+            raise ValueError("Len mismatch: %u Vs %s" %
+                             (len(self.columns), len(row)))
+
+        if self.dump:
+            with open(self.dump, "a") as flog:
+                flog.write(",".join([str(x) for x in row])+"\n")
+
+        # TODO: save to database
+        # sample = {
+        #     "measurement": self.name,
+        #     "tags": self.params,
+        #     "time": timestamp,
+        #     "fields": dict(zip(self.columns, row))
+        # }
+        #
+        # stats_manager.send_stats(points=samples,
+        #                          database=self.name,
+        #                          time_precision='u')
 
     def loop(self):
         """Control loop."""
