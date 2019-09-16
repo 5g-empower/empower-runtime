@@ -101,7 +101,7 @@ class TxPolicy:
 
         self.set_ur_count(ur_count)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_ur_count(self, ur_count):
         """Set ur_count without sending anything."""
@@ -120,7 +120,7 @@ class TxPolicy:
 
         self.set_mcast(mcast)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_mcast(self, mcast):
         """Set the mcast mode without sending anything."""
@@ -139,7 +139,7 @@ class TxPolicy:
 
         self.set_mcs(mcs)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_mcs(self, mcs):
         """Set the list of MCS without sending anything."""
@@ -161,7 +161,7 @@ class TxPolicy:
 
         self.set_ht_mcs(ht_mcs)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_ht_mcs(self, ht_mcs):
         """Set the list of HT MCS without sending anything."""
@@ -183,7 +183,7 @@ class TxPolicy:
 
         self.set_no_ack(no_ack)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_no_ack(self, no_ack):
         """Set the no ack flag without sending anything."""
@@ -202,7 +202,7 @@ class TxPolicy:
 
         self.set_rts_cts(rts_cts)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_rts_cts(self, rts_cts):
         """Set rts_cts without sending anything."""
@@ -221,7 +221,7 @@ class TxPolicy:
 
         self.set_max_amsdu_len(max_amsdu_len)
 
-        self.block.radio.connection.send_set_transmission_policy(self)
+        self.block.radio.connection.send_set_tx_policy(self)
 
     def set_max_amsdu_len(self, max_amsdu_len):
         """Set max_amsdu_len without sending anything."""
