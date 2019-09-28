@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Time serires manager."""
+"""Time series manager."""

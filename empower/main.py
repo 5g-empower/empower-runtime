@@ -18,7 +18,6 @@
 """Bootstrap module."""
 
 import uuid
-import ssl
 import inspect
 import os
 import logging
@@ -27,9 +26,6 @@ import sys
 import types
 import tornado.ioloop
 
-from pymodm.connection import connect
-
-DEFAULT_MONGODB_URI = "mongodb://localhost:27017/empower"
 DEFAULT_LOG_CONFIG = "/etc/empower/logging.cfg"
 
 SERVICES = dict()
@@ -73,19 +69,15 @@ class EOptions(Options):
 
     def __init__(self):
         self.log_config = DEFAULT_LOG_CONFIG
-        self.mongodb_uri = DEFAULT_MONGODB_URI
 
     def _set_log_config(self, name, value):
-        setattr(self, name, value)
-
-    def _set_mongodb_uri(self, name, value):
         setattr(self, name, value)
 
     @classmethod
     def _set_help(cls, *_):
         """ Print help text and exit. """
 
-        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG, DEFAULT_MONGODB_URI))
+        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG))
 
         sys.exit(0)
 
@@ -93,7 +85,7 @@ class EOptions(Options):
     def _set_h(cls, *_):
         """ Print help text and exit. """
 
-        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG, DEFAULT_MONGODB_URI))
+        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG))
 
         sys.exit(0)
 
@@ -106,7 +98,6 @@ empower-runtime.py [options] [C1 [C1 options]] [C2 [C2 options]] ...
 Notable options include:
   --help                Print this help message
   --log-config=<file>   Use log config file (default is %s)
-  --mongodb_uri=<uri>   Specify MongoDB URI (default is %s)
 
 C1, C2, etc. are managers' names (e.g., Python modules). The supported options
 are up to the module.
@@ -256,13 +247,6 @@ def _do_imports(components):
     return done
 
 
-def _setup_db():
-    """ Setup db connection. """
-
-    logging.info("Connecting to MongoDB: %s", _OPTIONS.mongodb_uri)
-    connect(_OPTIONS.mongodb_uri, ssl_cert_reqs=ssl.CERT_NONE)
-
-
 def _setup_logging():
     """ Setup logging. """
 
@@ -290,8 +274,6 @@ def _pre_startup():
     """
 
     _setup_logging()
-
-    _setup_db()
 
 
 def _post_startup():

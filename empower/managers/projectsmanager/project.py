@@ -22,7 +22,6 @@ from pymodm.errors import ValidationError
 
 import empower.core.serialize as serialize
 from empower.managers.envmanager.env import Env
-from empower.main import srv_or_die
 from empower.core.slice import WiFiSlice, LTESlice
 from empower.core.etheraddress import EtherAddress
 from empower.core.etheraddress import EtherAddressField
@@ -224,18 +223,6 @@ class Project(Env):
     lte_props = fields.EmbeddedDocumentField(EmbeddedLTEProps)
     wifi_slices = WiFiSlicesDictField(required=False, blank=True)
     lte_slices = LTESlicesDictField(required=False, blank=True)
-
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        # Save pointer to LVAPPManager
-        self.lvapp_manager = \
-            srv_or_die("empower.managers.ranmanager.lvapp.lvappmanager")
-
-        # Save pointer to VBSPManager
-        self.vbsp_manager = \
-            srv_or_die("empower.managers.ranmanager.vbsp.vbspmanager")
 
     def upsert_wifi_slice(self, **kwargs):
         """Upsert new slice."""

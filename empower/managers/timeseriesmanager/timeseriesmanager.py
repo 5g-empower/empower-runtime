@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Time serires manager."""
+"""Time series manager."""
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -33,7 +33,7 @@ DEFAULT_PASSWORD = "password"
 
 
 class TimeSeriesManager(EService):
-    """Time serires manager."""
+    """Time series manager."""
 
     def __init__(self, **kwargs):
 
@@ -78,7 +78,7 @@ class TimeSeriesManager(EService):
         # create database, it has no effect if it is already present
         self.influxdb_client.create_database(self.database)
 
-        self.log.info("Conntected to InfluxDB database %s", self.database)
+        self.log.info("Connected to InfluxDB database %s", self.database)
 
     @property
     def database(self):
