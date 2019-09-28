@@ -165,8 +165,13 @@ class TimeSeriesManager(EService):
 
     def __write_points_worker(self, points):
 
-        # add new points
-        self.influxdb_client.write_points(points=serialize(points))
+        try:
+            self.influxdb_client.write_points(points=serialize(points))
+        except Exception as ex:
+            self.log.exception(ex)
+            return False
+
+        return True
 
 
 def launch(**kwargs):

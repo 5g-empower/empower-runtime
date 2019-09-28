@@ -21,9 +21,6 @@ import pkgutil
 import uuid
 import logging
 
-from datetime import datetime
-
-import pandas as pd
 import tornado.ioloop
 
 from empower.main import srv_or_die
@@ -165,6 +162,11 @@ class EService:
             self.stop()
             self.start()
 
+    def write_points(self, points):
+        """Write points to InfluxDB."""
+
+        self.context.ts_manager.write_points(points)
+
     def start(self):
         """Start control loop."""
 
@@ -200,26 +202,6 @@ class EService:
         # stop the control loop
         self.worker.stop()
         self.worker = None
-
-    def dataframes(self):
-        """Get samples as Pandas dataframe."""
-
-        # TODO: fetch from influxdb
-        # df = ...
-        #
-        # return df
-
-    def add_sample(self, sample):
-        """Add new sample."""
-
-        sample = {
-            "measurement": self.name,
-            "tags": self.params,
-            "time": datetime.utcnow(),
-            "fields": sample
-        }
-
-        self.context.ts_manager.write_points([sample])
 
     def loop(self):
         """Control loop."""

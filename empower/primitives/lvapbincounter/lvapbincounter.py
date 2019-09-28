@@ -19,6 +19,8 @@
 
 import time
 
+from datetime import datetime
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -297,10 +299,12 @@ class LVAPBinCounter(EApp):
                 self.update_stats(delta, old_rx_packets,
                                   self.counters["rx_packets"])
 
-        # generate sample
+        # generate data points
+        points = []
+
         for idx, _ in enumerate(self.bins):
 
-            row = {
+            fields = {
                 "sta": self.sta,
                 "bin": self.bins[idx],
                 "tx_bytes": self.counters["tx_bytes"][idx],
@@ -313,7 +317,17 @@ class LVAPBinCounter(EApp):
                 "rx_pps": self.counters["rx_pps"][idx]
             }
 
-            self.add_sample(row)
+            sample = {
+                "measurement": self.name,
+                "tags": self.params,
+                "time": datetime.utcnow(),
+                "fields": fields
+            }
+
+            points.append(sample)
+
+        # save to db
+        self.write_points(points)
 
         # handle callbacks
         self.handle_callbacks()
