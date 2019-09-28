@@ -92,13 +92,11 @@ class SliceStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, slice_id, dump=None,
-                 every=EVERY):
+    def __init__(self, service_id, project_id, slice_id, every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          slice_id=slice_id,
-                         dump=dump,
                          every=every)
 
         # Register messages
@@ -109,10 +107,6 @@ class SliceStats(EApp):
 
         # Data structures
         self.stats = {}
-
-        # Columns to be logged
-        self.columns = ["wtp", "iface_id", "deficit_used", "max_queue_length",
-                        "tx_packets", "tx_bytes"]
 
     @property
     def slice_id(self):
@@ -184,8 +178,8 @@ class SliceStats(EApp):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, slice_id=0, dump=None, every=EVERY):
+def launch(service_id, project_id, slice_id=0, every=EVERY):
     """ Initialize the module. """
 
     return SliceStats(service_id=service_id, project_id=project_id,
-                      dump=dump, slice_id=slice_id, every=every)
+                      slice_id=slice_id, every=every)

@@ -217,6 +217,6 @@ class ProjectsManager(EService):
 
 
 def launch(**kwargs):
-    """Start project manager."""
+    """Start projects manager."""
 
     return ProjectsManager(**kwargs)

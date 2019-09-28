@@ -42,9 +42,6 @@ class EService:
         if 'every' not in kwargs:
             kwargs['every'] = -1
 
-        if 'dump' not in kwargs:
-            kwargs['dump'] = None
-
         # Service's callbacks
         self.callbacks = set()
 
@@ -69,9 +66,6 @@ class EService:
         # Set service parameters
         for param in kwargs:
             setattr(self, param, kwargs[param])
-
-        # Columns to be logged
-        self.columns = []
 
     def save_service_state(self):
         """Save service state."""
@@ -116,7 +110,6 @@ class EService:
         output['name'] = self.name
         output['params'] = self.params
         output['storage'] = self.storage
-        output['dump'] = self.dump
 
         return output
 
@@ -172,18 +165,6 @@ class EService:
             self.stop()
             self.start()
 
-    @property
-    def dump(self):
-        """ Return the dump path. """
-
-        return self.params['dump']
-
-    @dump.setter
-    def dump(self, value):
-        """ Set the dump path. """
-
-        self.params['dump'] = str(value)
-
     def start(self):
         """Start control loop."""
 
@@ -195,12 +176,6 @@ class EService:
         # Set pointer to this service
         for handler in self.HANDLERS:
             handler.service = self
-
-        # Prepare log
-        if self.dump:
-            self.columns = ["timestamp"] + self.columns
-            with open(self.dump, "w") as flog:
-                flog.write(",".join(self.columns)+"\n")
 
         # Not supposed to run a loop
         if self.every == -1:
@@ -229,36 +204,22 @@ class EService:
     def dataframes(self):
         """Get samples as Pandas dataframe."""
 
-        if not self.dump:
-            return None
+        # TODO: fetch from influxdb
+        # df = ...
+        #
+        # return df
 
-        return pd.read_csv(self.dump, sep=',', index_col=0, parse_dates=True)
-
-    def add_sample(self, row):
+    def add_sample(self, sample):
         """Add new sample."""
 
-        timestamp = datetime.utcnow()
-        row = [timestamp] + row
+        sample = {
+            "measurement": self.name,
+            "tags": self.params,
+            "time": datetime.utcnow(),
+            "fields": sample
+        }
 
-        if len(self.columns) != len(row):
-            raise ValueError("Len mismatch: %u Vs %s" %
-                             (len(self.columns), len(row)))
-
-        if self.dump:
-            with open(self.dump, "a") as flog:
-                flog.write(",".join([str(x) for x in row])+"\n")
-
-        # TODO: save to database
-        # sample = {
-        #     "measurement": self.name,
-        #     "tags": self.params,
-        #     "time": timestamp,
-        #     "fields": dict(zip(self.columns, row))
-        # }
-        #
-        # stats_manager.send_stats(points=samples,
-        #                          database=self.name,
-        #                          time_precision='u')
+        self.context.ts_manager.write_points([sample])
 
     def loop(self):
         """Control loop."""

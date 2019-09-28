@@ -70,11 +70,10 @@ class ChannelStats(EWorker):
         every: the polling period in ms (optional, default: 2000)
     """
 
-    def __init__(self, service_id, project_id, dump, every):
+    def __init__(self, service_id, project_id, every):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
-                         dump=dump,
                          every=every)
 
         lvapp.register_message(PT_WCS_REQUEST, WCS_REQUEST)
@@ -167,10 +166,9 @@ class ChannelStats(EWorker):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, dump=None, every=2000):
+def launch(service_id, project_id, every=2000):
     """ Initialize the module. """
 
     return ChannelStats(service_id=service_id,
                         project_id=project_id,
-                        dump=None,
                         every=every)

@@ -94,12 +94,11 @@ class RCStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, dump=None, every=EVERY):
+    def __init__(self, service_id, project_id, sta, every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          sta=sta,
-                         dump=dump,
                          every=every)
 
         # Register messages
@@ -112,11 +111,6 @@ class RCStats(EApp):
         self.rates = {}
         self.best_prob = None
         self.best_tp = None
-
-        # Columns to be logged
-        self.columns = ["sta", "mcs", "prob", "cur_prob", "cur_tp",
-                        "last_attempts", "last_successes", "hist_attempts",
-                        "hist_successes"]
 
     @property
     def sta(self):
@@ -207,8 +201,8 @@ class RCStats(EApp):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, sta, dump=None, every=EVERY):
+def launch(service_id, project_id, sta, every=EVERY):
     """ Initialize the module. """
 
-    return RCStats(service_id=service_id, project_id=project_id,
-                   sta=sta, dump=dump, every=every)
+    return RCStats(service_id=service_id, project_id=project_id, sta=sta,
+                   every=every)

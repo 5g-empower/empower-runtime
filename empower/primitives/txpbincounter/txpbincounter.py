@@ -90,13 +90,12 @@ class TXPBinCounter(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, iface_id, addr, dump=None,
-                 bins="8192", every=EVERY):
+    def __init__(self, service_id, project_id, iface_id, addr, bins="8192",
+                 every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          addr=addr,
-                         dump=dump,
                          iface_id=iface_id,
                          bins=bins,
                          every=every)
@@ -115,9 +114,6 @@ class TXPBinCounter(EApp):
             "tx_packets_per_second": [],
             "tx_bytes_per_second": [],
         }
-
-        # Columns to be logged
-        self.columns = ["sta", "bin"] + list(self.counters)
 
         # Last seen time
         self.last = None
@@ -277,8 +273,8 @@ class TXPBinCounter(EApp):
         self.counters["tx_bytes"] = self.fill_bytes_samples(tx_samples)
         self.counters["tx_packets"] = self.fill_packets_samples(tx_samples)
 
-        self.counters["tx_bytes_per_second"] = [0] * len(self.bins)
-        self.counters["tx_packets_per_second"] = [0] * len(self.bins)
+        self.counters["tx_bytes_per_second"] = [0.0] * len(self.bins)
+        self.counters["tx_packets_per_second"] = [0.0] * len(self.bins)
 
         if self.last:
             delta = time.time() - self.last
@@ -290,14 +286,16 @@ class TXPBinCounter(EApp):
                                   self.counters["tx_packets"])
 
         # generate sample
-        for idx, bin_value in enumerate(self.bins):
+        for idx, _ in enumerate(self.bins):
 
-            row = [self.addr,
-                   bin_value,
-                   self.counters["tx_bytes"][idx],
-                   self.counters["tx_packets"][idx],
-                   self.counters["tx_bytes_per_second"][idx],
-                   self.counters["tx_packets_per_second"][idx]]
+            row = {
+                "addr": self.addr,
+                "bin": self.bins[idx],
+                "tx_bytes": self.counters["tx_bytes"][idx],
+                "tx_packets": self.counters["tx_packets"][idx],
+                "rx_bps": self.counters["rx_bps"][idx],
+                "rx_pps": self.counters["rx_pps"][idx]
+            }
 
             self.add_sample(row)
 
@@ -308,10 +306,9 @@ class TXPBinCounter(EApp):
         self.last = time.time()
 
 
-def launch(service_id, project_id, iface_id, addr, dump=None, bins="8192",
-           every=EVERY):
+def launch(service_id, project_id, iface_id, addr, bins="8192", every=EVERY):
     """ Initialize the module. """
 
     return TXPBinCounter(service_id=service_id, project_id=project_id,
-                         dump=dump, iface_id=iface_id, addr=addr, bins=bins,
+                         iface_id=iface_id, addr=addr, bins=bins,
                          every=every)

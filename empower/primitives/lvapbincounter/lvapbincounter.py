@@ -89,13 +89,11 @@ class LVAPBinCounter(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, dump=None, bins="8192",
-                 every=EVERY):
+    def __init__(self, service_id, project_id, sta, bins="8192", every=EVERY):
 
         super().__init__(service_id=service_id,
                          project_id=project_id,
                          sta=sta,
-                         dump=dump,
                          bins=bins,
                          every=every)
 
@@ -109,14 +107,11 @@ class LVAPBinCounter(EApp):
             "rx_packets": [],
             "tx_bytes": [],
             "rx_bytes": [],
-            "tx_packets_per_second": [],
-            "rx_packets_per_second": [],
-            "tx_bytes_per_second": [],
-            "rx_bytes_per_second": []
+            "tx_pps": [],
+            "rx_pps": [],
+            "tx_bps": [],
+            "rx_bps": []
         }
-
-        # Columns to be logged
-        self.columns = ["sta", "bin"] + list(self.counters)
 
         # Last seen time
         self.last = None
@@ -277,44 +272,46 @@ class LVAPBinCounter(EApp):
         self.counters["tx_packets"] = self.fill_packets_samples(tx_samples)
         self.counters["rx_packets"] = self.fill_packets_samples(rx_samples)
 
-        self.counters["tx_bytes_per_second"] = [0] * len(self.bins)
-        self.counters["rx_bytes_per_second"] = [0] * len(self.bins)
-        self.counters["tx_packets_per_second"] = [0] * len(self.bins)
-        self.counters["rx_packets_per_second"] = [0] * len(self.bins)
+        self.counters["tx_bps"] = [0.0] * len(self.bins)
+        self.counters["rx_bps"] = [0.0] * len(self.bins)
+        self.counters["tx_pps"] = [0.0] * len(self.bins)
+        self.counters["rx_pps"] = [0.0] * len(self.bins)
 
         if self.last:
 
             delta = time.time() - self.last
 
-            self.counters["tx_bytes_per_second"] = \
+            self.counters["tx_bps"] = \
                 self.update_stats(delta, old_tx_bytes,
                                   self.counters["tx_bytes"])
 
-            self.counters["rx_bytes_per_second"] = \
+            self.counters["rx_bps"] = \
                 self.update_stats(delta, old_rx_bytes,
                                   self.counters["rx_bytes"])
 
-            self.counters["tx_packets_per_second"] = \
+            self.counters["tx_pps"] = \
                 self.update_stats(delta, old_tx_packets,
                                   self.counters["tx_packets"])
 
-            self.counters["rx_packets_per_second"] = \
+            self.counters["rx_pps"] = \
                 self.update_stats(delta, old_rx_packets,
                                   self.counters["rx_packets"])
 
         # generate sample
-        for idx, bin_value in enumerate(self.bins):
+        for idx, _ in enumerate(self.bins):
 
-            row = [self.sta,
-                   bin_value,
-                   self.counters["tx_bytes"][idx],
-                   self.counters["rx_bytes"][idx],
-                   self.counters["tx_packets"][idx],
-                   self.counters["rx_packets"][idx],
-                   self.counters["tx_bytes_per_second"][idx],
-                   self.counters["rx_bytes_per_second"][idx],
-                   self.counters["tx_packets_per_second"][idx],
-                   self.counters["rx_packets_per_second"][idx]]
+            row = {
+                "sta": self.sta,
+                "bin": self.bins[idx],
+                "tx_bytes": self.counters["tx_bytes"][idx],
+                "rx_bytes": self.counters["rx_bytes"][idx],
+                "tx_packets": self.counters["tx_packets"][idx],
+                "rx_packets": self.counters["rx_packets"][idx],
+                "tx_bps": self.counters["tx_bps"][idx],
+                "rx_bps": self.counters["rx_bps"][idx],
+                "tx_pps": self.counters["tx_pps"][idx],
+                "rx_pps": self.counters["rx_pps"][idx]
+            }
 
             self.add_sample(row)
 
@@ -325,8 +322,8 @@ class LVAPBinCounter(EApp):
         self.last = time.time()
 
 
-def launch(service_id, project_id, sta, dump=None, bins="8192", every=EVERY):
+def launch(service_id, project_id, sta, bins="8192", every=EVERY):
     """ Initialize the module. """
 
     return LVAPBinCounter(service_id=service_id, project_id=project_id,
-                          sta=sta, dump=dump, bins=bins, every=every)
+                          sta=sta, bins=bins, every=every)

@@ -58,6 +58,10 @@ class Env(MongoModel):
         self.vbsp_manager = \
             srv_or_die("empower.managers.ranmanager.vbsp.vbspmanager")
 
+        # Save pointer to TimeSeriesManaget
+        self.ts_manager = \
+            srv_or_die("empower.managers.timeseriesmanager.timeseriesmanager")
+
     def get_service(self, name, **kwargs):
         """Get a service.
 

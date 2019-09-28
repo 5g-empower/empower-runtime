@@ -15,22 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Launch the 5G-EmPOWER Runtime."""
-
-from empower.main import main
-
-
-if __name__ == "__main__":
-
-    # Default modules
-    ARGVS = [
-        'managers.envmanager.envmanager',
-        'managers.apimanager.apimanager',
-        'managers.accountsmanager.accountsmanager',
-        'managers.projectsmanager.projectsmanager',
-        'managers.ranmanager.lvapp.lvappmanager',
-        'managers.ranmanager.vbsp.vbspmanager',
-        'managers.timeseriesmanager.timeseriesmanager'
-    ]
-
-    main(ARGVS)
+"""Time serires manager."""
