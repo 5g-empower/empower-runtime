@@ -17,6 +17,8 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
+from datetime import datetime
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -155,6 +157,9 @@ class SliceStats(EApp):
         if wtp not in self.stats:
             self.stats[wtp] = {}
 
+        # generate data points
+        points = []
+
         for entry in response.stats:
 
             self.stats[wtp][entry.iface_id] = {
@@ -165,14 +170,23 @@ class SliceStats(EApp):
             }
 
             # log
-            row = [wtp,
-                   entry.iface_id,
-                   self.stats[wtp][entry.iface_id]['deficit_used'],
-                   self.stats[wtp][entry.iface_id]['max_queue_length'],
-                   self.stats[wtp][entry.iface_id]['tx_packets'],
-                   self.stats[wtp][entry.iface_id]['tx_bytes']]
+            fields = {
+                "wtp": wtp,
+                "iface_id": entry.iface_id,
+                **self.stats[wtp][entry.iface_id]
+            }
 
-            self.add_sample(row)
+            sample = {
+                "measurement": self.name,
+                "tags": self.params,
+                "time": datetime.utcnow(),
+                "fields": fields
+            }
+
+            points.append(sample)
+
+        # save to db
+        self.write_points(points)
 
         # handle callbacks
         self.handle_callbacks()

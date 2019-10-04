@@ -23,8 +23,6 @@ import logging
 
 import tornado.ioloop
 
-from empower.main import srv_or_die
-
 
 class EService:
     """Base service class."""
@@ -169,15 +167,6 @@ class EService:
 
     def start(self):
         """Start control loop."""
-
-        # Register handlers for this services
-        api_manager = srv_or_die("empower.managers.apimanager.apimanager")
-        for handler in self.HANDLERS:
-            api_manager.register_handler(handler)
-
-        # Set pointer to this service
-        for handler in self.HANDLERS:
-            handler.service = self
 
         # Not supposed to run a loop
         if self.every == -1:

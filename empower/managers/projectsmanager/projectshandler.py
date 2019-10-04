@@ -274,7 +274,6 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26
         """
 
-        print(args)
         if args:
             self.service.remove(uuid.UUID(args[0]))
         else:

@@ -75,7 +75,6 @@ class TutorialPrimitives(EApp):
     def counters_callback(self, counters):
         """Called when a new measurement is available."""
 
-        pprint.pprint(counters)
         accum = []
 
         accum.append("sta %s " % counters['sta'])

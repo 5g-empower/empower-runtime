@@ -192,7 +192,17 @@ def _do_launch(components, components_order):
 
         try:
 
+            service = SERVICES[name]
+
             logging.info("Starting service: %s", name)
+
+            # Register handlers for this services
+            api_manager = srv_or_die("empower.managers.apimanager.apimanager")
+            for handler in service.HANDLERS:
+                api_manager.register_handler(handler)
+                handler.service = service
+
+            # start service
             SERVICES[name].start()
 
         except TypeError as ex:

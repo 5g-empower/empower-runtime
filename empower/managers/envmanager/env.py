@@ -62,6 +62,9 @@ class Env(MongoModel):
         self.ts_manager = \
             srv_or_die("empower.managers.timeseriesmanager.timeseriesmanager")
 
+        # Save pointer to ApiManager
+        self.api_manager = srv_or_die("empower.managers.apimanager.apimanager")
+
     def get_service(self, name, **kwargs):
         """Get a service.
 
@@ -169,10 +172,22 @@ class Env(MongoModel):
         if service_id in self.services:
             raise ValueError("Service %s is already running" % service_id)
 
+        # this will look for the launch method and call it
         init_method = getattr(import_module(name), "launch")
         service = init_method(**params)
+
+        # set context
         service.context = self
+
+        # set storage
         service.storage = storage
+
+        # register handlers
+        for handler in service.HANDLERS:
+            self.api_manager.register_handler(handler)
+            handler.service = service
+
+        # start service
         service.start()
 
         self.services[service_id] = service
