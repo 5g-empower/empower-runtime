@@ -139,6 +139,8 @@ class LVAPPConnection(RANConnection):
         ht_caps_info = dict(request.ht_caps_info)
         del ht_caps_info['_io']
 
+        block = self.device.blocks[request.iface_id]
+
         msg = "Probe request from %s ssid %s iface_id %u ht_caps %u"
 
         if not incoming_ssid:
@@ -147,7 +149,8 @@ class LVAPPConnection(RANConnection):
             self.log.debug(msg, sta, incoming_ssid, iface_id, ht_caps)
 
         # Check is station is in ACL of any networks
-        networks = self.manager.projects_manager.get_available_ssids(sta)
+        networks = \
+            self.manager.projects_manager.get_available_ssids(sta, block)
 
         if not networks:
             self.log.debug("No SSID available at this device")
@@ -168,7 +171,7 @@ class LVAPPConnection(RANConnection):
             lvap.ht_caps_info = ht_caps_info
 
             # this will trigger an LVAP ADD message
-            lvap.blocks = self.device.blocks[request.iface_id]
+            lvap.blocks = block
 
             # save LVAP in the runtime
             self.manager.lvaps[sta] = lvap
@@ -403,13 +406,8 @@ class LVAPPConnection(RANConnection):
         block = self.device.blocks[status.iface_id]
         addr = EtherAddress(status.sta)
 
-        if addr in self.manager.lvaps:
-            lvap = self.manager.lvaps[addr]
-        else:
-            lvap = None
-
         if addr not in block.tx_policies:
-            block.tx_policies[addr] = TxPolicy(addr, block, lvap)
+            block.tx_policies[addr] = TxPolicy(addr, block)
 
         txp = block.tx_policies[addr]
 
@@ -420,7 +418,7 @@ class LVAPPConnection(RANConnection):
         txp.set_mcast(status.tx_mcast)
         txp.set_no_ack(status.flags.no_ack)
 
-        self.log.info("TX policy status %s", txp)
+        self.log.info("TX policy status: %s", txp)
 
     def _handle_slice_status_response(self, status):
         """Handle an incoming SLICE_STATUS_RESPONSE message."""
@@ -489,7 +487,7 @@ class LVAPPConnection(RANConnection):
 
         vap = self.manager.vaps[bssid]
 
-        self.log.info("VAP status %s", vap)
+        self.log.info("VAP status: %s", vap)
 
     def send_lvap_status_request(self):
         """Send a LVAP_STATUS_REQUEST message."""
@@ -684,7 +682,5 @@ class LVAPPConnection(RANConnection):
                         iface_id=block.block_id,
                         slice_id=slice_id,
                         ssid=ssid.to_raw())
-
-        print(msg)
 
         return self.send_message(self.proto.PT_DEL_SLICE, msg)

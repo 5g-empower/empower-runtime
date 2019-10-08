@@ -188,8 +188,6 @@ class RCStats(EApp):
                    self.rates[rate]['hist_attempts'],
                    self.rates[rate]['hist_successes']]
 
-            self.add_sample(row)
-
         # compute statistics
         self.best_prob = \
             max(self.rates.keys(), key=(lambda key: self.rates[key]['prob']))

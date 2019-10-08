@@ -481,7 +481,7 @@ class LVAP:
         """Set the downlink block."""
 
         # assign default tx policy to the downlink resource block
-        txp = TxPolicy(self.addr, dl_block, self)
+        txp = TxPolicy(self.addr, dl_block)
 
         # standard MCS (channel above 14 are the 11a modulations)
         if dl_block.channel > 14:

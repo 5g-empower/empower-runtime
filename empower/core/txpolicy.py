@@ -48,7 +48,6 @@ class TxPolicy:
     Attributes:
         addr: the destination address to which this policy applies
         block: the actual block to which this tx policy refers to
-        lvap: a pointer to an LVAP if addr is a station
         no_ack: do not wait for acks
         rts_cts: the rts/cts threshold in bytes
         max_amsdu_len: the maximum aggregation size in bytes
@@ -57,11 +56,10 @@ class TxPolicy:
         ht_mcs: the list of HT MCSes
     """
 
-    def __init__(self, addr, block, lvap=None):
+    def __init__(self, addr, block):
 
         self.addr = addr
         self.block = block
-        self.lvap = lvap
         self._no_ack = False
         self._rts_cts = 2436
         self._max_amsdu_len = TX_AMSDU_LEN_4K
@@ -101,7 +99,7 @@ class TxPolicy:
 
         self.set_ur_count(ur_count)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_ur_count(self, ur_count):
         """Set ur_count without sending anything."""
@@ -120,7 +118,7 @@ class TxPolicy:
 
         self.set_mcast(mcast)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_mcast(self, mcast):
         """Set the mcast mode without sending anything."""
@@ -139,7 +137,7 @@ class TxPolicy:
 
         self.set_mcs(mcs)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_mcs(self, mcs):
         """Set the list of MCS without sending anything."""
@@ -161,7 +159,7 @@ class TxPolicy:
 
         self.set_ht_mcs(ht_mcs)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_ht_mcs(self, ht_mcs):
         """Set the list of HT MCS without sending anything."""
@@ -183,7 +181,7 @@ class TxPolicy:
 
         self.set_no_ack(no_ack)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_no_ack(self, no_ack):
         """Set the no ack flag without sending anything."""
@@ -202,7 +200,7 @@ class TxPolicy:
 
         self.set_rts_cts(rts_cts)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_rts_cts(self, rts_cts):
         """Set rts_cts without sending anything."""
@@ -221,26 +219,12 @@ class TxPolicy:
 
         self.set_max_amsdu_len(max_amsdu_len)
 
-        self.block.radio.connection.send_set_tx_policy(self)
+        self.block.wtp.connection.send_set_tx_policy(self)
 
     def set_max_amsdu_len(self, max_amsdu_len):
         """Set max_amsdu_len without sending anything."""
 
-        if self.lvap.ht_caps and \
-                self.lvap.ht_caps_info['Maximum_AMSDU_Length']:
-
-            max_supported = TX_AMSDU_LEN_8K
-
-        elif self.lvap.ht_caps and \
-                not self.lvap.ht_caps_info['Maximum_AMSDU_Length']:
-
-            max_supported = TX_AMSDU_LEN_4K
-
-        else:
-
-            max_supported = 0
-
-        self._max_amsdu_len = min(max_supported, int(max_amsdu_len))
+        self._max_amsdu_len = int(max_amsdu_len)
 
     def __hash__(self):
 

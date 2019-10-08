@@ -65,7 +65,8 @@ class TestTestbed(BaseTest):
                 "allowed": [
                     "60:57:18:b1:a4:b8",
                     "18:5e:0f:e3:b8:68",
-                    "60:f4:45:d0:3b:fc"
+                    "60:f4:45:d0:3b:fc",
+                    "18:5e:0f:e3:b8:45"
                 ]
             },
             "wifi_slices": [

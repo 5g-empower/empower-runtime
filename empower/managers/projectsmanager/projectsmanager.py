@@ -28,6 +28,7 @@ from empower.managers.projectsmanager.project import Project
 from empower.managers.projectsmanager.project import EmbeddedWiFiProps
 from empower.managers.projectsmanager.project import EmbeddedLTEProps
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
+from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 
 from empower.managers.projectsmanager.cataloghandler import CatalogHandler
 from empower.managers.projectsmanager.appshandler import AppsHandler
@@ -97,7 +98,7 @@ class ProjectsManager(EService):
 
         return project
 
-    def get_available_ssids(self, sta):
+    def get_available_ssids(self, sta, block):
         """Return the list of available networks for the specified sta."""
 
         networks = list()
@@ -107,13 +108,25 @@ class ProjectsManager(EService):
             if not project.wifi_props:
                 continue
 
-            if project.wifi_props.bssid_type == T_BSSID_TYPE_SHARED:
+            if sta not in project.wifi_props.allowed:
                 continue
 
-            if sta in project.wifi_props.allowed:
+            if project.wifi_props.bssid_type == T_BSSID_TYPE_SHARED:
+
+                bssid = project.generate_bssid(block.hwaddr)
+                ssid = project.wifi_props.ssid
+                networks.append((bssid, ssid))
+
+            elif project.wifi_props.bssid_type == T_BSSID_TYPE_UNIQUE:
+
                 bssid = project.generate_bssid(sta)
                 ssid = project.wifi_props.ssid
                 networks.append((bssid, ssid))
+
+            else:
+
+                self.log.error("Invalid BSSID type: %s",
+                               project.wifi_props.bssid_type)
 
         return networks
 
