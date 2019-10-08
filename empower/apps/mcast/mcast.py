@@ -113,8 +113,6 @@ class Mcast(EApp):
         if not service:
             return
 
-        status = service["status"]
-        service_type = service["type"]
         addr = self.mcast_ip_to_ether(service["ip"])
 
         if addr not in self.mcast_services:
@@ -128,8 +126,8 @@ class Mcast(EApp):
                 "mcs": 6,
                 "schedule": schedule,
                 "receivers": [EtherAddress(x) for x in service["receivers"]],
-                "status": json.loads(status),
-                "type": service_type
+                "status": json.loads(service["status"]),
+                "type": service["type"]
             }
 
             self._services_registered += 1
@@ -138,43 +136,10 @@ class Mcast(EApp):
 
             self.mcast_services[addr]["receivers"] = \
                 [EtherAddress(x) for x in service["receivers"]]
-            self.mcast_services[addr]["status"] = json.loads(status)
-            self.mcast_services[addr]["type"] = service_type
+            self.mcast_services[addr]["status"] = json.loads(service["status"])
+            self.mcast_services[addr]["type"] = service["type"]
 
         self.save_service_state()
-
-    def set_default_services(self):
-        """Configure some default services."""
-
-        self.mcast_services = {
-            "ip": "224.0.200.220",
-            "receivers": ["18:5E:0F:E3:B8:68", "18:5E:0F:E3:B8:45"],
-            "status": "true",
-            "type": "safety"
-        }
-
-        self.mcast_services = {
-            "ip": "224.0.200.221",
-            "receivers": ["00:24:D7:72:AB:BC", "00:24:D7:35:06:18",
-                          "00:24:D7:07:F3:1C"],
-            "status": "false",
-            "type": "safety"
-        }
-
-        self.mcast_services = {
-            "ip": "224.0.200.222",
-            "receivers": ["18:5E:0F:E3:B8:68", "00:24:D7:35:06:18",
-                          "00:24:D7:07:F3:1C"],
-            "status": "false",
-            "type": "flight"
-        }
-
-        self.mcast_services = {
-            "ip": "224.0.200.223",
-            "receivers": ["00:24:D7:72:AB:BC", "18:5E:0F:E3:B8:45"],
-            "status": "true",
-            "type": "flight"
-        }
 
     @property
     def demo_mode(self):

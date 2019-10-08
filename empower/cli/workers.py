@@ -39,7 +39,6 @@ def do_list_workers(gargs, args, leftovers):
         accum.append(" status RUNNING ")
         accum.append("\n  name: ")
         accum.append(entry['name'])
-
         accum.append("\n  params:")
 
         for k, val in entry['params'].items():

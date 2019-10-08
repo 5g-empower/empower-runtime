@@ -41,7 +41,7 @@ from empower.cli.lteslices import pa_list_lte_slices, do_list_lte_slices, \
 from empower.cli.applications import pa_list_apps, do_list_apps, \
     do_list_apps_catalog, pa_load_app, do_load_app, pa_unload_app, \
     do_unload_app, pa_unload_all_apps, do_unload_all_apps, pa_set_app_params, \
-    do_set_app_params
+    do_set_app_params, pa_set_app_attribute, do_set_app_attribute
 
 from empower.cli.workers import do_list_workers, do_list_workers_catalog, \
     pa_load_worker, do_load_worker, pa_unload_worker, do_unload_worker, \
@@ -176,6 +176,7 @@ CMDS = {
     'unload-app': (pa_unload_app, do_unload_app),
     'unload-all-apps': (pa_unload_all_apps, do_unload_all_apps),
     'set-app-params': (pa_set_app_params, do_set_app_params),
+    'set-app-attribute': (pa_set_app_attribute, do_set_app_attribute),
 
     'load-worker': (pa_load_worker, do_load_worker),
     'unload-worker': (pa_unload_worker, do_unload_worker),
@@ -216,7 +217,8 @@ DESCS = {
     'load-app': "Load an application",
     'unload-app': "Unload an application",
     'unload-all-apps': "Unload all applications",
-    'set-app-params': "Set application parameter",
+    'set-app-params': "Set application parameters",
+    'set-app-attribute': "Set an attribute of an app",
 
     'load-worker': "Load a worker",
     'unload-worker': "Unload a worker",

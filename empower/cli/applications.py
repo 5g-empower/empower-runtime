@@ -17,6 +17,7 @@
 
 """Services CLI tools."""
 
+import json
 import sys
 import uuid
 import argparse
@@ -222,7 +223,8 @@ def do_unload_all_apps(gargs, args, leftovers):
 def pa_set_app_params(args, cmd):
     """Set application param parser method. """
 
-    usage = "%s <project_id> <app_id> <params>" % command.USAGE.format(cmd)
+    usage = "%s <project_id> <app_id> --param1=value --param2=value" % \
+        command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
     (args, leftovers) = \
         argparse.ArgumentParser(usage=usage,
@@ -272,3 +274,36 @@ def do_set_app_params(gargs, args, leftovers):
         accum.append("\n    %s: %s" % (k, val))
 
     print(''.join(accum))
+
+
+def pa_set_app_attribute(args, cmd):
+    """Set application attribute parser method. """
+
+    usage = "%s <project_id> <app_id> <attribute> <value>" \
+        % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+    (args, leftovers) = \
+        argparse.ArgumentParser(usage=usage,
+                                description=desc).parse_known_args(args)
+    return args, leftovers
+
+
+def do_set_app_attribute(gargs, args, leftovers):
+    """Set an attribute of an application. """
+
+    if len(leftovers) < 4:
+        print("Invalid parameter, run help set-app-attribute")
+        command.print_available_cmds()
+        sys.exit()
+
+    headers = command.get_headers(gargs)
+
+    project_id = uuid.UUID(leftovers[0])
+    app_id = uuid.UUID(leftovers[1])
+    attribute = leftovers[2]
+    request = json.loads(leftovers[3])
+
+    url = '/api/v1/projects/%s/apps/%s/%s' % (project_id, app_id, attribute)
+    command.connect(gargs, ('PUT', url), 204, request, headers=headers)
+
+    print("app id %s attribute %s UPDATED" % (app_id, attribute))
