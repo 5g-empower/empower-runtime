@@ -18,6 +18,7 @@
 """SDN@Play Multicast Manager."""
 
 import sys
+import json
 
 from empower.core.app import EApp
 from empower.core.app import EVERY
@@ -90,6 +91,8 @@ class Mcast(EApp):
         if not service:
             return
 
+        print(service)
+
         status = service["status"]
         serv_type = service["type"]
         addr = self.mcast_ip_to_ether(service["ip"])
@@ -104,7 +107,7 @@ class Mcast(EApp):
                 "mcs": 6,
                 "schedule": schedule,
                 "receivers": [EtherAddress(x) for x in service["receivers"]],
-                "status": status,
+                "status": json.loads(status),
                 "type": serv_type
             }
 
@@ -112,8 +115,9 @@ class Mcast(EApp):
 
         else:
 
-            self._mcast_services[addr]["receivers"] = service["receivers"]
-            self._mcast_services[addr]["status"] = status
+            self._mcast_services[addr]["receivers"] = \
+                [EtherAddress(x) for x in service["receivers"]]
+            self._mcast_services[addr]["status"] = json.loads(status)
             self._mcast_services[addr]["type"] = serv_type
 
     def set_default_services(self):
@@ -121,39 +125,31 @@ class Mcast(EApp):
 
         self.mcast_services = {
             "ip": "224.0.200.220",
-            "mcs": 6,
-            "schedule": self.schedule[0::] + self.schedule[:0:],
             "receivers": ["18:5E:0F:E3:B8:68", "18:5E:0F:E3:B8:45"],
-            "status": True,
+            "status": "true",
             "type": "safety"
         }
 
         self.mcast_services = {
             "ip": "224.0.200.221",
-            "mcs": 6,
-            "schedule": self.schedule[-1:] + self.schedule[:-1],
             "receivers": ["00:24:D7:72:AB:BC", "00:24:D7:35:06:18",
                           "00:24:D7:07:F3:1C"],
-            "status": False,
+            "status": "false",
             "type": "safety"
         }
 
         self.mcast_services = {
             "ip": "224.0.200.222",
-            "mcs": 6,
-            "schedule": self.schedule[-2:] + self.schedule[:-2],
             "receivers": ["18:5E:0F:E3:B8:68", "00:24:D7:35:06:18",
                           "00:24:D7:07:F3:1C"],
-            "status": False,
+            "status": "false",
             "type": "flight"
         }
 
         self.mcast_services = {
             "ip": "224.0.200.223",
-            "mcs": 6,
-            "schedule": self.schedule[-3:] + self.schedule[:-3],
             "receivers": ["00:24:D7:72:AB:BC", "18:5E:0F:E3:B8:45"],
-            "status": True,
+            "status": "true",
             "type": "flight"
         }
 
@@ -351,7 +347,12 @@ class Mcast(EApp):
 
                     # compute MCS
                     temp_mcs = self.calculate_group_mcs(entry["receivers"])
-                    mcs = max(temp_mcs, min(block.supports))
+
+                    if block.band == BT_HT20:
+                        mcs = max(temp_mcs, min(block.ht_supports))
+                    else:
+                        mcs = max(temp_mcs, min(block.supports))
+
                     entry['mcs'] = mcs
                     txp.mcast = TX_MCAST_LEGACY
 

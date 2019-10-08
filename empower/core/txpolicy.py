@@ -19,6 +19,8 @@
 
 import logging
 
+from empower.core.resourcepool import BT_HT20
+
 TX_AMSDU_LEN_4K = 3839
 TX_AMSDU_LEN_8K = 7935
 
@@ -250,11 +252,20 @@ class TxPolicy:
         mcs = ", ".join([str(x) for x in self.mcs])
         ht_mcs = ", ".join([str(x) for x in self.ht_mcs])
 
-        return \
-            "%s no_ack %s rts_cts %u max_amsdu_len %u mcast %s ur_count %u " \
-            "mcs %s ht_mcs %s" % \
-            (self.addr, self.no_ack, self.rts_cts, self.max_amsdu_len,
-             TX_MCAST[self.mcast], self.ur_count, mcs, ht_mcs)
+        if self.block.band == BT_HT20:
+            state = \
+                "%s no_ack %s rts_cts %u max_amsdu %u mcast %s ur_count %u " \
+                "ht_mcs %s" % \
+                (self.addr, self.no_ack, self.rts_cts, self.max_amsdu_len,
+                 TX_MCAST[self.mcast], self.ur_count, ht_mcs)
+        else:
+            state = \
+                "%s no_ack %s rts_cts %u max_amsdu %u mcast %s ur_count %u " \
+                "mcs %s" % \
+                (self.addr, self.no_ack, self.rts_cts, self.max_amsdu_len,
+                 TX_MCAST[self.mcast], self.ur_count, mcs)
+
+        return state
 
     def __str__(self):
         return self.to_str()
