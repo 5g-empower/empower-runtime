@@ -72,18 +72,40 @@ class Mcast(EApp):
         self.current = 0
         self.dms = 1
         self.legacy = 9
-        self.schedule = [TX_MCAST_DMS] * self.dms + \
+        self.schedule = \
+            [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy  # --> [DMS, LEGACY, LEGACY...]
         self._demo_mode = TX_MCAST_SDNPLAY_H
-        self._mcast_services = {}
         self._services_registered = 0
         self.status = {}
+
+    def set_storage(self, storage):
+        """Load the storage from db."""
+
+        self.storage['mcast_services'] = {}
+
+        if 'mcast_services' not in storage:
+            return
+
+        for service in storage['mcast_services'].values():
+
+            addr = EtherAddress(service["addr"])
+
+            self.storage['mcast_services'][addr] = {
+                "addr": addr,
+                "ip": service["ip"],
+                "mcs": service['mcs'],
+                "schedule": service['schedule'],
+                "receivers": [EtherAddress(x) for x in service["receivers"]],
+                "status": service['status'],
+                "type": service['type']
+            }
 
     @property
     def mcast_services(self):
         """Get mcast_services."""
 
-        return self._mcast_services
+        return self.storage['mcast_services']
 
     @mcast_services.setter
     def mcast_services(self, service):
@@ -91,34 +113,35 @@ class Mcast(EApp):
         if not service:
             return
 
-        print(service)
-
         status = service["status"]
-        serv_type = service["type"]
+        service_type = service["type"]
         addr = self.mcast_ip_to_ether(service["ip"])
 
-        if addr not in self._mcast_services:
+        if addr not in self.mcast_services:
 
             schedule = self.schedule[-self._services_registered:] + \
                     self.schedule[:-self._services_registered]
 
-            self._mcast_services[addr] = {
+            self.mcast_services[addr] = {
+                "addr": addr,
                 "ip": service["ip"],
                 "mcs": 6,
                 "schedule": schedule,
                 "receivers": [EtherAddress(x) for x in service["receivers"]],
                 "status": json.loads(status),
-                "type": serv_type
+                "type": service_type
             }
 
             self._services_registered += 1
 
         else:
 
-            self._mcast_services[addr]["receivers"] = \
+            self.mcast_services[addr]["receivers"] = \
                 [EtherAddress(x) for x in service["receivers"]]
-            self._mcast_services[addr]["status"] = json.loads(status)
-            self._mcast_services[addr]["type"] = serv_type
+            self.mcast_services[addr]["status"] = json.loads(status)
+            self.mcast_services[addr]["type"] = service_type
+
+        self.save_service_state()
 
     def set_default_services(self):
         """Configure some default services."""
@@ -165,10 +188,7 @@ class Mcast(EApp):
 
         self._demo_mode = mode
 
-        if not self._mcast_services:
-            return
-
-        for addr, entry in self._mcast_services.items():
+        for addr, entry in self.mcast_services.items():
 
             phase = self.get_next_group_phase(addr)
 
@@ -274,7 +294,7 @@ class Mcast(EApp):
     def get_next_group_phase(self, mcast_addr):
         """Get next mcast phase to be scheduled."""
 
-        schedule = self._mcast_services[mcast_addr]["schedule"]
+        schedule = self.mcast_services[mcast_addr]["schedule"]
         phase = schedule[self.current % len(self.schedule)]
         self.current += 1
 
@@ -315,13 +335,9 @@ class Mcast(EApp):
 
             return
 
-        if not self.mcast_services:
-            self.set_default_services()
-            return
-
         for block in self.blocks():
 
-            for addr, entry in self._mcast_services.items():
+            for addr, entry in self.mcast_services.items():
 
                 phase = self.get_next_group_phase(addr)
 

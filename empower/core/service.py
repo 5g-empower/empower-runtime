@@ -62,6 +62,11 @@ class EService:
         for param in kwargs:
             setattr(self, param, kwargs[param])
 
+    def set_storage(self, storage):
+        """Load the storage from db."""
+
+        self.storage = storage
+
     def save_service_state(self):
         """Save service state."""
 
@@ -104,7 +109,6 @@ class EService:
 
         output['name'] = self.name
         output['params'] = self.params
-        output['storage'] = self.storage
 
         return output
 

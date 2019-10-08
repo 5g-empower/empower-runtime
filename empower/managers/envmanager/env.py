@@ -99,7 +99,8 @@ class Env(MongoModel):
             "params": serialize.serialize(service.params)
         }
 
-        self.storage[str(service.service_id)] = service.storage
+        self.storage[str(service.service_id)] = \
+            serialize.serialize(service.storage)
 
         self.save()
 
@@ -180,7 +181,7 @@ class Env(MongoModel):
         service.context = self
 
         # set storage
-        service.storage = storage
+        service.set_storage(storage)
 
         # register handlers
         for handler in service.HANDLERS:
@@ -210,7 +211,6 @@ class Env(MongoModel):
 
         output['project_id'] = self.project_id
         output['bootstrap'] = self.bootstrap
-        output['storage'] = self.storage
 
         return output
 
