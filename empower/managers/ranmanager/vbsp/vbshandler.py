@@ -99,7 +99,12 @@ class VBSHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        device = self.service.create(**kwargs)
+        addr = EtherAddress(kwargs['addr'])
+
+        if 'desc' in kwargs:
+            device = self.service.create(addr, kwargs['desc'])
+        else:
+            device = self.service.create(addr)
 
         self.set_header("Location", "/api/v1/vbses/%s" % device.addr)
 
