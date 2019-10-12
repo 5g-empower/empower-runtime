@@ -23,6 +23,8 @@ from datetime import timedelta
 from construct import Struct, Int8ub, Int16ub, Int32ub, Int64ub, Bytes, Array
 from construct import Container
 
+from itertools import groupby
+
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.worker import EWorker
@@ -161,6 +163,29 @@ class ChannelStats(EWorker):
         # update wifi_stats module
         block = wtp.blocks[block_id]
         block.channel_stats = self.channel_stats[block_id]
+
+        # save samples
+        get_ts = lambda x: x["time"].timestamp()
+        sorted_samples = sorted(block.channel_stats, key=get_ts)
+        samples = []
+
+        for ts, sample_fields in groupby(sorted_samples, get_ts):
+            fields = {}
+            for item in sample_fields:
+                fields[item["type"]] = item["value"]
+
+            tags = self.params
+            tags["block_id"] = block_id
+
+            sample = {
+                "measurement": self.name,
+                "tags": tags,
+                "time": datetime.fromtimestamp(ts),
+                "fields": fields
+            }
+            samples.append(sample)
+
+        self.write_points(samples)
 
         # handle callbacks
         self.handle_callbacks()
