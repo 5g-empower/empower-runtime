@@ -103,12 +103,13 @@ class Mcast(EApp):
 
     @property
     def mcast_services(self):
-        """Get mcast_services."""
+        """Get the list of active mcast services."""
 
         return self.storage['mcast_services']
 
     @mcast_services.setter
     def mcast_services(self, service):
+        """Set the list of active mcast services."""
 
         if not service:
             return
