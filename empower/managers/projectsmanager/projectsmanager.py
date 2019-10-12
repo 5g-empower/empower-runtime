@@ -19,7 +19,6 @@
 
 import empower.apps
 import empower.primitives
-import empower.tutorials
 
 from empower.main import srv_or_die
 from empower.core.service import EService
@@ -70,7 +69,6 @@ class ProjectsManager(EService):
 
         results.update(self.walk_module(empower.apps))
         results.update(self.walk_module(empower.primitives))
-        results.update(self.walk_module(empower.tutorials))
 
         return results
 

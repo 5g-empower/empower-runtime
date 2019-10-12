@@ -17,12 +17,9 @@
 
 """Applications unit tests."""
 
-import json
 import unittest
-import requests
 
 from .common import BaseTest
-from .common import URL
 
 
 class TestApplications(BaseTest):
@@ -50,7 +47,7 @@ class TestApplications(BaseTest):
                   "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps"), 200)
 
         data = {
-            "name": "empower.tutorials.events.events",
+            "name": "empower.apps.helloworld.helloworld",
         }
 
         params = \
@@ -95,7 +92,7 @@ class TestApplications(BaseTest):
                   "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps"), 200)
 
         data = {
-            "name": "empower.tutorials.events.events",
+            "name": "empower.apps.helloworld.helloworld",
             "params": {}
         }
 
@@ -109,7 +106,7 @@ class TestApplications(BaseTest):
         self.get(params, 200)
 
         data = {
-            "name": "empower.tutorials.events.events",
+            "name": "empower.apps.helloworld.helloworld",
             "params": {}
         }
 
@@ -171,7 +168,7 @@ class TestApplications(BaseTest):
                   "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps"), 200)
 
         data = {
-            "name": "empower.tutorials.events.events",
+            "name": "empower.apps.helloworld.helloworld",
             "params": {}
         }
 
