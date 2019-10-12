@@ -35,15 +35,17 @@ from empower.managers.projectsmanager.appshandler import AppsHandler
 from empower.managers.projectsmanager.appshandler import AppAttributesHandler
 
 from empower.managers.projectsmanager.projectshandler import ProjectsHandler, \
-    ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler, ProjectLVAPsHandler
+    ProjectsWiFiACLHandler, ProjectsWiFiSlicesHandler, \
+    ProjectsLTESlicesHandler, ProjectLVAPsHandler
 
 
 class ProjectsManager(EService):
     """Projects manager."""
 
     HANDLERS = [CatalogHandler, AppsHandler, AppAttributesHandler,
-                ProjectsHandler, ProjectsWiFiSlicesHandler,
-                ProjectsLTESlicesHandler, ProjectLVAPsHandler]
+                ProjectsHandler, ProjectsWiFiACLHandler,
+                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler,
+                ProjectLVAPsHandler]
 
     projects = {}
     accounts_manager = None
