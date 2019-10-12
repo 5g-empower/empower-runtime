@@ -128,7 +128,6 @@ class ResourceBlock:
         self.ucqm = {}
         self.ncqm = {}
         self.channel_stats = {}
-        self.slice_stats = {}
 
         if self.channel > 14:
             self.supports = [6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
