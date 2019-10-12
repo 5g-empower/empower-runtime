@@ -26,9 +26,12 @@ from argparse import ArgumentParser
 
 import requests
 
-from empower.cli.devices import do_list_wtps, do_list_vbses
+from empower.cli.devices import do_list_wtps, do_list_vbses, do_add_wtp, \
+    pa_add_wtp, do_add_vbs, pa_add_vbs, do_del_vbs, pa_del_vbs, do_del_wtp, \
+    pa_del_wtp
 
-from empower.cli.projects import do_list_projects
+from empower.cli.projects import do_list_projects, do_create_project, \
+    pa_create_project, do_delete_project, pa_delete_project
 
 from empower.cli.wifislices import pa_list_wifi_slices, do_list_wifi_slices, \
     pa_upsert_wifi_slice, do_upsert_wifi_slice, pa_delete_wifi_slice, \
@@ -47,6 +50,8 @@ from empower.cli.workers import do_list_workers, do_list_workers_catalog, \
     pa_load_worker, do_load_worker, pa_unload_worker, do_unload_worker, \
     do_unload_all_workers, pa_set_worker_params, do_set_worker_params
 
+from empower.core.serialize import serialize
+
 
 def connect(gargs, cmd, expected=200, request=None, headers=None):
     """ Run command. """
@@ -57,7 +62,7 @@ def connect(gargs, cmd, expected=200, request=None, headers=None):
     url = "%s://%s:%s" % (gargs.transport, gargs.host, gargs.port)
     method = getattr(requests, cmd[0].lower())
 
-    response = method(url + cmd[1], headers=headers, json=request)
+    response = method(url + cmd[1], headers=headers, json=serialize(request))
 
     try:
         data = json.loads(response.text)
@@ -107,7 +112,7 @@ def get_params(leftovers):
 
     params = {}
 
-    for param in leftovers[2:]:
+    for param in leftovers:
         tokens = param.split("=")
         if len(tokens) != 2:
             continue
@@ -156,9 +161,16 @@ CMDS = {
     'list-apps-catalog': (pa_none, do_list_apps_catalog),
     'list-workers-catalog': (pa_none, do_list_workers_catalog),
 
+    'add-wtp': (pa_add_wtp, do_add_wtp),
+    'add-vbs': (pa_add_vbs, do_add_vbs),
+    'del-wtp': (pa_del_wtp, do_del_wtp),
+    'del-vbs': (pa_del_vbs, do_del_vbs),
+
     'list-wtps': (pa_none, do_list_wtps),
     'list-vbses': (pa_none, do_list_vbses),
 
+    'create-project': (pa_create_project, do_create_project),
+    'delete-project': (pa_delete_project, do_delete_project),
     'list-projects': (pa_none, do_list_projects),
 
     'list-workers': (pa_none, do_list_workers),
@@ -195,6 +207,13 @@ URL = "%s://%s%s:%s"
 DESCS = {
     'help': "Print help message.",
 
+    'add-wtp': "Add a new WTP.",
+    'add-vbs': "Add a new VBS.",
+    'del-wtp': "Del a new WTP.",
+    'del-vbs': "Del a new VBS.",
+    'create-project': "Create a new project.",
+    'delete-project': "Delete a project.",
+
     'list-wtps': "List WTPs.",
     'list-vbses': "List VBSes.",
     'list-workers': "List active workers.",
@@ -230,7 +249,7 @@ DESCS = {
 def parse_global_args(arglist):
     """ Parse global arguments list. """
 
-    usage = "%s [options] command [command_args]" % sys.argv[0]
+    usage = "%s [options] command [command options]" % sys.argv[0]
     args = []
 
     while arglist and arglist[0] not in CMDS:

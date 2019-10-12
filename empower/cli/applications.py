@@ -28,24 +28,25 @@ import empower.cli.command as command
 def pa_list_apps(args, cmd):
     """List applications parser method. """
 
-    usage = "%s <project_id>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
-def do_list_apps(gargs, args, leftovers):
+def do_list_apps(gargs, args, _):
     """List currently running application. """
 
-    if len(leftovers) != 1:
-        print("Invalid parameter, run help list-applications")
-        command.print_available_cmds()
-        sys.exit()
-
-    project_id = uuid.UUID(leftovers[0])
-    url = '/api/v1/projects/%s/apps' % project_id
+    url = '/api/v1/projects/%s/apps' % args.project_id
     _, data = command.connect(gargs, ('GET', url), 200)
 
     for entry in data.values():
@@ -66,7 +67,7 @@ def do_list_apps(gargs, args, leftovers):
         print(''.join(accum))
 
 
-def do_list_apps_catalog(gargs, args, leftovers):
+def do_list_apps_catalog(gargs, *_):
     """List application that can be loaded. """
 
     url = '/api/v1/projects/catalog'
@@ -100,36 +101,36 @@ def do_list_apps_catalog(gargs, args, leftovers):
 def pa_load_app(args, cmd):
     """Load application parser method. """
 
-    usage = "%s <project_id> <app_name> <params>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    required.add_argument('-n', '--name', help='The app name',
+                          required=True, type=str, dest="name")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
 def do_load_app(gargs, args, leftovers):
     """Load and application. """
 
-    params = command.get_params(leftovers)
-
-    if len(leftovers) < 2:
-        print("Invalid parameter, run help load-app")
-        command.print_available_cmds()
-        sys.exit()
-
     request = {
         "version": "1.0",
-        "name": leftovers[1],
+        "name": args.name,
+        "params": command.get_params(leftovers)
     }
-
-    if params:
-        request['params'] = params
 
     headers = command.get_headers(gargs)
 
-    project_id = uuid.UUID(leftovers[0])
-    url = '/api/v1/projects/%s/apps' % project_id
+    url = '/api/v1/projects/%s/apps' % args.project_id
     response, _ = command.connect(gargs, ('POST', url), 201, request,
                                   headers=headers)
 
@@ -137,7 +138,7 @@ def do_load_app(gargs, args, leftovers):
     tokens = location.split("/")
     app_id = tokens[-1]
 
-    url = '/api/v1/projects/%s/apps/%s' % (project_id, app_id)
+    url = '/api/v1/projects/%s/apps/%s' % (args.project_id, app_id)
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     accum = []
@@ -159,62 +160,64 @@ def do_load_app(gargs, args, leftovers):
 def pa_unload_app(args, cmd):
     """Unload application parser method. """
 
-    usage = "%s <project_id> <app_id>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    required.add_argument('-a', '--app_id', help='The app id',
+                          required=True, type=uuid.UUID, dest="app_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
-def do_unload_app(gargs, args, leftovers):
+def do_unload_app(gargs, args, _):
     """Unload and application. """
 
-    if len(leftovers) != 2:
-        print("Invalid parameter, run help load-application")
-        command.print_available_cmds()
-        sys.exit()
-
-    project_id = uuid.UUID(leftovers[0])
-    app_id = uuid.UUID(leftovers[1])
-
-    url = '/api/v1/projects/%s/apps/%s' % (project_id, app_id)
+    url = '/api/v1/projects/%s/apps/%s' % (args.project_id, args.app_id)
     command.connect(gargs, ('DELETE', url), 204)
 
-    print("app id %s status STOPPED" % leftovers[1])
+    print("app id %s status STOPPED" % args.app_id)
 
 
 def pa_unload_all_apps(args, cmd):
     """Unload application parser method. """
 
-    usage = "%s <project_id> <app_id>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
-def do_unload_all_apps(gargs, args, leftovers):
+def do_unload_all_apps(gargs, args, _):
     """Unload and application. """
-
-    if len(leftovers) != 1:
-        print("Invalid parameter, run help load-application")
-        command.print_available_cmds()
-        sys.exit()
-
-    project_id = uuid.UUID(leftovers[0])
 
     headers = command.get_headers(gargs)
 
-    url = '/api/v1/projects/%s/apps' % project_id
+    url = '/api/v1/projects/%s/apps' % args.project_id
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     for entry in data.values():
 
         app_id = entry['params']['service_id']
 
-        url = '/api/v1/projects/%s/apps/%s' % (project_id, app_id)
+        url = '/api/v1/projects/%s/apps/%s' % (args.project_id, app_id)
         command.connect(gargs, ('DELETE', url), 204, headers=headers)
 
         print("app id %s status STOPPED" % app_id)
@@ -223,41 +226,38 @@ def do_unload_all_apps(gargs, args, leftovers):
 def pa_set_app_params(args, cmd):
     """Set application param parser method. """
 
-    usage = "%s <project_id> <app_id> --param1=value --param2=value" % \
-        command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    required.add_argument('-a', '--app_id', help='The app id',
+                          required=True, type=uuid.UUID, dest="app_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
 def do_set_app_params(gargs, args, leftovers):
     """Set application parameters. """
 
-    params = command.get_params(leftovers)
-
-    if len(leftovers) < 2:
-        print("Invalid parameter, run help set-app-params")
-        command.print_available_cmds()
-        sys.exit()
-
     request = {
         "version": "1.0",
+        "params": command.get_params(leftovers)
     }
-
-    if params:
-        request['params'] = params
 
     headers = command.get_headers(gargs)
 
-    project_id = uuid.UUID(leftovers[0])
-    app_id = uuid.UUID(leftovers[1])
-
-    url = '/api/v1/projects/%s/apps/%s' % (project_id, app_id)
+    url = '/api/v1/projects/%s/apps/%s' % (args.project_id, args.app_id)
     command.connect(gargs, ('PUT', url), 204, request, headers=headers)
 
-    url = '/api/v1/projects/%s/apps/%s' % (project_id, app_id)
+    url = '/api/v1/projects/%s/apps/%s' % (args.project_id, args.app_id)
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     accum = []

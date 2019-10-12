@@ -17,10 +17,180 @@
 
 """Devices CLI tools."""
 
+import argparse
+
 import empower.cli.command as command
 
+from empower.core.etheraddress import EtherAddress
 
-def do_list_wtps(gargs, args, leftovers):
+
+def pa_del_wtp(args, cmd):
+    """Del WTP parser method. """
+
+    usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--addr', help='The device address',
+                          required=True, type=EtherAddress, dest="addr")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
+    return args, leftovers
+
+
+def do_del_wtp(gargs, args, _):
+    """ Del a WTP """
+
+    url = '/api/v1/wtps/%s' % args.addr
+    command.connect(gargs, ('DELETE', url), 204)
+
+    print("Device id %s DELETED" % args.addr)
+
+
+def pa_del_vbs(args, cmd):
+    """Del VBS parser method. """
+
+    usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--addr', help='The device address',
+                          required=True, type=EtherAddress, dest="addr")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
+    return args, leftovers
+
+
+def do_del_vbs(gargs, args, _):
+    """ Del a VBS """
+
+    url = '/api/v1/vbses/%s' % args.addr
+    command.connect(gargs, ('DELETE', url), 204)
+
+    print("Device id %s DELETED" % args.addr)
+
+
+def pa_add_vbs(args, cmd):
+    """Add VBS parser method. """
+
+    usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--addr', help='The device address',
+                          required=True, type=EtherAddress, dest="addr")
+
+    parser.add_argument("-d", "--desc", dest="desc", type=str, default=None,
+                        help="A human readable description of the device")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
+    return args, leftovers
+
+
+def do_add_vbs(gargs, args, _):
+    """ Add a new VBS """
+
+    request = {
+        "version": "1.0",
+        "addr": args.addr
+    }
+
+    if args.desc:
+        request["desc"] = args.desc
+
+    headers = command.get_headers(gargs)
+
+    url = '/api/v1/vbses'
+    response, _ = command.connect(gargs, ('POST', url), 201, request,
+                                  headers=headers)
+
+    location = response.headers['Location']
+    tokens = location.split("/")
+    addr = tokens[-1]
+
+    url = '/api/v1/vbses/%s' % addr
+    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
+
+    accum = []
+
+    accum.append("addr ")
+    accum.append(data['addr'])
+    accum.append(" desc \"")
+    accum.append(data['desc'])
+    accum.append("\" ADDED")
+
+    print(''.join(accum))
+
+
+def pa_add_wtp(args, cmd):
+    """Add WTP parser method. """
+
+    usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--addr', help='The device address',
+                          required=True, type=EtherAddress, dest="addr")
+
+    parser.add_argument("-d", "--desc", dest="desc", type=str, default=None,
+                        help="A human readable description of the device")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
+    return args, leftovers
+
+
+def do_add_wtp(gargs, args, _):
+    """ Add a new WTP """
+
+    request = {
+        "version": "1.0",
+        "addr": args.addr
+    }
+
+    if args.desc:
+        request["desc"] = args.desc
+
+    headers = command.get_headers(gargs)
+
+    url = '/api/v1/wtps'
+    response, _ = command.connect(gargs, ('POST', url), 201, request,
+                                  headers=headers)
+
+    location = response.headers['Location']
+    tokens = location.split("/")
+    addr = tokens[-1]
+
+    url = '/api/v1/wtps/%s' % addr
+    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
+
+    accum = []
+
+    accum.append("addr ")
+    accum.append(data['addr'])
+    accum.append(" desc \"")
+    accum.append(data['desc'])
+    accum.append("\" ADDED")
+
+    print(''.join(accum))
+
+
+def do_list_wtps(gargs, *_):
     """ List the WTPs. """
 
     _, data = command.connect(gargs, ('GET', '/api/v1/wtps'), 200)
@@ -49,7 +219,7 @@ def do_list_wtps(gargs, args, leftovers):
         print(''.join(accum))
 
 
-def do_list_vbses(gargs, args, leftovers):
+def do_list_vbses(gargs, *_):
     """ List the VBSes. """
 
     _, data = command.connect(gargs, ('GET', '/api/v1/vbses'), 200)
