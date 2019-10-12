@@ -281,6 +281,39 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
 
 
 # pylint: disable=W0223
+class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
+    """Wi-Fi ACL handler"""
+
+    URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/wifi_acl/?",
+            r"/api/v1/projects/([a-zA-Z0-9-]*)/wifi_acl/([a-zA-Z0-9:]*)/?"]
+
+    @apimanager.validate(min_args=1, max_args=1)
+    def get(self, *args, **kwargs):
+        """Lists all clients in the ACL.
+
+        Args:
+
+            [0], the project id (mandatory)
+
+        Example URLs:
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/
+
+            [
+                "60:57:18:B1:A4:B8",
+                "18:5E:0F:E3:B8:68",
+                "60:F4:45:D0:3B:FC"
+            ]
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        return project.wifi_props.allowed
+
+
+# pylint: disable=W0223
 class ProjectsWiFiSlicesHandler(apimanager.EmpowerAPIHandler):
     """Wi-Fi slices handler"""
 
