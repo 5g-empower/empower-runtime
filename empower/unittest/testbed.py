@@ -92,7 +92,7 @@ class TestTestbed(BaseTest):
             params = ("root", "root", "/vbses")
             self.post(params, data, 201)
 
-        # ALIX 2C
+        # ALIX 2D
         addrs = ["00:0D:B9:2F:56:64", "00:0D:B9:2F:56:58", "00:0D:B9:2F:56:5C",
                  "00:0D:B9:2F:56:B4", "00:0D:B9:2F:55:CC", "00:0D:B9:2F:63:78",
                  "00:0D:B9:30:3E:04", "00:0D:B9:30:3E:18", "00:0D:B9:2F:56:BC",
@@ -101,35 +101,6 @@ class TestTestbed(BaseTest):
             data = {"addr": addr, "desc": "PC Engines ALIX 2D"}
             params = ("root", "root", "/wtps")
             self.post(params, data, 201)
-
-        # ALIX 2C
-        addrs = ["00:0D:B9:2F:56:64", "00:0D:B9:2F:56:58", "00:0D:B9:2F:56:5C",
-                 "00:0D:B9:2F:56:B4", "00:0D:B9:2F:55:CC", "00:0D:B9:2F:63:78",
-                 "00:0D:B9:30:3E:04", "00:0D:B9:30:3E:18", "00:0D:B9:2F:56:BC",
-                 "00:0D:B9:2F:56:48"]
-        for addr in addrs:
-            data = {"addr": addr, "desc": "PC Engines ALIX 2D"}
-            params = ("root", "root", "/wtps")
-            self.post(params, data, 201)
-
-        # WDR4300
-        data = {"addr": "60:E3:27:B8:35:A5", "desc": "TP-Link WDR4300"}
-        params = ("root", "root", "/wtps")
-        self.post(params, data, 201)
-
-        # WNDR4300
-        data = {"addr": "60:E3:27:B8:35:A5", "desc": "Netgear WNDR 4300"}
-        params = ("root", "root", "/wtps")
-        self.post(params, data, 201)
-
-        # WNDR4300
-        data = {"addr": "C0:A0:BB:ED:84:81", "desc": "D-Link DIR505"}
-        params = ("root", "root", "/wtps")
-        self.post(params, data, 201)
-
-        data = {"addr": "C0:A0:BB:ED:86:77", "desc": "D-Link DIR505"}
-        params = ("root", "root", "/wtps")
-        self.post(params, data, 201)
 
 
 if __name__ == '__main__':
