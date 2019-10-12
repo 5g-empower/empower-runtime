@@ -17,6 +17,8 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
+from datetime import datetime
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -78,10 +80,6 @@ class RCStats(EApp):
         project_id: the project id as an UUID (mandatory)
         sta: the LVAP to track as an EtherAddress (mandatory)
         every: the loop period in ms (optional, default 2000ms)
-
-    Callbacks:
-        rates: called everytime new measurement is processed
-        best_prob: called everytime new measurement is processed
 
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
@@ -161,6 +159,9 @@ class RCStats(EApp):
         self.best_prob = None
         self.best_tp = None
 
+        # generate data points
+        points = []
+
         for entry in response.stats:
 
             rate = entry.rate if lvap.ht_caps else entry.rate / 2.0
@@ -177,16 +178,19 @@ class RCStats(EApp):
 
             self.rates[rate] = value
 
-            # log
-            row = [self.sta,
-                   rate,
-                   self.rates[rate]['prob'],
-                   self.rates[rate]['cur_prob'],
-                   self.rates[rate]['cur_tp'],
-                   self.rates[rate]['last_attempts'],
-                   self.rates[rate]['last_successes'],
-                   self.rates[rate]['hist_attempts'],
-                   self.rates[rate]['hist_successes']]
+            fields = {
+                "rate": rate,
+                **self.rates[rate]
+            }
+
+            sample = {
+                "measurement": self.name,
+                "tags": self.params,
+                "time": datetime.utcnow(),
+                "fields": fields
+            }
+
+            points.append(sample)
 
         # compute statistics
         self.best_prob = \
@@ -194,6 +198,9 @@ class RCStats(EApp):
 
         self.best_tp = \
             max(self.rates.keys(), key=(lambda key: self.rates[key]['cur_tp']))
+
+        # save to db
+        self.write_points(points)
 
         # handle callbacks
         self.handle_callbacks()

@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Tutorial: Hello! World."""
+"""Hello world app."""
 
 from empower.core.app import EVERY
 

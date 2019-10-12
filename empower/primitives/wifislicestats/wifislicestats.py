@@ -80,9 +80,6 @@ class SliceStats(EApp):
         slice_id: the slice to track (optinal, default 0)
         every: the loop period in ms (optional, default 2000ms)
 
-    Callbacks:
-        stats: called everytime new measurement is processed
-
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
@@ -169,7 +166,6 @@ class SliceStats(EApp):
                 'tx_bytes': entry.tx_bytes,
             }
 
-            # log
             fields = {
                 "wtp": wtp,
                 "iface_id": entry.iface_id,

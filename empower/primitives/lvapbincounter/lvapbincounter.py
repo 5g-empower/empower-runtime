@@ -77,9 +77,6 @@ class LVAPBinCounter(EApp):
         bins: the bins for the measurements (optional, default: [8192])
         every: the loop period in ms (optional, default 2000ms)
 
-    Callbacks:
-        counters: called everytime new measurement is processed
-
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {

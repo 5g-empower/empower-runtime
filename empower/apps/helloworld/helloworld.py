@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Tutorial: Hello! World."""
+"""Hello world app"""
 
 from empower.core.app import EApp
 from empower.core.app import EVERY
 
 
 class TutorialHelloWorld(EApp):
-    """Tutorial: Hello! World.
+    """Hello world app.
 
     This app simply prints to screen the message: "Hello! World."
 
