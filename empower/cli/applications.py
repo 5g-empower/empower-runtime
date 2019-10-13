@@ -279,31 +279,43 @@ def do_set_app_params(gargs, args, leftovers):
 def pa_set_app_attribute(args, cmd):
     """Set application attribute parser method. """
 
-    usage = "%s <project_id> <app_id> <attribute> <value>" \
-        % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID, dest="project_id")
+
+    required.add_argument('-a', '--app_id', help='The app id',
+                          required=True, type=uuid.UUID, dest="app_id")
+
+    required.add_argument('-k', '--attribute', help='The attribute name',
+                          required=True, type=str, dest="attribute")
+
+    required.add_argument('-v', '--value', help='The attribute value',
+                          required=True, type=str, dest="value")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
-def do_set_app_attribute(gargs, args, leftovers):
+def do_set_app_attribute(gargs, args, _):
     """Set an attribute of an application. """
 
-    if len(leftovers) < 4:
-        print("Invalid parameter, run help set-app-attribute")
-        command.print_available_cmds()
-        sys.exit()
+    request = {
+        "version": "1.0",
+        "value": args.value
+    }
 
     headers = command.get_headers(gargs)
 
-    project_id = uuid.UUID(leftovers[0])
-    app_id = uuid.UUID(leftovers[1])
-    attribute = leftovers[2]
-    request = json.loads(leftovers[3])
+    url = '/api/v1/projects/%s/apps/%s/%s' % \
+        (args.project_id, args.app_id, args.attribute)
 
-    url = '/api/v1/projects/%s/apps/%s/%s' % (project_id, app_id, attribute)
     command.connect(gargs, ('PUT', url), 204, request, headers=headers)
 
-    print("app id %s attribute %s UPDATED" % (app_id, attribute))
+    print("app id %s attribute %s UPDATED" % (args.app_id, args.attribute))
