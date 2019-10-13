@@ -32,8 +32,6 @@ from empower.core.resourcepool import BT_HT20
 TX_MCAST_SDNPLAY = 0x3
 TX_MCAST_SDNPLAY_H = "sdn@play"
 
-SERVICES = {}
-
 
 class Mcast(EApp):
     """SDN@Play Multicast Manager.
@@ -53,7 +51,7 @@ class Mcast(EApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.apps.wifimobilitymanager.wifimobilitymanager",
+            "name": "empower.apps.mcast.mcast",
             "params": {
                 "every": 2000
             }
@@ -79,27 +77,16 @@ class Mcast(EApp):
         self._services_registered = 0
         self.status = {}
 
-    def set_storage(self, storage):
-        """Load the storage from db."""
+    def reset_mcast_services(self, value=None):
+        """Import mcast services from db."""
 
         self.storage['mcast_services'] = {}
 
-        if 'mcast_services' not in storage:
+        if not value:
             return
 
-        for service in storage['mcast_services'].values():
-
-            addr = EtherAddress(service["addr"])
-
-            self.storage['mcast_services'][addr] = {
-                "addr": addr,
-                "ip": service["ip"],
-                "mcs": service['mcs'],
-                "schedule": service['schedule'],
-                "receivers": [EtherAddress(x) for x in service["receivers"]],
-                "status": service['status'],
-                "type": service['type']
-            }
+        for service in value.values():
+            self.mcast_services = service
 
     @property
     def mcast_services(self):
@@ -109,7 +96,17 @@ class Mcast(EApp):
 
     @mcast_services.setter
     def mcast_services(self, service):
-        """Set the list of active mcast services."""
+        """Add a new service.
+
+        Expects a dict with the following format:
+
+        {
+            "ip": "224.0.1.200",
+            "receivers": ["ff:ff:ff:ff:ff:ff"],
+            "status": True,
+            "type": "emergency"
+        }
+        """
 
         if not service:
             return
@@ -127,7 +124,7 @@ class Mcast(EApp):
                 "mcs": 6,
                 "schedule": schedule,
                 "receivers": [EtherAddress(x) for x in service["receivers"]],
-                "status": json.loads(service["status"]),
+                "status": service["status"],
                 "type": service["type"]
             }
 
@@ -137,7 +134,7 @@ class Mcast(EApp):
 
             self.mcast_services[addr]["receivers"] = \
                 [EtherAddress(x) for x in service["receivers"]]
-            self.mcast_services[addr]["status"] = json.loads(service["status"])
+            self.mcast_services[addr]["status"] = service["status"]
             self.mcast_services[addr]["type"] = service["type"]
 
         self.save_service_state()

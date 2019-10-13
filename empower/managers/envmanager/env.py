@@ -177,11 +177,15 @@ class Env(MongoModel):
         init_method = getattr(import_module(name), "launch")
         service = init_method(**params)
 
+        # add to service list
+        self.services[service_id] = service
+
         # set context
         service.context = self
 
         # set storage
-        service.set_storage(storage)
+        for attribute in storage:
+            service.reset_attribute(attribute, storage[attribute])
 
         # register handlers
         for handler in service.HANDLERS:
@@ -190,8 +194,6 @@ class Env(MongoModel):
 
         # start service
         service.start()
-
-        self.services[service_id] = service
 
         return service
 

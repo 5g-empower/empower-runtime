@@ -62,10 +62,15 @@ class EService:
         for param in kwargs:
             setattr(self, param, kwargs[param])
 
-    def set_storage(self, storage):
-        """Load the storage from db."""
+    def reset_attribute(self, attribute, value):
+        """Import attribute value from db."""
 
-        self.storage = storage
+        if hasattr(self, 'reset_' + attribute):
+            reset_attribute = getattr(self, 'reset_' + attribute)
+            reset_attribute(value)
+            return
+
+        setattr(self, attribute, value)
 
     def save_service_state(self):
         """Save service state."""

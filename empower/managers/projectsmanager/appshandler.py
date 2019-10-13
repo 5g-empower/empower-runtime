@@ -18,6 +18,7 @@
 """Exposes a RESTful interface ."""
 
 import uuid
+import json
 
 import empower.managers.apimanager.apimanager as apimanager
 
@@ -96,7 +97,7 @@ class AppAttributesHandler(apimanager.EmpowerAPIHandler):
             raise KeyError("'%s' object has no attribute '%s'" %
                            (service.__class__.__name__, args[2]))
 
-        return setattr(service, args[2], kwargs["value"])
+        return setattr(service, args[2], json.loads(kwargs["value"]))
 
 
 # pylint: disable=W0223
