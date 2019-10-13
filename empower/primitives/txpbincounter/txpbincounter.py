@@ -109,12 +109,19 @@ class TXPBinCounter(EApp):
         self.counters = {
             "tx_packets": [],
             "tx_bytes": [],
-            "tx_packets_per_second": [],
-            "tx_bytes_per_second": [],
+            "tx_pps": [],
+            "tx_bps": []
         }
 
         # Last seen time
         self.last = None
+
+    def __eq__(self, other):
+        if isinstance(other, TXPBinCounter):
+            return self.addr == other.addr and self.bins == other.bins and \
+                   self.iface_id == other.iface_id and \
+                   self.every == other.every
+        return False
 
     @property
     def iface_id(self):
@@ -264,22 +271,29 @@ class TXPBinCounter(EApp):
         """Handle BIN_COUNTERS_RESPONSE message."""
 
         # update this object
+
         tx_samples = response.stats[0:response.nb_tx]
+
         old_tx_bytes = self.counters["tx_bytes"]
+
         old_tx_packets = self.counters["tx_packets"]
 
         self.counters["tx_bytes"] = self.fill_bytes_samples(tx_samples)
+
         self.counters["tx_packets"] = self.fill_packets_samples(tx_samples)
 
-        self.counters["tx_bytes_per_second"] = [0.0] * len(self.bins)
-        self.counters["tx_packets_per_second"] = [0.0] * len(self.bins)
+        self.counters["tx_bps"] = [0.0] * len(self.bins)
+        self.counters["tx_pps"] = [0.0] * len(self.bins)
 
         if self.last:
+
             delta = time.time() - self.last
-            self.counters["tx_bytes_per_second"] = \
+
+            self.counters["tx_bps"] = \
                 self.update_stats(delta, old_tx_bytes,
                                   self.counters["tx_bytes"])
-            self.counters["tx_packets_per_second"] = \
+
+            self.counters["tx_pps"] = \
                 self.update_stats(delta, old_tx_packets,
                                   self.counters["tx_packets"])
 
@@ -293,8 +307,8 @@ class TXPBinCounter(EApp):
                 "bin": self.bins[idx],
                 "tx_bytes": self.counters["tx_bytes"][idx],
                 "tx_packets": self.counters["tx_packets"][idx],
-                "rx_bps": self.counters["rx_bps"][idx],
-                "rx_pps": self.counters["rx_pps"][idx]
+                "tx_bps": self.counters["tx_bps"][idx],
+                "tx_pps": self.counters["tx_pps"][idx]
             }
 
             sample = {
