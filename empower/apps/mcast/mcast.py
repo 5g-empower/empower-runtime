@@ -18,7 +18,10 @@
 """SDN@Play Multicast Manager."""
 
 import sys
+import uuid
 import json
+
+import empower.managers.apimanager.apimanager as apimanager
 
 from empower.core.app import EApp
 from empower.core.app import EVERY
@@ -31,6 +34,37 @@ from empower.core.resourcepool import BT_HT20
 
 TX_MCAST_SDNPLAY = 0x3
 TX_MCAST_SDNPLAY_H = "sdn@play"
+
+
+# pylint: disable=W0223
+class McastServicesHandler(apimanager.EmpowerAPIHandler):
+    """Access applications' attributes."""
+
+    URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"
+            "mcast_services"]
+
+    @apimanager.validate(min_args=2, max_args=2)
+    def get(self, *args, **kwargs):
+        """Access the mcast_services .
+
+        Args:
+
+            [0]: the project id (mandatory)
+            [1]: the app id (mandatory)
+
+        Example URLs:
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
+                mcast_services
+
+            [
+                {
+                    "last_run": "2019-08-23 09:46:52.361966"
+                }
+            ]
+        """
+
+        return self.service.mcast_services
 
 
 class Mcast(EApp):
@@ -58,6 +92,8 @@ class Mcast(EApp):
         }
     """
 
+    HANDLERS = [McastServicesHandler]
+
     def __init__(self, service_id, project_id, every=EVERY):
 
         super().__init__(service_id=service_id, project_id=project_id,
@@ -76,29 +112,12 @@ class Mcast(EApp):
         self._demo_mode = TX_MCAST_SDNPLAY_H
         self._services_registered = 0
         self.status = {}
-
-    def reset_mcast_services(self, value=None):
-        """Import mcast services from db."""
-
         self.storage['mcast_services'] = {}
 
-        if not value:
-            return
+    def upsert_mcast_service(self, service):
+        """Update/insert new mcast services.
 
-        for service in value.values():
-            self.mcast_services = service
-
-    @property
-    def mcast_services(self):
-        """Get the list of active mcast services."""
-
-        return self.storage['mcast_services']
-
-    @mcast_services.setter
-    def mcast_services(self, service):
-        """Add a new service.
-
-        Expects a dict with the following format:
+        Expected input:
 
         {
             "ip": "224.0.1.200",
@@ -107,9 +126,6 @@ class Mcast(EApp):
             "type": "emergency"
         }
         """
-
-        if not service:
-            return
 
         addr = self.mcast_ip_to_ether(service["ip"])
 
@@ -137,7 +153,43 @@ class Mcast(EApp):
             self.mcast_services[addr]["status"] = service["status"]
             self.mcast_services[addr]["type"] = service["type"]
 
-        self.save_service_state()
+        return addr
+
+    def delete_mcast_service(self, addr):
+        """Delete an mcast service."""
+
+        if addr in self.mcast_services:
+            del self.mcast_services[addr]
+
+    @property
+    def mcast_services(self):
+        """Get the list of active mcast services."""
+
+        return self.storage['mcast_services']
+
+    @mcast_services.setter
+    def mcast_services(self, services):
+        """Set the list of mcast services.
+
+        Notice that this setter expects to receive the full list of services
+        which is then parsed and saved locally.
+
+        The following format is expected
+
+        {
+            "ff:ff:ff:ff:ff:ff": {
+                "ip": "224.0.1.200",
+                "receivers": ["ff:ff:ff:ff:ff:ff"],
+                "status": True,
+                "type": "emergency"
+            }
+        }
+        """
+
+        self.storage['mcast_services'] = {}
+
+        for service in services.values():
+            self.upsert_mcast_service(service)
 
     @property
     def demo_mode(self):

@@ -113,9 +113,9 @@ class Env(MongoModel):
         params['service_id'] = service_id
         params['project_id'] = self.project_id
 
-        storage = {}
+        self.start_service(service_id, name, params)
 
-        self.start_service(service_id, name, params, storage)
+        # Save service state
         self.save_service_state(service_id)
 
         return self.services[service_id]
@@ -128,6 +128,7 @@ class Env(MongoModel):
 
         self.stop_service(service_id)
 
+        # Remove service state
         del self.bootstrap[str(service_id)]
         del self.storage[str(service_id)]
 
@@ -167,7 +168,7 @@ class Env(MongoModel):
         for service_id in self.bootstrap:
             self.stop_service(uuid.UUID(service_id))
 
-    def start_service(self, service_id, name, params, storage):
+    def start_service(self, service_id, name, params, storage=None):
         """Start a service."""
 
         if service_id in self.services:
@@ -184,8 +185,7 @@ class Env(MongoModel):
         service.context = self
 
         # set storage
-        for attribute in storage:
-            service.reset_attribute(attribute, storage[attribute])
+        service.set_storage(storage)
 
         # register handlers
         for handler in service.HANDLERS:
@@ -213,6 +213,7 @@ class Env(MongoModel):
 
         output['project_id'] = self.project_id
         output['bootstrap'] = self.bootstrap
+        output['storage'] = self.storage
 
         return output
 
