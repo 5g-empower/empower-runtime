@@ -37,20 +37,19 @@ class VBSPManager(RANManager):
 
     HANDLERS = [VBSHandler]
 
-    def __init__(self, **kwargs):
+    def __init__(self, context, service_id, port=DEFAULT_PORT):
 
-        if 'port' not in kwargs:
-            kwargs['port'] = DEFAULT_PORT
-
-        super().__init__(device_type=VBS,
+        super().__init__(context=context,
+                         service_id=service_id,
+                         device_type=VBS,
                          connection_type=VBSPConnection,
                          proto=vbsp,
-                         **kwargs)
+                         port=port)
 
         self.ueqs = {}
 
 
-def launch(**kwargs):
+def launch(context, service_id, port=DEFAULT_PORT):
     """Start VBSP Server Module."""
 
-    return VBSPManager(**kwargs)
+    return VBSPManager(context=context, service_id=service_id, port=port)

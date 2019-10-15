@@ -49,9 +49,9 @@ class WiFiMobilityManager(EApp):
             lvap.blocks = self.blocks().sort_by_rssi(lvap.addr).first()
 
 
-def launch(service_id, project_id, every=EVERY):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
-    return WiFiMobilityManager(service_id=service_id,
-                               project_id=project_id,
+    return WiFiMobilityManager(context=context,
+                               service_id=service_id,
                                every=every)

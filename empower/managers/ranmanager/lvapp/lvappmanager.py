@@ -38,21 +38,20 @@ class LVAPPManager(RANManager):
 
     HANDLERS = [LVAPHandler, WTPHandler]
 
-    def __init__(self, **kwargs):
+    def __init__(self, context, service_id, port):
 
-        if 'port' not in kwargs:
-            kwargs['port'] = DEFAULT_PORT
-
-        super().__init__(device_type=WTP,
+        super().__init__(context=context,
+                         service_id=service_id,
+                         device_type=WTP,
                          connection_type=LVAPPConnection,
                          proto=lvapp,
-                         **kwargs)
+                         port=port)
 
         self.lvaps = {}
         self.vaps = {}
 
 
-def launch(**kwargs):
+def launch(context, service_id, port=DEFAULT_PORT):
     """Start LVAPP Server Module."""
 
-    return LVAPPManager(**kwargs)
+    return LVAPPManager(context=context, service_id=service_id, port=port)

@@ -60,10 +60,8 @@ def validate(returncode=200, min_args=0, max_args=0):
 
                 params = {}
 
-                if self.request.body and \
-                        tornado.escape.json_decode(self.request.body):
-
-                    params = tornado.escape.json_decode(self.request.body)
+                if self.request.body and json.loads(self.request.body):
+                    params = json.loads(self.request.body)
 
                 if "version" in params:
                     del params["version"]
@@ -392,12 +390,9 @@ class APIManager(EService):
     accounts_manager = None
     projects_manager = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, context, service_id, port):
 
-        if 'port' not in kwargs:
-            kwargs['port'] = DEFAULT_PORT
-
-        super().__init__(**kwargs)
+        super().__init__(context=context, service_id=service_id, port=port)
 
         self.settings = {
             "static_path": STATIC_PATH,
@@ -451,7 +446,7 @@ class APIManager(EService):
             self.application.add_handlers(r".*$", [(url, handler)])
 
 
-def launch(**kwargs):
+def launch(context, service_id, port=DEFAULT_PORT):
     """ Start REST Server module. """
 
-    return APIManager(**kwargs)
+    return APIManager(context=context, service_id=service_id, port=port)

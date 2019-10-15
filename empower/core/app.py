@@ -29,14 +29,9 @@ EVERY = 2000
 class EApp(EService):
     """Base app class."""
 
-    def __init__(self, service_id, project_id, **kwargs):
+    def __init__(self, context, **kwargs):
 
-        if 'every' not in kwargs:
-            kwargs['every'] = EVERY
-
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
-                         **kwargs)
+        super().__init__(context=context, **kwargs)
 
     def start(self):
         """Start app."""

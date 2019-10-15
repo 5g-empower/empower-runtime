@@ -174,9 +174,7 @@ def _do_launch(components, components_order):
                 raise ValueError("%s service already registered" % name)
 
             logging.info("Registering service: %s", name)
-            params['service_id'] = uuid.uuid4()
-            params['project_id'] = uuid.uuid4()
-            service = launch(**params)
+            service = launch(context=None, service_id=uuid.uuid4(), **params)
 
             SERVICES[name] = service
 

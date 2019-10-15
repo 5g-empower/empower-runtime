@@ -31,7 +31,6 @@ from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 
 from empower.managers.projectsmanager.cataloghandler import CatalogHandler
 from empower.managers.projectsmanager.appshandler import AppsHandler
-from empower.managers.projectsmanager.appshandler import AppAttributesHandler
 
 from empower.managers.projectsmanager.projectshandler import ProjectsHandler, \
     ProjectsWiFiACLHandler, ProjectsWiFiSlicesHandler, \
@@ -41,10 +40,9 @@ from empower.managers.projectsmanager.projectshandler import ProjectsHandler, \
 class ProjectsManager(EService):
     """Projects manager."""
 
-    HANDLERS = [CatalogHandler, AppsHandler, AppAttributesHandler,
+    HANDLERS = [CatalogHandler, AppsHandler, ProjectLVAPsHandler,
                 ProjectsHandler, ProjectsWiFiACLHandler,
-                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler,
-                ProjectLVAPsHandler]
+                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler]
 
     projects = {}
     accounts_manager = None
@@ -229,7 +227,7 @@ class ProjectsManager(EService):
         del self.projects[project_id]
 
 
-def launch(**kwargs):
+def launch(context, service_id):
     """Start projects manager."""
 
-    return ProjectsManager(**kwargs)
+    return ProjectsManager(context=context, service_id=service_id)

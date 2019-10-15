@@ -45,9 +45,10 @@ class RANManager(EService):
 
     projects_manager = None
 
-    def __init__(self, device_type, connection_type, proto, **kwargs):
+    def __init__(self, context, service_id, device_type, connection_type,
+                 proto, port):
 
-        super().__init__(**kwargs)
+        super().__init__(context=context, service_id=service_id, port=port)
 
         self.device_type = device_type
         self.connection_type = connection_type

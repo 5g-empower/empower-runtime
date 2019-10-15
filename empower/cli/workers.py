@@ -17,8 +17,6 @@
 
 """Workers CLI tools."""
 
-
-import sys
 import uuid
 import argparse
 
@@ -35,7 +33,7 @@ def do_list_workers(gargs, args, leftovers):
         accum = []
 
         accum.append("worker id ")
-        accum.append(entry['params']['service_id'])
+        accum.append(entry['service_id'])
         accum.append(" status RUNNING ")
         accum.append("\n  name: ")
         accum.append(entry['name'])
@@ -80,31 +78,29 @@ def do_list_workers_catalog(gargs, args, leftovers):
 def pa_load_worker(args, cmd):
     """Load application parser method. """
 
-    usage = "%s <worker_name>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-n', '--name', help='The app name',
+                          required=True, type=str, dest="name")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
 def do_load_worker(gargs, args, leftovers):
     """Load and application. """
 
-    params = command.get_params(leftovers)
-
-    if not leftovers:
-        print("Invalid parameter, run help load-worker")
-        command.print_available_cmds()
-        sys.exit()
-
     request = {
         "version": "1.0",
-        "name": leftovers[0],
+        "name": args.name,
+        "params": command.get_params(leftovers)
     }
-
-    if params:
-        request['params'] = params
 
     headers = command.get_headers(gargs)
 
@@ -122,7 +118,7 @@ def do_load_worker(gargs, args, leftovers):
     accum = []
 
     accum.append("worker id ")
-    accum.append(data['params']['service_id'])
+    accum.append(data['service_id'])
     accum.append(" status RUNNING ")
     accum.append("\n  name: ")
     accum.append(data['name'])
@@ -138,37 +134,32 @@ def do_load_worker(gargs, args, leftovers):
 def pa_unload_worker(args, cmd):
     """Unload application parser method. """
 
-    usage = "%s <worker_id>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--worker_id', help='The worker id',
+                          required=True, type=uuid.UUID, dest="worker_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
-def do_unload_worker(gargs, args, leftovers):
+def do_unload_worker(gargs, args, _):
     """Unload and application. """
 
-    if len(leftovers) != 1:
-        print("Invalid parameter, run help unload-worker")
-        command.print_available_cmds()
-        sys.exit()
-
-    worker_id = uuid.UUID(leftovers[0])
-
-    url = '/api/v1/workers/%s' % worker_id
+    url = '/api/v1/workers/%s' % args.worker_id
     command.connect(gargs, ('DELETE', url), 204)
 
-    print("worker id %s status STOPPED" % leftovers[0])
+    print("worker id %s status STOPPED" % args.worker_id)
 
 
 def do_unload_all_workers(gargs, args, leftovers):
     """Unload and application. """
-
-    if leftovers:
-        print("Invalid parameter, run help unload-all-workers")
-        command.print_available_cmds()
-        sys.exit()
 
     headers = command.get_headers(gargs)
 
@@ -177,7 +168,7 @@ def do_unload_all_workers(gargs, args, leftovers):
 
     for entry in data.values():
 
-        worker_id = entry['params']['service_id']
+        worker_id = entry['service_id']
 
         url = '/api/v1/workers/%s' % worker_id
         command.connect(gargs, ('DELETE', url), 204, headers=headers)
@@ -188,45 +179,41 @@ def do_unload_all_workers(gargs, args, leftovers):
 def pa_set_worker_params(args, cmd):
     """Set worker param parser method. """
 
-    usage = "%s <project_id> <worker_id> <params>" % command.USAGE.format(cmd)
+    usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
-    (args, leftovers) = \
-        argparse.ArgumentParser(usage=usage,
-                                description=desc).parse_known_args(args)
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--worker_id', help='The worker id',
+                          required=True, type=uuid.UUID, dest="worker_id")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
     return args, leftovers
 
 
 def do_set_worker_params(gargs, args, leftovers):
     """Set worker parameters. """
 
-    params = command.get_params(leftovers)
-
-    if len(leftovers) < 2:
-        print("Invalid parameter, run help set-worker-params")
-        command.print_available_cmds()
-        sys.exit()
-
     request = {
         "version": "1.0",
+        "params": command.get_params(leftovers)
     }
-
-    if params:
-        request['params'] = params
 
     headers = command.get_headers(gargs)
 
-    worker_id = uuid.UUID(leftovers[1])
-
-    url = '/api/v1/workers/%s' % worker_id
+    url = '/api/v1/workers/%s' % args.worker_id
     command.connect(gargs, ('PUT', url), 204, request, headers=headers)
 
-    url = '/api/v1/projects/%s' % worker_id
+    url = '/api/v1/projects/%s' % args.worker_id
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     accum = []
 
     accum.append("worker id ")
-    accum.append(data['params']['service_id'])
+    accum.append(data['service_id'])
     accum.append(" status RUNNING ")
     accum.append("\n  name: ")
     accum.append(data['name'])

@@ -151,12 +151,10 @@ class WorkersHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        service_id = uuid.UUID(args[0]) if args else uuid.uuid4()
         params = kwargs['params'] if 'params' in kwargs else {}
 
         service = \
-            self.service.env.register_service(service_id=service_id,
-                                              name=kwargs['name'],
+            self.service.env.register_service(name=kwargs['name'],
                                               params=params)
 
         self.set_header("Location", "/api/v1/workers/%s" % service.service_id)

@@ -35,24 +35,12 @@ DEFAULT_PASSWORD = "password"
 class TimeSeriesManager(EService):
     """Time series manager."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, context, service_id, database, host, port, username,
+                 password):
 
-        if 'database' not in kwargs:
-            kwargs['database'] = DEFAULT_DATABASE
-
-        if 'host' not in kwargs:
-            kwargs['host'] = DEFAULT_HOST
-
-        if 'port' not in kwargs:
-            kwargs['port'] = DEFAULT_PORT
-
-        if 'username' not in kwargs:
-            kwargs['username'] = DEFAULT_USERNAME
-
-        if 'password' not in kwargs:
-            kwargs['password'] = DEFAULT_PASSWORD
-
-        super().__init__(**kwargs)
+        super().__init__(context=context, service_id=service_id,
+                         database=database, host=host, port=port,
+                         username=username, password=password)
 
         self.thread_pool = None
         self.influxdb_client = None
@@ -174,7 +162,11 @@ class TimeSeriesManager(EService):
         return True
 
 
-def launch(**kwargs):
+def launch(context, service_id, database=DEFAULT_DATABASE, host=DEFAULT_HOST,
+           port=DEFAULT_PORT, username=DEFAULT_USERNAME,
+           password=DEFAULT_PASSWORD):
     """Start the time series manager. """
 
-    return TimeSeriesManager(**kwargs)
+    return TimeSeriesManager(context=context, service_id=service_id,
+                             database=database, host=host, port=port,
+                             username=username, password=password)

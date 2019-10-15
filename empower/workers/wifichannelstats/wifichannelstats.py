@@ -20,10 +20,10 @@
 from datetime import datetime
 from datetime import timedelta
 
+from itertools import groupby
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Int64ub, Bytes, Array
 from construct import Container
-
-from itertools import groupby
 
 import empower.managers.ranmanager.lvapp as lvapp
 
@@ -72,11 +72,9 @@ class ChannelStats(EWorker):
         every: the polling period in ms (optional, default: 2000)
     """
 
-    def __init__(self, service_id, project_id, every):
+    def __init__(self, context, service_id, every):
 
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
-                         every=every)
+        super().__init__(context=context, service_id=service_id, every=every)
 
         lvapp.register_message(PT_WCS_REQUEST, WCS_REQUEST)
         lvapp.register_message(PT_WCS_RESPONSE, WCS_RESPONSE)
@@ -165,12 +163,15 @@ class ChannelStats(EWorker):
         block.channel_stats = self.channel_stats[block_id]
 
         # save samples
-        get_ts = lambda x: x["time"].timestamp()
-        sorted_samples = sorted(block.channel_stats, key=get_ts)
+        sorted_samples = sorted(block.channel_stats,
+                                key=lambda x: x["time"].timestamp())
         samples = []
 
-        for ts, sample_fields in groupby(sorted_samples, get_ts):
+        for tstamp, sample_fields in groupby(sorted_samples,
+                                             lambda x: x["time"].timestamp()):
+
             fields = {}
+
             for item in sample_fields:
                 fields[item["type"]] = item["value"]
 
@@ -180,7 +181,7 @@ class ChannelStats(EWorker):
             sample = {
                 "measurement": self.name,
                 "tags": tags,
-                "time": datetime.fromtimestamp(ts),
+                "time": datetime.fromtimestamp(tstamp),
                 "fields": fields
             }
             samples.append(sample)
@@ -191,9 +192,7 @@ class ChannelStats(EWorker):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, every=2000):
+def launch(context, service_id, every=2000):
     """ Initialize the module. """
 
-    return ChannelStats(service_id=service_id,
-                        project_id=project_id,
-                        every=every)
+    return ChannelStats(context=context, service_id=service_id, every=every)

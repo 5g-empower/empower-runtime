@@ -18,7 +18,6 @@
 """Base service class."""
 
 import pkgutil
-import uuid
 import logging
 
 import tornado.ioloop
@@ -29,11 +28,15 @@ class EService:
 
     HANDLERS = []
 
-    def __init__(self, service_id, project_id, **kwargs):
+    def __init__(self, context, service_id, **kwargs):
 
-        kwargs['service_id'] = service_id
-        kwargs['project_id'] = project_id
+        # Pointer to an Env or a Project object (can be None)
+        self.context = context
 
+        # Set the service id
+        self.service_id = service_id
+
+        # If every is not specified then disable periodic loop
         if 'every' not in kwargs:
             kwargs['every'] = -1
 
@@ -48,9 +51,6 @@ class EService:
 
         # Worker process, set only if every > 0
         self.worker = None
-
-        # Pointer to an Env or a Project object (can be null)
-        self.context = None
 
         # Persistent dict
         self.storage = {}
@@ -111,46 +111,14 @@ class EService:
 
         output = {}
 
+        output['service_id'] = self.service_id
         output['name'] = self.name
         output['params'] = self.params
 
+        if self.context:
+            output['project_id'] = self.context.project_id
+
         return output
-
-    @property
-    def project_id(self):
-        """Return project_id."""
-
-        return self.params["project_id"]
-
-    @project_id.setter
-    def project_id(self, value):
-        """Set project_id."""
-
-        if "project_id" in self.params and self.params["project_id"]:
-            raise ValueError("Param project_id can not be changed")
-
-        if not isinstance(value, uuid.UUID):
-            value = uuid.UUID(value)
-
-        self.params["project_id"] = value
-
-    @property
-    def service_id(self):
-        """Return service_id."""
-
-        return self.params["service_id"]
-
-    @service_id.setter
-    def service_id(self, value):
-        """Set service_id."""
-
-        if "service_id" in self.params and self.params["service_id"]:
-            raise ValueError("Param service_id can not be changed")
-
-        if not isinstance(value, uuid.UUID):
-            value = uuid.UUID(value)
-
-        self.params["service_id"] = value
 
     @property
     def every(self):

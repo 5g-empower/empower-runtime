@@ -29,12 +29,9 @@ DEFAULT_URI = "mongodb://localhost:27017/empower"
 class PersistencyManager(EService):
     """Persistency manager."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, context, service_id, uri):
 
-        if 'uri' not in kwargs:
-            kwargs['uri'] = DEFAULT_URI
-
-        super().__init__(**kwargs)
+        super().__init__(context=context, service_id=service_id, uri=uri)
 
     def start(self):
         """Start persistency manager."""
@@ -58,7 +55,7 @@ class PersistencyManager(EService):
         self.params["uri"] = value
 
 
-def launch(**kwargs):
+def launch(context, service_id, uri=DEFAULT_URI):
     """Start the persistency manager. """
 
-    return PersistencyManager(**kwargs)
+    return PersistencyManager(context=context, service_id=service_id, uri=uri)

@@ -74,11 +74,9 @@ class ChannelQualityMap(EWorker):
         every: the polling period in ms (optional, default: 2000)
     """
 
-    def __init__(self, service_id, project_id, every):
+    def __init__(self, context, service_id, every):
 
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
-                         every=every)
+        super().__init__(context=context, service_id=service_id, every=every)
 
         self.ucqm = {}
         self.ncqm = {}
@@ -164,9 +162,8 @@ class ChannelQualityMap(EWorker):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, every=2000):
+def launch(context, service_id, every=2000):
     """ Initialize the module. """
 
-    return ChannelQualityMap(service_id=service_id,
-                             project_id=project_id,
+    return ChannelQualityMap(context=context, service_id=service_id,
                              every=every)

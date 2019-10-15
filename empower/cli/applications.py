@@ -17,8 +17,6 @@
 
 """Services CLI tools."""
 
-import json
-import sys
 import uuid
 import argparse
 
@@ -54,7 +52,7 @@ def do_list_apps(gargs, args, _):
         accum = []
 
         accum.append("app id ")
-        accum.append(entry['params']['service_id'])
+        accum.append(entry['service_id'])
         accum.append(" status RUNNING ")
         accum.append("\n  name: ")
         accum.append(entry['name'])
@@ -144,7 +142,7 @@ def do_load_app(gargs, args, leftovers):
     accum = []
 
     accum.append("app id ")
-    accum.append(data['params']['service_id'])
+    accum.append(data['service_id'])
     accum.append(" status RUNNING ")
     accum.append("\n  name: ")
     accum.append(data['name'])
@@ -215,7 +213,7 @@ def do_unload_all_apps(gargs, args, _):
 
     for entry in data.values():
 
-        app_id = entry['params']['service_id']
+        app_id = entry['service_id']
 
         url = '/api/v1/projects/%s/apps/%s' % (args.project_id, app_id)
         command.connect(gargs, ('DELETE', url), 204, headers=headers)
@@ -263,7 +261,7 @@ def do_set_app_params(gargs, args, leftovers):
     accum = []
 
     accum.append("app id ")
-    accum.append(data['params']['service_id'])
+    accum.append(data['service_id'])
     accum.append(" status RUNNING ")
     accum.append("\n  name: ")
     accum.append(data['name'])

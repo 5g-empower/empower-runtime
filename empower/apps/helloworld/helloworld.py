@@ -21,7 +21,7 @@ from empower.core.app import EApp
 from empower.core.app import EVERY
 
 
-class TutorialHelloWorld(EApp):
+class HelloWorld(EApp):
     """Hello world app.
 
     This app simply prints to screen the message: "Hello! World."
@@ -61,10 +61,8 @@ class TutorialHelloWorld(EApp):
         print("Hello! %s." % self.message)
 
 
-def launch(service_id, project_id, message="World", every=EVERY):
+def launch(context, service_id, message="World", every=EVERY):
     """ Initialize the module. """
 
-    return TutorialHelloWorld(service_id=service_id,
-                              project_id=project_id,
-                              message=message,
-                              every=every)
+    return HelloWorld(context=context, service_id=service_id,
+                      message=message, every=every)

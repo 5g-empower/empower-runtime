@@ -74,18 +74,15 @@ class Env(MongoModel):
         if not kwargs:
             kwargs = {}
 
-        kwargs['service_id'] = uuid.uuid4()
-        kwargs['project_id'] = self.project_id
-
         init_method = getattr(import_module(name), "launch")
-        requested = init_method(**kwargs)
+        requested = \
+            init_method(context=self, service_id=uuid.uuid4(), **kwargs)
 
         for service in self.services.values():
             if service == requested:
                 return service
 
-        service = self.register_service(service_id=uuid.uuid4(), name=name,
-                                        params=kwargs)
+        service = self.register_service(name=name, params=kwargs)
 
         return service
 
@@ -104,35 +101,37 @@ class Env(MongoModel):
 
         self.save()
 
-    def register_service(self, service_id, name, params):
-        """Register service."""
+    def remove_service_state(self, service_id):
+        """Remove service state."""
 
-        if service_id in self.services:
-            raise ValueError("Service %s already registered" % service_id)
-
-        params['service_id'] = service_id
-        params['project_id'] = self.project_id
-
-        self.start_service(service_id, name, params)
-
-        # Save service state
-        self.save_service_state(service_id)
-
-        return self.services[service_id]
-
-    def unregister_service(self, service_id):
-        """Unregister service."""
-
-        if service_id not in self.services:
-            raise ValueError("Service %s not registered" % service_id)
-
-        self.stop_service(service_id)
-
-        # Remove service state
         del self.bootstrap[str(service_id)]
         del self.storage[str(service_id)]
 
         self.save()
+
+    def register_service(self, name, params):
+        """Register service."""
+
+        # Start the service
+        service = self.start_service(uuid.uuid4(), name, params)
+
+        # Save service state
+        self.save_service_state(service.service_id)
+
+        return service
+
+    def unregister_service(self, service_id):
+        """Unregister service."""
+
+        # If not found abort
+        if service_id not in self.services:
+            raise ValueError("Service %s not registered" % service_id)
+
+        # Stop the service
+        self.stop_service(service_id)
+
+        # Remove service state
+        self.remove_service_state(service_id)
 
     def reconfigure_service(self, service_id, params):
         """Reconfigure service."""
@@ -143,7 +142,6 @@ class Env(MongoModel):
         service = self.services[service_id]
 
         for param in params:
-
             if param not in self.bootstrap[str(service_id)]['params']:
                 raise KeyError("Param %s undefined" % param)
 
@@ -171,18 +169,17 @@ class Env(MongoModel):
     def start_service(self, service_id, name, params, storage=None):
         """Start a service."""
 
-        if service_id in self.services:
-            raise ValueError("Service %s is already running" % service_id)
-
         # this will look for the launch method and call it
         init_method = getattr(import_module(name), "launch")
-        service = init_method(**params)
+        service = init_method(context=self, service_id=service_id, **params)
+
+        # wait we are trying to start a service that already exists, abort
+        if service.service_id in self.services:
+            raise ValueError("Service %s is already running" %
+                             service.service_id)
 
         # add to service list
-        self.services[service_id] = service
-
-        # set context
-        service.context = self
+        self.services[service.service_id] = service
 
         # set storage
         service.set_storage(storage)

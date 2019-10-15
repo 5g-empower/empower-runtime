@@ -118,7 +118,7 @@ class AccountsManager(EService):
         del self.accounts[username]
 
 
-def launch(**kwargs):
+def launch(context, service_id):
     """Start accounts manager."""
 
-    return AccountsManager(**kwargs)
+    return AccountsManager(context=context, service_id=service_id)

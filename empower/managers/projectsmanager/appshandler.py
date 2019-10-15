@@ -18,86 +18,8 @@
 """Exposes a RESTful interface ."""
 
 import uuid
-import json
 
 import empower.managers.apimanager.apimanager as apimanager
-
-
-# pylint: disable=W0223
-class AppAttributesHandler(apimanager.EmpowerAPIHandler):
-    """Access applications' attributes."""
-
-    URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"
-            "([a-zA-Z0-9_]*)/?"]
-
-    @apimanager.validate(min_args=3, max_args=3)
-    def get(self, *args, **kwargs):
-        """Access a particular property of an application.
-
-        Args:
-
-            [0]: the project id (mandatory)
-            [1]: the app id (mandatory)
-            [2]: the attribute of the app to be accessed (mandatory)
-
-        Example URLs:
-
-            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
-                7069c865-8849-4840-9d96-e028663a5dcf/stats
-
-            [
-                {
-                    "last_run": "2019-08-23 09:46:52.361966"
-                }
-            ]
-        """
-
-        project_id = uuid.UUID(args[0])
-        project = self.service.projects[project_id]
-
-        service_id = uuid.UUID(args[1])
-        service = project.services[service_id]
-
-        if not hasattr(service, args[2]):
-            raise KeyError("'%s' object has no attribute '%s'" %
-                           (service.__class__.__name__, args[2]))
-
-        return [getattr(service, args[2])]
-
-    @apimanager.validate(returncode=204, min_args=3, max_args=3)
-    def put(self, *args, **kwargs):
-        """Set a particular property of an application.
-
-        Args:
-
-            [0]: the project id (mandatory)
-            [1]: the app id (mandatory)
-            [2]: the attribute of the app to be accessed (mandatory)
-
-        Example URLs:
-
-            PUT /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
-                7069c865-8849-4840-9d96-e028663a5dcf/stats
-
-            {
-                "version": "1.0",
-                "value": {
-                    "last_run": "2019-08-23 09:46:52.361966"
-                }
-            }
-        """
-
-        project_id = uuid.UUID(args[0])
-        project = self.service.projects[project_id]
-
-        service_id = uuid.UUID(args[1])
-        service = project.services[service_id]
-
-        if not hasattr(service, args[2]):
-            raise KeyError("'%s' object has no attribute '%s'" %
-                           (service.__class__.__name__, args[2]))
-
-        return setattr(service, args[2], json.loads(kwargs["value"]))
 
 
 # pylint: disable=W0223
@@ -159,14 +81,13 @@ class AppsHandler(apimanager.EmpowerAPIHandler):
         return project.services \
             if len(args) == 1 else project.services[uuid.UUID(args[1])]
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=2)
+    @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def post(self, *args, **kwargs):
         """Start a new app.
 
         Args:
 
             [0]: the project id (mandatory)
-            [1]: the app id (optional)
 
         Request:
 
@@ -184,27 +105,14 @@ class AppsHandler(apimanager.EmpowerAPIHandler):
                     "every": 5000
                 }
             }
-
-            POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
-                7069c865-8849-4840-9d96-e028663a5dcf
-
-            {
-                "version": "1.0",
-                "name": "empower.apps.wifimobilitymanager.wifimobilitymanager",
-                "params": {
-                    "every": 5000
-                }
-            }
         """
 
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
-        service_id = uuid.UUID(args[1]) if len(args) > 1 else uuid.uuid4()
         params = kwargs['params'] if 'params' in kwargs else {}
 
-        service = project.register_service(service_id=service_id,
-                                           name=kwargs['name'],
+        service = project.register_service(name=kwargs['name'],
                                            params=params)
 
         self.set_header("Location", "/api/v1/projects/%s/apps/%s" %

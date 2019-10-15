@@ -18,8 +18,6 @@
 """SDN@Play Multicast Manager."""
 
 import sys
-import uuid
-import json
 
 import empower.managers.apimanager.apimanager as apimanager
 
@@ -41,9 +39,11 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
     """Access applications' attributes."""
 
     URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"
-            "mcast_services"]
+            "mcast_services/([a-zA-Z0-9:]*)/?",
+            r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"
+            "mcast_services/?"]
 
-    @apimanager.validate(min_args=2, max_args=2)
+    @apimanager.validate(min_args=2, max_args=3)
     def get(self, *args, **kwargs):
         """Access the mcast_services .
 
@@ -51,20 +51,102 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
 
             [0]: the project id (mandatory)
             [1]: the app id (mandatory)
+            [3]: the mcast service MAC address (optional)
 
         Example URLs:
 
             GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
-                mcast_services
+                mcast_services/01:00:5E:00:01:C8
 
-            [
-                {
-                    "last_run": "2019-08-23 09:46:52.361966"
-                }
-            ]
+            {
+                addr: "01:00:5E:00:01:C8",
+                ipaddress: "224.0.1.200",
+                mcs: 0,
+                schedule: [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                receivers: [
+                    "FF:FF:FF:FF:FF:FF"
+                ],
+                status: "true",
+                service_type: "emergency"
+            }
         """
 
-        return self.service.mcast_services
+        if len(args) == 2:
+            return self.service.mcast_services
+
+        return self.service.mcast_services[EtherAddress(args[2])]
+
+    @apimanager.validate(returncode=201, min_args=2, max_args=2)
+    def post(self, *args, **kwargs):
+        """Add/update a new mcast service
+
+        Args:
+
+            [0]: the project id (mandatory)
+            [1]: the app id (mandatory)
+
+        Request:
+
+            version: protocol version (1.0)
+            ipaddress: the mcast IP address
+            receivers: the list of mcast receptors
+            status: the service status
+            service_type: a label describing the service
+
+        Example URLs:
+
+            POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
+                7069c865-8849-4840-9d96-e028663a5dcf/mcast_service
+
+            {
+                "ipaddress": "224.0.1.200",
+                "receivers": ["ff:ff:ff:ff:ff:ff"],
+                "status": "true",
+                "service_type": "emergency"
+            }
+        """
+
+        addr = self.service.upsert_mcast_service(kwargs['ipaddress'],
+                                                 kwargs['receivers'],
+                                                 kwargs['status'],
+                                                 kwargs['service_type'])
+
+        self.service.save_service_state()
+
+        url = "/api/v1/projects/%s/apps/%s/mcast_service/%s" % \
+            (self.service.context.project_id, self.service.service_id, addr)
+
+        self.set_header("Location", url)
+
+    @apimanager.validate(min_args=3, max_args=3)
+    def delete(self, *args, **kwargs):
+        """Delete the mcast_services .
+
+        Args:
+
+            [0]: the project id (mandatory)
+            [1]: the app id (mandatory)
+            [3]: the mcast service MAC address (mandatory)
+
+        Example URLs:
+
+            DELETE /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps/
+                mcast_services/01:00:5E:00:01:C8
+        """
+
+        self.service.delete_mcast_service(EtherAddress(args[2]))
+        self.service.save_service_state()
 
 
 class Mcast(EApp):
@@ -94,10 +176,9 @@ class Mcast(EApp):
 
     HANDLERS = [McastServicesHandler]
 
-    def __init__(self, service_id, project_id, every=EVERY):
+    def __init__(self, context, service_id, every=EVERY):
 
-        super().__init__(service_id=service_id, project_id=project_id,
-                         every=every)
+        super().__init__(context=context, service_id=service_id, every=every)
 
         self.receptors = {}
         self.receptors_mcses = {}
@@ -114,7 +195,7 @@ class Mcast(EApp):
         self.status = {}
         self.storage['mcast_services'] = {}
 
-    def upsert_mcast_service(self, service):
+    def upsert_mcast_service(self, ipaddress, receivers, status, service_type):
         """Update/insert new mcast services.
 
         Expected input:
@@ -127,7 +208,7 @@ class Mcast(EApp):
         }
         """
 
-        addr = self.mcast_ip_to_ether(service["ip"])
+        addr = self.mcast_ip_to_ether(ipaddress)
 
         if addr not in self.mcast_services:
 
@@ -136,12 +217,12 @@ class Mcast(EApp):
 
             self.mcast_services[addr] = {
                 "addr": addr,
-                "ip": service["ip"],
+                "ipaddress": ipaddress,
                 "mcs": 6,
                 "schedule": schedule,
-                "receivers": [EtherAddress(x) for x in service["receivers"]],
-                "status": service["status"],
-                "type": service["type"]
+                "receivers": [EtherAddress(x) for x in receivers],
+                "status": status,
+                "service_type": service_type
             }
 
             self._services_registered += 1
@@ -149,9 +230,9 @@ class Mcast(EApp):
         else:
 
             self.mcast_services[addr]["receivers"] = \
-                [EtherAddress(x) for x in service["receivers"]]
-            self.mcast_services[addr]["status"] = service["status"]
-            self.mcast_services[addr]["type"] = service["type"]
+                [EtherAddress(x) for x in receivers]
+            self.mcast_services[addr]["status"] = status
+            self.mcast_services[addr]["service_type"] = service_type
 
         return addr
 
@@ -189,7 +270,10 @@ class Mcast(EApp):
         self.storage['mcast_services'] = {}
 
         for service in services.values():
-            self.upsert_mcast_service(service)
+            self.upsert_mcast_service(service['ipaddress'],
+                                      service['receivers'],
+                                      service['status'],
+                                      service['service_type'])
 
     @property
     def demo_mode(self):
@@ -409,7 +493,7 @@ class Mcast(EApp):
         return out
 
 
-def launch(service_id, project_id, every=EVERY):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(service_id=service_id, project_id=project_id, every=every)
+    return Mcast(context=context, service_id=service_id, every=every)
