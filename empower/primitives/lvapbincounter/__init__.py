@@ -21,16 +21,6 @@ from empower.core.app import EVERY
 
 MANIFEST = {
     "params": {
-        "service_id": {
-            "desc": "The unique UUID of the application.",
-            "mandatory": True,
-            "type": "UUID"
-        },
-        "project_id": {
-            "desc": "The project on which this app must be executed.",
-            "mandatory": True,
-            "type": "UUID"
-        },
         "sta": {
             "desc": "The LVAP to monitor.",
             "mandatory": True,

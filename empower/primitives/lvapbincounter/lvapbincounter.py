@@ -71,8 +71,6 @@ class LVAPBinCounter(EApp):
     This primitive collects the packet counters from the specified LVAP.
 
     Parameters:
-        service_id: the service id as an UUID (mandatory)
-        project_id: the project id as an UUID (mandatory)
         sta: the LVAP to track as an EtherAddress (mandatory)
         bins: the bins for the measurements (optional, default: [8192])
         every: the loop period in ms (optional, default 2000ms)
@@ -80,7 +78,7 @@ class LVAPBinCounter(EApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.apps.lvapbincounter.lvapbincounter",
+            "name": "empower.primitives.lvapbincounter.lvapbincounter",
             "params": {
                 "sta": "11:22:33:44:55:66",
                 "every": 2000
@@ -88,10 +86,10 @@ class LVAPBinCounter(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, bins="8192", every=EVERY):
+    def __init__(self, context, service_id, sta, bins="8192", every=EVERY):
 
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
+        super().__init__(context=context,
+                         service_id=service_id,
                          sta=sta,
                          bins=bins,
                          every=every)
@@ -333,8 +331,8 @@ class LVAPBinCounter(EApp):
         self.last = time.time()
 
 
-def launch(service_id, project_id, sta, bins="8192", every=EVERY):
+def launch(context, service_id, sta, bins="8192", every=EVERY):
     """ Initialize the module. """
 
-    return LVAPBinCounter(service_id=service_id, project_id=project_id,
+    return LVAPBinCounter(context=context, service_id=service_id,
                           sta=sta, bins=bins, every=every)

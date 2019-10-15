@@ -76,8 +76,6 @@ class RCStats(EApp):
     This primitive collects the RC statistics from the specified LVAP.
 
     Parameters:
-        service_id: the service id as an UUID (mandatory)
-        project_id: the project id as an UUID (mandatory)
         sta: the LVAP to track as an EtherAddress (mandatory)
         every: the loop period in ms (optional, default 2000ms)
 
@@ -92,10 +90,10 @@ class RCStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, sta, every=EVERY):
+    def __init__(self, context, service_id, sta, every=EVERY):
 
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
+        super().__init__(context=context,
+                         service_id=service_id,
                          sta=sta,
                          every=every)
 
@@ -206,8 +204,8 @@ class RCStats(EApp):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, sta, every=EVERY):
+def launch(context, service_id, sta, every=EVERY):
     """ Initialize the module. """
 
-    return RCStats(service_id=service_id, project_id=project_id, sta=sta,
+    return RCStats(context=context, service_id=service_id, sta=sta,
                    every=every)

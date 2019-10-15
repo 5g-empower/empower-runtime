@@ -70,7 +70,6 @@ class ChannelQualityMap(EWorker):
     """WiFi Channel Quality Map Worker
 
     Parameters:
-        service_id: the service id as an UUID (mandatory)
         every: the polling period in ms (optional, default: 2000)
     """
 

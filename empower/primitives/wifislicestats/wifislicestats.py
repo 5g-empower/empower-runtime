@@ -75,8 +75,6 @@ class SliceStats(EApp):
     This primitive collects the slice statistics.
 
     Parameters:
-        service_id: the service id as an UUID (mandatory)
-        project_id: the project id as an UUID (mandatory)
         slice_id: the slice to track (optinal, default 0)
         every: the loop period in ms (optional, default 2000ms)
 
@@ -91,10 +89,10 @@ class SliceStats(EApp):
         }
     """
 
-    def __init__(self, service_id, project_id, slice_id, every=EVERY):
+    def __init__(self, context, service_id, slice_id, every=EVERY):
 
-        super().__init__(service_id=service_id,
-                         project_id=project_id,
+        super().__init__(context=context,
+                         service_id=service_id,
                          slice_id=slice_id,
                          every=every)
 
@@ -188,8 +186,8 @@ class SliceStats(EApp):
         self.handle_callbacks()
 
 
-def launch(service_id, project_id, slice_id=0, every=EVERY):
+def launch(context, service_id, slice_id=0, every=EVERY):
     """ Initialize the module. """
 
-    return SliceStats(service_id=service_id, project_id=project_id,
+    return SliceStats(context=context, service_id=service_id,
                       slice_id=slice_id, every=every)
