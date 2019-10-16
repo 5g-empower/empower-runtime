@@ -63,10 +63,12 @@ class TimeSeriesManager(EService):
                                               timeout=3,
                                               database=self.database)
 
-        # create database, it has no effect if it is already present
-        self.influxdb_client.create_database(self.database)
-
-        self.log.info("Connected to InfluxDB database %s", self.database)
+        try:
+            # create database, it has no effect if it is already present
+            self.influxdb_client.create_database(self.database)
+            self.log.info("Connected to InfluxDB database %s", self.database)
+        except Exception as ex:
+            self.log.exception(ex)
 
     @property
     def database(self):
