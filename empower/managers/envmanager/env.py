@@ -48,6 +48,10 @@ class Env(MongoModel):
 
         super().__init__(*args, **kwargs)
 
+        # Pointer to manager object
+        self.manager = None
+
+        # List of services in this Env/Project
         self.services = {}
 
         # Save pointer to LVAPPManager
@@ -170,6 +174,8 @@ class Env(MongoModel):
         """Start a service."""
 
         # this will look for the launch method and call it
+        self.manager.log.info("Registering service: %s (%s)", name, service_id)
+        self.manager.log.info("  - params: %s", params)
         init_method = getattr(import_module(name), "launch")
         service = init_method(context=self, service_id=service_id, **params)
 
@@ -190,6 +196,7 @@ class Env(MongoModel):
             handler.service = service
 
         # start service
+        self.manager.log.info("Starting service: %s (%s)", name, service_id)
         service.start()
 
         return service

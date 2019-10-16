@@ -48,7 +48,7 @@ class EnvManager(EService):
             Env(project_id=uuid.uuid4()).save()
 
         self.env = Env.objects.first()
-
+        self.env.manager = self
         self.env.start_services()
 
     @property

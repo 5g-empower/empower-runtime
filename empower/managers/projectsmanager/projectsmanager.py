@@ -57,6 +57,7 @@ class ProjectsManager(EService):
 
         for project in Project.objects.all():
             self.projects[project.project_id] = project
+            self.projects[project.project_id].manager = self
             self.projects[project.project_id].start_services()
 
     @property
