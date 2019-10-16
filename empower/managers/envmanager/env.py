@@ -48,11 +48,18 @@ class Env(MongoModel):
 
         super().__init__(*args, **kwargs)
 
-        # Pointer to manager object
-        self.manager = None
-
         # List of services in this Env/Project
         self.services = {}
+
+        # Save pointer to EnvManager/ProjectManager
+        if issubclass(type(self), Env):
+            self.manager = \
+                srv_or_die("empower.managers.projectsmanager.projectsmanager")
+        else:
+            self.manager = \
+                srv_or_die("empower.managers.envmanager.envmanager")
+
+        print(self.manager)
 
         # Save pointer to LVAPPManager
         self.lvapp_manager = \
@@ -113,11 +120,11 @@ class Env(MongoModel):
 
         self.save()
 
-    def register_service(self, name, params):
+    def register_service(self, service_id, name, params):
         """Register service."""
 
         # Start the service
-        service = self.start_service(uuid.uuid4(), name, params)
+        service = self.start_service(service_id, name, params)
 
         # Save service state
         self.save_service_state(service.service_id)

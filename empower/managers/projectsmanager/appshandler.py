@@ -81,7 +81,7 @@ class AppsHandler(apimanager.EmpowerAPIHandler):
         return project.services \
             if len(args) == 1 else project.services[uuid.UUID(args[1])]
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+    @apimanager.validate(returncode=201, min_args=1, max_args=2)
     def post(self, *args, **kwargs):
         """Start a new app.
 
@@ -110,9 +110,12 @@ class AppsHandler(apimanager.EmpowerAPIHandler):
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
+        service_id = uuid.UUID(args[1]) if len(args) > 1 else uuid.uuid4()
+
         params = kwargs['params'] if 'params' in kwargs else {}
 
-        service = project.register_service(name=kwargs['name'],
+        service = project.register_service(service_id=service_id,
+                                           name=kwargs['name'],
                                            params=params)
 
         self.set_header("Location", "/api/v1/projects/%s/apps/%s" %

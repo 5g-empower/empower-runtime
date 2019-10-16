@@ -23,7 +23,6 @@ import empower.workers
 
 from empower.core.service import EService
 
-from empower.managers.envmanager.workershandler import WorkerAttributesHandler
 from empower.managers.envmanager.workershandler import WorkersHandler
 from empower.managers.envmanager.cataloghandler import CatalogHandler
 from empower.managers.envmanager.envhandler import EnvHandler
@@ -34,8 +33,7 @@ from empower.managers.envmanager.env import Env
 class EnvManager(EService):
     """Projects manager."""
 
-    HANDLERS = [WorkersHandler, WorkerAttributesHandler, CatalogHandler,
-                EnvHandler]
+    HANDLERS = [WorkersHandler, CatalogHandler, EnvHandler]
 
     env = None
 
@@ -48,7 +46,6 @@ class EnvManager(EService):
             Env(project_id=uuid.uuid4()).save()
 
         self.env = Env.objects.first()
-        self.env.manager = self
         self.env.start_services()
 
     @property

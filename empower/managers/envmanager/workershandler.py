@@ -23,67 +23,6 @@ import empower.managers.apimanager.apimanager as apimanager
 
 
 # pylint: disable=W0223
-class WorkerAttributesHandler(apimanager.EmpowerAPIHandler):
-    """Access workers' attributes."""
-
-    URLS = [r"/api/v1/workers/([a-zA-Z0-9-]*)/([a-zA-Z0-9_]*)/?"]
-
-    @apimanager.validate(min_args=2, max_args=2)
-    def get(self, *args, **kwargs):
-        """Access a particular property of a worker.
-
-        Args:
-
-            [0]: the worker id (mandatory)
-            [1]: the attribute of the worker to be accessed (mandatory)
-
-        Example URLs:
-
-            GET /api/v1/workers/0f91e8ad-1c2a-4b06-97f9-e34097c4c1d0/every
-
-            [
-                2000
-            ]
-        """
-
-        service_id = uuid.UUID(args[0])
-        service = self.service.env.services[service_id]
-
-        if not hasattr(service, args[1]):
-            raise KeyError("'%s' object has no attribute '%s'" %
-                           (service.__class__.__name__, args[1]))
-
-        return [getattr(service, args[1])]
-
-    @apimanager.validate(returncode=204, min_args=2, max_args=2)
-    def put(self, *args, **kwargs):
-        """Set a particular property of a worker.
-
-        Args:
-
-            [0]: the worker id (mandatory)
-            [1]: the attribute of the worker to be accessed (mandatory)
-
-        Example URLs:
-
-            PUT /api/v1/workers/7069c865-8849-4840-9d96-e028663a5dcf/every
-            {
-                "version": "1.0",
-                "value": 2000
-            }
-        """
-
-        service_id = uuid.UUID(args[0])
-        service = self.service.env.services[service_id]
-
-        if not hasattr(service, args[1]):
-            raise KeyError("'%s' object has no attribute '%s'" %
-                           (service.__class__.__name__, args[1]))
-
-        return setattr(service, args[1], kwargs["value"])
-
-
-# pylint: disable=W0223
 class WorkersHandler(apimanager.EmpowerAPIHandler):
     """Workers handler."""
 
@@ -129,9 +68,13 @@ class WorkersHandler(apimanager.EmpowerAPIHandler):
         return self.service.env.services \
             if not args else self.service.env.services[uuid.UUID(args[0])]
 
-    @apimanager.validate(returncode=201, min_args=0, max_args=0)
+    @apimanager.validate(returncode=201, min_args=0, max_args=1)
     def post(self, *args, **kwargs):
         """Start a new worker.
+
+        Args:
+
+            [0], the service id (optional)
 
         Request:
 
@@ -151,10 +94,13 @@ class WorkersHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
+        service_id = uuid.UUID(args[0]) if args else uuid.uuid4()
+
         params = kwargs['params'] if 'params' in kwargs else {}
 
         service = \
-            self.service.env.register_service(name=kwargs['name'],
+            self.service.env.register_service(service_id=service_id,
+                                              name=kwargs['name'],
                                               params=params)
 
         self.set_header("Location", "/api/v1/workers/%s" % service.service_id)

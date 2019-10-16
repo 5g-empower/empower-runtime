@@ -40,8 +40,6 @@ def full_suite():
     suite.addTest(TestWorkers('test_modify_worker_invalid_param_name'))
     suite.addTest(TestWorkers('test_modify_worker_param'))
     suite.addTest(TestWorkers('test_modify_app_invalid_param_value'))
-    suite.addTest(TestWorkers('test_modify_worker_attribute'))
-    suite.addTest(TestWorkers('test_modify_invalid_worker_attribute'))
 
     suite.addTest(TestAccounts('test_simple_gets'))
     suite.addTest(TestAccounts('test_create_existing_user'))
