@@ -74,9 +74,6 @@ def validate(returncode=200, min_args=0, max_args=0):
             except KeyError as ex:
                 self.send_error(404, message=ex)
 
-            except ModuleNotFoundError as ex:
-                self.send_error(404, message=ex)
-
             except ValueError as ex:
                 self.send_error(400, message=ex)
 
