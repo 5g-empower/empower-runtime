@@ -393,9 +393,11 @@ class Mcast(EApp):
     def get_next_group_phase(self, mcast_addr):
         """Get next mcast phase to be scheduled."""
 
-        schedule = self.mcast_services[mcast_addr]["schedule"]
-        phase = schedule[self.current % len(self.schedule)]
-        self.current += 1
+        self.mcast_services[mcast_addr]["schedule"] = \
+            self.mcast_services[mcast_addr]["schedule"][1:] + \
+            [self.mcast_services[mcast_addr]["schedule"][0]]
+
+        phase = self.mcast_services[mcast_addr]["schedule"][0]
 
         return phase
 
@@ -441,7 +443,7 @@ class Mcast(EApp):
                 phase = self.get_next_group_phase(addr)
 
                 self.log.info("Mcast phase %s for group %s",
-                              TX_MCAST[entry["schedule"][phase]], addr)
+                              TX_MCAST[phase], addr)
 
                 # fetch txp
                 if addr not in block.tx_policies:
