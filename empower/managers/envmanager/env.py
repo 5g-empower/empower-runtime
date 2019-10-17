@@ -85,15 +85,18 @@ class Env(MongoModel):
         if not kwargs:
             kwargs = {}
 
+        service_id = uuid.uuid4()
+
         init_method = getattr(import_module(name), "launch")
         requested = \
-            init_method(context=self, service_id=uuid.uuid4(), **kwargs)
+            init_method(context=self, service_id=service_id, **kwargs)
 
         for service in self.services.values():
             if service == requested:
                 return service
 
-        service = self.register_service(name=name, params=kwargs)
+        service = self.register_service(service_id=service_id, name=name,
+                                        params=kwargs)
 
         return service
 

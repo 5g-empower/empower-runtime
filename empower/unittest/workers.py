@@ -50,6 +50,29 @@ class TestWorkers(BaseTest):
         params = ("root", "root", loc)
         self.get(params, 404)
 
+    def test_register_new_worker_fixed_uuid(self):
+        """test_register_new_worker."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+        }
+
+        url = "/workers/7f372516-d650-46ea-8db4-8f079a844dc5"
+        params = ("root", "root", url)
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        params = ("root", "root", url)
+        self.get(params, 200)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
     def test_register_existing_worker(self):
         """test_register_existing_worker."""
 

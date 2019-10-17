@@ -35,6 +35,7 @@ def full_suite():
     suite = unittest.TestSuite()
 
     suite.addTest(TestWorkers('test_register_new_worker'))
+    suite.addTest(TestWorkers('test_register_new_worker_fixed_uuid'))
     suite.addTest(TestWorkers('test_register_new_worker_invalid_creds'))
     suite.addTest(TestWorkers('test_register_existing_worker'))
     suite.addTest(TestWorkers('test_modify_worker_invalid_param_name'))
@@ -79,6 +80,7 @@ def full_suite():
     suite.addTest(TestLTESlices('test_delete_default_lte_slice'))
 
     suite.addTest(TestApplications('test_register_new_app'))
+    suite.addTest(TestApplications('test_register_new_app_fixed_uuid'))
     suite.addTest(TestApplications('test_register_existing_app_invalid_creds'))
     suite.addTest(TestApplications('test_register_existing_app'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_name'))
