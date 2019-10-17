@@ -51,15 +51,9 @@ class Env(MongoModel):
         # List of services in this Env/Project
         self.services = {}
 
-        # Save pointer to EnvManager/ProjectManager
-        if issubclass(type(self), Env):
-            self.manager = \
-                srv_or_die("empower.managers.projectsmanager.projectsmanager")
-        else:
-            self.manager = \
-                srv_or_die("empower.managers.envmanager.envmanager")
-
-        print(self.manager)
+        # Save pointer to EnvManager
+        self.manager = \
+            srv_or_die("empower.managers.envmanager.envmanager")
 
         # Save pointer to LVAPPManager
         self.lvapp_manager = \
