@@ -19,3 +19,5 @@ ENTRYPOINT ["/launcher.sh"]
 
 # Expose Web GUI
 EXPOSE 8888
+EXPOSE 4433
+EXPOSE 5533
