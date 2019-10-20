@@ -15,7 +15,7 @@ RUN ln -sf /empower-runtime-master/conf/ /etc/empower
 ADD launcher.sh /
 
 # Run the launcher script
-ENTRYPOINT ["/launcher.sh"]
+ENTRYPOINT ["/empower-runtime-master/empower-runtime.py"]
 
 # Expose Web GUI
 EXPOSE 8888
