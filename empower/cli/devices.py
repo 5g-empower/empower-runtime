@@ -204,7 +204,7 @@ def do_list_vbses(gargs, *_):
             accum.append(" ip ")
             accum.append(entry['connection']['addr'][0])
             accum.append(" ifaces {")
-            ifaces = ["(%s, )" % (v['pci'])
+            ifaces = ["(%s)" % (v['pci'])
                       for _, v in entry['cells'].items()]
             accum.append(', '.join(ifaces))
             accum.append("}")

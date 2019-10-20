@@ -49,8 +49,7 @@ def do_delete_project(gargs, args, _):
 
     url = '/api/v1/projects/%s' % args.project_id
     command.connect(gargs, ('DELETE', url), 204)
-
-    print("project id %s DELETED" % args.project_id)
+    print(args.project_id)
 
 
 def pa_create_project(args, cmd):
@@ -116,31 +115,9 @@ def do_create_project(gargs, args, _):
 
     location = response.headers['Location']
     tokens = location.split("/")
-    addr = tokens[-1]
+    project_id = tokens[-1]
 
-    url = '/api/v1/projects/%s' % addr
-    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
-
-    accum = []
-
-    accum.append("project_id ")
-    accum.append(data['project_id'])
-    accum.append("\n  desc: ")
-    accum.append(data['desc'])
-
-    if 'wifi_props' in data and data['wifi_props']:
-
-        accum.append("\n  wi-fi properties")
-        accum.append("\n    ssid: %s" % data['wifi_props']['ssid'])
-        accum.append("\n    bssid Type: %s" %
-                     data['wifi_props']['bssid_type'])
-
-    if 'lte_props' in data and data['lte_props']:
-
-        accum.append("\n  lte properties")
-        accum.append("\n    plmnid: %s" % data['lte_props']['plmnid'])
-
-    print(''.join(accum))
+    print(project_id)
 
 
 def do_list_projects(gargs, *_):
@@ -153,20 +130,15 @@ def do_list_projects(gargs, *_):
         accum = []
 
         accum.append("project_id ")
+
         accum.append(entry['project_id'])
-        accum.append("\n  desc: ")
-        accum.append(entry['desc'])
+
+        accum.append(" desc \"%s\"" % entry['desc'])
 
         if 'wifi_props' in entry and entry['wifi_props']:
-
-            accum.append("\n  wi-fi properties")
-            accum.append("\n    ssid: %s" % entry['wifi_props']['ssid'])
-            accum.append("\n    bssid Type: %s" %
-                         entry['wifi_props']['bssid_type'])
+            accum.append(" ssid \"%s\"" % entry['wifi_props']['ssid'])
 
         if 'lte_props' in entry and entry['lte_props']:
-
-            accum.append("\n  lte properties")
-            accum.append("\n    plmnid: %s" % entry['lte_props']['plmnid'])
+            accum.append(" plmnid \"%s\"" % entry['lte_props']['plmnid'])
 
         print(''.join(accum))
