@@ -80,8 +80,7 @@ class RANManager(EService):
 
         super().start()
 
-        self.projects_manager = \
-            srv_or_die("empower.managers.projectsmanager.projectsmanager")
+        self.projects_manager = srv_or_die("projectsmanager")
 
         for device in self.device_type.objects:
             self.devices[device.addr] = device

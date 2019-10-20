@@ -38,6 +38,8 @@ class BaseTest(unittest.TestCase):
 
         requests.delete(url=URL % ("root", "root", "/vbses"))
 
+        requests.delete(url=URL % ("root", "root", "/workers"))
+
     def get(self, params, result):
         """REST get method."""
 

@@ -19,15 +19,17 @@
 
 import ssl
 import uuid
-import inspect
 import os
 import logging
 import logging.config
 import sys
-import types
+
+from importlib import import_module
+
 import tornado.ioloop
 
 from pymodm.connection import connect
+from empower.core.service import EService
 
 DEFAULT_MONGODB_URI = "mongodb://localhost:27017/empower"
 DEFAULT_LOG_CONFIG = "/etc/empower/logging.cfg"
@@ -153,115 +155,53 @@ def _parse_args(argv, default=None):
 def _do_launch(components, components_order):
     """Parse arguments and launch controller."""
 
-    modules = _do_imports(n.split(':')[0] for n in components_order)
+    # Register managers
+    for component in components_order:
 
-    if modules is False:
-        logging.error("No modules to import!")
-        return False
+        params = components[component]
 
-    # Register components
-    for name in components_order:
+        short_name = component.split(':')[0]
+        name = component.split(':')[1]
+        entry_point = component.split(':')[2]
 
-        params = components[name]
-        name, _, members = modules[name]
+        if short_name in SERVICES:
+            logging.error("%s manager already registered", component)
+            raise ValueError("%s manager already registered" % component)
 
-        if "launch" not in members:
-            logging.error("Property 'launch' not defined in module %s", name)
+        init_method = getattr(import_module(name), entry_point)
+
+        if not issubclass(init_method, EService):
+            logging.error("Invalid entry point: %s", component)
             return False
 
-        launch = members["launch"]
+        logging.info("Loading manager: %s", name)
 
-        # We explicitly test for a function and not an arbitrary callable
-        if not isinstance(launch, types.FunctionType):
-            logging.error("Property 'launch' in %s isn't a function!", name)
-            return False
+        if params:
+            logging.info("  - params: %s", params)
 
-        try:
+        service = init_method(context=None, service_id=uuid.uuid4(), **params)
 
-            if name in SERVICES:
-                logging.error("%s service already registered", name)
-                raise ValueError("%s service already registered" % name)
+        SERVICES[short_name] = service
 
-            logging.info("Registering service: %s", name)
-            service = launch(context=None, service_id=uuid.uuid4(), **params)
+    # Start managers
+    for component in components_order:
 
-            SERVICES[name] = service
+        short_name = component.split(':')[0]
 
-        except TypeError as ex:
-            logging.error("Error calling %s in %s", launch, name)
-            logging.exception(ex)
-            return False
+        service = SERVICES[short_name]
 
-    # Start components
-    for name in components_order:
+        logging.info("Starting manager: %s", short_name)
 
-        name, _, _ = modules[name]
+        # Register handlers for this services
+        api_manager = srv_or_die("apimanager")
+        for handler in service.HANDLERS:
+            api_manager.register_handler(handler)
+            handler.service = service
 
-        try:
-
-            service = SERVICES[name]
-
-            logging.info("Starting service: %s", name)
-
-            # Register handlers for this services
-            api_manager = srv_or_die("empower.managers.apimanager.apimanager")
-            for handler in service.HANDLERS:
-                api_manager.register_handler(handler)
-                handler.service = service
-
-            # start service
-            SERVICES[name].start()
-
-        except TypeError as ex:
-            logging.error("Error starting service %s", name)
-            logging.exception(ex)
-            return False
+        # start service
+        service.start()
 
     return True
-
-
-def _do_import(base_name):
-    """Try to import the named component.
-
-    Returns its module name if it was loaded or False on failure.
-    """
-
-    names_to_try = ["empower" + "." + base_name, base_name]
-
-    if not names_to_try:
-        logging.error("Module not found: %s", base_name)
-        return False
-
-    name = names_to_try.pop(0)
-
-    try:
-        logging.info("Importing module: %s", name)
-        __import__(name, level=0)
-        return name
-    except ImportError as ex:
-        logging.info("Could not import module: %s", name)
-        logging.exception(ex)
-        return False
-
-
-def _do_imports(components):
-    """Import listed components.
-
-    Returns map of component_name->name,module,members on success, or False on
-    failure
-    """
-
-    done = {}
-    for name in components:
-        if name in done:
-            continue
-        result = _do_import(name)
-        if result is False:
-            return False
-        members = dict(inspect.getmembers(sys.modules[result]))
-        done[name] = (result, sys.modules[result], members)
-
-    return done
 
 
 def _setup_db():

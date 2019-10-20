@@ -447,8 +447,7 @@ class LVAP:
                 raise TypeError("Invalid type: %s" % type(block))
 
         # If LVAP is associated to a shared tenant, then reset LVAP
-        projects_manager = \
-            srv_or_die("empower.managers.projectsmanager.projectsmanager")
+        projects_manager = srv_or_die("projectsmanager")
 
         project = projects_manager.load_project_by_ssid(self.ssid)
 

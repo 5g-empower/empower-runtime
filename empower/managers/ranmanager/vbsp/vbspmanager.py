@@ -47,9 +47,3 @@ class VBSPManager(RANManager):
                          port=port)
 
         self.ueqs = {}
-
-
-def launch(context, service_id, port=DEFAULT_PORT):
-    """Start VBSP Server Module."""
-
-    return VBSPManager(context=context, service_id=service_id, port=port)

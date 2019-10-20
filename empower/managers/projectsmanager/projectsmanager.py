@@ -52,8 +52,7 @@ class ProjectsManager(EService):
 
         super().start()
 
-        self.accounts_manager = \
-            srv_or_die("empower.managers.accountsmanager.accountsmanager")
+        self.accounts_manager = srv_or_die("accountsmanager")
 
         for project in Project.objects.all():
             self.projects[project.project_id] = project
@@ -225,9 +224,3 @@ class ProjectsManager(EService):
         # Delete project from datase and manager
         project.delete()
         del self.projects[project_id]
-
-
-def launch(context, service_id):
-    """Start projects manager."""
-
-    return ProjectsManager(context=context, service_id=service_id)

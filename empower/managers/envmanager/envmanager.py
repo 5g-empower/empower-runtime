@@ -53,9 +53,3 @@ class EnvManager(EService):
         """Return available workers."""
 
         return self.walk_module(empower.workers)
-
-
-def launch(context, service_id):
-    """Start project manager."""
-
-    return EnvManager(context=context, service_id=service_id)

@@ -52,23 +52,19 @@ class Env(MongoModel):
         self.services = {}
 
         # Save pointer to EnvManager
-        self.manager = \
-            srv_or_die("empower.managers.envmanager.envmanager")
+        self.manager = srv_or_die("envmanager")
 
         # Save pointer to LVAPPManager
-        self.lvapp_manager = \
-            srv_or_die("empower.managers.ranmanager.lvapp.lvappmanager")
+        self.lvapp_manager = srv_or_die("lvappmanager")
 
         # Save pointer to VBSPManager
-        self.vbsp_manager = \
-            srv_or_die("empower.managers.ranmanager.vbsp.vbspmanager")
+        self.vbsp_manager = srv_or_die("vbspmanager")
 
         # Save pointer to TimeSeriesManaget
-        self.ts_manager = \
-            srv_or_die("empower.managers.timeseriesmanager.timeseriesmanager")
+        self.ts_manager = srv_or_die("tsmanager")
 
         # Save pointer to ApiManager
-        self.api_manager = srv_or_die("empower.managers.apimanager.apimanager")
+        self.api_manager = srv_or_die("apimanager")
 
     def save_service_state(self, service_id):
         """Save service state."""

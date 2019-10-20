@@ -202,11 +202,8 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         if self.request.method == "GET":
             return
 
-        accounts_manager = \
-            srv_or_die("empower.managers.accountsmanager.accountsmanager")
-
-        projects_manager = \
-            srv_or_die("empower.managers.projectsmanager.projectsmanager")
+        accounts_manager = srv_or_die("accountsmanager")
+        projects_manager = srv_or_die("projectsmanager")
 
         auth_header = self.request.headers.get('Authorization')
 
@@ -387,7 +384,7 @@ class APIManager(EService):
     accounts_manager = None
     projects_manager = None
 
-    def __init__(self, context, service_id, port):
+    def __init__(self, context, service_id, port=DEFAULT_PORT):
 
         super().__init__(context=context, service_id=service_id, port=port)
 
@@ -423,11 +420,8 @@ class APIManager(EService):
 
         super().start()
 
-        self.accounts_manager = \
-            srv_or_die("empower.managers.accountsmanager.accountsmanager")
-
-        self.projects_manager = \
-            srv_or_die("empower.managers.projectsmanager.projectsmanager")
+        self.accounts_manager = srv_or_die("accountsmanager")
+        self.projects_manager = srv_or_die("projectsmanager")
 
         self.http_server.listen(self.port)
 
@@ -441,9 +435,3 @@ class APIManager(EService):
         for url in handler.URLS:
             self.log.info("Registering URL: %s", url)
             self.application.add_handlers(r".*$", [(url, handler)])
-
-
-def launch(context, service_id, port=DEFAULT_PORT):
-    """ Start REST Server module. """
-
-    return APIManager(context=context, service_id=service_id, port=port)

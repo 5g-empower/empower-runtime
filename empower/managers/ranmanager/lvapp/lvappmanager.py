@@ -38,7 +38,7 @@ class LVAPPManager(RANManager):
 
     HANDLERS = [LVAPHandler, WTPHandler]
 
-    def __init__(self, context, service_id, port):
+    def __init__(self, context, service_id, port=DEFAULT_PORT):
 
         super().__init__(context=context,
                          service_id=service_id,
@@ -49,9 +49,3 @@ class LVAPPManager(RANManager):
 
         self.lvaps = {}
         self.vaps = {}
-
-
-def launch(context, service_id, port=DEFAULT_PORT):
-    """Start LVAPP Server Module."""
-
-    return LVAPPManager(context=context, service_id=service_id, port=port)

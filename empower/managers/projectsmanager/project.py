@@ -230,8 +230,7 @@ class Project(Env):
         super().__init__(*args, **kwargs)
 
         # Save pointer to ProjectManager
-        self.manager = \
-            srv_or_die("empower.managers.envmanager.envmanager")
+        self.manager = srv_or_die("projectsmanager")
 
     def upsert_wifi_slice(self, **kwargs):
         """Upsert new slice."""
