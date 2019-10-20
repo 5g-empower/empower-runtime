@@ -194,14 +194,14 @@ def main(argv=None):
     # parse command line
     args, _ = _parse_global_args()
 
-    # load components
-    components, components_order = _read_config(args)
+    # load managers
+    managers, managers_order = _read_config(args)
 
     # perform pre-startup operation
     _pre_startup(args)
 
-    # launch components
-    if _do_launch(components, components_order):
+    # launch managers
+    if _do_launch(managers, managers_order):
         _post_startup()
     else:
         raise RuntimeError()
