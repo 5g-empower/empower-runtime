@@ -24,7 +24,6 @@ if __name__ == "__main__":
 
     # Default modules
     ARGVS = [
-        'managers.persistencymanager.persistencymanager',
         'managers.envmanager.envmanager',
         'managers.apimanager.apimanager',
         'managers.accountsmanager.accountsmanager',
