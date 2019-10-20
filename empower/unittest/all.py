@@ -84,6 +84,9 @@ def full_suite():
 
     suite.addTest(TestApplications('test_register_new_app'))
     suite.addTest(TestApplications('test_register_new_app_fixed_uuid'))
+    suite.addTest(TestApplications('test_register_new_app_duplicate_no_uuid'))
+    suite.addTest(TestApplications('test_register_new_app_different_params'))
+    suite.addTest(TestApplications('test_register_new_app_duplicate_uuid'))
     suite.addTest(TestApplications('test_register_existing_app_invalid_creds'))
     suite.addTest(TestApplications('test_register_existing_app'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_name'))
