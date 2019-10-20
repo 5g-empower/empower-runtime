@@ -110,13 +110,13 @@ class AppsHandler(apimanager.EmpowerAPIHandler):
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
-        service_id = uuid.UUID(args[1]) if len(args) > 1 else uuid.uuid4()
+        service_id = uuid.UUID(args[1]) if len(args) > 1 else None
 
         params = kwargs['params'] if 'params' in kwargs else {}
 
-        service = project.register_service(service_id=service_id,
-                                           name=kwargs['name'],
-                                           params=params)
+        service = project.register_service(name=kwargs['name'],
+                                           params=params,
+                                           service_id=service_id)
 
         self.set_header("Location", "/api/v1/projects/%s/apps/%s" %
                         (project.project_id, service.service_id))

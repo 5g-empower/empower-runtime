@@ -17,12 +17,9 @@
 
 """Workers unit tests."""
 
-import json
 import unittest
-import requests
 
 from .common import BaseTest
-from .common import URL
 
 
 class TestWorkers(BaseTest):
@@ -71,6 +68,116 @@ class TestWorkers(BaseTest):
         self.delete(params, 204)
 
         params = ("root", "root", loc)
+        self.get(params, 404)
+
+    def test_register_new_worker_duplicate_no_uuid(self):
+        """test_register_new_worker."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+            "params": {
+                "every": 1000
+            }
+        }
+
+        url = "/workers"
+        params = ("root", "root", url)
+
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        resp = self.post(params, data, 201)
+        loc2 = resp.headers['Location'].replace("/api/v1", "")
+
+        self.assertEqual(loc, loc2)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc2)
+        self.delete(params, 404)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
+        params = ("root", "root", loc2)
+        self.get(params, 404)
+
+    def test_register_new_worker_different_params(self):
+        """test_register_new_worker."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+            "params": {
+                "every": 1000
+            }
+        }
+
+        url = "/workers"
+        params = ("root", "root", url)
+
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+            "params": {
+                "every": 2000
+            }
+        }
+
+        resp = self.post(params, data, 201)
+        loc2 = resp.headers['Location'].replace("/api/v1", "")
+
+        self.assertNotEqual(loc, loc2)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc2)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
+        params = ("root", "root", loc2)
+        self.get(params, 404)
+
+    def test_register_new_worker_duplicate_uuid(self):
+        """test_register_new_worker."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+        }
+
+        url = "/workers/7f372516-d650-46ea-8db4-8f079a844dc5"
+        params = ("root", "root", url)
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        url = "/workers/7f372516-d650-46ea-8db4-8f079a844dd5"
+        params = ("root", "root", url)
+        resp = self.post(params, data, 201)
+        loc2 = resp.headers['Location'].replace("/api/v1", "")
+
+        self.assertNotEqual(loc, loc2)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc2)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
+        params = ("root", "root", loc2)
         self.get(params, 404)
 
     def test_register_existing_worker(self):

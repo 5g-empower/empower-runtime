@@ -70,30 +70,6 @@ class Env(MongoModel):
         # Save pointer to ApiManager
         self.api_manager = srv_or_die("empower.managers.apimanager.apimanager")
 
-    def get_service(self, name, **kwargs):
-        """Get a service.
-
-        Return a service with the same name and parameters if already running
-        or start a new one."""
-
-        if not kwargs:
-            kwargs = {}
-
-        service_id = uuid.uuid4()
-
-        init_method = getattr(import_module(name), "launch")
-        requested = \
-            init_method(context=self, service_id=service_id, **kwargs)
-
-        for service in self.services.values():
-            if service == requested:
-                return service
-
-        service = self.register_service(service_id=service_id, name=name,
-                                        params=kwargs)
-
-        return service
-
     def save_service_state(self, service_id):
         """Save service state."""
 
@@ -117,8 +93,25 @@ class Env(MongoModel):
 
         self.save()
 
-    def register_service(self, service_id, name, params):
+    def register_service(self, name, params, service_id=None):
         """Register service."""
+
+        if not service_id:
+
+            # Load a service object using the specified parameters
+            requested = self.load_service(uuid.uuid4(), name, params)
+
+            # Check if a service with the same parameters already exists
+            services = self.services.values()
+
+            found = next((s for s in services if s == requested), None)
+
+            if found:
+                return found
+
+        # Generate a service_id if necessary
+        if not service_id:
+            service_id = uuid.uuid4()
 
         # Start the service
         service = self.start_service(service_id, name, params)
@@ -133,7 +126,7 @@ class Env(MongoModel):
 
         # If not found abort
         if service_id not in self.services:
-            raise ValueError("Service %s not registered" % service_id)
+            raise KeyError("Service %s not registered" % service_id)
 
         # Stop the service
         self.stop_service(service_id)
@@ -145,7 +138,7 @@ class Env(MongoModel):
         """Reconfigure service."""
 
         if service_id not in self.services:
-            raise ValueError("Service %s not registered" % service_id)
+            raise KeyError("Service %s not registered" % service_id)
 
         service = self.services[service_id]
 
@@ -186,19 +179,26 @@ class Env(MongoModel):
         for service_id in self.bootstrap:
             self.stop_service(uuid.UUID(service_id))
 
-    def start_service(self, service_id, name, params, storage=None):
-        """Start a service."""
+    def load_service(self, service_id, name, params):
+        """Load a service instance."""
 
-        # this will look for the launch method and call it
-        self.manager.log.info("Registering service: %s (%s)", name, service_id)
-        self.manager.log.info("  - params: %s", params)
         init_method = getattr(import_module(name), "launch")
         service = init_method(context=self, service_id=service_id, **params)
 
+        return service
+
+    def start_service(self, service_id, name, params, storage=None):
+        """Start a service."""
+
         # wait we are trying to start a service that already exists, abort
-        if service.service_id in self.services:
-            raise ValueError("Service %s is already running" %
-                             service.service_id)
+        if service_id in self.services:
+            raise ValueError("Service %s is already running" % service_id)
+
+        # this will look for the launch method and call it
+        self.manager.log.info("Loading service: %s (%s)", name, service_id)
+        self.manager.log.info("  - params: %s", params)
+
+        service = self.load_service(service_id, name, params)
 
         # add to service list
         self.services[service.service_id] = service
@@ -221,7 +221,7 @@ class Env(MongoModel):
         """Stop a service."""
 
         if service_id not in self.services:
-            raise ValueError("Service %s not running" % service_id)
+            raise KeyError("Service %s not running" % service_id)
 
         self.services[service_id].stop()
         del self.services[service_id]

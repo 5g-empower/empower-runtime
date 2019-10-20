@@ -36,6 +36,9 @@ def full_suite():
 
     suite.addTest(TestWorkers('test_register_new_worker'))
     suite.addTest(TestWorkers('test_register_new_worker_fixed_uuid'))
+    suite.addTest(TestWorkers('test_register_new_worker_duplicate_no_uuid'))
+    suite.addTest(TestWorkers('test_register_new_worker_different_params'))
+    suite.addTest(TestWorkers('test_register_new_worker_duplicate_uuid'))
     suite.addTest(TestWorkers('test_register_new_worker_invalid_creds'))
     suite.addTest(TestWorkers('test_register_existing_worker'))
     suite.addTest(TestWorkers('test_modify_worker_invalid_param_name'))

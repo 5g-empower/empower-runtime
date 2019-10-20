@@ -17,6 +17,7 @@
 
 """Base service class."""
 
+import uuid
 import pkgutil
 import logging
 
@@ -29,6 +30,9 @@ class EService:
     HANDLERS = []
 
     def __init__(self, context, service_id, **kwargs):
+
+        # Declaration
+        self._service_id = None
 
         # Pointer to an Env or a Project object (can be None)
         self.context = context
@@ -79,7 +83,7 @@ class EService:
 
         self.context.save_service_state(self.service_id)
 
-    def get_service(self, name, **kwargs):
+    def register_service(self, name, **kwargs):
         """Get a service.
 
         Return a service with the same name and parameters if already running
@@ -88,7 +92,7 @@ class EService:
         if not self.context:
             return None
 
-        return self.context.get_service(name, **kwargs)
+        return self.context.register_service(name, **kwargs)
 
     def handle_callbacks(self):
         """Invoke registered callbacks."""
@@ -119,6 +123,21 @@ class EService:
             output['project_id'] = self.context.project_id
 
         return output
+
+    @property
+    def service_id(self):
+        """Get service_id."""
+
+        return self._service_id
+
+    @service_id.setter
+    def service_id(self, value):
+        """Set service_id."""
+
+        if isinstance(value, uuid.UUID):
+            self._service_id = value
+        else:
+            self._service_id = uuid.UUID(value)
 
     @property
     def every(self):
@@ -220,7 +239,7 @@ class EService:
 
     def __eq__(self, other):
         if isinstance(other, EService):
-            return self.name == other.name
+            return self.name == other.name and self.every == other.every
         return False
 
     def __ne__(self, other):
