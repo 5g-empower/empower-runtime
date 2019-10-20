@@ -17,6 +17,7 @@
 
 """Bootstrap module."""
 
+import configparser
 import ssl
 import uuid
 import os
@@ -25,228 +26,16 @@ import logging.config
 import sys
 
 from importlib import import_module
+from argparse import ArgumentParser
 
 import tornado.ioloop
 
 from pymodm.connection import connect
 from empower.core.service import EService
 
-DEFAULT_MONGODB_URI = "mongodb://localhost:27017/empower"
-DEFAULT_LOG_CONFIG = "/etc/empower/logging.cfg"
+DEFAULT_CONFIG = "/etc/empower/empower.cfg"
 
 SERVICES = dict()
-
-
-class Options:
-    """Options parser."""
-
-    def set(self, name, value):
-        """Parse incoming options."""
-
-        if name.startswith("_") or hasattr(Options, name):
-            logging.error("Illegal option: %s", name)
-            return False
-
-        has_field = hasattr(self, name)
-        has_setter = hasattr(self, "_set_" + name)
-        if has_field is False and has_setter is False:
-            logging.error("Unknown option: %s", name)
-            return False
-        if has_setter:
-            setter = getattr(self, "_set_" + name)
-            setter(name, value)
-        else:
-            if isinstance(getattr(self, name), bool):
-                # Automatic bool-ization
-                value = bool(value)
-            setattr(self, name, value)
-        return True
-
-    def process_options(self, options):
-        """Process incoming options."""
-
-        for key, value in options.items():
-            if self.set(key, value) is False:
-                sys.exit(1)
-
-
-class EOptions(Options):
-    """EmPOWER ptions parser."""
-
-    def __init__(self):
-        self.log_config = DEFAULT_LOG_CONFIG
-        self.mongodb_uri = DEFAULT_MONGODB_URI
-
-    def _set_log_config(self, name, value):
-        setattr(self, name, value)
-
-    def _set_mongodb_uri(self, name, value):
-        setattr(self, name, value)
-
-    @classmethod
-    def _set_help(cls, *_):
-        """ Print help text and exit. """
-
-        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG, DEFAULT_MONGODB_URI))
-
-        sys.exit(0)
-
-    @classmethod
-    def _set_h(cls, *_):
-        """ Print help text and exit. """
-
-        print(_HELP_TEXT % (DEFAULT_LOG_CONFIG, DEFAULT_MONGODB_URI))
-
-        sys.exit(0)
-
-
-_OPTIONS = EOptions()
-
-_HELP_TEXT = """Start with:
-empower-runtime.py [options] [C1 [C1 options]] [C2 [C2 options]] ...
-
-Notable options include:
-  --help                Print this help message
-  --log-config=<file>   Use log config file (default is %s)
-  --mongodb_uri=<uri>   Specify MongoDB URI (default is %s)
-
-C1, C2, etc. are managers' names (e.g., Python modules). The supported options
-are up to the module.
-"""
-
-
-def _parse_args2(argv, _components, _components_order, _curargs):
-    """Parse command line arguments."""
-
-    for arg in argv:
-        if not arg.startswith("-"):
-            if arg not in _components:
-                _components[arg] = {}
-            _curargs = _components[arg]
-            if arg not in _components_order:
-                _components_order.append(arg)
-        else:
-            arg = arg.lstrip("-").split("=", 1)
-            arg[0] = arg[0].replace("-", "_")
-            if len(arg) == 1:
-                arg.append(True)
-            _curargs[arg[0]] = arg[1]
-
-
-def _parse_args(argv, default=None):
-    """Parse command line arguments."""
-
-    _components_order = []
-    _components = {}
-
-    _curargs = {}
-    _options = _curargs
-
-    if default:
-        _parse_args2(default, _components, _components_order, _curargs)
-
-    _parse_args2(argv, _components, _components_order, _curargs)
-
-    _OPTIONS.process_options(_options)
-
-    return _components, _components_order
-
-
-def _do_launch(components, components_order):
-    """Parse arguments and launch controller."""
-
-    # Register managers
-    for component in components_order:
-
-        params = components[component]
-
-        short_name = component.split(':')[0]
-        name = component.split(':')[1]
-        entry_point = component.split(':')[2]
-
-        if short_name in SERVICES:
-            logging.error("%s manager already registered", component)
-            raise ValueError("%s manager already registered" % component)
-
-        init_method = getattr(import_module(name), entry_point)
-
-        if not issubclass(init_method, EService):
-            logging.error("Invalid entry point: %s", component)
-            return False
-
-        logging.info("Loading manager: %s", name)
-
-        if params:
-            logging.info("  - params: %s", params)
-
-        service = init_method(context=None, service_id=uuid.uuid4(), **params)
-
-        SERVICES[short_name] = service
-
-    # Start managers
-    for component in components_order:
-
-        short_name = component.split(':')[0]
-
-        service = SERVICES[short_name]
-
-        logging.info("Starting manager: %s", short_name)
-
-        # Register handlers for this services
-        api_manager = srv_or_die("apimanager")
-        for handler in service.HANDLERS:
-            api_manager.register_handler(handler)
-            handler.service = service
-
-        # start service
-        service.start()
-
-    return True
-
-
-def _setup_db():
-    """ Setup db connection. """
-
-    logging.info("Connecting to MongoDB: %s", _OPTIONS.mongodb_uri)
-    connect(_OPTIONS.mongodb_uri, ssl_cert_reqs=ssl.CERT_NONE)
-
-
-def _setup_logging():
-    """ Setup logging. """
-
-    log_handler = logging.StreamHandler()
-    formatter = logging.Formatter(logging.BASIC_FORMAT)
-    log_handler.setFormatter(formatter)
-    logging.getLogger().addHandler(log_handler)
-    logging.getLogger().setLevel(logging.INFO)
-
-    if _OPTIONS.log_config:
-
-        if not os.path.exists(_OPTIONS.log_config):
-            print("Could not find logging config file:", _OPTIONS.log_config)
-            sys.exit(2)
-
-        logging.config.fileConfig(_OPTIONS.log_config,
-                                  disable_existing_loggers=False)
-
-
-def _pre_startup():
-    """Perform pre-startup operation.
-
-    This function is called after all the options have been parsed but
-    before any components is loaded.
-    """
-
-    _setup_db()
-    _setup_logging()
-
-
-def _post_startup():
-    """Perform post-startup operation.
-
-    This function is called after all components are loaded. Everything goes
-    smoothly in this method then the tornado loop is started.
-    """
 
 
 def srv_or_die(name):
@@ -260,13 +49,156 @@ def srv_or_die(name):
     sys.exit(1)
 
 
+def _do_launch(managers, managers_order):
+    """Parse arguments and launch controller."""
+
+    # Register managers
+    for manager in managers_order:
+
+        module = managers[manager]['module']
+        entry_point = managers[manager]['entry_point']
+        params = managers[manager]['params']
+
+        if manager in SERVICES:
+            logging.error("%s manager already registered", manager)
+            return False
+
+        init_method = getattr(import_module(module), entry_point)
+
+        if not issubclass(init_method, EService):
+            logging.error("Invalid entry point: %s", manager)
+            return False
+
+        logging.info("Loading manager: %s", manager)
+
+        if params:
+            logging.info("  - params: %s", params)
+
+        service = init_method(context=None, service_id=uuid.uuid4(), **params)
+
+        SERVICES[manager] = service
+
+    # Start managers
+    for manager in managers_order:
+
+        service = SERVICES[manager]
+
+        logging.info("Starting manager: %s", manager)
+
+        # Register handlers for this services
+        api_manager = srv_or_die("apimanager")
+        for handler in service.HANDLERS:
+            api_manager.register_handler(handler)
+            handler.service = service
+
+        # start service
+        service.start()
+
+    return True
+
+
+def _setup_db(args):
+    """ Setup db connection. """
+
+    config = configparser.ConfigParser()
+    config.read(args.empower_config)
+    mongodb_uri = config.get('general', 'mongodb',
+                             fallback="mongodb://localhost:27017/empower")
+
+    connect(mongodb_uri, ssl_cert_reqs=ssl.CERT_NONE)
+
+
+def _setup_logging(args):
+    """ Setup logging. """
+
+    config = configparser.ConfigParser()
+    config.read(args.empower_config)
+    log_config = config.get('general', 'log',
+                            fallback="/etc/empower/logging.cfg")
+
+    if not os.path.exists(log_config):
+        print("Could not find logging config file: %s" % log_config)
+        sys.exit(1)
+
+    logging.config.fileConfig(log_config, disable_existing_loggers=False)
+
+
+def _pre_startup(args):
+    """Perform pre-startup operations."""
+
+    _setup_logging(args)
+    _setup_db(args)
+
+
+def _post_startup():
+    """Perform post-startup operation."""
+
+
+def _read_config(args):
+    """Read config file."""
+
+    config = configparser.ConfigParser()
+    config.read(args.empower_config)
+
+    managers = {}
+    managers_order = []
+
+    mngrs = config.get('general', 'managers', fallback=None)
+
+    if not mngrs:
+        return managers, managers_order
+
+    for mngr in mngrs.split(","):
+
+        entrypoint = config.get(mngr, 'entrypoint', fallback=None)
+        module = config.get(mngr, 'module', fallback=None)
+
+        if not entrypoint or not module:
+            continue
+
+        managers_order.append(mngr)
+
+        managers[mngr] = {
+            "module": module,
+            "entry_point": entrypoint,
+            "params": {}
+        }
+
+        for param in config[mngr]:
+
+            if param in ('entrypoint', 'module'):
+                continue
+
+            managers[mngr][param] = config[mngr][param]
+
+    return managers, managers_order
+
+
+def _parse_global_args():
+    """ Parse global arguments list. """
+
+    parser = ArgumentParser()
+
+    parser.add_argument("-c", "--empower-config",
+                        dest="empower_config",
+                        default=DEFAULT_CONFIG,
+                        help="Configuration file, default: %s" %
+                        DEFAULT_CONFIG)
+
+    return parser.parse_known_args(sys.argv[1:])
+
+
 def main(argv=None):
     """Parses the command line and loads the plugins."""
 
-    components, components_order = _parse_args(sys.argv[1:], argv)
+    # parse command line
+    args, _ = _parse_global_args()
 
-    # perform pre-startup operation, e.g. logging setup
-    _pre_startup()
+    # load components
+    components, components_order = _read_config(args)
+
+    # perform pre-startup operation
+    _pre_startup(args)
 
     # launch components
     if _do_launch(components, components_order):

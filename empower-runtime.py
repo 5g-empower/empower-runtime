@@ -20,29 +20,5 @@
 from empower.main import main
 
 
-if __name__ == "__main__":
-
-    # Default modules
-    ARGVS = [
-
-        'envmanager:empower.managers.envmanager.envmanager:EnvManager',
-
-        'apimanager:empower.managers.apimanager.apimanager:APIManager',
-
-        'accountsmanager:empower.managers.accountsmanager.accountsmanager:'
-        'AccountsManager',
-
-        'projectsmanager:empower.managers.projectsmanager.projectsmanager:'
-        'ProjectsManager',
-
-        'lvappmanager:empower.managers.ranmanager.lvapp.lvappmanager:'
-        'LVAPPManager',
-
-        'vbspmanager:empower.managers.ranmanager.vbsp.vbspmanager:VBSPManager',
-
-        'tsmanager:empower.managers.timeseriesmanager.timeseriesmanager:'
-        'InfluxTimeSeriesManager'
-
-    ]
-
-    main(ARGVS)
+if __name__ == '__main__':
+    main()
