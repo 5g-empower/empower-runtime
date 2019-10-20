@@ -45,10 +45,8 @@ def pa_del_wtp(args, cmd):
 def do_del_wtp(gargs, args, _):
     """ Del a WTP """
 
-    url = '/api/v1/wtps/%s' % args.addr
-    command.connect(gargs, ('DELETE', url), 204)
-
-    print("Device id %s DELETED" % args.addr)
+    command.connect(gargs, ('DELETE', '/api/v1/wtps/%s' % args.addr), 204)
+    print(args.addr)
 
 
 def pa_del_vbs(args, cmd):
@@ -72,10 +70,8 @@ def pa_del_vbs(args, cmd):
 def do_del_vbs(gargs, args, _):
     """ Del a VBS """
 
-    url = '/api/v1/vbses/%s' % args.addr
-    command.connect(gargs, ('DELETE', url), 204)
-
-    print("Device id %s DELETED" % args.addr)
+    command.connect(gargs, ('DELETE', '/api/v1/vbses/%s' % args.addr), 204)
+    print(args.addr)
 
 
 def pa_add_vbs(args, cmd):
@@ -113,25 +109,9 @@ def do_add_vbs(gargs, args, _):
     headers = command.get_headers(gargs)
 
     url = '/api/v1/vbses'
-    response, _ = command.connect(gargs, ('POST', url), 201, request,
-                                  headers=headers)
+    command.connect(gargs, ('POST', url), 201, request, headers=headers)
 
-    location = response.headers['Location']
-    tokens = location.split("/")
-    addr = tokens[-1]
-
-    url = '/api/v1/vbses/%s' % addr
-    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
-
-    accum = []
-
-    accum.append("addr ")
-    accum.append(data['addr'])
-    accum.append(" desc \"")
-    accum.append(data['desc'])
-    accum.append("\" ADDED")
-
-    print(''.join(accum))
+    print(args.addr)
 
 
 def pa_add_wtp(args, cmd):
@@ -169,25 +149,9 @@ def do_add_wtp(gargs, args, _):
     headers = command.get_headers(gargs)
 
     url = '/api/v1/wtps'
-    response, _ = command.connect(gargs, ('POST', url), 201, request,
-                                  headers=headers)
+    command.connect(gargs, ('POST', url), 201, request, headers=headers)
 
-    location = response.headers['Location']
-    tokens = location.split("/")
-    addr = tokens[-1]
-
-    url = '/api/v1/wtps/%s' % addr
-    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
-
-    accum = []
-
-    accum.append("addr ")
-    accum.append(data['addr'])
-    accum.append(" desc \"")
-    accum.append(data['desc'])
-    accum.append("\" ADDED")
-
-    print(''.join(accum))
+    print(args.addr)
 
 
 def do_list_wtps(gargs, *_):
