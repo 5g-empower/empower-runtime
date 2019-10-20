@@ -11,10 +11,7 @@ RUN unzip master.zip
 RUN rm master.zip
 RUN ln -sf /empower-runtime-master/conf/ /etc/empower
 
-# Copy downloader script into the container
-ADD launcher.sh /
-
-# Run the launcher script
+# Run the controller
 ENTRYPOINT ["/empower-runtime-master/empower-runtime.py"]
 
 # Expose Web GUI
