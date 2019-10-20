@@ -19,5 +19,9 @@ ENTRYPOINT ["/empower-runtime-master/empower-runtime.py"]
 
 # Expose Web GUI
 EXPOSE 8888
+
+# Expose LVAPP Server
 EXPOSE 4433
+
+# Expose VBSP Server
 EXPOSE 5533
