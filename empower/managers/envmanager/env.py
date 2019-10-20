@@ -18,6 +18,7 @@
 """Runtime configuration."""
 
 import uuid
+import platform
 
 from importlib import import_module
 from pymodm import MongoModel, fields
@@ -230,6 +231,17 @@ class Env(MongoModel):
         output['project_id'] = self.project_id
         output['bootstrap'] = self.bootstrap
         output['storage'] = self.storage
+
+        output['platform'] = {
+            "machine": platform.machine(),
+            "node": platform.node(),
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "python_version": platform.python_version(),
+            "release": platform.release(),
+            "system": platform.system(),
+            "version": platform.version(),
+        }
 
         return output
 
