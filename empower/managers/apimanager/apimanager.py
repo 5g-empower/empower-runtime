@@ -305,6 +305,8 @@ class DocHandler(EmpowerAPIHandler):
         accum = [BOILER_PLATE]
 
         for rule in self.service.application.default_router.rules:
+            if not rule.target.rules:
+                continue
             handlers.add(rule.target.rules[0].target)
 
         handlers = sorted(handlers, key=lambda x: x.__name__)
