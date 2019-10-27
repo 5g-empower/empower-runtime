@@ -187,7 +187,7 @@ def _parse_global_args():
     return parser.parse_known_args(sys.argv[1:])
 
 
-def main(argv=None):
+def main():
     """Parses the command line and loads the plugins."""
 
     # parse command line
