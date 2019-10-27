@@ -33,7 +33,7 @@ import tornado.ioloop
 from pymodm.connection import connect
 from empower.core.service import EService
 
-DEFAULT_CONFIG = "/etc/empower/empower.cfg"
+DEFAULT_CONFIG = "/etc/empower/"
 
 SERVICES = dict()
 
@@ -101,7 +101,7 @@ def _setup_db(args):
     """ Setup db connection. """
 
     config = configparser.ConfigParser()
-    config.read(args.empower_config)
+    config.read(args.config)
     mongodb_uri = config.get('general', 'mongodb',
                              fallback="mongodb://localhost:27017/empower")
 
@@ -111,10 +111,7 @@ def _setup_db(args):
 def _setup_logging(args):
     """ Setup logging. """
 
-    config = configparser.ConfigParser()
-    config.read(args.empower_config)
-    log_config = config.get('general', 'log',
-                            fallback="/etc/empower/logging.cfg")
+    log_config = args.config + "/logging.cfg"
 
     if not os.path.exists(log_config):
         print("Could not find logging config file: %s" % log_config)
@@ -137,8 +134,10 @@ def _post_startup():
 def _read_config(args):
     """Read config file."""
 
+    logging.info("Loading configuration: %s", args.config + "/empower.cfg")
+
     config = configparser.ConfigParser()
-    config.read(args.empower_config)
+    config.read(args.config + "/empower.cfg")
 
     managers = {}
     managers_order = []
@@ -179,10 +178,10 @@ def _parse_global_args():
 
     parser = ArgumentParser()
 
-    parser.add_argument("-c", "--empower-config",
-                        dest="empower_config",
+    parser.add_argument("-c", "--config",
+                        dest="config",
                         default=DEFAULT_CONFIG,
-                        help="Configuration file, default: %s" %
+                        help="Configuration directory, default: %s" %
                         DEFAULT_CONFIG)
 
     return parser.parse_known_args(sys.argv[1:])
@@ -194,11 +193,11 @@ def main(argv=None):
     # parse command line
     args, _ = _parse_global_args()
 
-    # load managers
-    managers, managers_order = _read_config(args)
-
     # perform pre-startup operation
     _pre_startup(args)
+
+    # load managers
+    managers, managers_order = _read_config(args)
 
     # launch managers
     if _do_launch(managers, managers_order):
