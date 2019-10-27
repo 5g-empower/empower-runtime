@@ -116,7 +116,7 @@ class EmbeddedWiFiProps(EmbeddedMongoModel):
     allowed = fields.ListField(EtherAddressField())
 
     def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the Poll """
+        """ Return a JSON-serializable dictionary """
 
         output = {}
 
@@ -133,7 +133,7 @@ class EmbeddedLTEProps(EmbeddedMongoModel):
     plmnid = PLMNIDField(required=True)
 
     def to_dict(self):
-        """ Return a JSON-serializable dictionary representing the Poll """
+        """ Return a JSON-serializable dictionary """
 
         output = {}
 
@@ -164,7 +164,10 @@ class Project(Env):
     The LTE properties are defined starting from a JSON document like the
     following:
     {
-        "plmn_id": "222f93"
+        "plmnid": {
+            "mcc": "001",
+            "mnc": "01"
+        }
     }
 
     A Wi-Fi slice is defined starting from a JSON document like the

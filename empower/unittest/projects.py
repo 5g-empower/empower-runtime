@@ -17,7 +17,6 @@
 
 """Projects unit tests."""
 
-
 import unittest
 
 from .common import BaseTest
@@ -155,7 +154,10 @@ class TestProjects(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": "222f93"
+                "plmnid": {
+                    "mcc": "001",
+                    "mnc": "01"
+                }
             }
         }
 
@@ -182,7 +184,10 @@ class TestProjects(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": "wrong plmnid"
+                "plmnid": {
+                    "mcc": "wrong mcc",
+                    "mnc": "01"
+                }
             }
         }
 

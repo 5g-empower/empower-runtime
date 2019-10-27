@@ -68,9 +68,13 @@ def pa_create_project(args, cmd):
     required.add_argument('-o', '--owner', help='The project owner',
                           required=True, type=str, dest="owner")
 
-    parser.add_argument("-p", "--plmnid", dest="plmnid", default=None,
-                        help="The network PLMNID; default=None",
-                        type=PLMNID)
+    parser.add_argument("-c", "--mcc", dest="mcc", default=None,
+                        help="The network MCC; default=None",
+                        type=str)
+
+    parser.add_argument("-n", "--mnc", dest="mcc", default=None,
+                        help="The network MNC; default=None",
+                        type=str)
 
     parser.add_argument("-s", "--ssid", dest="ssid", default=None,
                         help="The network SSID; default=None",
@@ -101,10 +105,12 @@ def do_create_project(gargs, args, _):
             "ssid": args.ssid
         }
 
-    if args.plmnid:
+    if args.mcc and args.mnc:
+
+        plmnid = PLMNID(args.mcc, args.mnc)
 
         request["lte_props"] = {
-            "plmnid": args.plmnid
+            "plmnid": plmnid.to_dict()
         }
 
     headers = command.get_headers(gargs)

@@ -66,6 +66,7 @@ def _(obj):
 @serialize.register(wtp.WTP)
 @serialize.register(vbs.VBS)
 @serialize.register(lvap.LVAP)
+@serialize.register(plmnid.PLMNID)
 @serialize.register(resourcepool.ResourceBlock)
 @serialize.register(txpolicy.TxPolicy)
 @serialize.register(ranconnection.RANConnection)
@@ -76,7 +77,6 @@ def _(obj):
 @serialize.register(datetime.datetime)
 @serialize.register(uuid.UUID)
 @serialize.register(ssid.SSID)
-@serialize.register(plmnid.PLMNID)
 @serialize.register(etheraddress.EtherAddress)
 @serialize.register(ipaddress.IPv4Address)
 def _(obj):

@@ -83,7 +83,7 @@ class ProjectsManager(EService):
         return project
 
     def load_project_by_plmnid(self, plmnid):
-        """Find a project by SSID."""
+        """Find a project by PLMNID."""
 
         for project in self.projects.values():
             if not project.lte_props:
