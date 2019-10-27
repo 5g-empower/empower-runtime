@@ -72,19 +72,19 @@ def validate(returncode=200, min_args=0, max_args=0):
                     self.write_as_json(output)
 
             except KeyError as ex:
-                self.send_error(404, message=ex)
+                self.send_error(404, message=str(ex))
 
             except ValueError as ex:
-                self.send_error(400, message=ex)
+                self.send_error(400, message=str(ex))
 
             except AttributeError as ex:
-                self.send_error(400, message=ex)
+                self.send_error(400, message=str(ex))
 
             except TypeError as ex:
-                self.send_error(400, message=ex)
+                self.send_error(400, message=str(ex))
 
             except ValidationError as ex:
-                self.send_error(400, message=ex)
+                self.send_error(400, message=str(ex))
 
             self.set_status(returncode, None)
 
@@ -176,15 +176,16 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
     # service associated to this handler
     service = None
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status, **kwargs):
         """Write error as JSON message."""
 
         self.set_header('Content-Type', 'application/json')
 
-        out = {"status_code": status_code, "reason": self._reason}
-
-        if "message" in kwargs:
-            out["message"] = str(kwargs["message"])
+        out = {
+            "title": self._reason,
+            "status": status,
+            "detail": kwargs.get("message"),
+        }
 
         self.finish(json.dumps(out))
 
@@ -209,7 +210,7 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
 
         if auth_header is None or not auth_header.startswith('Basic '):
             self.set_header('WWW-Authenticate', 'Basic realm=Restricted')
-            self.send_error(401)
+            self.send_error(401, message="Missing authorization header")
             return
 
         auth_bytes = bytes(auth_header[6:], 'utf-8')
@@ -218,7 +219,8 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
 
         # account does not exists
         if not accounts_manager.check_permission(username, password):
-            self.send_error(401)
+            self.send_error(401,
+                            message="Invalid username/password combination")
             return
 
         account = accounts_manager.accounts[username]
@@ -251,7 +253,7 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
                     if account.username == project.owner:
                         return
 
-        self.send_error(401)
+        self.send_error(401, message="URI not authorized")
 
 
 BOILER_PLATE = """# EmPOWER REST API

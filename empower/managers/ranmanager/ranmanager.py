@@ -132,7 +132,7 @@ class RANManager(EService):
         """Remove project."""
 
         if addr not in self.devices:
-            raise KeyError("%s not registered" % addr)
+            raise KeyError("Device %s not registered" % addr)
 
         device = self.devices[addr]
 

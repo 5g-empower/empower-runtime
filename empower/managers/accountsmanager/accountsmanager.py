@@ -71,7 +71,7 @@ class AccountsManager(EService):
         """Create new account."""
 
         if username in self.accounts:
-            raise ValueError("%s registered" % username)
+            raise ValueError("Duplicate username %s found" % username)
 
         user = Account(username=username,
                        password=password,
@@ -88,7 +88,7 @@ class AccountsManager(EService):
         """Update account."""
 
         if username not in self.accounts:
-            raise ValueError("%s not registered" % username)
+            raise KeyError("Username %s not found" % username)
 
         user = self.accounts[username]
 
@@ -109,7 +109,7 @@ class AccountsManager(EService):
         """Check if username/password match."""
 
         if username not in self.accounts:
-            raise KeyError("%s not registered" % username)
+            raise KeyError("Username %s not found" % username)
 
         user = self.accounts[username]
 
