@@ -33,8 +33,6 @@ import tornado.ioloop
 from pymodm.connection import connect
 from empower.core.service import EService
 
-DEFAULT_CONFIG = "/etc/empower/"
-
 SERVICES = dict()
 
 
@@ -100,12 +98,11 @@ def _do_launch(managers, managers_order):
 def _setup_db(args):
     """ Setup db connection. """
 
+    runtime_config = args.config + "/runtime.cfg"
     config = configparser.ConfigParser()
-    config.read(args.config)
-    mongodb_uri = config.get('general', 'mongodb',
-                             fallback="mongodb://localhost:27017/empower")
+    config.read(runtime_config)
 
-    connect(mongodb_uri, ssl_cert_reqs=ssl.CERT_NONE)
+    connect(config.get('general', 'mongodb'), ssl_cert_reqs=ssl.CERT_NONE)
 
 
 def _setup_logging(args):
@@ -134,10 +131,9 @@ def _post_startup():
 def _read_config(args):
     """Read config file."""
 
-    logging.info("Loading configuration: %s", args.config + "/empower.cfg")
-
+    runtime_config = args.config + "/runtime.cfg"
     config = configparser.ConfigParser()
-    config.read(args.config + "/empower.cfg")
+    config.read(runtime_config)
 
     managers = {}
     managers_order = []
@@ -173,25 +169,25 @@ def _read_config(args):
     return managers, managers_order
 
 
-def _parse_global_args():
+def _parse_global_args(config):
     """ Parse global arguments list. """
 
     parser = ArgumentParser()
 
     parser.add_argument("-c", "--config",
                         dest="config",
-                        default=DEFAULT_CONFIG,
+                        default=config,
                         help="Configuration directory, default: %s" %
-                        DEFAULT_CONFIG)
+                        config)
 
     return parser.parse_known_args(sys.argv[1:])
 
 
-def main():
+def main(config=""):
     """Parses the command line and loads the plugins."""
 
     # parse command line
-    args, _ = _parse_global_args()
+    args, _ = _parse_global_args(config)
 
     # perform pre-startup operation
     _pre_startup(args)
