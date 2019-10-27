@@ -20,6 +20,7 @@
 import logging
 
 from empower.core.resourcepool import BT_HT20
+from empower.core.serialize import serializable_dict
 
 TX_AMSDU_LEN_4K = 3839
 TX_AMSDU_LEN_8K = 7935
@@ -41,6 +42,7 @@ REVERSE_TX_MCAST = {TX_MCAST_LEGACY_H: TX_MCAST_LEGACY,
                     TX_MCAST_UR_H: TX_MCAST_UR}
 
 
+@serializable_dict
 class TxPolicy:
     """Transmission policy.
 

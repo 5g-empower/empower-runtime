@@ -18,8 +18,10 @@
 """Account Class."""
 
 from pymodm import MongoModel, fields
+from empower.core.serialize import serializable_dict
 
 
+@serializable_dict
 class Account(MongoModel):
     """An user account on this controller."""
 

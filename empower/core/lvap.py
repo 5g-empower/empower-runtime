@@ -28,6 +28,7 @@ from empower.core.resourcepool import ResourcePool
 from empower.core.txpolicy import TxPolicy, TX_AMSDU_LEN_8K
 from empower.core.etheraddress import EtherAddress
 from empower.core.ssid import SSID
+from empower.core.serialize import serializable_dict
 
 
 # add lvap message sent, status not received
@@ -40,6 +41,7 @@ PROCESS_RUNNING = "running"
 PROCESS_REMOVING = "removing"
 
 
+@serializable_dict
 class LVAP:
     """EmPOWER Light Virtual Access Point (LVAP)
 

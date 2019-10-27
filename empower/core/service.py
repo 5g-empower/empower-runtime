@@ -23,7 +23,10 @@ import logging
 
 import tornado.ioloop
 
+from empower.core.serialize import serializable_dict
 
+
+@serializable_dict
 class EService:
     """Base service class."""
 
@@ -194,7 +197,7 @@ class EService:
 
     @classmethod
     def walk_module(cls, package):
-        """Inspect the specified module for 5G-EmPOWER services."""
+        """Inspect the specified module for services."""
 
         results = {}
 

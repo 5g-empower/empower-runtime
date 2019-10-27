@@ -26,11 +26,13 @@ from tornado.iostream import StreamClosedError
 from construct import Container
 
 from empower.core.etheraddress import EtherAddress
+from empower.core.serialize import serializable_dict
 
 HELLO_PERIOD = 2000
 HB_PERIOD = 500
 
 
+@serializable_dict
 class RANConnection:
     """A persistent connection to a RAN device."""
 

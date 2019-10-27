@@ -26,8 +26,10 @@ from pymodm import MongoModel, fields
 import empower.core.serialize as serialize
 
 from empower.main import srv_or_die
+from empower.core.serialize import serializable_dict
 
 
+@serializable_dict
 class Env(MongoModel):
     """Env class
 

@@ -18,8 +18,10 @@
 """Wireless Termination Point."""
 
 from empower.core.device import Device
+from empower.core.serialize import serializable_dict
 
 
+@serializable_dict
 class WTP(Device):
     """Wireless Termination Point.
 

@@ -21,8 +21,10 @@ import re
 
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
+from empower.core.serialize import serializable_dict
 
 
+@serializable_dict
 class PLMNID:
     """Public land mobile network  identifier (PLMNID)."""
 

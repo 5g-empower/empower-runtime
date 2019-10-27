@@ -21,6 +21,7 @@ import logging
 import json
 
 from empower.core.etheraddress import EtherAddress
+from empower.core.serialize import serializable_dict
 
 WIFI_SLICE_SCHEDULER_RR = 0
 WIFI_SLICE_SCHEDULER_DRR = 1
@@ -39,6 +40,7 @@ UE_SLICE_SCHEDULERS = {
 }
 
 
+@serializable_dict
 class Slice:
     """EmPOWER Slice Class."""
 

@@ -21,10 +21,12 @@ import re
 
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
+from empower.core.serialize import serializable_string
 
 WIFI_NWID_MAXSIZE = 32
 
 
+@serializable_string
 class SSID:
     """Wi-Fi Service Set Identifier (SSID)."""
 

@@ -116,7 +116,7 @@ class IndexHandler(BaseHandler):
     URLS = [r"/", r"/index.html"]
 
     @tornado.web.authenticated
-    def get(self, *args, **kwargs):
+    def get(self):
         """Render index page."""
 
         username = self.get_secure_cookie("username").decode('UTF-8')
@@ -135,7 +135,7 @@ class AuthLoginHandler(BaseHandler):
 
     URLS = [r"/auth/login"]
 
-    def get(self, *args, **kwargs):
+    def get(self):
         """Render login page."""
 
         if self.get_current_user():
@@ -144,7 +144,7 @@ class AuthLoginHandler(BaseHandler):
 
         self.render("login.html", error=self.get_argument("error", ""))
 
-    def post(self, *args, **kwargs):
+    def post(self):
         """Process login credentials."""
 
         username = self.get_argument("username", "")
@@ -163,7 +163,7 @@ class AuthLogoutHandler(BaseHandler):
 
     URLS = [r"/auth/logout"]
 
-    def get(self, *args, **kwargs):
+    def get(self):
         """Process logout request."""
 
         self.clear_cookie("username")
@@ -176,14 +176,14 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
     # service associated to this handler
     service = None
 
-    def write_error(self, status, **kwargs):
+    def write_error(self, status_code, **kwargs):
         """Write error as JSON message."""
 
         self.set_header('Content-Type', 'application/json')
 
         out = {
             "title": self._reason,
-            "status": status,
+            "status_code": status_code,
             "detail": kwargs.get("message"),
         }
 
@@ -288,7 +288,7 @@ class DocHandler(EmpowerAPIHandler):
 
     URLS = [r"/api/v1/doc/?"]
 
-    def get(self, *args, **kwargs):
+    def get(self):
         """Generates markdown documentation.
 
         Args:

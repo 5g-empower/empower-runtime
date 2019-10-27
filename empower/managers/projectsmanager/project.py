@@ -28,6 +28,7 @@ from empower.core.etheraddress import EtherAddressField
 from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
 from empower.main import srv_or_die
+from empower.core.serialize import serializable_dict
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -142,6 +143,7 @@ class EmbeddedLTEProps(EmbeddedMongoModel):
         return output
 
 
+@serializable_dict
 class Project(Env):
     """Project class.
 

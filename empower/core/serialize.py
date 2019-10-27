@@ -23,20 +23,6 @@ import datetime
 
 from functools import singledispatch
 
-import empower.core.service as service
-import empower.core.etheraddress as etheraddress
-import empower.core.ssid as ssid
-import empower.core.plmnid as plmnid
-import empower.core.wtp as wtp
-import empower.core.vbs as vbs
-import empower.core.lvap as lvap
-import empower.core.resourcepool as resourcepool
-import empower.core.txpolicy as txpolicy
-import empower.managers.ranmanager.ranconnection as ranconnection
-import empower.managers.accountsmanager.account as account
-import empower.managers.projectsmanager.project as project
-import empower.managers.envmanager.env as env
-
 
 @singledispatch
 def serialize(obj):
@@ -57,27 +43,36 @@ def _(obj):
     return [serialize(v) for v in obj]
 
 
-@serialize.register(service.EService)
-@serialize.register(account.Account)
-@serialize.register(project.Project)
-@serialize.register(env.Env)
-@serialize.register(project.WiFiSlice)
-@serialize.register(project.LTESlice)
-@serialize.register(wtp.WTP)
-@serialize.register(vbs.VBS)
-@serialize.register(lvap.LVAP)
-@serialize.register(plmnid.PLMNID)
-@serialize.register(resourcepool.ResourceBlock)
-@serialize.register(txpolicy.TxPolicy)
-@serialize.register(ranconnection.RANConnection)
-def _(obj):
-    return serialize(obj.to_dict())
-
-
 @serialize.register(datetime.datetime)
 @serialize.register(uuid.UUID)
-@serialize.register(ssid.SSID)
-@serialize.register(etheraddress.EtherAddress)
 @serialize.register(ipaddress.IPv4Address)
 def _(obj):
     return str(obj)
+
+
+def serializable_string(cls):
+    """Decorator for classes that can be serialized as dicts."""
+
+    def decorator(cls):
+
+        @serialize.register(cls)
+        def _(obj):
+            return str(obj)
+
+        return cls
+
+    return decorator(cls)
+
+
+def serializable_dict(cls):
+    """Decorator for classes that can be serialized as dicts."""
+
+    def decorator(cls):
+
+        @serialize.register(cls)
+        def _(obj):
+            return serialize(obj.to_dict())
+
+        return cls
+
+    return decorator(cls)

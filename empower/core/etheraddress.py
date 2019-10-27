@@ -19,8 +19,10 @@
 
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
+from empower.core.serialize import serializable_string
 
 
+@serializable_string
 class EtherAddress:
     """Ethernet address."""
 
