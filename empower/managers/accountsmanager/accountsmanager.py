@@ -44,17 +44,17 @@ class AccountsManager(EService):
             self.create(username="root",
                         password="root",
                         name="admin",
-                        email="admin@empower.it")
+                        email="admin@5g-empower.io")
 
             self.create(username="foo",
                         password="foo",
                         name="Foo",
-                        email="foo@empower.it")
+                        email="foo@5g-empower.io")
 
             self.create(username="bar",
                         password="bar",
                         name="Bar",
-                        email="bar@empower.it")
+                        email="bar@5g-empower.io")
 
     def check_permission(self, username, password):
         """Check if username/password match."""

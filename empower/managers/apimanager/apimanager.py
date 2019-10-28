@@ -124,7 +124,7 @@ class IndexHandler(BaseHandler):
         account = self.service.accounts_manager.accounts[username]
 
         self.render("index.html",
-                    username=username,
+                    username=account.username,
                     password=account.password,
                     name=account.name,
                     email=account.email)
