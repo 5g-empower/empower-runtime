@@ -113,21 +113,92 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     """Index page handler."""
 
-    URLS = [r"/", r"/index.html"]
+    URLS = [r"/", r"/([a-z]*).html"]
+
+    def get_project(self):
+        """Get the current project or return None if not project is set."""
+
+        # check if a project has been selected
+        project_id = self.get_secure_cookie("project_id")
+
+        if not project_id:
+            return None
+
+        project_id = UUID(project_id.decode('UTF-8'))
+
+        return self.service.projects_manager.projects[project_id]
 
     @tornado.web.authenticated
-    def get(self):
+    def get(self, args=None):
         """Render index page."""
+
+        try:
+
+            username = self.get_secure_cookie("username").decode('UTF-8')
+            account = self.service.accounts_manager.accounts[username]
+
+            page = "index.html" if not args else "%s.html" % args
+
+            self.render(page,
+                        username=account.username,
+                        password=account.password,
+                        name=account.name,
+                        email=account.email,
+                        project=self.get_project())
+
+        except KeyError as ex:
+            self.send_error(404, message=str(ex))
+
+        except ValueError as ex:
+            self.send_error(400, message=str(ex))
+
+
+class AuthSwitchProjectHandler(BaseHandler):
+    """Login page handler."""
+
+    URLS = [r"/auth/switch_project"]
+
+    def get(self):
+        """Set the active project."""
 
         username = self.get_secure_cookie("username").decode('UTF-8')
 
-        account = self.service.accounts_manager.accounts[username]
+        # if root deselect project
+        if username == "root":
+            self.clear_cookie("project_id")
+            self.redirect('/')
+            return
 
-        self.render("index.html",
-                    username=account.username,
-                    password=account.password,
-                    name=account.name,
-                    email=account.email)
+        # check if the project id is in the URL
+        project_id = self.get_argument("project_id", None)
+
+        # reset project selected
+        if not project_id:
+            self.clear_cookie("project_id")
+            self.redirect('/')
+            return
+
+        try:
+
+            # set project
+            project_id = UUID(project_id)
+            project = self.service.projects_manager.projects[project_id]
+
+            if project.owner != username:
+                self.clear_cookie("project_id")
+                self.redirect('/')
+                return
+
+            self.set_secure_cookie("project_id", str(project.project_id))
+            self.redirect('/')
+
+        except KeyError:
+            self.clear_cookie("project_id")
+
+        except ValueError:
+            self.clear_cookie("project_id")
+
+        self.redirect('/')
 
 
 class AuthLoginHandler(BaseHandler):
@@ -155,7 +226,7 @@ class AuthLoginHandler(BaseHandler):
             self.redirect("/index.html")
         else:
             self.clear_cookie("username")
-            self.redirect("/auth/login?error=Wrong Password")
+            self.redirect("/auth/login?error=Wrong credentials!")
 
 
 class AuthLogoutHandler(BaseHandler):
@@ -167,6 +238,7 @@ class AuthLogoutHandler(BaseHandler):
         """Process logout request."""
 
         self.clear_cookie("username")
+        self.clear_cookie("project_id")
         self.redirect("/auth/login")
 
 
@@ -383,7 +455,7 @@ class APIManager(EService):
     """
 
     HANDLERS = [IndexHandler, AuthLoginHandler, AuthLogoutHandler,
-                DocHandler]
+                DocHandler, AuthSwitchProjectHandler]
 
     accounts_manager = None
     projects_manager = None
