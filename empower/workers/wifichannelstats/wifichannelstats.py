@@ -174,7 +174,8 @@ class ChannelStats(EWorker):
             for item in sample_fields:
                 fields[item["type"]] = item["value"]
 
-            tags = self.params
+            tags = dict(self.params)
+            tags["wtp"] = wtp.addr
             tags["block_id"] = block_id
 
             sample = {

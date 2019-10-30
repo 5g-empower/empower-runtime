@@ -160,6 +160,6 @@ class InfluxTimeSeriesManager(EService):
             self.influxdb_client.write_points(points=serialize(points))
         except Exception as ex:
             self.log.exception(ex)
-            return False
+            return True
 
-        return True
+        return False

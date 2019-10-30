@@ -154,6 +154,7 @@ class SliceStats(EApp):
 
         # generate data points
         points = []
+        timestamp = datetime.utcnow()
 
         for entry in response.stats:
 
@@ -164,17 +165,15 @@ class SliceStats(EApp):
                 'tx_bytes': entry.tx_bytes,
             }
 
-            fields = {
-                "wtp": wtp,
-                "iface_id": entry.iface_id,
-                **self.stats[wtp][entry.iface_id]
-            }
+            tags = dict(self.params)
+            tags["wtp"] = wtp
+            tags["iface_id"] = entry.iface_id
 
             sample = {
                 "measurement": self.name,
-                "tags": self.params,
-                "time": datetime.utcnow(),
-                "fields": fields
+                "tags": tags,
+                "time": timestamp,
+                "fields": self.stats[wtp][entry.iface_id]
             }
 
             points.append(sample)
