@@ -159,12 +159,13 @@ class RCStats(EApp):
 
         # generate data points
         points = []
+        timestamp = datetime.utcnow()
 
         for entry in response.stats:
 
             rate = entry.rate if lvap.ht_caps else entry.rate / 2.0
 
-            value = {
+            fields = {
                 'prob': entry.prob / 180.0,
                 'cur_prob': entry.cur_prob / 180.0,
                 'cur_tp': entry.cur_tp / ((18000 << 10) / 96) / 10,
@@ -174,17 +175,15 @@ class RCStats(EApp):
                 'hist_successes': entry.hist_successes,
             }
 
-            self.rates[rate] = value
+            tags = dict(self.params)
+            tags["rate"] = rate
 
-            fields = {
-                "rate": rate,
-                **self.rates[rate]
-            }
+            self.rates[rate] = fields
 
             sample = {
                 "measurement": self.name,
-                "tags": self.params,
-                "time": datetime.utcnow(),
+                "tags": tags,
+                "time": timestamp,
                 "fields": fields
             }
 

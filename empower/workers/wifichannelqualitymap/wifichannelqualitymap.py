@@ -17,6 +17,8 @@
 
 """WiFi Channel Quality Map Worker."""
 
+from datetime import datetime
+
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
 
@@ -122,6 +124,10 @@ class ChannelQualityMap(EWorker):
         block = wtp.blocks[response.iface_id]
         block.ucqm = {}
 
+        # generate data points
+        points = []
+        timestamp = datetime.utcnow()
+
         for entry in response.entries:
             addr = EtherAddress(entry['addr'])
             block.ucqm[addr] = {
@@ -132,6 +138,23 @@ class ChannelQualityMap(EWorker):
                 'hist_packets': entry['hist_packets'],
                 'mov_rssi': entry['mov_rssi']
             }
+
+            tags = dict(self.params)
+            tags["wtp"] = wtp.addr
+            tags["block_id"] = response.iface_id
+            tags["addr"] = addr
+
+            sample = {
+                "measurement": self.name,
+                "tags": tags,
+                "time": timestamp,
+                "fields": block.ucqm[addr]
+            }
+
+            points.append(sample)
+
+        # save to db
+        self.write_points(points)
 
         self.ucqm[block.block_id] = block.ucqm
 

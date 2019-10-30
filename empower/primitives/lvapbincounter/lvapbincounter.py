@@ -296,12 +296,12 @@ class LVAPBinCounter(EApp):
 
         # generate data points
         points = []
+        timestamp = datetime.utcnow()
 
         for idx, _ in enumerate(self.bins):
 
             fields = {
                 "sta": self.sta,
-                "bin": self.bins[idx],
                 "tx_bytes": self.counters["tx_bytes"][idx],
                 "rx_bytes": self.counters["rx_bytes"][idx],
                 "tx_packets": self.counters["tx_packets"][idx],
@@ -312,10 +312,13 @@ class LVAPBinCounter(EApp):
                 "rx_pps": self.counters["rx_pps"][idx]
             }
 
+            tags = dict(self.params)
+            tags["bin"] = self.bins[idx]
+
             sample = {
                 "measurement": self.name,
-                "tags": self.params,
-                "time": datetime.utcnow(),
+                "tags": tags,
+                "time": timestamp,
                 "fields": fields
             }
 
