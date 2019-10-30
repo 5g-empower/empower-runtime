@@ -190,7 +190,6 @@ class AuthSwitchProjectHandler(BaseHandler):
                 return
 
             self.set_secure_cookie("project_id", str(project.project_id))
-            self.redirect('/')
 
         except KeyError:
             self.clear_cookie("project_id")

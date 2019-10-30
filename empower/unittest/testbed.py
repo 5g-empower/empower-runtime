@@ -31,9 +31,9 @@ class TestTestbed(BaseTest):
 
         data = {
             "owner": "foo",
-            "desc": "5G-EmPOWER Wi-Fi Network",
+            "desc": "EmPOWER Guests",
             "wifi_props": {
-                "ssid": "EmPOWER",
+                "ssid": "EmPOWER Guests",
                 "allowed": [
                     "60:57:18:b1:a4:b8",
                     "18:5e:0f:e3:b8:68",
@@ -58,9 +58,9 @@ class TestTestbed(BaseTest):
 
         data = {
             "owner": "foo",
-            "desc": "5G-EmPOWER Wi-Fi Network (Shared)",
+            "desc": "EmPOWER Mcast",
             "wifi_props": {
-                "ssid": "SharedEmPOWER",
+                "ssid": "EmPOWER Mcast",
                 "bssid_type": "shared",
                 "allowed": [
                     "60:57:18:b1:a4:b8",

@@ -32,45 +32,33 @@
     <ul class="navbar-nav bg-gray-900 sidebar sidebar-dark accordion" id="accordionSidebar">
 
       <!-- Sidebar - Brand -->
-      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-          <img width="30px" src="/static/img/logo.png">
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+        <img width="30px" src="/static/img/logo.png">
         <div class="sidebar-brand-text mx-3">5G-EmPOWER</div>
       </a>
 
       <!-- Divider -->
       <hr class="sidebar-divider my-0">
 
-      {% if project %}
-
-      <!-- Nav Item - Dashboard -->
-      <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+      <!-- Nav Item - Charts -->
+      <li class="nav-item">
+        <a class="nav-link" href="/">
           <i class="fas fa-fw fa-tachometer-alt"></i>
-          <span>{{project.desc}}</span></a>
+          <span>Dashboard</span>
+        </a>
       </li>
-
-      {% else %}
-
-      <!-- Nav Item - Dashboard -->
-      <li class="nav-item active">
-        <a class="nav-link" href="index.html">
-          <i class="fas fa-fw fa-tachometer-alt"></i>
-          <span>Dashboard</span></a>
-      </li>
-
-      {% end %}
 
       <!-- Divider -->
       <hr class="sidebar-divider">
 
+      {% if username!="root" and project %}
+
       <!-- Nav Item - Charts -->
       <li class="nav-item">
-        <a class="nav-link" href="/projects.html">
-          <i class="fas fa-fw fa-tasks"></i>
-          <span>Projects</span></a>
+        <a class="nav-link" href="/project.html">
+          <i class="fas fa-fw fa-rocket"></i>
+          <span>{{project.desc}}</span></a>
       </li>
-
-      {% if username=="root" or (username!="root" and project) %}
 
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item">
@@ -86,8 +74,6 @@
         </div>
       </li>
 
-      {% end %}
-
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo" id="devices">
@@ -102,7 +88,51 @@
         </div>
       </li>
 
+      <!-- Nav Item - Pages Collapse Menu -->
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+          <i class="fas fa-fw fa-cog"></i>
+          <span>Applications</span>
+        </a>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="/applications.html">Active</a>
+            <a class="collapse-item" href="/acatalog.html">Catalog</a>
+          </div>
+        </div>
+      </li>
+
+      {% end %}
+
       {% if username=="root" %}
+
+      <!-- Nav Item - Pages Collapse Menu -->
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          <i class="fas fa-fw fa-laptop"></i>
+          <span>Clients</span>
+        </a>
+        <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="/lvaps.html">LVAPs</a>
+            <a class="collapse-item" href="/ues.html">UEs</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- Nav Item - Pages Collapse Menu -->
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo" id="devices">
+          <i class="fas fa-fw fa-cubes"></i>
+          <span>Devices</span>
+        </a>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <a id="devices_wtps" class="collapse-item" href="wtps.html">WTPs</a>
+            <a id="devices_vbses" class="collapse-item" href="/vbses.html">VBSes</a>
+          </div>
+        </div>
+      </li>
 
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item">
@@ -123,24 +153,6 @@
         <a class="nav-link" href="accounts.html">
           <i class="fas fa-fw fa-users"></i>
           <span>Accounts</span></a>
-      </li>
-
-      {% end %}
-
-      {% if username!="root" and project %}
-
-      <!-- Nav Item - Pages Collapse Menu -->
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-          <i class="fas fa-fw fa-cog"></i>
-          <span>Applications</span>
-        </a>
-        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
-          <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="/applications.html">Active</a>
-            <a class="collapse-item" href="/acatalog.html">Catalog</a>
-          </div>
-        </div>
       </li>
 
       {% end %}
