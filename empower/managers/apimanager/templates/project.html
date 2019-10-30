@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">{{project.desc}} ({{project.project_id}})</h1>
+  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+
+  <!-- LVAPs -->
+  <div class="col-xl-2 col-md-3 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">LVAPs</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-laptop fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UEs -->
+  <div class="col-xl-2 col-md-3 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">UEs</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-laptop fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WTPs Card -->
+  <div class="col-xl-2 col-md-3 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Wireless Termination Points</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">10</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VBSes Card -->
+  <div class="col-xl-2 col-md-3 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Virtual Basestations</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workers Card -->
+  <div class="col-xl-2 col-md-3 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Applications</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-cog fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% end %}
+
+{% block js %}
+<script src="/static/js/empower-project.js"></script>
+{% end %}
