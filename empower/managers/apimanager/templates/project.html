@@ -4,55 +4,37 @@
 
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-  <h1 class="h3 mb-0 text-gray-800">{{project.desc}} ({{project.project_id}})</h1>
+  <h1 class="h3 mb-0 text-gray-800">{{project.desc}}</h1>
   <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
 </div>
 
 <!-- Content Row -->
 <div class="row">
 
-
-  <!-- LVAPs -->
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">LVAPs</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-laptop fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- UEs -->
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">UEs</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-laptop fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WTPs Card -->
+  <!-- ACLs -->
   <div class="col-xl-4 col-md-6 mb-4">
     <div class="card border-left-success shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Wireless Termination Points</div>
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">ACLs</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-laptop fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slices Card -->
+  <div class="col-xl-4 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Wi-Fi Slices</div>
             <div class="h5 mb-0 font-weight-bold text-gray-800">10</div>
           </div>
           <div class="col-auto">
@@ -63,30 +45,13 @@
     </div>
   </div>
 
-  <!-- VBSes Card -->
+  <!-- Slices Card -->
   <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-success shadow h-100 py-2">
+    <div class="card border-left-danger shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Virtual Basestations</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-cubes fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Workers Card -->
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-info shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Applications</div>
+            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">LTE Slices</div>
             <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
           </div>
           <div class="col-auto">
@@ -99,6 +64,138 @@
 
 </div>
 
+<div class="row">
+  <div class="col-lg-12 mb-4">
+    <div class="card shadow mb-0">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Properties</h6>
+      </div>
+      <div class="card-body">
+        <p><b>Project Id:</b> {{project.project_id}}</p>
+        <p><b>SSID:</b> EmPOWER Guests</p>
+        <p><b>Shared SSID:</b> No</p>
+        <p><b>PLMNID (MCC/MNC):</b> 101/01</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Access Control List</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-sm-flex mb-4">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add new station</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Wi-Fi Slices</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-sm-flex mb-4">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create new slice</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">LTE Slices</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>00:0D:B9:2F:56:64</td>
+            <td>Roberto's iPhone</td>
+            <td class="text-center"></a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-sm-flex mb-4">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create new slice</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block js %}
