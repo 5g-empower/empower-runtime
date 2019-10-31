@@ -299,22 +299,25 @@ class TXPBinCounter(EApp):
 
         # generate data points
         points = []
+        timestamp = datetime.utcnow()
 
         for idx, _ in enumerate(self.bins):
 
             fields = {
                 "addr": self.addr,
-                "bin": self.bins[idx],
                 "tx_bytes": self.counters["tx_bytes"][idx],
                 "tx_packets": self.counters["tx_packets"][idx],
                 "tx_bps": self.counters["tx_bps"][idx],
                 "tx_pps": self.counters["tx_pps"][idx]
             }
 
+            tags = dict(self.params)
+            tags["bin"] = self.bins[idx]
+
             sample = {
                 "measurement": self.name,
-                "tags": self.params,
-                "time": datetime.utcnow(),
+                "tags": tags,
+                "time": timestamp,
                 "fields": fields
             }
 

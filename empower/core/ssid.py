@@ -38,7 +38,7 @@ class SSID:
         if isinstance(ssid, bytes):
             self.ssid = ssid.decode('UTF-8').rstrip('\0')
         elif isinstance(ssid, str):
-            allowed = re.compile(r'^[a-zA-Z0-9_]*$',
+            allowed = re.compile(r'^[a-zA-Z0-9 ]*$',
                                  re.VERBOSE | re.IGNORECASE)
             if allowed.match(ssid) is None:
                 raise ValueError("Invalid SSID name")
