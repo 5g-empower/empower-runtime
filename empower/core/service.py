@@ -222,9 +222,6 @@ class EService:
 
             name = package.__name__ + "." + module_name + "." + module_name
 
-            manifest['name'] = name
-            manifest['desc'] = module.__doc__
-
             results[name] = manifest
 
         return results
