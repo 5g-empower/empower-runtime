@@ -392,7 +392,7 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
         Example URLs:
 
             POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                wifi_acl/60:57:18:B1:A4:B8
+                wifi_acl
 
             {
                 "addr": "60:57:18:B1:A4:B8",
