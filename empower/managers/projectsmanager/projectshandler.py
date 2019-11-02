@@ -413,6 +413,10 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
 
         project.save()
 
+        url = "/api/v1/projects/%s/wifi_acl/%s" % (project_id, addr)
+
+        self.set_header("Location", url)
+
     @apimanager.validate(returncode=204, min_args=2, max_args=2)
     def delete(self, *args, **kwargs):
         """Delete an entry in ACL.
