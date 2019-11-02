@@ -21,6 +21,7 @@ import uuid
 
 import empower.managers.apimanager.apimanager as apimanager
 
+from empower.core.acl import ACL
 from empower.core.etheraddress import EtherAddress
 from empower.core.resourcepool import ResourcePool
 
@@ -74,11 +75,20 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
                     "owner": "foo",
                     "project_id": "52313ecb-9d00-4b7d-b873-b55d3d9ada26",
                     "wifi_props": {
-                        "allowed": [
-                            "60:57:18:B1:A4:B8",
-                            "18:5E:0F:E3:B8:68",
-                            "60:F4:45:D0:3B:FC"
-                        ],
+                        "allowed": {
+                            "04:46:65:49:e0:1f": {
+                                "addr": "04:46:65:49:e0:1f",
+                                "desc": "Some laptop"
+                            },
+                            "04:46:65:49:e0:11": {
+                                "addr": "04:46:65:49:e0:1f",
+                                "desc": "Some other laptop"
+                            },
+                            "04:46:65:49:e0:12": {
+                                "addr": "04:46:65:49:e0:1f",
+                                "desc": "Yet another laptop"
+                            }
+                        },
                         "bssid_type": "unique",
                         "ssid": "EmPOWER"
                     },
@@ -148,11 +158,20 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
                 "owner": "foo",
                 "project_id": "52313ecb-9d00-4b7d-b873-b55d3d9ada26",
                 "wifi_props": {
-                    "allowed": [
-                        "60:57:18:B1:A4:B8",
-                        "18:5E:0F:E3:B8:68",
-                        "60:F4:45:D0:3B:FC"
-                    ],
+                    "allowed": {
+                        "04:46:65:49:e0:1f": {
+                            "addr": "04:46:65:49:e0:1f",
+                            "desc": "Some laptop"
+                        },
+                        "04:46:65:49:e0:11": {
+                            "addr": "04:46:65:49:e0:1f",
+                            "desc": "Some other laptop"
+                        },
+                        "04:46:65:49:e0:12": {
+                            "addr": "04:46:65:49:e0:1f",
+                            "desc": "Yet another laptop"
+                        }
+                    },
                     "bssid_type": "unique",
                     "ssid": "EmPOWER"
                 },
@@ -287,9 +306,84 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
     URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/wifi_acl/?",
             r"/api/v1/projects/([a-zA-Z0-9-]*)/wifi_acl/([a-zA-Z0-9:]*)/?"]
 
-    @apimanager.validate(min_args=1, max_args=1)
+    @apimanager.validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
         """Lists all clients in the ACL.
+
+        Args:
+
+            [0], the project id (mandatory)
+            [0]: the device address (optional)
+
+        Example URLs:
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/
+
+            {
+                "60:57:18:B1:A4:B8": {
+                    "addr": "60:57:18:B1:A4:B8",
+                    "desc": "Dell Laptop"
+                },
+                "18:5E:0F:E3:B8:68": {
+                    "addr": "18:5E:0F:E3:B8:68",
+                    "desc": "Dell Laptop"
+                },
+                "60:F4:45:D0:3B:FC": {
+                    "addr": "60:F4:45:D0:3B:FC",
+                    "desc": "Roberto's iPhone"
+                }
+            }
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/60:57:18:B1:A4:B8
+
+            {
+                "addr": "60:57:18:B1:A4:B8",
+                "desc": "Dell Laptop"
+            }
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        allowed = project.wifi_props.allowed
+
+        return allowed if not args else allowed[str(EtherAddress(args[1]))]
+
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
+    def put(self, *args, **kwargs):
+        """Update entry in ACL.
+
+        Args:
+
+            [0], the project id (mandatory)
+            [1]: the device address (mandatory)
+
+        Example URLs:
+
+            PUT /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/60:57:18:B1:A4:B8
+
+            {
+                "desc": "Dell Laptop"
+            }
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        desc = "Generic Station" if 'desc' not in kwargs else kwargs['desc']
+
+        allowed = project.wifi_props.allowed
+        acl = allowed[str(EtherAddress(args[1]))]
+        acl.desc = desc
+
+        project.save()
+
+    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+    def post(self, *args, **kwargs):
+        """Add entry in ACL.
 
         Args:
 
@@ -297,20 +391,50 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
 
         Example URLs:
 
-            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
-                wifi_acl/
+            POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/60:57:18:B1:A4:B8
 
-            [
-                "60:57:18:B1:A4:B8",
-                "18:5E:0F:E3:B8:68",
-                "60:F4:45:D0:3B:FC"
-            ]
+            {
+                "addr": "60:57:18:B1:A4:B8",
+                "desc": "Dell Laptop"
+            }
         """
 
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
-        return project.wifi_props.allowed
+        desc = "Generic Station" if 'desc' not in kwargs else kwargs['desc']
+        addr = EtherAddress(kwargs['addr'])
+
+        allowed = project.wifi_props.allowed
+        acl = ACL(addr=addr, desc=desc)
+
+        allowed[str(acl.addr)] = acl
+
+        project.save()
+
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
+    def delete(self, *args, **kwargs):
+        """Delete an entry in ACL.
+
+        Args:
+
+            [0], the project id (mandatory)
+            [0]: the device address (mandatory)
+
+        Example URLs:
+
+            DELETE /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
+                wifi_acl/60:57:18:B1:A4:B8
+
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        del project.wifi_props.allowed[str(EtherAddress(args[1]))]
+
+        project.save()
 
 
 # pylint: disable=W0223

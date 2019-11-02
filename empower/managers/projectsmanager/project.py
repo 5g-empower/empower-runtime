@@ -24,7 +24,7 @@ import empower.core.serialize as serialize
 from empower.managers.envmanager.env import Env
 from empower.core.slice import WiFiSlice, LTESlice
 from empower.core.etheraddress import EtherAddress
-from empower.core.etheraddress import EtherAddressField
+from empower.core.acl import ACL
 from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
 from empower.main import srv_or_die
@@ -41,6 +41,37 @@ T_STA_SCHED_TYPES = [T_STA_SCHED_RR, T_STA_SCHED_DRR, T_STA_SCHED_ADRR]
 
 T_UE_SCHED_RR = 0
 T_UE_SCHED_TYPES = [T_UE_SCHED_RR]
+
+
+class ACLDictField(fields.DictField):
+    """A field that stores a regular Python dictionary."""
+
+    def to_mongo(self, value):
+
+        try:
+
+            return serialize.serialize(value)
+
+        except ValueError as ex:
+            raise ValidationError(ex)
+
+    def to_python(self, value):
+
+        try:
+
+            out = {}
+
+            for acl in value.values():
+
+                if not isinstance(acl, ACL):
+                    acl = ACL(**acl)
+
+                out[str(acl.addr)] = acl
+
+            return out
+
+        except ValueError as ex:
+            raise ValidationError(ex)
 
 
 class WiFiSlicesDictField(fields.DictField):
@@ -114,7 +145,7 @@ class EmbeddedWiFiProps(EmbeddedMongoModel):
                                   choices=T_BSSID_TYPE_TYPES,
                                   default=T_BSSID_TYPE_UNIQUE)
 
-    allowed = fields.ListField(EtherAddressField())
+    allowed = ACLDictField(required=False, blank=True)
 
     def to_dict(self):
         """ Return a JSON-serializable dictionary """
@@ -159,7 +190,20 @@ class Project(Env):
 
     {
         "ssid": "EmPOWER",
-        "allowed": ["11:22:33:44:55:66", "aa:bb:cc:dd:ee:ff"],
+        "allowed": {
+            "04:46:65:49:e0:1f": {
+                "addr": "04:46:65:49:e0:1f",
+                "desc": "Some laptop"
+            },
+            "04:46:65:49:e0:11": {
+                "addr": "04:46:65:49:e0:1f",
+                "desc": "Some other laptop"
+            },
+            "04:46:65:49:e0:12": {
+                "addr": "04:46:65:49:e0:1f",
+                "desc": "Yet another laptop"
+            }
+        }
         "bssid_type": "unique"
     }
 

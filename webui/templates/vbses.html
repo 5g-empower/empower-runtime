@@ -21,7 +21,7 @@
             <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
           </div>
           <div class="col-auto">
-            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+            <i class="fas fa-heart fa-2x text-gray-300"></i>
           </div>
         </div>
       </div>
@@ -38,7 +38,7 @@
             <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
           </div>
           <div class="col-auto">
-            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+            <i class="fas fa-link fa-2x text-gray-300"></i>
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@
             <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
           </div>
           <div class="col-auto">
-            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+            <i class="fas fa-unlink fa-2x text-gray-300"></i>
           </div>
         </div>
       </div>
@@ -86,9 +86,9 @@
             <td>2340</td>
             <td>192.168.1.10</td>
             <td class="text-center">
-              <a href="#" class="btn btn-success btn-sm"><span class="text">Online</span></a>
+              <a href="#" class="btn btn-success btn-circle btn-sm" />
             </td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>Remove</a></td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
           </tr>
           <tr>
             <td>00:0D:B9:2F:56:64</td>
@@ -96,9 +96,9 @@
             <td>2340</td>
             <td>192.168.1.10</td>
             <td class="text-center">
-              <a href="#" class="btn btn-warning btn-sm"><span class="text">Connected</span></a>
+              <a href="#" class="btn btn-warning btn-circle btn-sm" />
             </td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>Remove</a></td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
           </tr>
           <tr>
             <td>00:0D:B9:2F:56:64</td>
@@ -106,16 +106,18 @@
             <td>-</td>
             <td>-</td>
             <td class="text-center">
-              <a href="#" class="btn btn-danger btn-sm"><span class="text">Offline</span></a>
+              <a href="#" class="btn btn-danger btn-circle btn-sm" />
             </td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>Remove</a></td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
           </tr>
         </tbody>
       </table>
 
-  <div class="d-sm-flex mb-4">
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add</a>
-</div>
+      {% if username=="root" %}
+      <div class="d-sm-flex mb-4">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add</a>
+      </div>
+      {% end %}
     </div>
   </div>
 </div>

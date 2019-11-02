@@ -36,11 +36,20 @@ class TestWiFiSlices(BaseTest):
             "desc": "Test project",
             "wifi_props": {
                 "ssid": "EmPOWER",
-                "allowed": [
-                    "04:46:65:49:e0:1f",
-                    "04:46:65:49:e0:11",
-                    "04:46:65:49:e0:11"
-                ]
+                "allowed": {
+                    "04:46:65:49:e0:1f": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some laptop"
+                    },
+                    "04:46:65:49:e0:11": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some other laptop"
+                    },
+                    "04:46:65:49:e0:12": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Yet another laptop"
+                    }
+                }
             },
             "wifi_slices": [
                 {
@@ -132,11 +141,20 @@ class TestWiFiSlices(BaseTest):
             "desc": "Test project",
             "wifi_props": {
                 "ssid": "EmPOWER",
-                "allowed": [
-                    "04:46:65:49:e0:1f",
-                    "04:46:65:49:e0:11",
-                    "04:46:65:49:e0:11"
-                ]
+                "allowed": {
+                    "04:46:65:49:e0:1f": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some laptop"
+                    },
+                    "04:46:65:49:e0:11": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some other laptop"
+                    },
+                    "04:46:65:49:e0:12": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Yet another laptop"
+                    }
+                }
             }
         }
 
@@ -241,11 +259,20 @@ class TestWiFiSlices(BaseTest):
             "desc": "Test project",
             "wifi_props": {
                 "ssid": "EmPOWER",
-                "allowed": [
-                    "04:46:65:49:e0:1f",
-                    "04:46:65:49:e0:11",
-                    "04:46:65:49:e0:11"
-                ]
+                "allowed": {
+                    "04:46:65:49:e0:1f": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some laptop"
+                    },
+                    "04:46:65:49:e0:11": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some other laptop"
+                    },
+                    "04:46:65:49:e0:12": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Yet another laptop"
+                    }
+                }
             },
             "wifi_slices": [
                 {
@@ -350,11 +377,20 @@ class TestWiFiSlices(BaseTest):
             "desc": "Test project",
             "wifi_props": {
                 "ssid": "EmPOWER",
-                "allowed": [
-                    "04:46:65:49:e0:1f",
-                    "04:46:65:49:e0:11",
-                    "04:46:65:49:e0:11"
-                ]
+                "allowed": {
+                    "04:46:65:49:e0:1f": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some laptop"
+                    },
+                    "04:46:65:49:e0:11": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some other laptop"
+                    },
+                    "04:46:65:49:e0:12": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Yet another laptop"
+                    }
+                }
             }
         }
 
