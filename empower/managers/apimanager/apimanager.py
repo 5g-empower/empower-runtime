@@ -21,7 +21,6 @@ import inspect
 import json
 import base64
 import re
-import os
 
 from uuid import UUID
 
@@ -35,12 +34,9 @@ from empower.core.serialize import serialize
 from empower.core.service import EService
 from empower.main import srv_or_die
 
-DIRNAME = os.path.dirname(__file__)
-ROOT_PATH = os.path.normpath(os.path.join(DIRNAME, '..'))
-TEMPLATE_PATH = os.path.join(DIRNAME, 'templates')
-STATIC_PATH = os.path.join(DIRNAME, 'static')
 DEBUG = True
 DEFAULT_PORT = 8888
+DEFAULT_WEBUI = "/var/www/empower/"
 COOKIE_SECRET = b'xyRTvZpRSUyk8/9/McQAvsQPB4Rqv0w9mBtIpH9lf1o='
 LOGIN_URL = "/auth/login"
 
@@ -459,14 +455,16 @@ class APIManager(EService):
     accounts_manager = None
     projects_manager = None
 
-    def __init__(self, context, service_id, port=DEFAULT_PORT):
+    def __init__(self, context, service_id, webui=DEFAULT_WEBUI,
+                 port=DEFAULT_PORT):
 
-        super().__init__(context=context, service_id=service_id, port=port)
+        super().__init__(context=context, service_id=service_id, webui=webui,
+                         port=port)
 
         self.settings = {
-            "static_path": STATIC_PATH,
+            "static_path": self.webui + "static/",
             "cookie_secret": COOKIE_SECRET,
-            "template_path": TEMPLATE_PATH,
+            "template_path": self.webui + "templates/",
             "login_url": LOGIN_URL,
             "debug": DEBUG,
         }
@@ -474,6 +472,21 @@ class APIManager(EService):
         self.application = Application([], **self.settings)
 
         self.http_server = tornado.httpserver.HTTPServer(self.application)
+
+    @property
+    def webui(self):
+        """Return path to Web UI."""
+
+        return self.params["webui"]
+
+    @webui.setter
+    def webui(self, value):
+        """Set path to Web UI."""
+
+        if "webui" in self.params and self.params["webui"]:
+            raise ValueError("Param webui can not be changed")
+
+        self.params["webui"] = value
 
     @property
     def port(self):
