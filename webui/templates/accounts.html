@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Accounts</h1>
+  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+</div>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Name</th>
+            <th>E-Mails</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>root</td>
+            <td>root</td>
+            <td>admin@empower.it</td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>foo</td>
+            <td>Foo</td>
+            <td>admin@empower.it</td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+          <tr>
+            <td>bar</td>
+            <td>Bar</td>
+            <td>admin@empower.it</td>
+            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-sm-flex mb-4">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% end %}
+
+{% block js %}
+<script src="/static/js/empower-accounts.js"></script>
+{% end %}
