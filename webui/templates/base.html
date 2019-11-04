@@ -90,14 +90,14 @@
 
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree" id="apps">
           <i class="fas fa-fw fa-cog"></i>
           <span>Applications</span>
         </a>
         <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="/applications.html">Active</a>
-            <a class="collapse-item" href="/acatalog.html">Catalog</a>
+            <a id="apps_active" class="collapse-item" href="/applications.html">Active</a>
+            <a id="apps_catalog" class="collapse-item" href="/acatalog.html">Catalog</a>
           </div>
         </div>
       </li>
@@ -145,8 +145,8 @@
         </a>
         <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="/workers.html">Active</a>
-            <a class="collapse-item" href="/wcatalog.html">Catalog</a>
+            <a id="workers_active" class="collapse-item" href="/workers.html">Active</a>
+            <a id="workers_catalog" class="collapse-item" href="/wcatalog.html">Catalog</a>
           </div>
         </div>
       </li>
@@ -199,7 +199,7 @@
               </a>
               <!-- Dropdown - User Information -->
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="/profile.html">
                   <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                   Profile
                 </a>

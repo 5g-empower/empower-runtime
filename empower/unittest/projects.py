@@ -34,6 +34,7 @@ class TestProjects(BaseTest):
         """test_create_new_project"""
 
         data = {
+            "version": "1.0",
             "desc": "Test project",
             "owner": "foo",
             "wifi_props": {"invalid_field": 1}
@@ -80,6 +81,7 @@ class TestProjects(BaseTest):
         """test_create_wifi_project"""
 
         data = {
+            "version": "1.0",
             "owner": "foo",
             "desc": "Test project",
             "wifi_props": {
@@ -108,6 +110,7 @@ class TestProjects(BaseTest):
         """test_create_wifi_project_default_bssid_type."""
 
         data = {
+            "version": "1.0",
             "owner": "foo",
             "desc": "Test project",
             "wifi_props": {
@@ -135,6 +138,7 @@ class TestProjects(BaseTest):
         """test_create_wifi_project_wrong_bssid_type."""
 
         data = {
+            "version": "1.0",
             "owner": "foo",
             "desc": "Test project",
             "wifi_props": {
@@ -151,6 +155,7 @@ class TestProjects(BaseTest):
         """test_create_lte_project."""
 
         data = {
+            "version": "1.0",
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
@@ -181,6 +186,7 @@ class TestProjects(BaseTest):
         """test_create_lte_project_wrong_plmnid."""
 
         data = {
+            "version": "1.0",
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {

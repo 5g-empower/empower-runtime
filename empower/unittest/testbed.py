@@ -34,11 +34,20 @@ class TestTestbed(BaseTest):
             "desc": "EmPOWER Guests",
             "wifi_props": {
                 "ssid": "EmPOWER Guests",
-                "allowed": [
-                    "60:57:18:b1:a4:b8",
-                    "18:5e:0f:e3:b8:68",
-                    "60:f4:45:d0:3b:fc"
-                ]
+                "allowed": {
+                    "60:57:18:b1:a4:b8": {
+                        "addr": "60:57:18:b1:a4:b8",
+                        "desc": "Dell Laptop"
+                    },
+                    "18:5e:0f:e3:b8:68": {
+                        "addr": "18:5e:0f:e3:b8:68",
+                        "desc": "Dell Laptop"
+                    },
+                    "60:f4:45:d0:3b:fc": {
+                        "addr": "60:f4:45:d0:3b:fc",
+                        "desc": "Roberto's iPhone"
+                    }
+                }
             },
             "wifi_slices": [
                 {
@@ -62,12 +71,20 @@ class TestTestbed(BaseTest):
             "wifi_props": {
                 "ssid": "EmPOWER Mcast",
                 "bssid_type": "shared",
-                "allowed": [
-                    "60:57:18:b1:a4:b8",
-                    "18:5e:0f:e3:b8:68",
-                    "60:f4:45:d0:3b:fc",
-                    "18:5e:0f:e3:b8:45"
-                ]
+                "allowed": {
+                    "60:57:18:b1:a4:b8": {
+                        "addr": "60:57:18:b1:a4:b8",
+                        "desc": "Dell Laptop"
+                    },
+                    "18:5e:0f:e3:b8:68": {
+                        "addr": "18:5e:0f:e3:b8:68",
+                        "desc": "Dell Laptop"
+                    },
+                    "60:f4:45:d0:3b:fc": {
+                        "addr": "60:f4:45:d0:3b:fc",
+                        "desc": "Roberto's iPhone"
+                    }
+                }
             },
             "wifi_slices": [
                 {

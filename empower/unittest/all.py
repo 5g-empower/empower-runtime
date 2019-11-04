@@ -61,6 +61,7 @@ def full_suite():
 
     suite.addTest(TestACLs('test_add_acls'))
     suite.addTest(TestACLs('test_add_acls_invalid_creds'))
+    suite.addTest(TestACLs('test_modify_acls'))
 
     suite.addTest(TestWTPs('test_create_new_device_empty_body'))
     suite.addTest(TestWTPs('test_create_new_device_wrong_address'))

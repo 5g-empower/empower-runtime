@@ -20,6 +20,10 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
+    "name": "Wi-Fi Mobility Manager",
+    "module": "empower.apps.wifimobilitymanager.wifimobilitymanager",
+    "desc": "A simple Wi-Fi mobility manager",
+    "entrypoint": "WiFiMobilityManager",
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",
