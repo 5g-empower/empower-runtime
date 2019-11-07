@@ -24,6 +24,16 @@ $(document).ready(function() {
 
 });
 
+function add_wtp() {
+
+  address = $("#address")[0].value
+  desc = $("#desc")[0].value
+
+  console.log(address)
+  console.log(desc)
+
+}
+
 function refresh_devices() {
 
   t.clear();

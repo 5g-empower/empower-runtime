@@ -43,12 +43,12 @@
                     <h4 class="h4 text-gray-900 mb-4">{{error}}</h1>
                   </div>
                   {% end %}
-                  <form class="user" action="/auth/login" method="POST">
+                  <form action="/auth/login" method="POST">
                     <div class="form-group">
-                      <input class="form-control form-control-user" id="exampleInputUsername" name="username" aria-describedby="usernameHelp" placeholder="Username...">
+                      <input class="form-control form-control-user" name="username" placeholder="Username...">
                     </div>
                     <div class="form-group">
-                      <input type="password" class="form-control form-control-user" id="exampleInputPassword" name="password" placeholder="Password">
+                      <input type="password" class="form-control form-control-user" name="password" placeholder="Password">
                     </div>
                     <button type="submit" class="btn btn-primary btn-user btn-block">Login</button>
                   </form>
