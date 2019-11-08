@@ -66,7 +66,7 @@ function refresh_devices() {
       connection = "-"
       last_seen = "-"
 
-      if ( val['state'] == "offline" ) {
+      if ( val['state'] == "online" ) {
           connection = val['connection']['addr']
           last_seen = val['last_seen']
       }

@@ -4,8 +4,13 @@
 
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-  <h1 class="h3 mb-0 text-gray-800">Virtual Base Stations</h1>
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  <h1 class="h3 mb-0 text-gray-800">Wireless Termination Points</h1>
+      <div >
+        {% if username=="root" %}
+          <a href="#" data-toggle="modal" data-target="#addVbsModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add new VBS</a>
+        {% end %}
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  </div>
 </div>
 
 <!-- Content Row -->
@@ -70,11 +75,36 @@
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" cellspacing="0">
       </table>
-      {% if username=="root" %}
-      <div class="d-sm-flex mb-4">
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add</a>
+    </div>
+  </div>
+</div>
+
+<!-- Add VBS Modal-->
+<div class="modal fade" id="addVbsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add new VBS</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
-      {% end %}
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+              <label>Address</label>
+              <input id="address" class="form-control">
+          </div>
+          <div class="form-group">
+              <label>Description</label>
+              <input id="desc" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="add_vbs()" data-toggle="modal" data-target="#addVbsModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
+      </div>
     </div>
   </div>
 </div>

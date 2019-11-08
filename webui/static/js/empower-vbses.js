@@ -24,6 +24,16 @@ $(document).ready(function() {
 
 });
 
+function add_vbs() {
+
+  address = $("#address")[0].value
+  desc = $("#desc")[0].value
+
+  console.log(address)
+  console.log(desc)
+
+}
+
 function refresh_devices() {
 
   t.clear();
@@ -56,7 +66,7 @@ function refresh_devices() {
       connection = "-"
       last_seen = "-"
 
-      if ( val['state'] == "offline" ) {
+      if ( val['state'] == "online" ) {
           connection = val['connection']['addr']
           last_seen = val['last_seen']
       }
