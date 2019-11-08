@@ -108,6 +108,9 @@ class AccountsManager(EService):
     def remove(self, username):
         """Check if username/password match."""
 
+        if username == "root":
+            raise ValueError("The 'root' account cannot be removed")
+
         if username not in self.accounts:
             raise KeyError("Username %s not found" % username)
 

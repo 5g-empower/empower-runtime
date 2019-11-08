@@ -282,12 +282,14 @@
   <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
   <!-- EmPOWER scripts for all pages-->
+  <script>
+    __USERNAME = "{{ username }}"
+    __PASSWORD = "{{ password }}"
+    __BASIC = "Basic " + btoa(__USERNAME + ":" + __PASSWORD);
+  </script>
   <script src="/static/js/empower-general.js"></script>
 
   <!-- Custom scripts for specific page-->
-  <script>
-    __USERNAME = "{{ username }}"
-  </script>
   {% block js %}
   {% end %}
 
