@@ -8,8 +8,7 @@ $(document).ready(function() {
           { "sTitle": "Address" },
           { "sTitle": "Description" },
           { "sTitle": "Last seen" },
-          { "sTitle": "Address" },
-          { "sTitle": "Status", "sClass": "text-center" }
+          { "sTitle": "Address" }
   ]
 
   if ( __USERNAME == "root" ) {
@@ -48,13 +47,10 @@ function refresh_devices() {
 
       if ( val['state'] == "online" ) {
         online += 1
-        state = '<a href="#" class="btn btn-success btn-circle btn-sm" />'
       } else if ( val['state'] == "connected") {
         connected += 1
-        state = '<a href="#" class="btn btn-warning btn-circle btn-sm" />'
       } else {
         offline += 1
-        state = '<a href="#" class="btn btn-danger btn-circle btn-sm" />'
       }
 
       actions = "-"
@@ -76,7 +72,6 @@ function refresh_devices() {
           val['desc'],
           last_seen,
           connection,
-          state,
           actions
       ] ).draw( true );
 
