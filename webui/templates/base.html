@@ -285,6 +285,11 @@
   <script>
     __USERNAME = "{{ username }}"
     __PASSWORD = "{{ password }}"
+    {% if project %}
+      __PROJECT_ID = "{{ project.project_id }}"
+    {% else %}
+      __PROJECT_ID = ""
+    {% end %}
     __BASIC = "Basic " + btoa(__USERNAME + ":" + __PASSWORD);
   </script>
   <script src="/static/js/empower-general.js"></script>
