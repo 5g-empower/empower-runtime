@@ -31,7 +31,6 @@ from argparse import ArgumentParser
 import tornado.ioloop
 
 from pymodm.connection import connect
-from empower.core.service import EService
 
 SERVICES = dict()
 
