@@ -21,7 +21,6 @@ from empower.core.app import EVERY
 
 MANIFEST = {
     "name": "SDN@Play",
-    "module": "empower.apps.mcast.mcast",
     "desc": "This application makes white bunnies happy even if watched by "
             "many people.",
     "params": {

@@ -19,7 +19,6 @@
 
 MANIFEST = {
     "name": "Wi-Fi Channel Stats",
-    "module": "empower.workers.wifichannelstats.wifichannelstats",
     "desc": "Tracks Wi-Fi Channel Utilization (TX/RX/ED)",
     "params": {
         "every": {
