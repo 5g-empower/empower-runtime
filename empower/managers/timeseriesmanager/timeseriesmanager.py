@@ -35,9 +35,8 @@ DEFAULT_PASSWORD = "password"
 class InfluxTimeSeriesManager(EService):
     """Time series manager."""
 
-    def __init__(self, context, service_id, database=DEFAULT_DATABASE,
-                 host=DEFAULT_HOST, port=DEFAULT_PORT,
-                 username=DEFAULT_USERNAME, password=DEFAULT_PASSWORD):
+    def __init__(self, context, service_id, database, host, port, username,
+                 password):
 
         super().__init__(context=context, service_id=service_id,
                          database=database, host=host, port=port,
@@ -163,3 +162,13 @@ class InfluxTimeSeriesManager(EService):
             return True
 
         return False
+
+
+def launch(context, service_id, database=DEFAULT_DATABASE,
+           host=DEFAULT_HOST, port=DEFAULT_PORT, username=DEFAULT_USERNAME,
+           password=DEFAULT_PASSWORD):
+    """ Initialize the module. """
+
+    return InfluxTimeSeriesManager(context=context, service_id=service_id,
+                                   database=database, host=host, port=port,
+                                   username=username, password=password)

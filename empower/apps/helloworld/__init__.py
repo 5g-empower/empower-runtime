@@ -23,7 +23,6 @@ MANIFEST = {
     "name": "Hello World",
     "module": "empower.apps.helloworld.helloworld",
     "desc": "Prints Hello World to the log",
-    "entrypoint": "HelloWorld",
     "params": {
         "message": {
             "desc": "The message to be printed.",

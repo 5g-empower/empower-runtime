@@ -119,3 +119,9 @@ class AccountsManager(EService):
         user.delete()
 
         del self.accounts[username]
+
+
+def launch(context, service_id):
+    """ Initialize the module. """
+
+    return AccountsManager(context=context, service_id=service_id)

@@ -226,3 +226,9 @@ class ProjectsManager(EService):
         # Delete project from datase and manager
         project.delete()
         del self.projects[project_id]
+
+
+def launch(context, service_id):
+    """ Initialize the module. """
+
+    return ProjectsManager(context=context, service_id=service_id)

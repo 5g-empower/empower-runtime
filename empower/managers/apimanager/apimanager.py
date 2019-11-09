@@ -455,8 +455,7 @@ class APIManager(EService):
     accounts_manager = None
     projects_manager = None
 
-    def __init__(self, context, service_id, webui=DEFAULT_WEBUI,
-                 port=DEFAULT_PORT):
+    def __init__(self, context, service_id, webui, port):
 
         super().__init__(context=context, service_id=service_id, webui=webui,
                          port=port)
@@ -523,3 +522,10 @@ class APIManager(EService):
         for url in handler.URLS:
             self.log.info("Registering URL: %s", url)
             self.application.add_handlers(r".*$", [(url, handler)])
+
+
+def launch(context, service_id, webui=DEFAULT_WEBUI, port=DEFAULT_PORT):
+    """ Initialize the module. """
+
+    return APIManager(context=context, service_id=service_id, webui=webui,
+                      port=port)

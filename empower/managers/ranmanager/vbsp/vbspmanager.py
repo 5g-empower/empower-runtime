@@ -37,7 +37,7 @@ class VBSPManager(RANManager):
 
     HANDLERS = [VBSHandler]
 
-    def __init__(self, context, service_id, port=DEFAULT_PORT):
+    def __init__(self, context, service_id, port):
 
         super().__init__(context=context,
                          service_id=service_id,
@@ -47,3 +47,9 @@ class VBSPManager(RANManager):
                          port=port)
 
         self.ueqs = {}
+
+
+def launch(context, service_id, port=DEFAULT_PORT):
+    """ Initialize the module. """
+
+    return VBSPManager(context=context, service_id=service_id, port=port)
