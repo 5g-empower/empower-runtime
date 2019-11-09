@@ -1,5 +1,6 @@
 $(document).ready(function() {
   refresh_projects();
+  refresh_owners();
 });
 
 function create_project() {
@@ -48,4 +49,15 @@ function refresh_projects() {
 
   });
 
+}
+
+function refresh_owners() {
+  $("#owner").empty()
+  $.getJSON( "/api/v1/accounts", function( data ) {
+    $.each( data, function( key, val ) {
+      if ( key != 'root' ) {
+        $('#owner').append(new Option(val['name'] + ' (' + val['email'] + ')', key))
+      }
+    });
+  });
 }

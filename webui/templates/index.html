@@ -28,14 +28,40 @@
         </button>
       </div>
       <div class="modal-body">
-        <form role="form">
+        <form>
           <div class="form-group">
-              <label>Address</label>
-              <input id="address" class="form-control">
+            <label>Project Description (Max 20 chars)</label>
+            <input class="form-control" id="description" aria-describedby="descriptionHelp" placeholder="Enter Project Description">
           </div>
           <div class="form-group">
-              <label>Description</label>
-              <input id="desc" class="form-control">
+            <label>Owner</label>
+            <select class="form-control" id="owner">
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SSID (Max 30 chars)</label>
+            <div class="row">
+              <div class="col">
+                <input id="ssid" type="text" class="form-control" placeholder="SSID">
+              </div>
+              <div class="col my-auto">
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="ssidType">
+                  <label class="custom-control-label" for="ssidType">Shared SSID</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>MCC/MNC</label>
+            <div class="row">
+              <div class="col">
+                <input id="mcc" type="text" class="form-control" placeholder="MCC">
+              </div>
+              <div class="col">
+                <input id="mnc" type="text" class="form-control" placeholder="MNC">
+              </div>
+            </div>
           </div>
         </form>
       </div>
