@@ -18,6 +18,8 @@
 """WiFi Channel Statistics Worker."""
 
 MANIFEST = {
+    "name": "Wi-Fi Channel Stats",
+    "desc": "Tracks Wi-Fi Channel Utilization (TX/RX/ED)",
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

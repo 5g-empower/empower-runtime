@@ -260,8 +260,8 @@
           </button>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-          <a class="btn btn-primary" href="/auth/logout">Logout</a>
+          <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+          <a href="/auth/logout" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Logout</a>
         </div>
       </div>
     </div>
@@ -282,6 +282,16 @@
   <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
   <!-- EmPOWER scripts for all pages-->
+  <script>
+    __USERNAME = "{{ username }}"
+    __PASSWORD = "{{ password }}"
+    {% if project %}
+      __PROJECT_ID = "{{ project.project_id }}"
+    {% else %}
+      __PROJECT_ID = ""
+    {% end %}
+    __BASIC = "Basic " + btoa(__USERNAME + ":" + __PASSWORD);
+  </script>
   <script src="/static/js/empower-general.js"></script>
 
   <!-- Custom scripts for specific page-->

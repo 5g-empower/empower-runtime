@@ -21,10 +21,8 @@ from empower.core.app import EVERY
 
 MANIFEST = {
     "name": "SDN@Play",
-    "module": "empower.apps.mcast.mcast",
     "desc": "This application makes white bunnies happy even if watched by "
             "many people.",
-    "entrypoint": "Mcast",
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

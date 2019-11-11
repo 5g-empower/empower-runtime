@@ -5,52 +5,76 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Projects</h1>
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+    <div >
+      {% if username=="root" %}
+        <a href="#" data-toggle="modal" data-target="#addProjectModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Project</a>
+      {% end %}
+      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_projects()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  </div>
 </div>
 
-<!-- Content Row -->
-<div class="row">
+<!-- Projects -->
+<div id="projects" class="row">
+</div>
 
-  <!-- Projects Card -->
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">52313ecb-9d00-4b7d-b873-b55d3d9ada26</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">Wi-Fi Guest</div>
+<!-- Create Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Project</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label>Project Description (Max 20 chars)</label>
+            <input class="form-control" id="description" aria-describedby="descriptionHelp" placeholder="Enter Project Description">
           </div>
-          <div class="col-auto">
-            <a href="/auth/switch_project" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp; Remove</a>
+          <div class="form-group">
+            <label>Owner</label>
+            <select class="form-control" id="owner">
+            </select>
           </div>
-        </div>
+          <div class="form-group">
+            <label>SSID (Max 30 chars)</label>
+            <div class="row">
+              <div class="col">
+                <input id="ssid" type="text" class="form-control" placeholder="SSID">
+              </div>
+              <div class="col my-auto">
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="ssidType">
+                  <label class="custom-control-label" for="ssidType">Shared SSID</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>MCC/MNC</label>
+            <div class="row">
+              <div class="col">
+                <input id="mcc" type="text" class="form-control" placeholder="MCC">
+              </div>
+              <div class="col">
+                <input id="mnc" type="text" class="form-control" placeholder="MNC">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="create_project()" data-toggle="modal" data-target="#addWtpModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Create</a>
       </div>
     </div>
   </div>
-
-  <!-- Projects Card -->
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">52313ecb-9d00-4b7d-b873-b55d3d9ada26</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">Wi-Fi Corporate</div>
-          </div>
-          <div class="col-auto">
-            <a href="/auth/switch_project?project_id=52313ecb-9d00-4b7d-b873-b55d3d9ada26" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"><i class="fas fa-flag fa-sm text-white-50"></i>&nbsp;Select</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-{% if username=="root" %}
-<div class="d-sm-flex mb-4">
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> New Project</a>
-</div>
 {% end %}
 
+{% block js %}
+<script src="/static/js/empower-index.js"></script>
 {% end %}

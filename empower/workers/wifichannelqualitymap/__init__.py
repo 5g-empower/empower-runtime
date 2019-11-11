@@ -18,6 +18,8 @@
 """WiFi Channel Quality Map Worker."""
 
 MANIFEST = {
+    "name": "Wi-Fi Channel Quality Map",
+    "desc": "Builds and maintain a network-wide RSSI Map",
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

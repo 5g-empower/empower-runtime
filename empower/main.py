@@ -31,7 +31,6 @@ from argparse import ArgumentParser
 import tornado.ioloop
 
 from pymodm.connection import connect
-from empower.core.service import EService
 
 SERVICES = dict()
 
@@ -54,18 +53,13 @@ def _do_launch(managers, managers_order):
     for manager in managers_order:
 
         module = managers[manager]['module']
-        entry_point = managers[manager]['entry_point']
         params = managers[manager]['params']
 
         if manager in SERVICES:
             logging.error("%s manager already registered", manager)
             return False
 
-        init_method = getattr(import_module(module), entry_point)
-
-        if not issubclass(init_method, EService):
-            logging.error("Invalid entry point: %s", manager)
-            return False
+        init_method = getattr(import_module(module), "launch")
 
         logging.info("Loading manager: %s", manager)
 
@@ -145,23 +139,21 @@ def _read_config(args):
 
     for mngr in mngrs.split(","):
 
-        entrypoint = config.get(mngr, 'entrypoint', fallback=None)
         module = config.get(mngr, 'module', fallback=None)
 
-        if not entrypoint or not module:
+        if not module:
             continue
 
         managers_order.append(mngr)
 
         managers[mngr] = {
             "module": module,
-            "entry_point": entrypoint,
             "params": {}
         }
 
         for param in config[mngr]:
 
-            if param in ('entrypoint', 'module'):
+            if param == 'module':
                 continue
 
             managers[mngr][param] = config[mngr][param]

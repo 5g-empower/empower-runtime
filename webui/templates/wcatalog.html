@@ -5,28 +5,11 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Catalog</h1>
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_catalog()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
 </div>
 
 <!-- Content Row -->
-<div class="row">
-
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col-xl-10">
-            <div class="h5 mb-2 font-weight-bold text-gray-800">SDN@Play</div>
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">This application makes white bunnies happy even if watched by many people.</div>
-          </div>
-          <div class="col-xl-2 text-right">
-            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"><i class="fas fa-play fa-sm text-white-50"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="row" id="catalog">
 </div>
 
 {% end %}

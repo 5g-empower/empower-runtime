@@ -5,45 +5,69 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Accounts</h1>
-  <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+    <div >
+      <a href="#" data-toggle="modal" data-target="#addAccountModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Account</a>
+      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_accounts()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  </div>
 </div>
 
-<!-- DataTales Example -->
+<!-- Alert -->
+<div id="alert" class="alert alert-dismissible fade collapse" role="alert">
+  <div>
+    <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+  </div>
+  <button type="button" class="close" onclick="$('#alert').hide();" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- DataTable -->
 <div class="card shadow mb-4">
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Username</th>
-            <th>Name</th>
-            <th>E-Mails</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>root</td>
-            <td>root</td>
-            <td>admin@empower.it</td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
-          </tr>
-          <tr>
-            <td>foo</td>
-            <td>Foo</td>
-            <td>admin@empower.it</td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
-          </tr>
-          <tr>
-            <td>bar</td>
-            <td>Bar</td>
-            <td>admin@empower.it</td>
-            <td class="text-center"><a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a></td>
-          </tr>
-        </tbody>
       </table>
-      <div class="d-sm-flex mb-4">
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add</a>
+    </div>
+  </div>
+</div>
+
+<!-- Add Account Modal-->
+<div class="modal fade" id="addAccountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Account</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+              <label>Username</label>
+              <input id="username" class="form-control">
+          </div>
+          <div class="form-group">
+              <label>Name</label>
+              <input id="name" class="form-control">
+          </div>
+          <div class="form-group">
+              <label>E-Mail</label>
+              <input id="email" class="form-control">
+          </div>
+          <div class="form-group">
+              <label>Password</label>
+              <input id="password" class="form-control">
+          </div>
+          <div class="form-group">
+              <label>Password (Confirm)</label>
+              <input id="password_confirm" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="create_account()" data-toggle="modal" data-target="#addWtpModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
       </div>
     </div>
   </div>

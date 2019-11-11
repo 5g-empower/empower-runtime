@@ -222,6 +222,12 @@ class EService:
 
             name = package.__name__ + "." + module_name + "." + module_name
 
+            if 'name' not in manifest:
+                manifest['name'] = module_name
+
+            if 'desc' not in manifest:
+                manifest['desc'] = "No description available"
+
             results[name] = manifest
 
         return results
