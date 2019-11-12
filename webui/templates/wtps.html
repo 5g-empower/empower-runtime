@@ -7,7 +7,7 @@
   <h1 class="h3 mb-0 text-gray-800">Wireless Termination Points</h1>
     <div >
       {% if username=="root" %}
-        <a href="#" data-toggle="modal" data-target="#addWtpModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add WTP</a>
+        <a href="#" data-toggle="modal" data-target="#addWTPModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add WTP</a>
       {% end %}
       <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
   </div>
@@ -80,7 +80,7 @@
 </div>
 
 <!-- Add WTP Modal-->
-<div class="modal fade" id="addWtpModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="addWTPModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -93,21 +93,81 @@
         <form role="form">
           <div class="form-group">
               <label>Address</label>
-              <input id="address" class="form-control">
+              <input id="add_address" class="form-control">
           </div>
           <div class="form-group">
               <label>Description</label>
-              <input id="desc" class="form-control">
+              <input id="add_desc" class="form-control">
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="add_wtp()" data-toggle="modal" data-target="#addWtpModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
+        <a href="#" onclick="add()" data-toggle="modal" data-target="#addWTPModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Edit WTP Modal-->
+<div class="modal fade" id="editWTPModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit WTP</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+              <label>Address</label>
+              <input id="edit_address" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+              <label>Description</label>
+              <input id="edit_desc" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="edit()" data-toggle="modal" data-target="#editWTPModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remove WTP Modal-->
+<div class="modal fade" id="removeWTPModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Remove WTP</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form role="form">
+            <div class="form-group">
+                <label>Address</label>
+                <input id="remove_address" class="form-control" disabled>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input id="remove_desc" class="form-control" disabled>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+          <a href="#" onclick="remove()" data-toggle="modal" data-target="#removeWTPModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
 {% end %}
 
