@@ -67,11 +67,13 @@ def full_suite():
     suite.addTest(TestWTPs('test_create_new_device_wrong_address'))
     suite.addTest(TestWTPs('test_create_new_device'))
     suite.addTest(TestWTPs('test_create_new_device_custom_desc'))
+    suite.addTest(TestWTPs('test_update_device_desc'))
 
     suite.addTest(TestVBSes('test_create_new_device_empty_body'))
     suite.addTest(TestVBSes('test_create_new_device_wrong_address'))
     suite.addTest(TestVBSes('test_create_new_device'))
     suite.addTest(TestVBSes('test_create_new_device_custom_desc'))
+    suite.addTest(TestVBSes('test_update_device_desc'))
 
     suite.addTest(TestWiFiSlices('test_create_new_wifi_slice'))
     suite.addTest(TestWiFiSlices('test_create_new_wifi_slice_after_prj'))

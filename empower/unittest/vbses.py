@@ -91,6 +91,35 @@ class TestVBSes(BaseTest):
 
         self.get(("root", "root", "/vbses/AA:15:6d:84:13:0f"), 404)
 
+    def test_update_device_desc(self):
+        """test_update_device_desc."""
+
+        data = {
+            "addr": "AA:15:6d:84:13:0f",
+            "desc": "Custom description"
+        }
+        params = ("root", "root", "/vbses")
+        self.post(params, data, 201)
+
+        self.get(("root", "root", "/vbses"), 200)
+        self.get(("root", "root", "/vbses/AA:15:6d:84:13:0f"), 200)
+        self.get(("root", "root", "/vbses/11:22:33:44:55:66"), 404)
+        self.get(("root", "root", "/vbses/AA:15:6d:84:13"), 400)
+
+        data = {
+            "desc": "New description"
+        }
+        params = ("root", "root", "/vbses/AA:15:6d:84:13:0f")
+        self.put(params, data, 204)
+
+        req = requests.get(url=URL % params)
+        device = json.loads(req.text)
+        self.assertEqual(device['desc'], "New description")
+
+        self.delete(("root", "root", "/vbses/AA:15:6d:84:13:0f"), 204)
+
+        self.get(("root", "root", "/vbses/AA:15:6d:84:13:0f"), 404)
+
 
 if __name__ == '__main__':
     unittest.main()
