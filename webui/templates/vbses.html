@@ -5,11 +5,11 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Virtual Base Stations</h1>
-      <div >
-        {% if username=="root" %}
-          <a href="#" data-toggle="modal" data-target="#addVbsModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add VBS</a>
-        {% end %}
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+    <div >
+      {% if username=="root" %}
+        <a href="#" data-toggle="modal" data-target="#addVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add VBS</a>
+      {% end %}
+      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
   </div>
 </div>
 
@@ -80,7 +80,7 @@
 </div>
 
 <!-- Add VBS Modal-->
-<div class="modal fade" id="addVbsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="addVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -93,21 +93,81 @@
         <form role="form">
           <div class="form-group">
               <label>Address</label>
-              <input id="address" class="form-control">
+              <input id="add_address" class="form-control">
           </div>
           <div class="form-group">
               <label>Description</label>
-              <input id="desc" class="form-control">
+              <input id="add_desc" class="form-control">
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="add_vbs()" data-toggle="modal" data-target="#addVbsModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
+        <a href="#" onclick="add()" data-toggle="modal" data-target="#addVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Edit VBS Modal-->
+<div class="modal fade" id="editVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit VBS</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+              <label>Address</label>
+              <input id="edit_address" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+              <label>Description</label>
+              <input id="edit_desc" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="edit()" data-toggle="modal" data-target="#editVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remove VBS Modal-->
+<div class="modal fade" id="removeVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Remove VBS</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form role="form">
+            <div class="form-group">
+                <label>Address</label>
+                <input id="remove_address" class="form-control" disabled>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input id="remove_desc" class="form-control" disabled>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+          <a href="#" onclick="remove()" data-toggle="modal" data-target="#removeVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
 {% end %}
 

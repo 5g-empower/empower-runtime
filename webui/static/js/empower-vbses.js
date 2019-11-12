@@ -4,11 +4,26 @@ $('#devices_vbses').addClass('active');
 
 $(document).ready(function() {
 
+  ENTITY = EMPOWER_ENTITIES.DEVICE.VBS
+
+  ID_ADD_MODAL = "add"+ENTITY+"Modal"
+  ID_EDIT_MODAL = "edit"+ENTITY+"Modal"
+  ID_REMOVE_MODAL = "remove"+ENTITY+"Modal"
+
+  ID_ADD_ADDRESS = "add_address"
+  ID_ADD_DESC = "add_desc"
+
+  ID_EDIT_ADDRESS = "edit_address"
+  ID_EDIT_DESC = "edit_desc"
+
+  ID_REMOVE_ADDRESS = "remove_address"
+  ID_REMOVE_DESC = "remove_desc"
+
   aoColumns = [
           { "sTitle": "Address" },
           { "sTitle": "Description" },
           { "sTitle": "Last seen" },
-          { "sTitle": "Address" }
+          { "sTitle": "Address" },
   ]
 
   if ( __USERNAME == "root" ) {
@@ -23,64 +38,170 @@ $(document).ready(function() {
 
 });
 
-function add_vbs() {
+ENTITY = null
 
-  address = $("#address")[0].value
-  desc = $("#desc")[0].value
+function add() {
 
-  console.log(address)
-  console.log(desc)
+  $address = $("#"+ID_ADD_ADDRESS) 
+  $desc = $("#"+ID_ADD_DESC)
 
+  let data = {
+    "version":"1.0",
+    "addr": $address.val(),
+    "desc": $desc.val()
+  }
+  $address.val("")
+  $desc.val("")
+
+  REST_REQ(ENTITY).configure_POST({
+    data: data,
+    success: [ refresh_devices]
+  })
+  .perform()
+
+}
+
+function trigger_edit_modal( wtp_key ) {
+
+  $edit_modal = $("#"+ID_EDIT_MODAL) 
+
+  show_edit_modal = function(data){
+    
+    $address = $("#"+ID_EDIT_ADDRESS) 
+    $desc = $("#"+ID_EDIT_DESC)
+
+    $address.val(data.addr)
+    $desc.val(data.desc)
+
+    $edit_modal.modal({show:true})
+  }
+
+  REST_REQ(ENTITY).configure_GET({
+    key: wtp_key,
+    success: [ show_edit_modal]
+  })
+  .perform()
+}
+
+function edit(){
+  $address = $("#"+ID_EDIT_ADDRESS) 
+  $desc = $("#"+ID_EDIT_DESC)
+
+  let data = {
+    "version":"1.0",
+    "addr": $address.val(),
+    "desc": $desc.val()
+  }
+  $address.val("")
+  $desc.val("")
+
+  REST_REQ(ENTITY).configure_PUT({
+    data: data,
+    key: data.addr,
+    success: [refresh_devices],
+    error: [empower_log_response]
+  })
+  .perform()
+}
+
+function trigger_remove_modal( wtp_key ) {
+
+  $remove_modal = $("#"+ID_REMOVE_MODAL) 
+
+  show_remove_modal = function(data){
+    
+    $address = $("#"+ID_REMOVE_ADDRESS) 
+    $desc = $("#"+ID_REMOVE_DESC)
+
+    $address.val(data.addr)
+    $desc.val(data.desc)
+
+    $remove_modal.modal({show:true})
+  }
+
+  REST_REQ(ENTITY).configure_GET({
+    key: wtp_key,
+    success: [ show_remove_modal]
+  })
+  .perform()
+}
+
+function remove(){
+  $address = $("#"+ID_REMOVE_ADDRESS) 
+
+  let key = $address.val()
+  
+  $address.val("")
+  $desc.val("")
+
+  REST_REQ(ENTITY).configure_DELETE({
+    key: key,
+    success: [refresh_devices]
+  })
+  .perform()
+}
+
+function format_datatable_data( data ) {
+
+  connected = 0
+  offline = 0
+  online = 0
+
+  $.each( data, function( key, val ) {
+
+    if ( val['state'] == "online" ) {
+      online += 1
+    } else if ( val['state'] == "connected") {
+      connected += 1
+    } else {
+      offline += 1
+    }
+
+    actions = "-"
+
+    if ( __USERNAME == "root" ) {
+      actions = ""+
+      '<button class="btn btn-sm btn-warning shadow-sm mr-1 mb-1" '+
+      'onclick="trigger_edit_modal(\''+val['addr']+'\')">'+
+      '<i class="fas fa-edit fa-sm text-white-50 mr-1"></i>Edit</button>'+
+      '<button class="btn btn-sm btn-danger shadow-sm mb-1" '+
+      'onclick="trigger_remove_modal(\''+val['addr']+'\')">'+
+      '<i class="fas fa-trash fa-sm text-white-50 mr-1 "></i>Remove</button>'
+    }
+
+    connection = "-"
+    last_seen = "-"
+
+    if ( val['state'] == "online" ) {
+        connection = val['connection']['addr']
+        last_seen = val['last_seen']
+    }
+
+    t.row.add([
+        val['addr'],
+        val['desc'],
+        last_seen,
+        connection,
+        actions
+    ] ).draw( true );
+
+  });
+
+  t.draw(true)
+
+  $("#offline").html(offline)
+  $("#online").html(online)
+  $("#connected").html(connected)
 }
 
 function refresh_devices() {
 
   t.clear();
 
-  $.getJSON( "/api/v1/vbses", function( data ) {
-
-    connected = 0
-    offline = 0
-    online = 0
-
-    $.each( data, function( key, val ) {
-
-      if ( val['state'] == "online" ) {
-        online += 1
-      } else if ( val['state'] == "connected") {
-        connected += 1
-      } else {
-        offline += 1
-      }
-
-      actions = "-"
-
-      if ( __USERNAME == "root" ) {
-        actions = '<a href="" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>&nbsp;Edit</a>&nbsp;<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash fa-sm text-white-50"></i>&nbsp;Remove</a>'
-      }
-
-      connection = "-"
-      last_seen = "-"
-
-      if ( val['state'] == "online" ) {
-          connection = val['connection']['addr']
-          last_seen = val['last_seen']
-      }
-
-      t.row.add([
-          val['addr'],
-          val['desc'],
-          last_seen,
-          connection,
-          actions
-      ] ).draw( true );
-
-    });
-
-    $("#offline").html(offline)
-    $("#online").html(online)
-    $("#connected").html(connected)
-
-  });
-
+  REST_REQ(ENTITY).configure_GET({
+      success: [ format_datatable_data]
+    })
+    .perform()
 }
+
+
