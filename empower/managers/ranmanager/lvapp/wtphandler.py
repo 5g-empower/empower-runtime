@@ -201,6 +201,32 @@ class WTPHandler(apimanager.EmpowerAPIHandler):
         return self.service.devices \
             if not args else self.service.devices[EtherAddress(args[0])]
 
+    @apimanager.validate(returncode=204, min_args=1, max_args=1)
+    def put(self, *args, **kwargs):
+        """Update the description of the device.
+
+        Request:
+
+            version: protocol version (1.0)
+            desc: a human readable description of the device (optional)
+
+        Example URLs:
+
+            PUT /api/v1/wtps/00:0D:B9:2F:56:64
+
+            {
+                "version":"1.0",
+                "desc": "D-Link DIR-401"
+            }
+        """
+
+        addr = EtherAddress(args[0])
+
+        if 'desc' in kwargs:
+            self.service.update(addr, kwargs['desc'])
+        else:
+            self.service.update(addr)
+
     @apimanager.validate(returncode=201, min_args=0, max_args=0)
     def post(self, *args, **kwargs):
         """Add a new device.

@@ -122,6 +122,15 @@ class RANManager(EService):
 
         return self.devices[device.addr]
 
+    def update(self, addr, desc="Generic device"):
+        """Create new device."""
+
+        device = self.devices[addr]
+        device.desc = desc
+        device.save()
+
+        return self.devices[device.addr]
+
     def remove_all(self):
         """Remove all projects."""
 
