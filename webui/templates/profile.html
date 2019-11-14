@@ -12,14 +12,66 @@
     <div class="card shadow mb-0">
       <div class="card-header py-3">
         <div class="d-sm-flex align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Details</h6>
-          <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i> Edit</a>
+          <h4 class="m-0 font-weight-bold text-primary">Details</h4>
+          <!-- <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i> Edit</a> -->
+          <!-- <a onclick="trigger_edit_modal('{{username}}')" data-toggle="modal" data-target="#editACCOUNTModal" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a> -->
+          <button class="btn btn-sm btn-warning shadow-sm mr-1 mb-1 text-light" onclick="trigger_edit_modal('{{username}}')"><i class="fas fa-edit fa-sm text-white-50 mr-1"></i>Edit</button>
         </div>
       </div>
       <div class="card-body">
-        <p><b>Username:</b> {{username}}</p>
+        <table>
+          <tbody>
+            <tr>
+              <td class="h5 p-2 pr-4"><b>Username:</b></td>
+              <td class="h5" id="username"> {{username}}</td>
+            </tr>
+            <tr>
+              <td class="h5 p-2 pr-4"><b>Name:</b></td>
+              <td class="h5" id="name">{{name}}</td>
+            </tr>
+            <tr>
+              <td class="h5 p-2 pr-4"><b>E-Mail:</b></td>
+              <td class="h5" id="email">{{email}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- <p><b>Username:</b> {{username}}</p>
         <p><b>Name:</b> {{name}}</p>
-        <p><b>E-Mail:</b> {{email}}</p>
+        <p><b>E-Mail:</b> {{email}}</p> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit ACCOUNT Modal-->
+<div class="modal fade" id="editACCOUNTModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+              <label>Username</label>
+              <input id="edit_username" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+              <label>Name</label>
+              <input id="edit_name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input id="edit_email" class="form-control">
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="edit()" data-toggle="modal" data-target="#editACCOUNTModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
       </div>
     </div>
   </div>

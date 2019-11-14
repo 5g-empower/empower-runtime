@@ -572,6 +572,7 @@ class WEBUI_Request_DEVICE extends WEBUI_Request {
  * univocally in the WEBUI
  */
 EMPOWER_ENTITIES={
+  ACCOUNT: "ACCOUNT",
   DEVICE:{
     WTP: "WTP",
     VBS: "VBS"
@@ -627,6 +628,30 @@ class WEBUI_Request_VBS extends WEBUI_Request_DEVICE {
 }
 
 /**
+ * Class WEBUI_Request_ACCOUNT extends WEBUI_Request to the ACCOUNT specific 
+ * case. It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_ACCOUNT extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "accounts/" + key
+      }
+    }
+    return this._ENTRY_POINT + "accounts"
+  }
+
+}
+
+/**
  * Support factory for providing the proper WEBUI_Request_XXX class for the 
  * specified entity
  * 
@@ -641,6 +666,8 @@ function REST_REQ(entity){
       return new WEBUI_Request_WTP()
     case EMPOWER_ENTITIES.DEVICE.VBS:
       return new WEBUI_Request_VBS()
+    case EMPOWER_ENTITIES.ACCOUNT:
+      return new WEBUI_Request_ACCOUNT()
     default:
       console.warn("Entity", 
         entity, 
