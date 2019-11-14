@@ -5,7 +5,8 @@
 
 __EMPOWER_ALERTS={
   ALERT_BOX_ID: "alert_box",
-  COUNTER: 1,
+  MAX_NUMBER: 10000,
+  COUNTER: 0,
   TYPES: {
     ERROR: "ERROR",
     WARNING: "WARNING",
@@ -360,10 +361,11 @@ function empower_alert_generate_success(...args) {
 
   let alert_content= empower_alert_format_content(args)
 
-  new WEBUI_Alert_Success("alert_" + __EMPOWER_ALERTS.COUNTER++,
+  new WEBUI_Alert_Success("alert_" + empower_alert_assign_id_number(),
                           alert_content.strong_text,
                           alert_content.text)
     .generate().show()
+
 }
 
 /**
@@ -375,9 +377,21 @@ function empower_alert_generate_error(...args) {
 
   let alert_content= empower_alert_format_content(args)
 
-  new WEBUI_Alert_Error("alert_" + __EMPOWER_ALERTS.COUNTER++,
+  new WEBUI_Alert_Error("alert_" + empower_alert_assign_id_number(),
                         alert_content.strong_text,
                         alert_content.text)
     .generate().show()
+}
+
+/**
+ * Support function for generating sequential align id number
+ * 
+ * @return {number} aling id number
+ */
+function empower_alert_assign_id_number(){
+  __EMPOWER_ALERTS.COUNTER = 
+    (__EMPOWER_ALERTS.COUNTER + 1) % __EMPOWER_ALERTS.MAX_NUMBER
+  
+  return __EMPOWER_ALERTS.COUNTER
 }
 
