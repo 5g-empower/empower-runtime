@@ -101,6 +101,67 @@ class WEBUI_CoreFunctions{
   _is_string(candidate) {
     return (typeof candidate === 'string')
   }
+
+  /**
+     * This function checks if candidate param is a JS Object
+     * @param {*} candidate - candidate
+     * @return {boolean} true if it is a JS Object, false otherwise
+     */
+  _is_object(candidate={}){
+      return (typeof candidate === 'object')
+  }
+
+  /**
+     * This function creates the HTML element specified by tagname
+     * @param {string} tagname - tag name of the desired element
+     * @return {Element} the Element instance
+     */
+  _create_element(tagname){
+    return  document.createElement(tagname)
+  }
+
+  /**
+   * This functions converts an Element class into a JQuery object
+   * @param {Element} element - the element to be converted
+   * @return {Object} the jQuery Object
+   */
+  _element2jq(element){
+    return $( element )
+  }
+
+  /**
+   * This functions wraps a string into html tag and adds attributes (if provided) to the resulting element.
+   * NB: no check performed over data types, tag/attributes consistency and to_be_wrapped content
+   * @param {string} to_be_wrapped - string to be wrapped
+   * @param {!string} tag - the wrapping HTML tag
+   * @param {?string} attributes - sequence of attributes to  be applied to the resulting element
+   * @return {string} the HTML-wrapped string
+   */
+  _wrap_in_html(to_be_wrapped, tag = 'DIV', attributes = null) {
+    let _a = ''
+    if (this._is_there(attributes)) {
+      if (this._is_object(attributes)) {
+        Object.keys(attributes).forEach(function (key) {
+          _a += " " + key + "=\"" + attributes[key] + "\""
+        })
+      }
+    }
+    return "<" + tag + _a + ">" + to_be_wrapped + "</" + tag + ">"
+  }
+
+  /**
+   * This function converts an HTML code string into a jQuery object
+   * @param {string} html_str - the HTML code string to be converted 
+   * @return {object|null} jQuery object if conversion succeded, null otherwise
+   */
+  _convert_html_to_jquery(html_str = '<DIV></DIV>') {
+    try {
+      return $($.parseHTML(html_str))
+    }
+    catch (error) {
+      return null
+    }
+  }
 }
 
 
@@ -258,6 +319,26 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
     if (need_auth) {
       this.REQUEST.beforeSend = function (req) {
         req.setRequestHeader("Authorization", this.basic_auth());
+        req.empower = {
+          url: this.REQUEST.url,
+          method: this.REQUEST.method,
+          data: this.REQUEST.data,
+          time_ts: Date.now(),
+          time: new Date().toISOString()
+        }
+        // console.log("beforesend:",req)
+      }.bind(this)
+    }
+    else{
+      this.REQUEST.beforeSend = function (req) {
+        req.empower = {
+          url: this.REQUEST.url,
+          method: this.REQUEST.method,
+          data: this.REQUEST.data,
+          time_ts: Date.now(),
+          time: new Date().toISOString()
+        }
+        // console.log("beforesend:",req)
       }.bind(this)
     }
 
@@ -550,6 +631,9 @@ class WEBUI_Request_VBS extends WEBUI_Request_DEVICE {
  * specified entity
  * 
  * @param {string} entity - identifier of the entity
+ * 
+ * @return {Object} An instance of the WEBUI_Request class (WEBUI_Request_XXX)
+ *                  specific for the specified entity
  */
 function REST_REQ(entity){
   switch(entity){
@@ -564,3 +648,4 @@ function REST_REQ(entity){
       return new WEBUI_Request()
   }
 }
+

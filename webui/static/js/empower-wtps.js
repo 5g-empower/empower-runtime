@@ -55,7 +55,8 @@ function add() {
 
   REST_REQ(ENTITY).configure_POST({
     data: data,
-    success: [ refresh_devices]
+    success: [ empower_alert_generate_success, refresh_devices],
+    error: [ empower_alert_generate_error ]
   })
   .perform()
 
@@ -78,7 +79,8 @@ function trigger_edit_modal( wtp_key ) {
 
   REST_REQ(ENTITY).configure_GET({
     key: wtp_key,
-    success: [ show_edit_modal]
+    success: [ empower_alert_generate_success, show_edit_modal],
+    error: [ empower_alert_generate_error ]
   })
   .perform()
 }
@@ -98,8 +100,8 @@ function edit(){
   REST_REQ(ENTITY).configure_PUT({
     data: data,
     key: data.addr,
-    success: [refresh_devices],
-    error: [empower_log_response]
+    success: [ empower_alert_generate_success,refresh_devices],
+    error: [ empower_alert_generate_error ]
   })
   .perform()
 }
@@ -121,7 +123,8 @@ function trigger_remove_modal( wtp_key ) {
 
   REST_REQ(ENTITY).configure_GET({
     key: wtp_key,
-    success: [ show_remove_modal]
+    success: [ empower_alert_generate_success, show_remove_modal],
+    error: [ empower_alert_generate_error ]
   })
   .perform()
 }
@@ -136,7 +139,8 @@ function remove(){
 
   REST_REQ(ENTITY).configure_DELETE({
     key: key,
-    success: [refresh_devices]
+    success: [ empower_alert_generate_success,refresh_devices],
+    error: [ empower_alert_generate_error ]
   })
   .perform()
 }
@@ -199,9 +203,9 @@ function refresh_devices() {
   t.clear();
 
   REST_REQ(ENTITY).configure_GET({
-      success: [ format_datatable_data]
+      success: [ empower_alert_generate_success, format_datatable_data],
+      error: [ empower_alert_generate_error ]
     })
     .perform()
 }
-
 
