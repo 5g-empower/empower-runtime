@@ -110,8 +110,8 @@ class AccountsHandler(apimanager.EmpowerAPIHandler):
         Request:
 
             version: protocol version (1.0)
-            name: name (optional)
-            email: email (optional)
+            name: name (mandatory)
+            email: email (mandatory)
             password: password (optional)
             new_password: new_password (optional)
             new_password_confirm: new_password_confirm (optional)
@@ -132,24 +132,27 @@ class AccountsHandler(apimanager.EmpowerAPIHandler):
             PUT /api/v1/accounts/test
 
             {
-              "version" : 1.0
-              "email" : "new@empowr.io",
+              "version" : 1.0,
+              "name" : "foo",
+              "email" : "foo@empowr.io",
+              "password" : "foo",
             }
         """
 
-        kwargs['username'] = args[0]
+        username = args[0]
+        password = None
+        name = kwargs['name'] if 'name' in kwargs else None
+        email = kwargs['email'] if 'email' in kwargs else None
 
         if 'new_password' in kwargs and 'new_password_confirm' in kwargs:
 
             if kwargs['new_password'] != kwargs['new_password_confirm']:
                 raise ValueError("Passwords do not match")
 
-            kwargs['password'] = kwargs['new_password']
+            password = kwargs['new_password']
 
-            del kwargs['new_password']
-            del kwargs['new_password_confirm']
-
-        self.service.update(**kwargs)
+        self.service.update(username=username, password=password, name=name,
+                            email=email)
 
     @apimanager.validate(returncode=204, min_args=1, max_args=1)
     def delete(self, *args, **kwargs):

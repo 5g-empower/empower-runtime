@@ -44,6 +44,7 @@ class TestAccounts(BaseTest):
         """test_create_existing_user."""
 
         data = {
+            "version": "1.0",
             "username": "foo",
             "password": "foo",
             "name": "foo",
@@ -52,10 +53,23 @@ class TestAccounts(BaseTest):
 
         self.post(("root", "root", "/accounts"), data, 400)
 
+    def test_create_new_user_missing_field(self):
+        """test_create_new_user_missing_field."""
+
+        data = {
+            "version": "1.0",
+            "username": "dummy",
+            "password": "dummy",
+            "name": "dummy",
+        }
+
+        self.post(("root", "root", "/accounts"), data, 404)
+
     def test_create_new_user(self):
         """test_create_new_user."""
 
         data = {
+            "version": "1.0",
             "username": "dummy",
             "password": "dummy",
             "name": "dummy",
@@ -71,6 +85,7 @@ class TestAccounts(BaseTest):
         """test_update_user_details."""
 
         data = {
+            "version": "1.0",
             "username": "dummy",
             "password": "dummy",
             "name": "dummy",
@@ -80,15 +95,16 @@ class TestAccounts(BaseTest):
         self.post(("root", "root", "/accounts"), data, 201)
 
         data = {}
-        self.put(("root", "root", "/accounts/dummy"), data, 204)
+        self.put(("root", "root", "/accounts/dummy"), data, 400)
 
         data = {
             "username": "dummydummy"
         }
 
-        self.put(("root", "root", "/accounts/dummy"), data, 204)
+        self.put(("root", "root", "/accounts/dummy"), data, 400)
 
         data = {
+            "version": "1.0",
             "username": "dummy",
             "password": "dummy",
             "name": "Roberto Riggio",
@@ -108,6 +124,7 @@ class TestAccounts(BaseTest):
         """test_credentials."""
 
         data = {
+            "version": "1.0",
             "username": "dummy",
             "password": "dummy",
             "name": "dummy",
@@ -121,6 +138,9 @@ class TestAccounts(BaseTest):
         self.post(("root", "root", "/accounts"), data, 201)
 
         data = {
+            "version": "1.0",
+            "name": "dummy",
+            "email": "dummy@empower.io",
             "new_password": "ciccio",
             "new_password_confirm": "ciccio"
         }
@@ -129,6 +149,8 @@ class TestAccounts(BaseTest):
 
         data = {
             "version": "1.0",
+            "name": "dummy",
+            "email": "dummy@empower.io",
             "new_password": "dummy",
             "new_password_confirm": "dummy"
         }

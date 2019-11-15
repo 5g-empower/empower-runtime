@@ -96,7 +96,10 @@ def _setup_db(args):
     config = configparser.ConfigParser()
     config.read(runtime_config)
 
-    connect(config.get('general', 'mongodb'), ssl_cert_reqs=ssl.CERT_NONE)
+    mongodb_uri = config.get('general', 'mongodb', fallback=None)
+
+    if mongodb_uri:
+        connect(mongodb_uri, ssl_cert_reqs=ssl.CERT_NONE)
 
 
 def _setup_logging(args):

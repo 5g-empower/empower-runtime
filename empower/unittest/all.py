@@ -47,6 +47,9 @@ def full_suite():
 
     suite.addTest(TestAccounts('test_simple_gets'))
     suite.addTest(TestAccounts('test_create_existing_user'))
+
+    suite.addTest(TestAccounts('test_create_new_user_missing_field'))
+
     suite.addTest(TestAccounts('test_create_new_user'))
     suite.addTest(TestAccounts('test_update_user_details'))
     suite.addTest(TestAccounts('test_credentials'))

@@ -84,7 +84,7 @@ class AccountsManager(EService):
 
         return self.accounts[username]
 
-    def update(self, username, name=None, email=None, password=None):
+    def update(self, username, name, email, password=None):
         """Update account."""
 
         if username not in self.accounts:
@@ -92,14 +92,11 @@ class AccountsManager(EService):
 
         user = self.accounts[username]
 
+        user.name = name
+        user.email = email
+
         if password:
             user.password = password
-
-        if name:
-            user.name = name
-
-        if email:
-            user.email = email
 
         user.save()
 
