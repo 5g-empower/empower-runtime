@@ -33,6 +33,10 @@ function empower_ajax_delete(url) {
   });
 }
 
+
+__EMPOWER_LOG={
+  HTTP_RESPONSE: true
+}
 /**
  * This function is just printing out all its arguments.
  * Can be useful for debugging purposes if added among the success / error / 
@@ -43,10 +47,12 @@ function empower_ajax_delete(url) {
  *                         process them dinamically inside the function)
  */
 function empower_log_response(...args) {
-  console.log("RESPONSE: ")
-  args.forEach(function(arg, index){
-    console.log("args["+index+"] (type:",(typeof arg),"): ",arg)
-  })
+  if (__EMPOWER_LOG.HTTP_RESPONSE){
+    console.log("HTTP_RESPONSE LOG: ")
+    args.forEach(function(arg, index){
+      console.log("args["+index+"] (type:",(typeof arg),"): ",arg)
+    })
+  }
 }
 
 /**

@@ -328,7 +328,8 @@ class WEBUI_Alert_Error extends WEBUI_Alert{
  */
 function empower_alert_format_content(args){
   let jQxhr = null
-  let details = args[1]
+  let detail = args[1]
+  
   args.forEach(function(arg, index){
     // console.log("args["+index+"] (type:",(typeof arg),"): ",arg)
     if ((arg != null) && (arg != undefined)){
@@ -338,10 +339,35 @@ function empower_alert_format_content(args){
     }
   })
 
+  // console.log("jQxhr", jQxhr)
+  // console.log("detail", detail)
+
+  if (detail != "success"){
+    detail = detail+"<br>"
+    let rt = jQxhr.responseText
+    // console.log("rt", rt)
+    if (( rt != null) && (rt != undefined) && (rt != "")){
+      let response_json = JSON.parse(rt)
+      // console.log("response_json", response_json)
+      if (( response_json.detail != null) && 
+          (response_json.detail != undefined)){
+        eval('var evalued = '+response_json.detail)
+        // console.log("evalued", evalued)
+        // console.log("evalued str", JSON.stringify(evalued, null, 2))
+        detail = detail +"<pre class='mb-0'>" +
+                    JSON.stringify(evalued, null, 2) + "</pre>"
+                //  JSON.stringify(JSON.parse(response_json.detail), null, 2)
+      }
+    }
+  }
+  else{
+    detail = detail+"<br>"
+  }
+
   let strong_text = jQxhr.status+": "+jQxhr.statusText
-  let text = details
+  let text = detail
   if (jQxhr != null){
-    text = text + "<br><em class='small'>" +
+    text = text + "<em class='text-xs'>" +
                   jQxhr.empower.method + " : " + jQxhr.empower.url +
                   " [@" + jQxhr.empower.time.substring(11) + "]</em>"
   }
