@@ -6,19 +6,13 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Accounts</h1>
     <div >
-      <a href="#" data-toggle="modal" data-target="#addAccountModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Account</a>
+      <a href="#" data-toggle="modal" data-target="#add_ACCOUNT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Account</a>
       <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_accounts()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
   </div>
 </div>
 
-<!-- Alert -->
-<div id="alert" class="alert alert-dismissible fade collapse" role="alert">
-  <div>
-    <strong>Holy guacamole!</strong> You should check in on some of those fields below.
-  </div>
-  <button type="button" class="close" onclick="$('#alert').hide();" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
 </div>
 
 <!-- DataTable -->
@@ -31,12 +25,12 @@
   </div>
 </div>
 
-<!-- Add Account Modal-->
-<div class="modal fade" id="addAccountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<!-- Add ACCOUNT Modal-->
+<div class="modal fade" id="add_ACCOUNT_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Create Account</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Create ACCOUNT</h5>
         <button class="close" type="button" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">×</span>
         </button>
@@ -44,30 +38,129 @@
       <div class="modal-body">
         <form role="form">
           <div class="form-group">
-              <label>Username</label>
-              <input id="username" class="form-control">
+            <label>Username</label>
+            <input id="add_username" class="form-control">
           </div>
           <div class="form-group">
-              <label>Name</label>
-              <input id="name" class="form-control">
+            <label>Name</label>
+            <input id="add_name" class="form-control">
           </div>
           <div class="form-group">
-              <label>E-Mail</label>
-              <input id="email" class="form-control">
+            <label>E-Mail</label>
+            <input id="add_email" class="form-control">
           </div>
           <div class="form-group">
-              <label>Password</label>
-              <input id="password" class="form-control">
+            <label>Password</label>
+            <input id="add_password" class="form-control" placeholder="Enter your password (MANDATORY!)">
           </div>
           <div class="form-group">
-              <label>Password (Confirm)</label>
-              <input id="password_confirm" class="form-control">
+            <label>Password (Confirm)</label>
+            <input id="add_password_confirm" class="form-control" placeholder="Same as password">
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="create_account()" data-toggle="modal" data-target="#addWtpModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
+        <button onclick="add()" id="add_ACCOUNT_button" data-toggle="modal" data-target="#add_ACCOUNT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</button>
+        <!-- <a href="#" onclick="add()" data-toggle="modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="notifyPasswordErrorModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Password Error</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body text-danger">
+        <div class="text-center">
+          <strong class="my-3">PASSWORD ERROR</strong><br><span>Password and Password Confirm are different!</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit ACCOUNT Modal-->
+<div class="modal fade" id="edit_ACCOUNT_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit ACCOUNT</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <label>Username</label>
+            <input id="edit_username" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+            <label>Name</label>
+            <input id="edit_name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input id="edit_email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input id="edit_password" class="form-control" placeholder="Enter your password (Optional))">
+          </div>
+          <div class="form-group">
+            <label>Password (Confirm)</label>
+            <input id="edit_password_confirm" class="form-control" placeholder="Same as password">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <button onclick="edit()" id="edit_ACCOUNT_button" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</button>
+        <!-- <a href="#" onclick="edit()" data-toggle="modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remove ACCOUNT Modal-->
+<div class="modal fade" id="remove_ACCOUNT_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">remove ACCOUNT</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <label>Username</label>
+            <input id="remove_username" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+            <label>Name</label>
+            <input id="remove_name" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input id="remove_email" class="form-control" disabled>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="remove()" id="remove_ACCOUNT_button" data-toggle="modal" data-target="#remove_ACCOUNT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
       </div>
     </div>
   </div>
@@ -76,5 +169,5 @@
 {% end %}
 
 {% block js %}
-<script src="/static/js/empower-accounts.js"></script>
+<script src="/static/js/pages/empower-accounts.js"></script>
 {% end %}

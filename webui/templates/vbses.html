@@ -7,10 +7,14 @@
   <h1 class="h3 mb-0 text-gray-800">Virtual Base Stations</h1>
     <div >
       {% if username=="root" %}
-        <a href="#" data-toggle="modal" data-target="#addVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add VBS</a>
+        <a href="#" data-toggle="modal" data-target="#add_VBS_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Add VBS</a>
       {% end %}
-      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_devices()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_datatable()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
   </div>
+</div>
+
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
 </div>
 
 <!-- Content Row -->
@@ -23,7 +27,7 @@
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Online</div>
-            <div id="online" class="h5 mb-0 font-weight-bold text-gray-800">1</div>
+            <div id="online" class="h5 mb-0 font-weight-bold text-gray-800">0</div>
           </div>
           <div class="col-auto">
             <i class="fas fa-heart fa-2x text-gray-300"></i>
@@ -40,7 +44,7 @@
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Connected</div>
-            <div id="connected" class="h5 mb-0 font-weight-bold text-gray-800">1</div>
+            <div id="connected" class="h5 mb-0 font-weight-bold text-gray-800">0</div>
           </div>
           <div class="col-auto">
             <i class="fas fa-link fa-2x text-gray-300"></i>
@@ -57,7 +61,7 @@
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Offline</div>
-            <div id="offline" class="h5 mb-0 font-weight-bold text-gray-800">1</div>
+            <div id="offline" class="h5 mb-0 font-weight-bold text-gray-800">0</div>
           </div>
           <div class="col-auto">
             <i class="fas fa-unlink fa-2x text-gray-300"></i>
@@ -80,7 +84,7 @@
 </div>
 
 <!-- Add VBS Modal-->
-<div class="modal fade" id="addVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="add_VBS_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -103,14 +107,14 @@
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="add()" data-toggle="modal" data-target="#addVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
+        <a href="#" onclick="add()" data-toggle="modal" data-target="#add_VBS_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Edit VBS Modal-->
-<div class="modal fade" id="editVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="edit_VBS_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -133,14 +137,14 @@
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="edit()" data-toggle="modal" data-target="#editVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
+        <a href="#" onclick="edit()" data-toggle="modal" data-target="#edit_VBS_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Remove VBS Modal-->
-<div class="modal fade" id="removeVBSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="remove_VBS_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -163,7 +167,7 @@
         </div>
         <div class="modal-footer">
           <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-          <a href="#" onclick="remove()" data-toggle="modal" data-target="#removeVBSModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
+          <a href="#" onclick="remove()" data-toggle="modal" data-target="#remove_VBS_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
         </div>
       </div>
     </div>
@@ -172,5 +176,6 @@
 {% end %}
 
 {% block js %}
-<script src="/static/js/empower-vbses.js"></script>
+<script src="/static/js/pages/empower-vbses.js"></script>
 {% end %}
+
