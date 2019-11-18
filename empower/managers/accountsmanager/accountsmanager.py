@@ -92,13 +92,14 @@ class AccountsManager(EService):
 
         user = self.accounts[username]
 
-        user.name = name
-        user.email = email
-
-        if password:
-            user.password = password
-
-        user.save()
+        try:
+            user.name = name
+            user.email = email
+            if password:
+                user.password = password
+            user.save()
+        finally:
+            user.refresh_from_db()
 
         return self.accounts[username]
 

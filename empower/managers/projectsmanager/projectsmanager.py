@@ -164,8 +164,6 @@ class ProjectsManager(EService):
 
         project = self.projects[project_id]
 
-        print(wifi_props["allowed"])
-
         try:
 
             # not all wifi props can be modified
