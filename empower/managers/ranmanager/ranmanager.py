@@ -123,11 +123,17 @@ class RANManager(EService):
         return self.devices[device.addr]
 
     def update(self, addr, desc="Generic device"):
-        """Create new device."""
+        """Update device."""
 
         device = self.devices[addr]
-        device.desc = desc
-        device.save()
+
+        try:
+
+            device.desc = desc
+            device.save()
+
+        finally:
+            device.refresh_from_db()
 
         return self.devices[device.addr]
 
