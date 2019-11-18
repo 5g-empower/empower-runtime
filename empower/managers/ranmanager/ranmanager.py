@@ -128,10 +128,8 @@ class RANManager(EService):
         device = self.devices[addr]
 
         try:
-
             device.desc = desc
             device.save()
-
         finally:
             device.refresh_from_db()
 
