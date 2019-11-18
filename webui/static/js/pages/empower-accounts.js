@@ -174,8 +174,10 @@ function edit(){
 
   let cf = __EMPOWER_WEBUI.CORE_FUNCTIONS
   let pwd = EDIT_MODAL.password.get()
+  let cpwd = EDIT_MODAL.password_confirm.get()
   if (cf._is_there(pwd) && (!cf._is_void_string(pwd))){
-    data.password = pwd
+    data.new_password = pwd
+    data.new_password_confirm = cpwd
   }
   
   edit_reset = EDIT_MODAL.reset.bind(EDIT_MODAL)
