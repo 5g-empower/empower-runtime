@@ -35,7 +35,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Edit ACCOUNT</h5>
         <button class="close" type="button" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">×</span>
         </button>
@@ -43,22 +43,31 @@
       <div class="modal-body">
         <form role="form">
           <div class="form-group">
-              <label>Username</label>
-              <input id="edit_username" class="form-control" disabled>
+            <label>Username</label>
+            <input id="edit_username" class="form-control" disabled>
           </div>
           <div class="form-group">
-              <label>Name</label>
-              <input id="edit_name" class="form-control">
+            <label>Name</label>
+            <input id="edit_name" class="form-control">
           </div>
           <div class="form-group">
             <label>E-Mail</label>
             <input id="edit_email" class="form-control">
-        </div>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input id="edit_password" class="form-control" placeholder="Enter your password (Optional)">
+          </div>
+          <div class="form-group">
+            <label>Password (Confirm)</label>
+            <input id="edit_password_confirm" class="form-control" placeholder="Same as password">
+          </div>
         </form>
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="edit()" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
+        <button onclick="edit()" id="edit_ACCOUNT_button" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</button>
+        <!-- <a href="#" onclick="edit()" data-toggle="modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a> -->
       </div>
     </div>
   </div>
