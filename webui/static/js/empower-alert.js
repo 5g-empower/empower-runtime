@@ -3,7 +3,7 @@
  * and their property univocally in the WEBUI
  */
 
-__EMPOWER_ALERTS={
+__EMPOWER_WEBUI.ALERT={
   ALERT_BOX_ID: "alert_box",
   MAX_NUMBER: 10000,
   COUNTER: 0,
@@ -23,6 +23,9 @@ __EMPOWER_ALERTS={
  * It relies on a "alert box" DIV element with specific id in the HTML page, 
  * which  is used as a container for all the generated alerts
  * 
+ * @requires js/support/empower-global.js 
+ * @requires js/support/empower-corefunctions.js
+ * 
  * @extends {WEBUI_CoreFunctions}
  */
 class WEBUI_Alert extends WEBUI_CoreFunctions{
@@ -31,12 +34,12 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
    * Constructor: configures the alert according to the passed arguments
    * 
    * @param {string} alert_id - the ID of the to-be-generated alert.
-   * @param {string} type - the type of alert. Refer __EMPOWER_ALERTS.TYPES for 
-   *                        valid values
+   * @param {string} type - the type of alert. Refer __EMPOWER_WEBUI.ALERT.TYPES  
+   *                        for valid values
    * @param {string} strong_text  - the main text of the alert.
    * @param {string} text -the secondary text of the alert.
    */
-  constructor(alert_id, type=__EMPOWER_ALERTS.TYPES.ERROR, strong_text="", 
+  constructor(alert_id, type=__EMPOWER_WEBUI.ALERT.TYPES.ERROR, strong_text="", 
               text=""){
 
     super()
@@ -111,7 +114,9 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
    */
   set_id(alert_id){
     if (this._is_there(this._$MAIN.id)){
-      console.warn("ALERT ID  already assigned: ", this._$MAIN.id, "(replaced by:"+alert_id+")")
+      console.warn("ALERT ID  already assigned: ", 
+                    this._$MAIN.id, "(replaced by:" + 
+                    alert_id+")")
     }
     this._$MAIN.id = alert_id
 
@@ -123,25 +128,26 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
    * element (i.e., the one with the identifier containing all other components)
    * 
    * @param {string} alert_id - the ID of the to-be-generated alert.
-   * @param {string} type - the type of alert. Refer __EMPOWER_ALERTS.TYPES for 
-   *                        valid values
+   * @param {string} type - the type of alert. Refer __EMPOWER_WEBUI.ALERT.TYPES 
+   *                        for valid values
    * 
    * @return {Object} the instance of the main element
    */
-  get_$main(alert_id=null, type=__EMPOWER_ALERTS.TYPES.ERROR){
+  get_$main(alert_id=null, type=__EMPOWER_WEBUI.ALERT.TYPES.ERROR){
     let alert_type = "alert-error"
     switch(type){
-      case __EMPOWER_ALERTS.TYPES.SUCCESS:
+      case __EMPOWER_WEBUI.ALERT.TYPES.SUCCESS:
         alert_type = "alert-success"
         break
-      case __EMPOWER_ALERTS.TYPES.WARNING:
+      case __EMPOWER_WEBUI.ALERT.TYPES.WARNING:
         alert_type = "alert-warning"
         break
       default:
         alert_type = "alert-danger"
     }
     let attributes = {
-      class: "alert alert-dismissible "+alert_type+" fade collapse d-block mb-1",
+      class: "alert alert-dismissible " + alert_type + 
+             " fade collapse d-block mb-1",
       role: "alert"
     }
     if (this._is_there(alert_id)){
@@ -181,8 +187,8 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method generates the jQuery object associated to the alert close button
-   * element
+   * This method generates the jQuery object associated to the alert close 
+   * button element
    * 
    * @param {string} alert_id
    * 
@@ -237,10 +243,10 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
 
   publish(top=true){
     if (top){
-      $("#"+__EMPOWER_ALERTS.ALERT_BOX_ID).prepend(this.get_$instance())
+      $("#"+__EMPOWER_WEBUI.ALERT.ALERT_BOX_ID).prepend(this.get_$instance())
     }
     else{
-      $("#"+__EMPOWER_ALERTS.ALERT_BOX_ID).append(this.get_$instance())
+      $("#"+__EMPOWER_WEBUI.ALERT.ALERT_BOX_ID).append(this.get_$instance())
     }
 
     return this
@@ -415,9 +421,9 @@ function empower_alert_generate_error(...args) {
  * @return {number} aling id number
  */
 function empower_alert_assign_id_number(){
-  __EMPOWER_ALERTS.COUNTER = 
-    (__EMPOWER_ALERTS.COUNTER + 1) % __EMPOWER_ALERTS.MAX_NUMBER
+  __EMPOWER_WEBUI.ALERT.COUNTER = 
+    (__EMPOWER_WEBUI.ALERT.COUNTER + 1) % __EMPOWER_WEBUI.ALERT.MAX_NUMBER
   
-  return __EMPOWER_ALERTS.COUNTER
+  return __EMPOWER_WEBUI.ALERT.COUNTER
 }
 

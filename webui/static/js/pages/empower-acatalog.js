@@ -1,8 +1,11 @@
-$('#apps').removeClass('collapse');
+$('#apps').removeClass('collapsed');
 $('#collapseThree').addClass('show');
 $('#apps_catalog').addClass('active');
 
 $(document).ready(function() {
+
+  console.warn("THIS PAGE IS A WORK IN PROGRESS!")
+
   refresh_catalog();
 });
 

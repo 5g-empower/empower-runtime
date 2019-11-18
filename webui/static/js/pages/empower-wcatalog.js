@@ -1,8 +1,9 @@
-$('#workers').removeClass('collapse');
+$('#workers').removeClass('collapsed');
 $('#collapseThree').addClass('show');
 $('#workers_catalog').addClass('active');
 
 $(document).ready(function() {
+  console.warn("THIS PAGE IS A WORK IN PROGRESS!")
   refresh_catalog();
 });
 

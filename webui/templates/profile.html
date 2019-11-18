@@ -7,6 +7,11 @@
   <h1 class="h3 mb-0 text-gray-800">User Profile</h1>
 </div>
 
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
+</div>
+
+<!-- Details -->
 <div class="row">
   <div class="col-lg-12 mb-4">
     <div class="card shadow mb-0">
@@ -14,7 +19,7 @@
         <div class="d-sm-flex align-items-center justify-content-between">
           <h4 class="m-0 font-weight-bold text-primary">Details</h4>
           <!-- <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i> Edit</a> -->
-          <!-- <a onclick="trigger_edit_modal('{{username}}')" data-toggle="modal" data-target="#editACCOUNTModal" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a> -->
+          <!-- <a onclick="trigger_edit_modal('{{username}}')" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i>Edit</a> -->
           <button class="btn btn-sm btn-warning shadow-sm mr-1 mb-1 text-light" onclick="trigger_edit_modal('{{username}}')"><i class="fas fa-edit fa-sm text-white-50 mr-1"></i>Edit</button>
         </div>
       </div>
@@ -44,7 +49,7 @@
 </div>
 
 <!-- Edit ACCOUNT Modal-->
-<div class="modal fade" id="editACCOUNTModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="edit_ACCOUNT_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -71,7 +76,7 @@
       </div>
       <div class="modal-footer">
         <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="edit()" data-toggle="modal" data-target="#editACCOUNTModal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
+        <a href="#" onclick="edit()" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</a>
       </div>
     </div>
   </div>
@@ -80,5 +85,5 @@
 {% end %}
 
 {% block js %}
-<script src="/static/js/empower-profile.js"></script>
+<script src="/static/js/pages/empower-profile.js"></script>
 {% end %}
