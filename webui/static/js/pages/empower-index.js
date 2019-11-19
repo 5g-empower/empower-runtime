@@ -150,37 +150,65 @@ function refresh_projects() {
 
   $.getJSON( "/api/v1/projects", function( data ) {
 
-    projects = ""
+    let projects = ""
 
     $.each( data, function( key, val ) {
 
       console.log("refresh_projects:",key,val)
 
-      if ( __USERNAME == "root" ) {
+      if ((__EMPOWER_WEBUI.USER.USERNAME === __EMPOWER_WEBUI.USER.ROOT) || 
+          (__EMPOWER_WEBUI.USER.USERNAME === val.owner)){
 
-        cmd = '<button class="btn btn-sm btn-danger shadow-sm mb-1" '+
-              'onclick="trigger_remove_modal(\''+ key +'\')">'+
-              '<i class="fas fa-trash fa-sm text-white-50 mr-1 "></i>Remove</button>'
+        if (__EMPOWER_WEBUI.USER.USERNAME === __EMPOWER_WEBUI.USER.ROOT){
+          cmd = '<button class="btn btn-sm btn-danger shadow-sm mb-1" '+
+                'onclick="trigger_remove_modal(\''+ key +'\')">'+
+                '<i class="fas fa-trash fa-sm text-white-50 mr-1 "></i>Remove</button>'
 
-      } else {
+        } 
+        else {
 
-        if ( __PROJECT_ID != key ) {
+          if ( __EMPOWER_WEBUI.PROJECT.ID != key ) {
 
-          cmd = '<a href="/auth/switch_project?project_id=' + key + '" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"><i class="fas fa-flag fa-sm text-white-50"></i>&nbsp;Select</a>'
+            cmd = '<a href="/auth/switch_project?project_id=' + key + '" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-flag fa-sm text-white-50"></i>&nbsp;Select</a>'
 
-        } else {
+          } else {
 
-          cmd = '<a href="/auth/switch_project" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-times fa-sm text-white-50"></i> Deselect</a>'
+            cmd = '<a href="/auth/switch_project" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-times fa-sm text-white-50"></i> Deselect</a>'
+
+          }
 
         }
 
+        projects += ''+
+        '<div class="col-xl-4 col-md-6 mb-4">'+
+          '<div class="card border-left-primary shadow h-100 py-2">'+
+            '<div class="card-body">'+
+              '<div class="row no-gutters align-items-center">'+
+                '<div class="col mr-2">'+
+                  '<div class="text-xs">' + 
+                    '<span class="font-weight-bold text-primary text-uppercase mb-1">'+ key +'</span>'+
+                    '<i class="fas fa-user-cog fa-fw mr-1 text-dark ml-2"></i>'+
+                    '<span class="font-italic text-dark">'+ val['owner']+'</span>'+
+                  '</div>'+
+                  '<div class="h5 mb-0 font-weight-bold text-gray-800">' + val['desc'] + 
+                  '</div>'+
+                '</div>'+
+                '<div class="col-auto">' + cmd + 
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'
       }
-
-      projects += '<div class="col-xl-4 col-md-6 mb-4"><div class="card border-left-primary shadow h-100 py-2"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-primary text-uppercase mb-1">' + key + '</div><div class="h5 mb-0 font-weight-bold text-gray-800">' + val['desc'] + '</div></div><div class="col-auto">' + cmd + '</div></div></div></div></div>'
 
     });
 
-    $("#projects").html(projects)
+    if (projects === ""){
+      $("#projects").html("<div class='h4 col-12 text-center'><span class='border border-dark rounded text-dark font-weight-bold py-3 px-5'> NO projects available </div></div>")
+    }
+    else{
+      $("#projects").html(projects)
+    }
 
   });
 

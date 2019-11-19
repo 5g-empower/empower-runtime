@@ -5,7 +5,7 @@
 
 __EMPOWER_WEBUI.ALERT={
   ALERT_BOX_ID: "alert_box",
-  MAX_NUMBER: 10000,
+  MAX_NUMBER: 1,
   COUNTER: 0,
   TYPES: {
     ERROR: "ERROR",
@@ -113,7 +113,7 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
    * 
    */
   set_id(alert_id){
-    if (this._is_there(this._$MAIN.id)){
+    if (this._is_there(this.get_id())){
       console.warn("ALERT ID  already assigned: ", 
                     this._$MAIN.id, "(replaced by:" + 
                     alert_id+")")
@@ -121,6 +121,16 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
     this._$MAIN.id = alert_id
 
     return this
+  }
+
+  /**
+   * This method retieves the alert ID 
+   * 
+   * @return {string} this instance alert ID
+   * 
+   */
+  get_id(){
+    return this._$MAIN.attr('id')
   }
 
   /**
@@ -241,7 +251,11 @@ class WEBUI_Alert extends WEBUI_CoreFunctions{
    * @return {Object} this instance of WEBUI_Alert class (i.e., this)
    */
 
-  publish(top=true){
+  publish(top=true, destroy_overlapping=true){
+    if (destroy_overlapping){
+      // console.warn("OVERLAPPING, id:",this.get_id())
+      $("#"+this.get_id()).remove()
+    }
     if (top){
       $("#"+__EMPOWER_WEBUI.ALERT.ALERT_BOX_ID).prepend(this.get_$instance())
     }
@@ -357,11 +371,12 @@ function empower_alert_format_content(args){
       // console.log("response_json", response_json)
       if (( response_json.detail != null) && 
           (response_json.detail != undefined)){
-        eval('var evalued = '+response_json.detail)
-        // console.log("evalued", evalued)
-        // console.log("evalued str", JSON.stringify(evalued, null, 2))
+        // eval('var value = '+response_json.detail)
+        // console.log("value", value)
+        // console.log("value str", JSON.stringify(value, null, 2))
+        let detail_text = response_json.detail
         detail = detail +"<pre class='mb-0'>" +
-                    JSON.stringify(evalued, null, 2) + "</pre>"
+                    JSON.stringify(detail_text, null, 2) + "</pre>"
                 //  JSON.stringify(JSON.parse(response_json.detail), null, 2)
       }
     }

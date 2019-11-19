@@ -165,12 +165,12 @@ function format_datatable_data( data ) {
 
     if ( __USERNAME == "root" ) {
       actions = ""+
-      '<button class="btn btn-sm btn-warning shadow-sm mr-1 mb-1" '+
+      '<button class="btn btn-sm btn-warning shadow-sm mr-xl-1 mb-md-1 m-1" '+
       'onclick="trigger_edit_modal(\''+val['addr']+'\')">'+
-      '<i class="fas fa-edit fa-sm text-white-50 mr-1"></i>Edit</button>'+
-      '<button class="btn btn-sm btn-danger shadow-sm mb-1" '+
+      '<i class="fas fa-edit fa-sm fa-fw text-white-50 mr-xl-1 m-1"></i><span class="d-none d-xl-inline">Edit</span></button>'+
+      '<button class="btn btn-sm btn-danger shadow-sm mb-xl-1 m-1" '+
       'onclick="trigger_remove_modal(\''+val['addr']+'\')">'+
-      '<i class="fas fa-trash fa-sm text-white-50 mr-1 "></i>Remove</button>'
+      '<i class="fas fa-trash fa-sm fa-fw text-white-50 mr-xl-1 m-1"></i><span class="d-none d-xl-inline">Remove</span></button>'
     }
 
     connection = "-"
