@@ -134,7 +134,7 @@ class ProjectsManager(EService):
             raise ValueError("Project %s already defined" % project_id)
 
         if owner not in self.accounts_manager.accounts:
-            raise ValueError("Undefined account %s" % owner)
+            raise KeyError("Username %s not found" % owner)
 
         project = Project(project_id=project_id, desc=desc, owner=owner)
 
@@ -160,7 +160,7 @@ class ProjectsManager(EService):
         """Update project."""
 
         if project_id not in self.projects:
-            raise ValueError("Project %s not available" % project_id)
+            raise KeyError("Project %s not found" % project_id)
 
         project = self.projects[project_id]
 
@@ -195,7 +195,7 @@ class ProjectsManager(EService):
 
         # Check if project exists
         if project_id not in self.projects:
-            raise KeyError("%s not registered" % project_id)
+            raise KeyError("Project %s not registered" % project_id)
 
         # Fetch project
         project = self.projects[project_id]

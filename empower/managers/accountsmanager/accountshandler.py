@@ -124,7 +124,6 @@ class AccountsHandler(apimanager.EmpowerAPIHandler):
               "version" : 1.0,
               "name" : "foo",
               "email" : "foo@empowr.io",
-              "password" : "foo",
               "new_password" : "new",
               "new_password_confirm" : "new",
             }
@@ -135,7 +134,6 @@ class AccountsHandler(apimanager.EmpowerAPIHandler):
               "version" : 1.0,
               "name" : "foo",
               "email" : "foo@empowr.io",
-              "password" : "foo",
             }
         """
 
