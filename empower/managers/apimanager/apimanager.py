@@ -80,7 +80,7 @@ def validate(returncode=200, min_args=0, max_args=0):
                 self.send_error(400, message=str(ex))
 
             except ValidationError as ex:
-                self.send_error(400, message=str(ex))
+                self.send_error(400, message=ex.message)
 
             self.set_status(returncode, None)
 
@@ -248,13 +248,13 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
 
         self.set_header('Content-Type', 'application/json')
 
-        out = {
+        value = {
             "title": self._reason,
             "status_code": status_code,
             "detail": kwargs.get("message"),
         }
 
-        self.finish(json.dumps(out))
+        self.finish(json.dumps(serialize(value), indent=4))
 
     def write_as_json(self, value):
         """Return reply as a json document."""
