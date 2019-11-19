@@ -7,9 +7,9 @@
   <h1 class="h3 mb-0 text-gray-800">Projects</h1>
     <div >
       {% if username=="root" %}
-        <a href="#" data-toggle="modal" data-target="#add_PROJECT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Project</a>
+        <a href="#" data-toggle="modal" data-target="#add_PROJECT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm text-white-50"></i> Create Project</a>
       {% end %}
-      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="refresh_projects()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+      <a href="#" class="btn btn-sm btn-primary shadow-sm" onclick="refresh_projects()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
   </div>
 </div>
 
@@ -70,8 +70,8 @@
         </form>
       </div>
       <div class="modal-footer">
-        <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
-        <a href="#" onclick="add()" data-toggle="modal" data-target="#add_PROJECT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Create</a>
+        <a href="#" data-dismiss="modal" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+        <a href="#" onclick="add()" data-toggle="modal" data-target="#add_PROJECT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Create</a>
       </div>
     </div>
   </div>
@@ -104,9 +104,9 @@
         </form>
         </div>
         <div class="modal-footer">
-          <a href="#" data-dismiss="modal" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm"><i
+          <a href="#" data-dismiss="modal" class="btn btn-sm btn-secondary shadow-sm"><i
               class="fas fa-sm text-white-50"></i>Cancel</a>
-              <a href="#" onclick="remove()" data-toggle="modal" data-target="#remove_PROJECT_Modal" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
+              <a href="#" onclick="remove()" data-toggle="modal" data-target="#remove_PROJECT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Remove</a>
         </div>
     </div>
   </div>
