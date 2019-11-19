@@ -276,6 +276,7 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
         lte_props = kwargs['lte_props'] if 'lte_props' in kwargs else None
 
         self.service.update(project_id=project_id,
+                            desc=kwargs['desc'],
                             wifi_props=wifi_props,
                             lte_props=lte_props)
 
