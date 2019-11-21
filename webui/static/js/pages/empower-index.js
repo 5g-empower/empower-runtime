@@ -4,7 +4,7 @@ $('#workers').addClass('collapsed');
 $('#apps').addClass('collapsed');
 
 $(document).ready(function() {
-  
+
   ENTITY = __EMPOWER_WEBUI.ENTITY.PROJECT
 
   let fields = {
@@ -84,7 +84,7 @@ function add() {
     }
   }
   if (ADD_MODAL.mcc.get() && ADD_MODAL.mnc.get()){
-    if ((ADD_MODAL.mcc.get() != "") && 
+    if ((ADD_MODAL.mcc.get() != "") &&
         (ADD_MODAL.mnc.get() != "")){
       data.lte_props= {
         plmnid:{
@@ -98,10 +98,10 @@ function add() {
   console.log("ADD data:", data)
 
   add_reset = ADD_MODAL.reset.bind(ADD_MODAL)
-  
+
   REST_REQ(ENTITY).configure_POST({
     data: data,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       add_reset, refresh_projects],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -116,7 +116,7 @@ function trigger_remove_modal( project_key ) {
     REMOVE_MODAL.id.set(data.project_id)
     REMOVE_MODAL.description.set(data.desc)
     REMOVE_MODAL.owner.set(data.owner)
-  
+
     REMOVE_MODAL.get_$instance().modal({show:true})
   }
 
@@ -136,8 +136,8 @@ function remove(){
 
   REST_REQ(ENTITY).configure_DELETE({
     key: key,
-    success: [ 
-      empower_log_response, empower_alert_generate_success, 
+    success: [
+      empower_log_response, empower_alert_generate_success,
       remove_reset, refresh_projects],
     error: [ empower_log_response,  empower_alert_generate_error ]
   })
@@ -156,24 +156,24 @@ function refresh_projects() {
 
       console.log("refresh_projects:",key,val)
 
-      if ((__EMPOWER_WEBUI.USER.USERNAME === __EMPOWER_WEBUI.USER.ROOT) || 
+      if ((__EMPOWER_WEBUI.USER.USERNAME === __EMPOWER_WEBUI.USER.ROOT) ||
           (__EMPOWER_WEBUI.USER.USERNAME === val.owner)){
 
         if (__EMPOWER_WEBUI.USER.USERNAME === __EMPOWER_WEBUI.USER.ROOT){
           cmd = '<button class="btn btn-sm btn-danger shadow-sm mb-1" '+
                 'onclick="trigger_remove_modal(\''+ key +'\')">'+
-                '<i class="fas fa-trash fa-sm text-white-50 mr-1 "></i>Remove</button>'
+                '<i class="fas fa-trash fa-sm"></i></button>'
 
-        } 
+        }
         else {
 
           if ( __EMPOWER_WEBUI.PROJECT.ID != key ) {
 
-            cmd = '<a href="/auth/switch_project?project_id=' + key + '" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-flag fa-sm text-white-50"></i>&nbsp;Select</a>'
+            cmd = '<a href="/auth/switch_project?project_id=' + key + '" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-flag fa-sm"></i></a>'
 
           } else {
 
-            cmd = '<a href="/auth/switch_project" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-times fa-sm text-white-50"></i> Deselect</a>'
+            cmd = '<a href="/auth/switch_project" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-flag fa-sm"></i></a>'
 
           }
 
@@ -185,15 +185,17 @@ function refresh_projects() {
             '<div class="card-body">'+
               '<div class="row no-gutters align-items-center">'+
                 '<div class="col mr-2">'+
-                  '<div class="text-xs">' + 
-                    '<span class="font-weight-bold text-primary text-uppercase mb-1">'+ key +'</span>'+
-                    '<i class="fas fa-user-cog fa-fw mr-1 text-dark ml-2"></i>'+
-                    '<span class="font-italic text-dark">'+ val['owner']+'</span>'+
+                  '<div class="text-xs">' +
+                    '<i class="fas fa-user-cog fa-fw text-dark"></i>'+
+                    '<span class="font-italic text-dark">&nbsp;'+ val['owner']+'</span>'+
                   '</div>'+
-                  '<div class="h5 mb-0 font-weight-bold text-gray-800">' + val['desc'] + 
+                  '<div class="text-xs">' +
+                    '<span class="font-weight-bold text-primary text-uppercase mb-1">'+ key +'</span>'+
+                  '</div>'+
+                  '<div class="h5 mb-0 font-weight-bold text-gray-800">' + val['desc'] +
                   '</div>'+
                 '</div>'+
-                '<div class="col-auto">' + cmd + 
+                '<div class="col-auto">' + cmd +
                 '</div>'+
               '</div>'+
             '</div>'+

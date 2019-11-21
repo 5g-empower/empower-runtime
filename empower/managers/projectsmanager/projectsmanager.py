@@ -156,7 +156,7 @@ class ProjectsManager(EService):
 
         return self.projects[project_id]
 
-    def update(self, project_id, wifi_props=None, lte_props=None):
+    def update(self, project_id, desc, wifi_props=None, lte_props=None):
         """Update project."""
 
         if project_id not in self.projects:
@@ -165,6 +165,8 @@ class ProjectsManager(EService):
         project = self.projects[project_id]
 
         try:
+
+            project.desc = desc
 
             # not all wifi props can be modified
             if wifi_props:
