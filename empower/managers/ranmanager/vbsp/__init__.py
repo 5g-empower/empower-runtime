@@ -17,8 +17,7 @@
 
 """VBSP RAN Manager."""
 
-from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array, \
-    BitStruct, Padding, Flag, GreedyRange, BitsInteger
+from construct import Struct, Int8ub, Int16ub, Int32ub, Int64ub
 
 PT_VERSION = 0x00
 
@@ -32,31 +31,37 @@ PT_HELLO_RESPONSE = 0x02
 
 HEADER = Struct(
     "version" / Int8ub,
-    "type" / Int8ub,
+    "flags" / Int8ub,
     "length" / Int32ub,
+    "type" / Int16ub,
+    "pci" / Int16ub,
+    "device" / Int64ub,
     "seq" / Int32ub,
     "xid" / Int32ub,
-    "wtp" / Bytes(6),
 )
 HEADER.name = "header"
 
 HELLO_REQUEST = Struct(
     "version" / Int8ub,
-    "type" / Int8ub,
+    "flags" / Int8ub,
     "length" / Int32ub,
+    "type" / Int16ub,
+    "pci" / Int16ub,
+    "device" / Int64ub,
     "seq" / Int32ub,
     "xid" / Int32ub,
-    "wtp" / Bytes(6),
 )
 HELLO_REQUEST.name = "hello_request"
 
 HELLO_RESPONSE = Struct(
     "version" / Int8ub,
-    "type" / Int8ub,
+    "flags" / Int8ub,
     "length" / Int32ub,
+    "type" / Int16ub,
+    "pci" / Int16ub,
+    "device" / Int64ub,
     "seq" / Int32ub,
     "xid" / Int32ub,
-    "wtp" / Bytes(6),
 )
 HELLO_RESPONSE.name = "hello_response"
 
