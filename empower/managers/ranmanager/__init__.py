@@ -17,8 +17,8 @@
 
 """VBSP protocols."""
 
-from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array, \
-    BitStruct, Padding, Flag, GreedyRange, BitsInteger
+from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, BitStruct, \
+    Padding, Flag, GreedyRange
 
 
 PT_VERSION = 0x00
@@ -78,16 +78,13 @@ CAPS_REQUEST.name = "caps_request"
 CAPS_CELLS = Struct(
     "pci" / Int16ub,
     "flags" / BitStruct(
-        "padding" / Padding(28),
-        "handover" / Flag,
-        "cell_measure" / Flag,
-        "ue_measure" / Flag,
+        "padding" / Padding(31),
         "ue_report" / Flag,
     ),
     "dl_earfcn" / Int16ub,
     "dl_bandwidth" / Int8ub,
     "ul_earfcn" / Int16ub,
-    "max_ues" / Int8ub,
+    "ul_bandwidth" / Int8ub,
 )
 
 CAPS_RESPONSE = Struct(
