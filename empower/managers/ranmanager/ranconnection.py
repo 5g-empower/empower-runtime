@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""RAN Connection."""
+"""Base RAN Connection."""
 
 import time
 import logging
@@ -254,16 +254,6 @@ class RANConnection:
             if callback:
                 callback(msg, device, request)
             del self.__xids[msg.xid]
-
-    def _wait(self):
-        """ Wait for incoming packets on signalling channel """
-
-        self.__buffer = b''
-
-        hdr_len = self.proto.HEADER.sizeof()
-
-        future = self.stream.read_bytes(hdr_len)
-        future.add_done_callback(self._on_read)
 
     def _on_disconnect(self):
         """ Handle device disconnection """

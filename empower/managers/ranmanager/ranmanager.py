@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Basic RAN Manager."""
+"""Base RAN Manager."""
 
 from tornado.tcpserver import TCPServer
 
