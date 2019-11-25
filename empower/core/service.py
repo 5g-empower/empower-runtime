@@ -50,11 +50,8 @@ class EService:
         # Service's callbacks
         self.callbacks = set()
 
-        # Human readable name
-        self.name = "%s" % self.__class__.__module__
-
         # Set logger
-        self.log = logging.getLogger(self.name)
+        self.log = logging.getLogger(self.package)
 
         # Worker process, set only if every > 0
         self.worker = None
@@ -119,13 +116,33 @@ class EService:
         output = {}
 
         output['service_id'] = self.service_id
+        output['package'] = self.package
         output['name'] = self.name
+        output['desc'] = self.desc
         output['params'] = self.params
 
         if self.context:
             output['project_id'] = self.context.project_id
 
         return output
+
+    @property
+    def package(self):
+        """Get package."""
+
+        return "%s" % self.__class__.__module__
+
+    @property
+    def name(self):
+        """Get name."""
+
+        return self.context.manager.catalog[self.package]['name']
+
+    @property
+    def desc(self):
+        """Get desc."""
+
+        return self.context.manager.catalog[self.package]['desc']
 
     @property
     def service_id(self):
@@ -228,6 +245,8 @@ class EService:
             if 'desc' not in manifest:
                 manifest['desc'] = "No description available"
 
+            manifest['package'] = name
+
             results[name] = manifest
 
         return results
@@ -235,17 +254,17 @@ class EService:
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        return "%s" % self.name
+        return "%s" % self.package
 
     def __str__(self):
         return self.to_str()
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.package)
 
     def __eq__(self, other):
         if isinstance(other, EService):
-            return self.name == other.name and self.every == other.every
+            return self.package == other.package and self.every == other.every
         return False
 
     def __ne__(self, other):
