@@ -50,9 +50,6 @@ class EService:
         # Service's callbacks
         self.callbacks = set()
 
-        # Human readable name
-        self.name = "%s" % self.__class__.__module__
-
         # Set logger
         self.log = logging.getLogger(self.name)
 
@@ -120,12 +117,25 @@ class EService:
 
         output['service_id'] = self.service_id
         output['name'] = self.name
+        output['desc'] = self.desc
         output['params'] = self.params
 
         if self.context:
             output['project_id'] = self.context.project_id
 
         return output
+
+    @property
+    def name(self):
+        """Get name."""
+
+        return "%s" % self.__class__.__module__
+
+    @property
+    def desc(self):
+        """Get desc."""
+
+        return "n/a"
 
     @property
     def service_id(self):
