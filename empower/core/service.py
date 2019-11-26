@@ -51,7 +51,7 @@ class EService:
         self.callbacks = set()
 
         # Set logger
-        self.log = logging.getLogger(self.package)
+        self.log = logging.getLogger(self.name)
 
         # Worker process, set only if every > 0
         self.worker = None
@@ -116,7 +116,7 @@ class EService:
         output = {}
 
         output['service_id'] = self.service_id
-        output['package'] = self.package
+        output['label'] = self.label
         output['name'] = self.name
         output['desc'] = self.desc
         output['params'] = self.params
@@ -127,22 +127,22 @@ class EService:
         return output
 
     @property
-    def package(self):
-        """Get package."""
+    def name(self):
+        """Get name."""
 
         return "%s" % self.__class__.__module__
 
     @property
-    def name(self):
+    def label(self):
         """Get name."""
 
-        return self.context.manager.catalog[self.package]['name']
+        return self.context.manager.catalog[self.name]['label']
 
     @property
     def desc(self):
         """Get desc."""
 
-        return self.context.manager.catalog[self.package]['desc']
+        return self.context.manager.catalog[self.name]['desc']
 
     @property
     def service_id(self):
@@ -239,13 +239,13 @@ class EService:
 
             name = package.__name__ + "." + module_name + "." + module_name
 
-            if 'name' not in manifest:
-                manifest['name'] = module_name
+            manifest['name'] = name
+
+            if 'label' not in manifest:
+                manifest['label'] = module_name
 
             if 'desc' not in manifest:
                 manifest['desc'] = "No description available"
-
-            manifest['package'] = name
 
             results[name] = manifest
 
@@ -254,17 +254,17 @@ class EService:
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        return "%s" % self.package
+        return "%s" % self.name
 
     def __str__(self):
         return self.to_str()
 
     def __hash__(self):
-        return hash(self.package)
+        return hash(self.name)
 
     def __eq__(self, other):
         if isinstance(other, EService):
-            return self.package == other.package and self.every == other.every
+            return self.name == other.name and self.every == other.every
         return False
 
     def __ne__(self, other):

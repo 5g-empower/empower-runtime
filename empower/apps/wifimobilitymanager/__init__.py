@@ -20,7 +20,7 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
-    "name": "Wi-Fi Mobility Manager",
+    "label": "Wi-Fi Mobility Manager",
     "desc": "A simple Wi-Fi mobility manager",
     "params": {
         "every": {
