@@ -8,10 +8,14 @@
   <a href="#" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
 </div>
 
-<!-- Content Row -->
-<div class="row">
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
+</div>
 
-  <div class="col-xl-4 col-md-6 mb-4">
+<!-- Content Row -->
+<div class="row" id="worker_box">
+
+  <!-- <div class="col-xl-4 col-md-6 mb-4">
     <div class="card border-left-primary shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
@@ -26,8 +30,31 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
+</div>
+
+<!-- Modal Box -->
+<div id="modal_box" class="my-2 p-2">
+  <div class="modal fade" id="worker_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" >Modal Title</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer">
+          <a href="#" data-dismiss="modal" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
+          <!-- <button onclick="edit()" id="edit_ACCOUNT_button" data-toggle="modal" data-target="#edit_ACCOUNT_Modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Edit</button> -->
+          <!-- <a href="#" onclick="edit()" data-toggle="modal" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-sm text-white-50"></i>Add</a> -->
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% end %}

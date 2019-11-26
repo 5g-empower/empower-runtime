@@ -361,6 +361,10 @@ __EMPOWER_WEBUI.ENTITY={
     VBS: "VBS"
   },
   PROJECT: "PROJECT",
+  WORKER: {
+    WORKER: "WORKER",
+    CATALOG: "WORKER_CATALOG",
+  }
 }
 
 /**
@@ -460,6 +464,56 @@ class WEBUI_Request_PROJECT extends WEBUI_Request {
 }
 
 /**
+ * Class WEBUI_Request_WORKER extends WEBUI_Request to the WORKER specific 
+ * case. It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_WORKER extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "workers/" + key
+      }
+    }
+    return this._ENTRY_POINT + "workers"
+  }
+
+}
+
+/**
+ * Class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request to the 
+ * WORKER_CATALOG specific case. 
+ * It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "catalog/" + key
+      }
+    }
+    return this._ENTRY_POINT + "catalog"
+  }
+
+}
+
+
+/**
  * Support factory for providing the proper WEBUI_Request_XXX class for the 
  * specified entity
  * 
@@ -478,6 +532,10 @@ function REST_REQ(entity){
       return new WEBUI_Request_ACCOUNT()
     case __EMPOWER_WEBUI.ENTITY.PROJECT:
       return new WEBUI_Request_PROJECT()
+    case __EMPOWER_WEBUI.ENTITY.WORKER.WORKER:
+      return new WEBUI_Request_WORKER()
+    case __EMPOWER_WEBUI.ENTITY.WORKER.CATALOG:
+        return new WEBUI_Request_WORKER_CATALOG()
     default:
       console.warn("Entity", 
         entity, 
