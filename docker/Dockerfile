@@ -5,6 +5,8 @@ FROM ubuntu:19.10
 MAINTAINER Roberto Riggio <rriggio@fbk.eu>
 
 # Installing python dependencies
+RUN apt update
+RUN apt -y install python3-pip
 RUN pip3 install tornado==6.0.3 construct==2.9.45 pymodm==0.4.1 influxdb==5.2.3
 
 # Fetching the latest repository from empower-runtime
@@ -16,7 +18,7 @@ RUN mkdir -r /var/www/
 RUN ln -s /empower-runtime-master/webui/ /var/www/empower
 
 # Run the controller
-ENTRYPOINT ["/empower-runtime-master/empower-runtime.py"]
+ENTRYPOINT ["python3.7", "/empower-runtime-master/empower-runtime.py"]
 
 # Expose Web GUI
 EXPOSE 8888
