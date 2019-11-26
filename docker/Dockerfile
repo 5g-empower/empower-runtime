@@ -1,7 +1,7 @@
 ## build : docker build -t empower-runtime .
 ## run :   docker run --net=host --rm --privileged -it empower-runtime
 
-FROM python:3.7-alpine
+FROM ubuntu:19.10
 MAINTAINER Roberto Riggio <rriggio@fbk.eu>
 
 # Installing python dependencies
