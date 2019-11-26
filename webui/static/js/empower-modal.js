@@ -92,7 +92,7 @@ class WEBUI_Modal extends WEBUI_CoreFunctions{
           fkey = this.apply_field_prefix(key)
           // console.log("fkey", fkey)
         }
-        
+
         this._FIELDS[fkey]= this.retrieve_modal_field(val.type, fkey)
         if(this._is_there(val.default)){
           this._FIELDS[fkey].set_value(val.default)
@@ -158,7 +158,7 @@ class WEBUI_Modal extends WEBUI_CoreFunctions{
 
   reset(defaults={}){
     $.each(this._FIELDS, function( key, val ) {
-      if (this._is_there(defaults) && 
+      if (this._is_there(defaults) &&
           this._is_there(defaults[key])){
         val.reset(defaults[key])
       }
@@ -266,7 +266,7 @@ class WEBUI_Modal_Hacker extends WEBUI_Modal{
     this.retrieve_footer().empty()
   }
 
-  generate_footer_button({ attributes={}, icon_class= null, text="", 
+  generate_footer_button({ attributes={}, icon_class= null, text="",
                         text_class={} }){
     let $button = this._convert_html_to_jquery(
       this._wrap_in_html(
@@ -383,11 +383,11 @@ class WEBUI_Modal_Hacker extends WEBUI_Modal{
 
 class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
 
-  
+
   constructor(modal_id){
     super(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC, modal_id)
   }
-  
+
   generate_footer_button_RUN(toggle_modal=true){
 
     let params={
@@ -552,9 +552,9 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
   configure_from_descriptor(key, descriptor){
     let $form = this.generate_form()
 
-    $form.append(this.generate_worker_name(key))
-    $form.append(this.generate_worker_label(descriptor.label))
-    $form.append(this.generate_worker_description(descriptor.desc))
+    //$form.append(this.generate_worker_name(key))
+    //$form.append(this.generate_worker_label(descriptor.label))
+    //$form.append(this.generate_worker_description(descriptor.desc))
 
     if (this._is_there(descriptor.params)){
       let $frame = this.generate_worker_params_frame()
@@ -573,9 +573,9 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
 }
 
 
-  
 
-  
+
+
 
 
 
@@ -729,7 +729,7 @@ class WEBUI_ModalField_SelectOwner extends WEBUI_ModalField_Select{
   fill_by_response(data){
     $.each( data, function( key, val ) {
       if ( key != 'root' ) {
-        this.get_$instance().append(new Option(val['username'] + 
+        this.get_$instance().append(new Option(val['username'] +
           ' ( ' + val['name'] + ", " + val['email'] + ')', key))
       }
     }.bind(this))
@@ -750,7 +750,7 @@ class WEBUI_ModalField_SelectOwner extends WEBUI_ModalField_Select{
     }.bind(this))
     return this
   }
-  
+
 }
 
 
@@ -809,7 +809,7 @@ class WEBUI_ModalField_SelectOwner extends WEBUI_ModalField_Select{
 //       )
 //     )
 
-//     this._MAIN = 
+//     this._MAIN =
 
 //     this._BUTTONS = {}
 
@@ -875,7 +875,7 @@ class WEBUI_ModalField_SelectOwner extends WEBUI_ModalField_Select{
 // class WEBUI_Modal_Generator_Worker extends WEBUI_Modal_Generator{
 //   constructor(title, buttons, worker_descriptor){
 //     super(title, buttons)
-    
+
 //   }
 
 //   process_worker_descriptor(descriptor={}){

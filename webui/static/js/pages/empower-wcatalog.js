@@ -26,7 +26,6 @@ function refresh_worker_catalog(){
     })
 
     show_workers = function(data){
-
       clear_worker_catalog()
       WORKER_COUNTER = 0
       $.each(data, function(key, val){
@@ -43,12 +42,10 @@ function refresh_worker_catalog(){
         ).generate()
         let $worker= worker.get_$instance()
         $("#worker_box").append($worker)
-  
         let f = function(){
           alter_modal(key, val)
         }
         worker.retrieve_$play_button().click(f)
-  
       })
     }
 
@@ -72,7 +69,7 @@ function clear_worker_catalog(){
 
 function alter_modal(key, descriptor){
   let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal")
-  modal_hacker.regenerate_title("RUN worker")
+  modal_hacker.regenerate_title(descriptor.label)
   modal_hacker.configure_from_descriptor(key,descriptor)
   modal_hacker.show()
   modal_hacker.retrieve_footer().empty()
@@ -81,7 +78,7 @@ function alter_modal(key, descriptor){
   )
   let run_button = modal_hacker.generate_footer_button_RUN()
   let f= function(){
-    
+
     let fields = {}
     $.each(descriptor.params, function(key, val){
       fields[key] = {
