@@ -44,7 +44,7 @@ class WEBUI_Card extends WEBUI_CoreFunctions{
       this._wrap_in_html(
         "", 
         "DIV",
-        {class:"card-body"})
+        {class:"card-body py-1 px-3"})
     )
     let $row_wrapper = this._convert_html_to_jquery(
       this._wrap_in_html(
@@ -53,11 +53,20 @@ class WEBUI_Card extends WEBUI_CoreFunctions{
         {class:"row no-gutters align-items-center"})
     )
 
+    let $bw = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {class: "col-1 d-flex"}
+      )
+    )
+
     this._$MAIN.append($card)
       $card.append($card_body)
         $card_body.append($row_wrapper)
           $row_wrapper.append(this._$LABELS)
-          $row_wrapper.append(this._$BUTTONS)
+          $row_wrapper.append($bw)
+          $bw.append(this._$BUTTONS)
 
     return this
 
@@ -77,7 +86,7 @@ class WEBUI_Card extends WEBUI_CoreFunctions{
 
   get_$labels(){
     let attributes = {
-      class: "col-xl-8"
+      class: "col-11 pr-2"
     }
     let label_wrapper = this._wrap_in_html("","DIV", attributes)
 
@@ -86,7 +95,7 @@ class WEBUI_Card extends WEBUI_CoreFunctions{
 
   get_$buttons(){
     let attributes = {
-      class: "col-xl-4 text-right"
+      class: "col-1 p-0"
     }
     let button_wrapper = this._wrap_in_html("","DIV", attributes)
 
@@ -229,21 +238,22 @@ class WEBUI_Card_Worker extends WEBUI_Card{
     let btn_type = "btn-info"
     switch(type){
       case this.BUTTON.TYPE.PLAY:
-        btn_type = "btn-success"
-        break
-      case this.BUTTON.TYPE.EDIT:
-        btn_type = "btn-warning"
-        break
-      case this.BUTTON.TYPE.STOP:
-        btn_type = "btn-danger"
+        btn_type = "btn-success my-1"
         break
       case this.BUTTON.TYPE.INFO:
-        btn_type = "btn-info"
+        btn_type = "btn-info my-1"
+        break
+      case this.BUTTON.TYPE.EDIT:
+        btn_type = "btn-warning mb-1"
+        break
+      case this.BUTTON.TYPE.STOP:
+        btn_type = "btn-danger mb-1"
         break
       default:
         console.warn("UNKNOWN button type:", type)
     }
-    return "btn btn-sm "+btn_type+" shadow-sm mr-1 mb-1"
+    // return "btn btn-sm "+btn_type+" shadow-sm my-1"
+    return "btn btn-sm "+btn_type+" shadow-sm px-1 py-0"
   }
 
   get_button_icon_class(type){
@@ -264,7 +274,7 @@ class WEBUI_Card_Worker extends WEBUI_Card{
       default:
         console.warn("UNKNOWN button type:", type)
     }
-    return btn_icon+" fa-sm text-white-50"
+    return btn_icon+" fa-sm fa-fw text-white-50"
   }
 }
 
