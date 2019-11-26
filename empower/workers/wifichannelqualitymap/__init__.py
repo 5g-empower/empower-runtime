@@ -18,7 +18,7 @@
 """WiFi Channel Quality Map Worker."""
 
 MANIFEST = {
-    "name": "Wi-Fi Channel Quality Map",
+    "label": "Wi-Fi Channel Quality Map",
     "desc": "Builds and maintain a network-wide RSSI Map",
     "params": {
         "every": {

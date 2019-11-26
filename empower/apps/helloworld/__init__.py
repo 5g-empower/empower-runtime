@@ -20,7 +20,7 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
-    "name": "Hello World",
+    "label": "Hello World",
     "desc": "Prints Hello World to the log",
     "params": {
         "message": {

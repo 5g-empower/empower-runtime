@@ -20,7 +20,7 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
-    "name": "SDN@Play",
+    "label": "SDN@Play",
     "desc": "This application makes white bunnies happy even if watched by "
             "many people.",
     "params": {

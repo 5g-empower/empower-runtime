@@ -18,7 +18,7 @@
 """WiFi Channel Statistics Worker."""
 
 MANIFEST = {
-    "name": "Wi-Fi Channel Stats",
+    "label": "Wi-Fi Channel Stats",
     "desc": "Tracks Wi-Fi Channel Utilization (TX/RX/ED)",
     "params": {
         "every": {
