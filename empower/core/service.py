@@ -116,9 +116,8 @@ class EService:
         output = {}
 
         output['service_id'] = self.service_id
-        output['label'] = self.label
+        output['manifest'] = self.manifest
         output['name'] = self.name
-        output['desc'] = self.desc
         output['params'] = self.params
 
         if self.context:
@@ -133,16 +132,10 @@ class EService:
         return "%s" % self.__class__.__module__
 
     @property
-    def label(self):
-        """Get name."""
+    def manifest(self):
+        """Get manifest."""
 
-        return self.context.manager.catalog[self.name]['label']
-
-    @property
-    def desc(self):
-        """Get desc."""
-
-        return self.context.manager.catalog[self.name]['desc']
+        return self.context.manager.catalog[self.name]
 
     @property
     def service_id(self):
