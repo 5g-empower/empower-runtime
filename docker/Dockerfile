@@ -6,7 +6,7 @@ MAINTAINER Roberto Riggio <rriggio@fbk.eu>
 
 # Installing python dependencies
 RUN apt update
-RUN apt -y install python3-pip
+RUN apt -y install python3-pip wget unzip
 RUN pip3 install tornado==6.0.3 construct==2.9.45 pymodm==0.4.1 influxdb==5.2.3
 
 # Fetching the latest repository from empower-runtime
