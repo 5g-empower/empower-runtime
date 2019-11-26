@@ -479,6 +479,7 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
   }
 
   generate_worker_parameter_input_group(key, descriptor){
+    // console.log("CIAOOOOO!!!")
     let $form_group = this._convert_html_to_jquery(
       this._wrap_in_html(
         "",
@@ -526,6 +527,10 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
         }
       )
     )
+    if (!descriptor.mandatory){
+      // console.log("Assigning default")
+      $input.attr("default",descriptor.default)
+    }
 
     $form_group.append($input)
 
@@ -641,6 +646,11 @@ class WEBUI_ModalField extends WEBUI_CoreFunctions{
 
   disable(){
     this._$INSTANCE.prop("disabled", true)
+  }
+
+  get_default(){
+    // console.log(this._$INSTANCE)
+    return this._$INSTANCE.attr("default")
   }
 
 }

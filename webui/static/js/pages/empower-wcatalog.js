@@ -105,8 +105,11 @@ function run_worker(name, modal){
   }
 
   $.each(modal._FIELDS, function(k, field){
-    console.log(k, ":", field.get_value())
     data.params[k] = field.get_value()
+    if (data.params[k] === ""){
+      data.params[k] = field.get_default()
+    }
+    console.log(k, ":", data.params[k])
   })
 
   console.log("data:", data)

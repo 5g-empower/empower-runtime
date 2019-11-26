@@ -364,6 +364,10 @@ __EMPOWER_WEBUI.ENTITY={
   WORKER: {
     WORKER: "WORKER",
     CATALOG: "WORKER_CATALOG",
+  },
+  APPLICATION: {
+    APPLICATION: "APPLICATION",
+    CATALOG: "APPLICATION_CATALOG",
   }
 }
 
@@ -514,6 +518,55 @@ class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request {
 
 
 /**
+ * Class WEBUI_Request_APPLICATION extends WEBUI_Request to the APPLICATION 
+ * specific case. It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_APPLICATION extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", project_id, key = null) {
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "projects/" + project_id + "/apps/"+ key
+      }
+    }
+    return this._ENTRY_POINT + "projects/" + project_id + "/apps/"
+  }
+
+}
+
+/**
+ * Class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request to the 
+ * APPLICATION_CATALOG specific case. 
+ * It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "projects/catalog/" + key
+      }
+    }
+    return this._ENTRY_POINT + "projects/catalog"
+  }
+
+}
+
+/**
  * Support factory for providing the proper WEBUI_Request_XXX class for the 
  * specified entity
  * 
@@ -535,7 +588,11 @@ function REST_REQ(entity){
     case __EMPOWER_WEBUI.ENTITY.WORKER.WORKER:
       return new WEBUI_Request_WORKER()
     case __EMPOWER_WEBUI.ENTITY.WORKER.CATALOG:
-        return new WEBUI_Request_WORKER_CATALOG()
+    return new WEBUI_Request_WORKER_CATALOG()
+    case __EMPOWER_WEBUI.ENTITY.APPLICATION.APPLICATION:
+      return new WEBUI_Request_APPLICATION()
+    case __EMPOWER_WEBUI.ENTITY.APPLICATION.CATALOG:
+      return new WEBUI_Request_APPLICATION_CATALOG()
     default:
       console.warn("Entity", 
         entity, 

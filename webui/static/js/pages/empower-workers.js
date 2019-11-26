@@ -24,8 +24,8 @@ function show_active_workers(){
 
       let worker = new WEBUI_Card_Worker_Active(
         "worker_"+WORKER_COUNTER++,
-        val.label,
-        val.desc,
+        val.manifest.label,
+        val.manifest.desc,
         val.name,
         {
           info:{
@@ -69,20 +69,20 @@ function clear_active_worker_list(){
 function alter_modal(type, key, descriptor){
   let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal")
 
-  let title = "Default title"
+  // let title = "Default title"
   let worker_button = null
   let worker_function = null
   let fields_disabled = false
 
   switch(type){
     case WORKER_MODAL.EDIT:
-      title = "EDIT worker"
+      // title = "EDIT worker"
       worker_button = modal_hacker.generate_footer_button_EDIT()
       worker_function = edit_worker
       fields_disabled = false
       break
     case WORKER_MODAL.STOP:
-      title = "STOP worker"
+      // title = "STOP worker"
       worker_button = modal_hacker.generate_footer_button_STOP()
       worker_function = stop_worker
       fields_disabled = true
@@ -91,8 +91,8 @@ function alter_modal(type, key, descriptor){
       console.warn("Invalid modal type: ", type)
   }
 
-  modal_hacker.regenerate_title(title)
-  modal_hacker.configure_from_descriptor(key,descriptor)
+  modal_hacker.regenerate_title(descriptor.manifest.label)
+  modal_hacker.configure_from_descriptor(key,descriptor.manifest)
   modal_hacker.show()
   modal_hacker.retrieve_footer().empty()
   modal_hacker.retrieve_footer().append(
@@ -140,8 +140,15 @@ function edit_worker(uuid, modal){
     params: {}
   }
 
+  // $.each(modal._FIELDS, function(k, field){
+  //   data.params[k] = field.get_value()
+  // })
   $.each(modal._FIELDS, function(k, field){
     data.params[k] = field.get_value()
+    if (data.params[k] === ""){
+      data.params[k] = field.get_default()
+    }
+    console.log(k, ":", data.params[k])
   })
 
   // console.log("data:", data)
