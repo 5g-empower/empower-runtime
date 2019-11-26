@@ -14,7 +14,7 @@ RUN wget https://github.com/5g-empower/empower-runtime/archive/master.zip
 RUN unzip master.zip
 RUN rm master.zip
 RUN ln -sf /empower-runtime-master/conf/ /etc/empower
-RUN mkdir -r /var/www/
+RUN mkdir -p /var/www/
 RUN ln -s /empower-runtime-master/webui/ /var/www/empower
 
 # Run the controller
