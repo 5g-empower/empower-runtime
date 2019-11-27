@@ -577,6 +577,201 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
   }
 }
 
+class WEBUI_Modal_Hacker_Application extends WEBUI_Modal_Hacker{
+
+
+  constructor(modal_id){
+    super(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC, modal_id)
+  }
+
+  generate_footer_button_RUN(toggle_modal=true){
+
+    let params={
+      attributes:{
+        class: "btn btn-sm btn-primary shadow-sm"
+      },
+      icon_class: "fas fa-play fa-fw text-white-50 mr-1",
+      text: "Run",
+      text_class: {}
+    }
+
+    if (toggle_modal){
+      params.attributes["data-toggle"] = 'modal'
+      params.attributes["data-target"] = '#'+this.get_modal_id()
+    }
+
+    return this.generate_footer_button(params)
+
+  }
+
+  generate_footer_button_STOP(toggle_modal=true){
+
+    let params={
+      attributes:{
+        class: "btn btn-sm btn-danger shadow-sm"
+      },
+      icon_class: "fas fa-stop fa-fw text-white-50 mr-1",
+      text: "Stop",
+      text_class: {}
+    }
+
+    if (toggle_modal){
+      params.attributes["data-toggle"] = 'modal'
+      params.attributes["data-target"] = '#'+this.get_modal_id
+    }
+
+    return this.generate_footer_button(params)
+
+  }
+
+  generate_form(){
+    return this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "FORM",
+        {role:"form"}
+      )
+    )
+  }
+
+  generate_application_name(key){
+    return this._convert_html_to_jquery(
+      this._wrap_in_html(
+        key,
+        "DIV",
+        {class:"text-xs font-italic text-center mb-1"}
+      )
+    )
+  }
+
+  generate_application_label(name){
+    return this._convert_html_to_jquery(
+      this._wrap_in_html(
+        name,
+        "DIV",
+        {class:"h4 text-center font-weight-bold"}
+      )
+    )
+  }
+
+  generate_application_description(description){
+    return this._convert_html_to_jquery(
+      this._wrap_in_html(
+        description,
+        "DIV",
+        {class:"text-xs font-weight-bold text-uppercase text-center mb-4"}
+      )
+    )
+  }
+
+  generate_application_params_frame(){
+    return this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV",
+        {class:"mx-2 px-3"}// border border-gray rounded"}
+      )
+    )
+  }
+
+  generate_application_parameter_input_group(key, descriptor){
+    // console.log("CIAOOOOO!!!")
+    let $form_group = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "FORM-GROUP",
+        {}
+      )
+    )
+
+    let $label = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        key,
+        "LABEL",
+        { class: "font-weight-bold"}
+      )
+    )
+    let $label_icon =  this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "ICON",
+        { class: "fas fa-arrow-right fa-xs fa-fw mr-1"}
+      )
+    )
+
+    $label.prepend($label_icon)
+
+    $form_group.append($label)
+
+    let param_type = "type: '"+descriptor.type+"'"
+    let mandatory = "MANDATORY"
+    if (!descriptor.mandatory){
+      mandatory = "OPTIONAL"
+    }
+    let _default = ""
+    if (this._is_there(descriptor.default)){
+      _default = "default: "+ descriptor.default
+    }
+    let $input = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "INPUT",
+        {
+          class:"form-control text-xs",
+          id: key,
+          placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+        }
+      )
+    )
+    if (!descriptor.mandatory){
+      // console.log("Assigning default")
+      $input.attr("default",descriptor.default)
+    }
+
+    $form_group.append($input)
+
+    let description = descriptor.desc
+    if (!this._is_there(description)){
+      description= "Description not available"
+    }
+
+    let $desc = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        description,
+        "DIV",
+        {
+          class:"text-xs text-gray-500 my-1"
+        }
+      )
+    )
+
+    $form_group.append($desc)
+
+    return $form_group
+  }
+
+  configure_from_descriptor(key, descriptor){
+    let $form = this.generate_form()
+
+    //$form.append(this.generate_application_name(key))
+    //$form.append(this.generate_application_label(descriptor.label))
+    //$form.append(this.generate_application_description(descriptor.desc))
+
+    if (this._is_there(descriptor.params)){
+      let $frame = this.generate_application_params_frame()
+      $.each(descriptor.params, function(key, val){
+        console.log("this",this)
+        let $ig = this.generate_application_parameter_input_group(key, val)
+        $frame.append($ig)
+      }.bind(this))
+      $form.append($frame)
+    }
+
+    let $body = this.retrieve_body()
+    $body.empty()
+    $body.append($form)
+  }
+}
 
 
 

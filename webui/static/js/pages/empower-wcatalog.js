@@ -2,7 +2,7 @@ $('#workers').removeClass('collapsed');
 $('#collapseThree').addClass('show');
 $('#workers_catalog').addClass('active');
 
-console.warn("THIS PAGE IS A WORK IN PROGRESS!")
+// console.warn("THIS PAGE IS A WORK IN PROGRESS!")
 
 $(document).ready(function() {
 
@@ -47,6 +47,10 @@ function refresh_worker_catalog(){
         }
         worker.retrieve_$play_button().click(f)
       })
+
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip({html:true});   
+      });
     }
 
     REST_REQ(__EMPOWER_WEBUI.ENTITY.WORKER.CATALOG).configure_GET({
