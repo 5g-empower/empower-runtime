@@ -20,6 +20,8 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
+    "label": "TXP Bin Counter",
+    "desc": "Tracks TX packets/bytes counters for a given destination address",
     "params": {
         "iface_id": {
             "desc": "The Wi-Fi interface.",
