@@ -5,29 +5,36 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Active Applications</h1>
-  <a href="#" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  <a href="#" class="btn btn-sm btn-primary shadow-sm" onclick="show_active_applications()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+</div>
+
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
 </div>
 
 <!-- Content Row -->
-<div class="row">
+<div class="row" id="application_box">
+</div>
 
-  <div class="col-xl-4 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col-xl-8">
-            <div class="h5 mb-2 font-weight-bold text-gray-800">SDN@Play</div>
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">This application makes white bunnies happy even if watched by many people.</div>
-          </div>
-          <div class="col-xl-4 text-right">
-            <a href="#" class="btn btn-sm btn-warning shadow-sm"><i class="fas fa-edit fa-sm text-white-50"></i></a>
-            <a href="#" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-stop fa-sm text-white-50"></i></a>
-          </div>
+<!-- Modal Box -->
+<div id="modal_box" class="my-2 p-2">
+  <div class="modal fade" id="application_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" >Modal Title</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer">
+          <a href="#" data-dismiss="modal" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-sm text-white-50"></i>Cancel</a>
         </div>
       </div>
     </div>
   </div>
-
 </div>
 
 {% end %}

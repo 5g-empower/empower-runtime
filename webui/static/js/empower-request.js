@@ -528,7 +528,9 @@ class WEBUI_Request_APPLICATION extends WEBUI_Request {
   /**
    * @override
    */
-  get_URL(method = "GET", project_id, key = null) {
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
     if (this._is_there(key)) {
       if ((method === "GET") ||
         (method === "PUT") ||

@@ -19,6 +19,18 @@ function show_active_workers(){
 
   show_workers = function(data){
     clear_active_worker_list()
+
+    if (Object.keys(data).length === 0){
+      $("#worker_box").html(
+        '<div class="col-12 my-3 d-flex justify-content-center ">'+
+          '<div class="col-auto border border-dark rounded text-center p-3">'+
+            '<div class="h4 text-dark font-weight-bold px-5"> NO ACTIVE workers </div>'+
+            '<div class="text-dark font-italic px-5"> You can run them in CATALOG section </div>'+
+          '</div>'+
+        '</div>')
+      return
+    }
+
     WORKER_COUNTER = 0
     $.each(data, function(key, val){
 

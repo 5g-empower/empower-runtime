@@ -158,18 +158,18 @@ class WEBUI_Card_Worker extends WEBUI_Card{
   //   </div>
   // </div>
 
-  constructor(card_id, title_text, description_text, worker_url){
+  constructor(card_id, title_text, description_text, _package){
     super(card_id)
 
     this._TITLE = this.get_$title(title_text)
-    this._WORKER_URL = this.get_$worker_url(worker_url)
+    this._PACKAGE = this.get_$package(_package)
     this._DESCRIPTION = this.get_$description(description_text)
     
   }
 
   generate(){
     return super.generate()
-      .add_label(this._WORKER_URL)    
+      .add_label(this._PACKAGE)    
       .add_label(this._TITLE)    
       .add_label(this._DESCRIPTION)    
   }
@@ -183,13 +183,150 @@ class WEBUI_Card_Worker extends WEBUI_Card{
     return this._convert_html_to_jquery(title)
   }
 
-  get_$worker_url(worker_url){
-    let attributes = {
-      class: "text-xs text-gray my-1 font-italic text-gray-500"
-    }
-    let url = this._wrap_in_html(worker_url,"DIV", attributes)
+  get_$package(_package){
+        
+    let $package = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {
+          class: "d-flex",
+        })
+    )
 
-    return this._convert_html_to_jquery(url)
+    let $icon_wrapper = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {
+          class:"col-auto p-0",
+          "data-toggle": "tooltip", 
+          "data-placement":"right",
+          "title": this.get_package_tree(_package)
+        })
+    )
+    let $icon = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "I", 
+        {class:"fas fa-cubes fa-fw mr-1"})
+    )
+    let $text_wrapper = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {class:"col p-0"})
+    )
+    let $text = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        this.compress_package_text(_package),
+        "SPAN", 
+        {class: "text-xs text-gray my-1 font-italic text-gray-500"})
+    )
+
+    $icon_wrapper.append($icon)
+    $text_wrapper.append($text)
+    $package.append($icon_wrapper)
+    $package.append($text_wrapper)
+
+    return $package
+    // return this.get_package_tree(_package)
+  }
+
+  compress_package_text(_package){
+    let parray = _package.split(".")
+    parray.forEach(function(element, index, arr){
+      if ((index === 0) && (element === "empower")){
+        arr[index] = "E"
+      }
+      // else if ((index === 1) && (element === "workers")){
+      //   arr[index] = "W"
+      // }
+      else if (index === (arr.length-1)){
+        arr[index] = arr[index]
+      }
+      else{
+        arr[index] = arr[index].charAt(0)
+      }
+    }.bind(this))
+    // if (parray[0] === "empower"){
+    //   parray[0] = "E"
+    // }
+    // if (parray[1] === "workers"){
+    //   parray[1] = "W"
+    // }
+
+    return parray.join(".")
+  }
+  
+  get_package_tree(_package){
+    let $tree = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {class: "text-xs bg-white text-gray-900 rounded p-0 m-0"} )
+    )
+    let parray = _package.split(".")
+    parray.forEach(function(element, index){
+      let $line = this._convert_html_to_jquery(
+        this._wrap_in_html(
+          "",
+          "DIV", 
+          {class: "col-12 d-flex"})
+      )
+      for (let i = 0; i < index; i++){
+        let $icon_slot = this._convert_html_to_jquery(
+          this._wrap_in_html(
+            "",
+            "DIV", 
+            {class:"col-auto p-0"})
+        )
+        let icon_class = "fas text-white fa-square-full fa-fw p-0 m-0"
+        if (i === (index-1)){
+          icon_class = "fas fa-long-arrow-alt-right fa-fw mr-1"
+        }
+        // if (i === (index - 1)){
+        //   icon_class = "fas fa-plus fa-fw"
+        // }
+        let $icon = this._convert_html_to_jquery(
+          this._wrap_in_html(
+            "",
+            "I", 
+            {class: icon_class})
+        )
+        $icon_slot.append($icon)
+        $line.append($icon_slot)
+      }
+      let $text_wrapper = this._convert_html_to_jquery(
+        this._wrap_in_html(
+          "",
+          "DIV", 
+          {class:"col-auto p-0"})
+      )
+      let text_class = "text-gray font-italic text-gray-900"
+      if  (index === (parray.length-1)){
+        text_class = "text-gray font-italic font-weight-bold text-gray-900"
+      }
+      let $text = this._convert_html_to_jquery(
+        this._wrap_in_html(
+          element,
+          "SPAN", 
+          {class: text_class})
+      )
+      $text_wrapper.append($text)
+      $line.append($text_wrapper)
+      $tree.append($line)
+    }.bind(this))
+
+    let $wrapper = this._convert_html_to_jquery(
+      this._wrap_in_html(
+        "",
+        "DIV", 
+        {} )
+    )
+    $wrapper.append($tree)
+
+    return $wrapper.html().replace(/"/g,"'")
   }
 
   get_$description(description_text){
@@ -278,9 +415,47 @@ class WEBUI_Card_Worker extends WEBUI_Card{
   }
 }
 
+class WEBUI_Card_Application extends WEBUI_Card_Worker{
+}
+
 class WEBUI_Card_Worker_Active extends WEBUI_Card_Worker{
-  constructor(card_id, title_text, description_text, worker_url, extra={}){
-    super(card_id, title_text, description_text, worker_url)
+  constructor(card_id, title_text, description_text, _package, extra={}){
+    super(card_id, title_text, description_text, _package)
+
+
+    if (!this._is_there(extra.info)){
+      extra.info = {}
+    }
+    this._INFO_BUTTON = this.get_$button(this.BUTTON.TYPE.INFO, extra.info)
+    this._EDIT_BUTTON = this.get_$button(this.BUTTON.TYPE.EDIT)
+    this._STOP_BUTTON = this.get_$button(this.BUTTON.TYPE.STOP)
+  }
+
+  generate(){
+
+    // console.log(this._EDIT_BUTTON)
+    return super.generate()
+      .add_button(this._INFO_BUTTON)    
+      .add_button(this._EDIT_BUTTON)    
+      .add_button(this._STOP_BUTTON)    
+  }
+
+  retrieve_$info_button(){
+    return this._INFO_BUTTON
+  }
+
+  retrieve_$edit_button(){
+    return this._EDIT_BUTTON
+  }
+
+  retrieve_$stop_button(){
+    return this._STOP_BUTTON
+  }
+}
+
+class WEBUI_Card_Application_Active extends WEBUI_Card_Application{
+  constructor(card_id, title_text, description_text, _package, extra={}){
+    super(card_id, title_text, description_text, _package)
 
 
     if (!this._is_there(extra.info)){
@@ -314,6 +489,55 @@ class WEBUI_Card_Worker_Active extends WEBUI_Card_Worker{
 }
 
 class WEBUI_Card_Worker_Catalog extends WEBUI_Card_Worker{
+  constructor(card_id, title_text, description_text, worker_name, running_instances=0){
+    super(card_id, title_text, description_text, worker_name)
+
+    this._INSTANCES = this.get_$running_instances(running_instances)
+
+    this._PLAY_BUTTON = this.get_$button(this.BUTTON.TYPE.PLAY)
+  }
+
+  get_$running_instances(running_instances){
+
+    let $icon = this._convert_html_to_jquery(this._wrap_in_html(
+      "","I", {class:"fas fa-cog fa-spin fa-fw mr-1"}))
+    
+    let $value = this._convert_html_to_jquery(this._wrap_in_html(
+      running_instances,
+      "SPAN", 
+      {class:"font-weight-bold text-uppercase mr-1"}))
+
+    let $text = this._convert_html_to_jquery(this._wrap_in_html(
+        "instances",
+        "SPAN", 
+        {class:"small font-italic"}))
+    
+    let $wrapper = this._convert_html_to_jquery(this._wrap_in_html(
+      "",
+      "DIV", 
+      {class:"small text-success "}))
+
+    
+
+    $wrapper.append($icon)
+    $wrapper.append($value)
+    $wrapper.append($text)
+
+    return $wrapper
+  }
+
+  generate(){
+    return super.generate()
+      .add_label(this._INSTANCES)
+      .add_button(this._PLAY_BUTTON)    
+  }
+
+  retrieve_$play_button(){
+    return this._PLAY_BUTTON
+  }
+}
+
+class WEBUI_Card_Application_Catalog extends WEBUI_Card_Application{
   constructor(card_id, title_text, description_text, worker_name, running_instances=0){
     super(card_id, title_text, description_text, worker_name)
 
