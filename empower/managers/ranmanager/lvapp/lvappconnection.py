@@ -17,9 +17,12 @@
 
 """LVAPP Connection."""
 
+import time
+
 from random import randint
 
 from construct import Container
+from tornado.iostream import StreamClosedError
 
 from empower.core.txpolicy import TxPolicy
 from empower.core.etheraddress import EtherAddress
@@ -38,8 +41,102 @@ HB_PERIOD = 500
 class LVAPPConnection(RANConnection):
     """A persistent connection to a RAN device."""
 
+    def on_read(self, future):
+        """Assemble message from agent.
+
+        Appends bytes read from socket to a buffer. Once the full packet
+        has been read the parser is invoked and the buffers is cleared. The
+        parsed packet is then passed to the suitable method or dropped if the
+        packet type in unknown.
+        """
+
+        try:
+            self.buffer = self.buffer + future.result()
+        except StreamClosedError as stream_ex:
+            self.log.error(stream_ex)
+            return
+
+        hdr = self.proto.HEADER.parse(self.buffer)
+
+        if len(self.buffer) < hdr.length:
+            remaining = hdr.length - len(self.buffer)
+            future = self.stream.read_bytes(remaining)
+            future.add_done_callback(self.on_read)
+            return
+
+        # Check if we know the message type
+        if hdr.type not in self.proto.PT_TYPES:
+            self.log.warning("Unknown message type %u, ignoring.", hdr.type)
+            return
+
+        # Check if the Device is among the ones we known
+        addr = EtherAddress(hdr.device)
+
+        if addr not in self.manager.devices:
+            self.log.warning("Unknown Device %s, closing connection.", addr)
+            self.stream.close()
+            return
+
+        device = self.manager.devices[addr]
+
+        # Log message informations
+        parser = self.proto.PT_TYPES[hdr.type]
+        msg = parser.parse(self.buffer)
+        self.log.debug("Got %s message from %s seq %u", parser.name,
+                       EtherAddress(addr), hdr.seq)
+
+        # If Device is not online and is not connected, then the only message
+        # type we can accept is HELLO_RESPONSE
+        if not device.is_connected():
+
+            if msg.type != self.proto.PT_HELLO_RESPONSE:
+                if not self.stream.closed():
+                    self.wait()
+                return
+
+            # This is a new connection, set pointer to the device
+            self.device = device
+
+            # The set pointer from device connection to this object
+            device.connection = self
+
+            # Transition to connected state
+            device.set_connected()
+
+            # Start hello and hb workers
+            self.hb_worker.start()
+            self.hello_worker.start()
+
+            # Send caps request
+            self.send_caps_request()
+
+        # If device is not online but it is connected, then we can accept both
+        # HELLO_RESPONSE and CAP_RESPONSE message
+        if device.is_connected() and not device.is_online():
+            valid = (self.proto.PT_HELLO_RESPONSE, self.proto.PT_CAPS_RESPONSE)
+            if msg.type not in valid:
+                if not self.stream.closed():
+                    self.wait()
+                return
+
+        # Otherwise handle message
+        try:
+            method = self.proto.PT_TYPES[msg.type].name
+            self.handle_message(method, msg)
+        except Exception as ex:
+            self.log.exception(ex)
+            self.stream.close()
+
+        if not self.stream.closed():
+            self.wait()
+
     def on_disconnect(self):
-        """Handle protocol-specific device disconnection."""
+        """Handle device disconnection."""
+
+        if not self.device:
+            return
+
+        self.log.warning("Device disconnected: %s", self.device.addr)
 
         # Remove hosted LVAPs
         lvaps = [lvap for lvap in self.manager.lvaps.values()
@@ -57,38 +154,48 @@ class LVAPPConnection(RANConnection):
             del self.manager.vaps[vap.bssid]
             vap.clear_block()
 
-    def _handle_caps_response(self, caps):
-        """Handle an incoming CAPS message."""
+        # reset state
+        self.device.set_disconnected()
+        self.device.last_seen = 0
+        self.device.connection = None
+        self.device.blocks = {}
+        self.device = None
 
-        for block in caps.blocks:
+        # Stop hello and hb workers
+        self.hb_worker.stop()
+        self.hello_worker.stop()
 
-            self.device.blocks[block.block_id] = \
-                ResourceBlock(self.device,
-                              block.block_id,
-                              EtherAddress(block.hwaddr),
-                              block.channel,
-                              block.band)
+    def send_message(self, msg_type, msg, callback=None):
+        """Send message and set common parameters."""
 
-        # set state to online
-        super()._handle_caps_response(caps)
+        parser = self.proto.PT_TYPES[msg_type]
 
-        # fetch active lvaps
-        self.send_lvap_status_request()
+        if self.stream.closed():
+            self.log.warning("Stream closed, unabled to send %s message to %s",
+                             parser.name, self.device)
+            return 0
 
-        # fetch active vaps
-        self.send_vap_status_request()
+        msg.version = self.proto.PT_VERSION
+        msg.seq = self.seq
+        msg.type = msg_type
+        msg.xid = self.xid
 
-        # fetch active traffic rules
-        self.send_slice_status_request()
+        if not self.device:
+            msg.device = EtherAddress("00:00:00:00:00:00").to_raw()
+        else:
+            msg.device = self.device.addr.to_raw()
 
-        # fetch active tramission policies
-        self.send_tx_policy_status_request()
+        addr = self.stream.socket.getpeername()
 
-        # send vaps
-        self.update_vaps()
+        self.log.debug("Sending %s message to %s seq %u",
+                       parser.name, addr[0], msg.seq)
 
-        # send slices
-        self.update_slices()
+        self.stream.write(parser.build(msg))
+
+        if callback:
+            self.xids[msg.xid] = (msg, callback)
+
+        return msg.xid
 
     def update_vaps(self):
         """Update active VAPs."""
@@ -125,6 +232,45 @@ class LVAPPConnection(RANConnection):
             for slc in project.wifi_slices.values():
                 for block in self.device.blocks.values():
                     self.device.connection.send_set_slice(project, slc, block)
+
+    def _handle_hello_response(self, hello):
+        """Handle an incoming HELLO_RESPONSE message."""
+
+        self.device.last_seen = hello.seq
+        self.device.last_seen_ts = time.time()
+
+    def _handle_caps_response(self, caps):
+        """Handle an incoming CAPS message."""
+
+        for block in caps.blocks:
+
+            self.device.blocks[block.block_id] = \
+                ResourceBlock(self.device,
+                              block.block_id,
+                              EtherAddress(block.hwaddr),
+                              block.channel,
+                              block.band)
+
+        # set state to online
+        self.device.set_online()
+
+        # fetch active lvaps
+        self.send_lvap_status_request()
+
+        # fetch active vaps
+        self.send_vap_status_request()
+
+        # fetch active traffic rules
+        self.send_slice_status_request()
+
+        # fetch active tramission policies
+        self.send_tx_policy_status_request()
+
+        # send vaps
+        self.update_vaps()
+
+        # send slices
+        self.update_slices()
 
     def _handle_probe_request(self, request):
         """Handle an incoming PROBE_REQUEST message."""
@@ -488,6 +634,18 @@ class LVAPPConnection(RANConnection):
         vap = self.manager.vaps[bssid]
 
         self.log.info("VAP status: %s", vap)
+
+    def send_hello_request(self):
+        """Send a HELLO_REQUEST message."""
+
+        msg = Container(length=self.proto.HELLO_REQUEST.sizeof())
+        return self.send_message(self.proto.PT_HELLO_REQUEST, msg)
+
+    def send_caps_request(self):
+        """Send a CAPS_REQUEST message."""
+
+        msg = Container(length=self.proto.CAPS_REQUEST.sizeof())
+        return self.send_message(self.proto.PT_CAPS_REQUEST, msg)
 
     def send_lvap_status_request(self):
         """Send a LVAP_STATUS_REQUEST message."""

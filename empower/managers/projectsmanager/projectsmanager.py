@@ -105,7 +105,7 @@ class ProjectsManager(EService):
             if not project.wifi_props:
                 continue
 
-            if sta not in project.wifi_props.allowed:
+            if str(sta) not in project.wifi_props.allowed:
                 continue
 
             if project.wifi_props.bssid_type == T_BSSID_TYPE_SHARED:
@@ -156,7 +156,7 @@ class ProjectsManager(EService):
 
         return self.projects[project_id]
 
-    def update(self, project_id, desc, wifi_props=None, lte_props=None):
+    def update(self, project_id, desc):
         """Update project."""
 
         if project_id not in self.projects:
@@ -165,23 +165,9 @@ class ProjectsManager(EService):
         project = self.projects[project_id]
 
         try:
-
             project.desc = desc
-
-            # not all wifi props can be modified
-            if wifi_props:
-
-                if "allowed" in wifi_props:
-                    project.wifi_props.allowed = wifi_props["allowed"]
-
-            # not all lte props can be modified
-            if lte_props:
-                pass
-
             project.save()
-
         finally:
-
             project.refresh_from_db()
 
         return self.projects[project_id]
