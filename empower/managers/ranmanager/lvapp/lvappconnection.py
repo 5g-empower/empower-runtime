@@ -89,7 +89,7 @@ class LVAPPConnection(RANConnection):
         # type we can accept is HELLO_RESPONSE
         if not device.is_connected():
 
-            if msg.type != self.proto.PT_HELLO_RESPONSE:
+            if msg.type != self.proto.PT_HELLO_REQUEST:
                 if not self.stream.closed():
                     self.wait()
                 return
@@ -103,9 +103,8 @@ class LVAPPConnection(RANConnection):
             # Transition to connected state
             device.set_connected()
 
-            # Start hello and hb workers
+            # Start hb worker
             self.hb_worker.start()
-            self.hello_worker.start()
 
             # Send caps request
             self.send_caps_request()
@@ -113,7 +112,7 @@ class LVAPPConnection(RANConnection):
         # If device is not online but it is connected, then we can accept both
         # HELLO_RESPONSE and CAP_RESPONSE message
         if device.is_connected() and not device.is_online():
-            valid = (self.proto.PT_HELLO_RESPONSE, self.proto.PT_CAPS_RESPONSE)
+            valid = (self.proto.PT_HELLO_REQUEST, self.proto.PT_CAPS_RESPONSE)
             if msg.type not in valid:
                 if not self.stream.closed():
                     self.wait()
@@ -161,9 +160,8 @@ class LVAPPConnection(RANConnection):
         self.device.blocks = {}
         self.device = None
 
-        # Stop hello and hb workers
+        # Stop hb worker
         self.hb_worker.stop()
-        self.hello_worker.stop()
 
     def send_message(self, msg_type, msg, callback=None):
         """Send message and set common parameters."""
@@ -233,11 +231,13 @@ class LVAPPConnection(RANConnection):
                 for block in self.device.blocks.values():
                     self.device.connection.send_set_slice(project, slc, block)
 
-    def _handle_hello_response(self, hello):
+    def _handle_hello_request(self, hello):
         """Handle an incoming HELLO_RESPONSE message."""
 
         self.device.last_seen = hello.seq
         self.device.last_seen_ts = time.time()
+
+        self.send_hello_response(hello.period)
 
     def _handle_caps_response(self, caps):
         """Handle an incoming CAPS message."""
@@ -635,11 +635,13 @@ class LVAPPConnection(RANConnection):
 
         self.log.info("VAP status: %s", vap)
 
-    def send_hello_request(self):
+    def send_hello_response(self, period=2000):
         """Send a HELLO_REQUEST message."""
 
-        msg = Container(length=self.proto.HELLO_REQUEST.sizeof())
-        return self.send_message(self.proto.PT_HELLO_REQUEST, msg)
+        msg = Container(length=self.proto.HELLO_RESPONSE.sizeof(),
+                        period=period)
+
+        return self.send_message(self.proto.PT_HELLO_RESPONSE, msg)
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message."""

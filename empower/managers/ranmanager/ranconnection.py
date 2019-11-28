@@ -55,11 +55,6 @@ class RANConnection:
         self.hb_worker = \
             tornado.ioloop.PeriodicCallback(self.heartbeat_cb, HB_PERIOD)
 
-        self.hello_worker = \
-            tornado.ioloop.PeriodicCallback(self.hello_cb, HELLO_PERIOD)
-
-        self.send_hello_request()
-
         self.wait()
 
     def to_dict(self):
@@ -127,11 +122,6 @@ class RANConnection:
 
         self.send_message_to_self(self.device, self.proto.PT_DEVICE_DOWN)
 
-    def hello_cb(self):
-        """Send periodic hello request."""
-
-        self.send_hello_request()
-
     def heartbeat_cb(self):
         """Check if connection is still active."""
 
@@ -186,13 +176,6 @@ class RANConnection:
 
     def send_message(self, msg_type, msg, callback=None):
         """Send message and set common parameters
-
-        The implementation of the method is southbound-specific."""
-
-        raise NotImplementedError()
-
-    def send_hello_request(self):
-        """Send hello request message
 
         The implementation of the method is southbound-specific."""
 
