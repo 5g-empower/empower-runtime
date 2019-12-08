@@ -52,8 +52,6 @@ class ProjectsManager(EService):
 
         super().start()
 
-        self.accounts_manager = srv_or_die("accountsmanager")
-
         for project in Project.objects.all():
             self.projects[project.project_id] = project
             self.projects[project.project_id].start_services()
@@ -133,7 +131,9 @@ class ProjectsManager(EService):
         if project_id in self.projects:
             raise ValueError("Project %s already defined" % project_id)
 
-        if owner not in self.accounts_manager.accounts:
+        accounts_manager = srv_or_die("accountsmanager")
+
+        if owner not in accounts_manager.accounts:
             raise KeyError("Username %s not found" % owner)
 
         project = Project(project_id=project_id, desc=desc, owner=owner)
