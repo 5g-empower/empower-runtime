@@ -43,6 +43,15 @@ $(document).ready(function() {
   EDIT_MODAL.password.on_change(edit_password_consistency_check)
   EDIT_MODAL.password_confirm.on_change(edit_password_consistency_check)
 
+  if (sessionStorage.getItem("empower_temporary")){
+    console.log("empower_temporary is defined")
+    $("#alert_box").html(sessionStorage.getItem("empower_temporary"))
+    sessionStorage.removeItem("empower_temporary")
+  }
+  else{
+    console.log("empower_temporary is NOT defined")
+  }
+
 });
 
 /**
@@ -143,6 +152,8 @@ function edit(){
  * 
  */
 function edit_success(){
+
+  sessionStorage.setItem("empower_temporary", $("#alert_box").html());
   location.reload()
 }
 
