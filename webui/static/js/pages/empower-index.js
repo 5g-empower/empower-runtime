@@ -206,7 +206,14 @@ function refresh_projects() {
     });
 
     if (projects === ""){
-      $("#projects").html("<div class='h4 col-12 text-center'><span class='border border-dark rounded text-dark font-weight-bold py-3 px-5'> NO projects available </div></div>")
+      // $("#projects").html("<div class='h4 col-12 text-center'><span class='border border-dark rounded text-dark font-weight-bold py-3 px-5'> NO projects available </div></div>")
+      $("#projects").html(
+        '<div class="col-12 my-3 d-flex justify-content-center ">'+
+          '<div class="col-auto border border-dark rounded text-center p-3">'+
+            '<div class="h4 text-dark font-weight-bold px-5 mb-0"> NO projects available </div>'+
+            // '<div class="text-dark font-italic px-5"> You can run them in CATALOG section </div>'+
+          '</div>'+
+        '</div>')
     }
     else{
       $("#projects").html(projects)
