@@ -20,6 +20,8 @@
 from empower.core.app import EVERY
 
 MANIFEST = {
+    "label": "Wi-Fi RC Stats",
+    "desc": "Tracks Wi-Fi rate control statistics for a given LVAP",
     "params": {
         "sta": {
             "desc": "The LVAP to monitor.",

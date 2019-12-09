@@ -52,8 +52,6 @@ class ProjectsManager(EService):
 
         super().start()
 
-        self.accounts_manager = srv_or_die("accountsmanager")
-
         for project in Project.objects.all():
             self.projects[project.project_id] = project
             self.projects[project.project_id].start_services()
@@ -105,7 +103,7 @@ class ProjectsManager(EService):
             if not project.wifi_props:
                 continue
 
-            if sta not in project.wifi_props.allowed:
+            if str(sta) not in project.wifi_props.allowed:
                 continue
 
             if project.wifi_props.bssid_type == T_BSSID_TYPE_SHARED:
@@ -133,7 +131,9 @@ class ProjectsManager(EService):
         if project_id in self.projects:
             raise ValueError("Project %s already defined" % project_id)
 
-        if owner not in self.accounts_manager.accounts:
+        accounts_manager = srv_or_die("accountsmanager")
+
+        if owner not in accounts_manager.accounts:
             raise KeyError("Username %s not found" % owner)
 
         project = Project(project_id=project_id, desc=desc, owner=owner)
@@ -156,7 +156,7 @@ class ProjectsManager(EService):
 
         return self.projects[project_id]
 
-    def update(self, project_id, desc, wifi_props=None, lte_props=None):
+    def update(self, project_id, desc):
         """Update project."""
 
         if project_id not in self.projects:
@@ -165,23 +165,9 @@ class ProjectsManager(EService):
         project = self.projects[project_id]
 
         try:
-
             project.desc = desc
-
-            # not all wifi props can be modified
-            if wifi_props:
-
-                if "allowed" in wifi_props:
-                    project.wifi_props.allowed = wifi_props["allowed"]
-
-            # not all lte props can be modified
-            if lte_props:
-                pass
-
             project.save()
-
         finally:
-
             project.refresh_from_db()
 
         return self.projects[project_id]

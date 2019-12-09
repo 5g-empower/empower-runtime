@@ -69,41 +69,6 @@ class TestACLs(BaseTest):
 
         data = {
             "version": "1.0",
-            "owner": "foo",
-            "desc": "Test project",
-            "wifi_props": {
-                "ssid": "EmPOWER",
-                "allowed": {
-                    "04:46:65:49:e0:1f": {
-                        "addr": "04:46:65:49:e0:1f",
-                        "desc": "Some laptop"
-                    }
-                }
-            }
-        }
-
-        params = \
-            ("foo", "foo", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
-        self.put(params, data, 204)
-
-        data = {
-            "version": "1.0",
-            "owner": "foo",
-            "desc": "Test project",
-            "wifi_props": {
-                "ssid": "EmPOWER",
-                "allowed": [
-                    "puppa"
-                ]
-            }
-        }
-
-        params = \
-            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
-        self.put(params, data, 400)
-
-        data = {
-            "version": "1.0",
             "addr": "04:46:65:49:e0:1f",
             "desc": "Laptop description"
         }

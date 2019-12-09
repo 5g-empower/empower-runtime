@@ -266,19 +266,11 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
 
             version: protocol version (1.0)
             desc: a human-readable description of the project
-            wifi_props: the Wi-Fi properties
-            lte_props: the LTE properties
         """
 
         project_id = uuid.UUID(args[0])
 
-        wifi_props = kwargs['wifi_props'] if 'wifi_props' in kwargs else None
-        lte_props = kwargs['lte_props'] if 'lte_props' in kwargs else None
-
-        self.service.update(project_id=project_id,
-                            desc=kwargs['desc'],
-                            wifi_props=wifi_props,
-                            lte_props=lte_props)
+        self.service.update(project_id=project_id, desc=kwargs['desc'])
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):

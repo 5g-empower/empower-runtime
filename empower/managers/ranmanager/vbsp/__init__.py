@@ -17,7 +17,8 @@
 
 """VBSP RAN Manager."""
 
-from construct import Struct, Int8ub, Int16ub, Int32ub, Int64ub
+from construct import Struct, Int8ub, Int16ub, Int32ub, Flag, Bytes, Bit, \
+    BitStruct, Padding
 
 PT_VERSION = 0x00
 
@@ -26,16 +27,22 @@ PT_DEVICE_UP = "device_up"
 PT_CLIENT_JOIN = "client_join"
 PT_CLIENT_LEAVE = "client_leave"
 
-PT_HELLO_REQUEST = 0x01
-PT_HELLO_RESPONSE = 0x02
+# action, type, opcode
+PT_HELLO_REQUEST = (0x01, 0, 3)
+PT_HELLO_RESPONSE = (0x01, 1, 3)
 
 HEADER = Struct(
     "version" / Int8ub,
-    "flags" / Int8ub,
+    "flags" / BitStruct(
+        "padding" / Padding(7),
+        "request_response" / Flag
+    ),
+    "reserved1" / Int16ub,
     "length" / Int32ub,
-    "type" / Int16ub,
+    "action" / Bytes(14),
+    "crud_succfail" / Bytes(2),
     "pci" / Int16ub,
-    "device" / Int64ub,
+    "device" / Bytes(8),
     "seq" / Int32ub,
     "xid" / Int32ub,
 )
@@ -43,11 +50,16 @@ HEADER.name = "header"
 
 HELLO_REQUEST = Struct(
     "version" / Int8ub,
-    "flags" / Int8ub,
+    "flags" / BitStruct(
+        "padding" / Padding(7),
+        "type" / Flag
+    ),
+    "reserved1" / Int16ub,
     "length" / Int32ub,
-    "type" / Int16ub,
-    "pci" / Int16ub,
-    "device" / Int64ub,
+    "action" / Bytes(14),
+    "opcode" / Bytes(2),
+    "reserved2" / Int16ub,
+    "device" / Bytes(8),
     "seq" / Int32ub,
     "xid" / Int32ub,
 )
@@ -55,11 +67,16 @@ HELLO_REQUEST.name = "hello_request"
 
 HELLO_RESPONSE = Struct(
     "version" / Int8ub,
-    "flags" / Int8ub,
+    "flags" / BitStruct(
+        "padding" / Padding(7),
+        "ack" / Flag
+    ),
+    "reserved1" / Int16ub,
     "length" / Int32ub,
-    "type" / Int16ub,
-    "pci" / Int16ub,
-    "device" / Int64ub,
+    "action" / Bytes(14),
+    "opcode" / Bytes(2),
+    "reserved2" / Int16ub,
+    "device" / Bytes(8),
     "seq" / Int32ub,
     "xid" / Int32ub,
 )
@@ -76,7 +93,6 @@ PT_TYPES = {
     PT_HELLO_RESPONSE: HELLO_RESPONSE,
 
 }
-
 
 PT_TYPES_HANDLERS = {}
 
