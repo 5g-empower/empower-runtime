@@ -19,7 +19,7 @@
 
 import logging
 
-from empower.core.resourcepool import BT_HT20
+from empower.managers.ranmanager.lvapp.resourcepool import BT_HT20
 from empower.core.serialize import serializable_dict
 
 TX_AMSDU_LEN_4K = 3839

@@ -26,7 +26,7 @@ import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.ssid import WIFI_NWID_MAXSIZE
 from empower.core.etheraddress import EtherAddress
-from empower.core.app import EApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWApp
 from empower.core.app import EVERY
 
 
@@ -69,7 +69,7 @@ WIFI_SLICE_STATS_RESPONSE = Struct(
 WIFI_SLICE_STATS_RESPONSE.name = "wifi_slice_stats_response"
 
 
-class SliceStats(EApp):
+class SliceStats(EWApp):
     """WiFi Slice Statistics Primitive.
 
     This primitive collects the slice statistics.

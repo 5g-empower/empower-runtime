@@ -22,7 +22,8 @@ import empower.managers.ranmanager.vbsp as vbsp
 from empower.managers.ranmanager.ranmanager import RANManager
 from empower.managers.ranmanager.vbsp.vbshandler import VBSHandler
 from empower.managers.ranmanager.vbsp.vbspconnection import VBSPConnection
-from empower.core.vbs import VBS
+from empower.managers.ranmanager.vbsp.vbs import VBS
+
 
 DEFAULT_PORT = 5533
 

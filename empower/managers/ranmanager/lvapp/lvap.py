@@ -23,9 +23,10 @@ import logging
 import empower.managers.projectsmanager.project as prj
 
 from empower.main import srv_or_die
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
-from empower.core.txpolicy import TxPolicy, TX_AMSDU_LEN_8K
+from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
+from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
+from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
+from empower.managers.ranmanager.lvapp.txpolicy import TX_AMSDU_LEN_8K
 from empower.core.etheraddress import EtherAddress
 from empower.core.ssid import SSID
 from empower.core.serialize import serializable_dict

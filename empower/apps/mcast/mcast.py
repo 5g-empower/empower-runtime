@@ -21,14 +21,14 @@ import sys
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.core.app import EApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWApp
 from empower.core.app import EVERY
 from empower.core.etheraddress import EtherAddress
-from empower.core.txpolicy import TxPolicy
-from empower.core.txpolicy import TX_MCAST
-from empower.core.txpolicy import TX_MCAST_DMS
-from empower.core.txpolicy import TX_MCAST_LEGACY
-from empower.core.resourcepool import BT_HT20
+from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
+from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST
+from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_DMS
+from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_LEGACY
+from empower.managers.ranmanager.lvapp.resourcepool import BT_HT20
 
 TX_MCAST_SDNPLAY = 0x3
 TX_MCAST_SDNPLAY_H = "sdn@play"
@@ -149,7 +149,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
         self.service.save_service_state()
 
 
-class Mcast(EApp):
+class Mcast(EWApp):
     """SDN@Play Multicast Manager.
 
     This app implements the SDN@Play [1] algorithm.

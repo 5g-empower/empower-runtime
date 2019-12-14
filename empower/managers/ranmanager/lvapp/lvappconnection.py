@@ -24,12 +24,12 @@ from random import randint
 from construct import Container
 from tornado.iostream import StreamClosedError
 
-from empower.core.txpolicy import TxPolicy
+from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.core.etheraddress import EtherAddress
-from empower.core.resourcepool import ResourceBlock
+from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
 from empower.core.ssid import SSID, WIFI_NWID_MAXSIZE
-from empower.core.lvap import LVAP, PROCESS_RUNNING
-from empower.core.vap import VAP
+from empower.managers.ranmanager.lvapp.lvap import LVAP, PROCESS_RUNNING
+from empower.managers.ranmanager.lvapp.vap import VAP
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 from empower.managers.ranmanager.ranconnection import RANConnection

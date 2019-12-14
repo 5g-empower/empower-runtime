@@ -22,7 +22,8 @@ from pymodm.errors import ValidationError
 
 import empower.core.serialize as serialize
 from empower.managers.envmanager.env import Env
-from empower.core.slice import WiFiSlice, LTESlice
+from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
+from empower.managers.ranmanager.vbsp.lteslice import LTESlice
 from empower.core.etheraddress import EtherAddress
 from empower.core.acl import ACL
 from empower.core.plmnid import PLMNIDField
