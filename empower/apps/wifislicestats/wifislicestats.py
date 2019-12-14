@@ -81,7 +81,7 @@ class SliceStats(EWApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.primitives.wifislicestats.wifislicestats",
+            "name": "empower.apps.wifislicestats.wifislicestats",
             "params": {
                 "slice_id": 0,
                 "every": 2000

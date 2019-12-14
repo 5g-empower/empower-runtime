@@ -78,7 +78,7 @@ class LVAPBinCounter(EWApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.primitives.lvapbincounter.lvapbincounter",
+            "name": "empower.apps.lvapbincounter.lvapbincounter",
             "params": {
                 "sta": "11:22:33:44:55:66",
                 "every": 2000
