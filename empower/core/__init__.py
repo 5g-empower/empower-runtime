@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Core Package."""
+"""EmPOWER Core Package."""

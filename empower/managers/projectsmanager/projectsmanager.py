@@ -19,7 +19,7 @@
 
 import empower.apps
 
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.service import EService
 
 from empower.managers.projectsmanager.project import Project

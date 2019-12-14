@@ -28,7 +28,7 @@ from empower.core.etheraddress import EtherAddress
 from empower.core.acl import ACL
 from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
 
 T_BSSID_TYPE_SHARED = "shared"

@@ -22,7 +22,7 @@ import logging
 
 import empower.managers.projectsmanager.project as prj
 
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
 from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy

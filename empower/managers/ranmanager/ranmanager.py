@@ -19,7 +19,7 @@
 
 from tornado.tcpserver import TCPServer
 
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.service import EService
 
 HELLO_PERIOD = 2000
