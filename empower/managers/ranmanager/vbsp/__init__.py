@@ -18,69 +18,88 @@
 """VBSP RAN Manager."""
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Flag, Bytes, Bit, \
-    BitStruct, Padding
+    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this
 
-PT_VERSION = 0x00
+PT_VERSION = 0x02
+
+MSG_TYPE_REQUEST = 0
+MSG_TYPE_RESPONSE = 1
+
+RESULT_SUCCESS = 0
+RESULT_SUCCESS = 1
+
+OP_UNDEFINED = 0
+OP_CREATE_UPDATE = 1
+OP_DELETE = 2
+OP_RETREIVE = 3
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
 PT_CLIENT_JOIN = "client_join"
 PT_CLIENT_LEAVE = "client_leave"
 
-# action, type, opcode
-PT_HELLO_REQUEST = (0x01, 0, 3)
-PT_HELLO_RESPONSE = (0x01, 1, 3)
+PT_HELLO_SERVICE = 0x01
+PT_CAPABILITIES_SERVICE = 0x02
+
+TLVS = Struct(
+    "type" / Int16ub,
+    "length" / Int16ub,
+    "value" / Bytes(this.length - 4),
+)
 
 HEADER = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
         "padding" / Padding(7),
-        "request_response" / Flag
+        "msg_type" / Flag
     ),
-    "reserved1" / Int16ub,
+    "reserved" / Int16ub,
     "length" / Int32ub,
-    "action" / Bytes(14),
-    "crud_succfail" / Bytes(2),
-    "pci" / Int16ub,
-    "device" / Bytes(8),
+    "tsrc" / BitStruct(
+        "crud_result" / BitsInteger(2),
+        "action" / BitsInteger(14),
+    ),
+    "unused" / Int16ub,
+    "padding"  / Bytes(2),
+    "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
 )
-HEADER.name = "header"
 
-HELLO_REQUEST = Struct(
+PACKET = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
         "padding" / Padding(7),
-        "type" / Flag
+        "msg_type" / Flag
     ),
-    "reserved1" / Int16ub,
+    "reserved" / Int16ub,
     "length" / Int32ub,
-    "action" / Bytes(14),
-    "opcode" / Bytes(2),
-    "reserved2" / Int16ub,
-    "device" / Bytes(8),
+    "tsrc" / BitStruct(
+        "crud_result" / BitsInteger(2),
+        "action" / BitsInteger(14),
+    ),
+    "unused" / Int16ub,
+    "padding"  / Bytes(2),
+    "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
+    "tlvs" / GreedyRange(TLVS)
 )
-HELLO_REQUEST.name = "hello_request"
 
-HELLO_RESPONSE = Struct(
-    "version" / Int8ub,
-    "flags" / BitStruct(
-        "padding" / Padding(7),
-        "ack" / Flag
-    ),
-    "reserved1" / Int16ub,
-    "length" / Int32ub,
-    "action" / Bytes(14),
-    "opcode" / Bytes(2),
-    "reserved2" / Int16ub,
-    "device" / Bytes(8),
-    "seq" / Int32ub,
-    "xid" / Int32ub,
+# TLV dicts
+
+PT_HELLO_SERVICE_PERIOD = 0x04
+
+HELLO_SERVICE_PERIOD = Struct(
+    "period" / Int32ub
 )
-HELLO_RESPONSE.name = "hello_response"
+HELLO_SERVICE_PERIOD.name = "hello_service_period"
+
+TLVS = {
+    PT_HELLO_SERVICE_PERIOD: HELLO_SERVICE_PERIOD,
+}
+
+# Packet types
 
 PT_TYPES = {
 
@@ -89,8 +108,8 @@ PT_TYPES = {
     PT_CLIENT_JOIN: None,
     PT_CLIENT_LEAVE: None,
 
-    PT_HELLO_REQUEST: HELLO_REQUEST,
-    PT_HELLO_RESPONSE: HELLO_RESPONSE,
+    PT_HELLO_SERVICE: (PACKET, "hello_service"),
+    PT_CAPABILITIES_SERVICE: (PACKET, "capabilities_service"),
 
 }
 
