@@ -20,6 +20,7 @@
 import time
 
 from construct import Container
+from tornado.iostream import StreamClosedError
 
 from empower.managers.ranmanager.ranconnection import RANConnection
 from empower.core.etheraddress import EtherAddress
@@ -181,13 +182,11 @@ class VBSPConnection(RANConnection):
 
         msg.version = self.proto.PT_VERSION
         msg.flags = Container(msg_type=msg_type)
-        msg.reserved = 0
-        msg.length = self.proto.HEADER.sizeof()
         msg.tsrc = Container(
             crud_result=crud_result,
             action=action
         )
-        msg.unused = 0
+        msg.length = self.proto.HEADER.sizeof()
         msg.padding = 0
         msg.device = self.device.addr.to_raw()
         msg.seq = self.seq
@@ -211,7 +210,7 @@ class VBSPConnection(RANConnection):
 
         return self.send_message(action=self.proto.PT_CAPABILITIES_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
-                                 crud_result=self.proto.OP_RETREIVE)
+                                 crud_result=self.proto.OP_GET)
 
     def send_hello_response(self, period):
         """Send an HELLO response message."""
@@ -233,16 +232,27 @@ class VBSPConnection(RANConnection):
             parser = self.proto.TLVS[tlv.type]
             option = parser.parse(tlv.value)
 
+            self.log.debug("Processing options %s", parser.name)
+
             if tlv.type == self.proto.PT_HELLO_SERVICE_PERIOD:
                 self.send_hello_response(option.period)
-
-            self.log.debug("Processing options %s", parser.name)
 
         self.device.last_seen = msg.seq
         self.device.last_seen_ts = time.time()
 
-    def _handle_caps_response(self, caps):
+    def _handle_caps_response(self, msg):
         """Handle an incoming CAPS message."""
 
-        # parse cells
-        print(caps)
+        # parse TLVs
+        for tlv in msg.tlvs:
+
+            if tlv.type not in self.proto.TLVS:
+                self.log.warning("Unknown options %u", tlv.type)
+                continue
+
+            parser = self.proto.TLVS[tlv.type]
+            option = parser.parse(tlv.value)
+
+            self.log.debug("Processing options %s", parser.name)
+
+            print(option)

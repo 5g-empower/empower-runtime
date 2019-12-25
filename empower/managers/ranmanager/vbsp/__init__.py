@@ -26,20 +26,20 @@ MSG_TYPE_REQUEST = 0
 MSG_TYPE_RESPONSE = 1
 
 RESULT_SUCCESS = 0
-RESULT_SUCCESS = 1
+RESULT_FAIL = 1
 
-OP_UNDEFINED = 0
-OP_CREATE_UPDATE = 1
-OP_DELETE = 2
-OP_RETREIVE = 3
+OP_SET = 0
+OP_ADD = 1
+OP_DEL = 2
+OP_GET = 3
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
 PT_CLIENT_JOIN = "client_join"
 PT_CLIENT_LEAVE = "client_leave"
 
-PT_HELLO_SERVICE = 0x01
-PT_CAPABILITIES_SERVICE = 0x02
+PT_HELLO_SERVICE = 0x00
+PT_CAPABILITIES_SERVICE = 0x01
 
 TLVS = Struct(
     "type" / Int16ub,
@@ -53,13 +53,11 @@ HEADER = Struct(
         "padding" / Padding(7),
         "msg_type" / Flag
     ),
-    "reserved" / Int16ub,
-    "length" / Int32ub,
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
         "action" / BitsInteger(14),
     ),
-    "unused" / Int16ub,
+    "length" / Int32ub,
     "padding"  / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
@@ -72,13 +70,11 @@ PACKET = Struct(
         "padding" / Padding(7),
         "msg_type" / Flag
     ),
-    "reserved" / Int16ub,
-    "length" / Int32ub,
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
         "action" / BitsInteger(14),
     ),
-    "unused" / Int16ub,
+    "length" / Int32ub,
     "padding"  / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
