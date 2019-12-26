@@ -85,14 +85,24 @@ PACKET = Struct(
 # TLV dicts
 
 PT_HELLO_SERVICE_PERIOD = 0x04
+PT_CAPABILITIES_SERVICE_CELL = 0x06
 
 HELLO_SERVICE_PERIOD = Struct(
     "period" / Int32ub
 )
 HELLO_SERVICE_PERIOD.name = "hello_service_period"
 
+CAPABILITIES_SERVICE_CELL = Struct(
+    "pci" / Int16ub,
+    "dl_earfcn" / Int32ub,
+    "ul_earfcn" / Int32ub,
+    "n_prbs" / Int8ub
+)
+CAPABILITIES_SERVICE_CELL.name = "capabilities_service_cell"
+
 TLVS = {
     PT_HELLO_SERVICE_PERIOD: HELLO_SERVICE_PERIOD,
+    PT_CAPABILITIES_SERVICE_CELL: CAPABILITIES_SERVICE_CELL,
 }
 
 # Packet types

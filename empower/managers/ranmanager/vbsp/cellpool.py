@@ -17,6 +17,8 @@
 
 """EmPOWER cell pool and cell classes."""
 
+from empower.core.serialize import serializable_dict
+
 
 class CellPool(list):
     """Cell pool.
@@ -65,6 +67,7 @@ class CellPool(list):
         return None
 
 
+@serializable_dict
 class Cell:
     """An LTE eNB cell.
 
@@ -79,69 +82,21 @@ class Cell:
         cell_measurements: cell measurements
     """
 
-    def __init__(self, vbs, pci):
+    def __init__(self, vbs, pci, dl_earfcn, ul_earfcn, n_prbs):
         self.vbs = vbs
         self.pci = pci
-        self._dl_earfcn = None
-        self._dl_bandwidth = None
-        self._ul_earfcn = None
-        self._ul_bandwidth = None
+        self.dl_earfcn = dl_earfcn
+        self.ul_earfcn = ul_earfcn
+        self.n_prbs = n_prbs
         self.ue_measurements = {}
         self.cell_measurements = {}
-
-    @property
-    def dl_earfcn(self):
-        """Get the dl_earfcn."""
-
-        return self._dl_earfcn
-
-    @dl_earfcn.setter
-    def dl_earfcn(self, dl_earfcn):
-        """ Set the dl_earfcn. """
-
-        self._dl_earfcn = dl_earfcn
-
-    @property
-    def dl_bandwidth(self):
-        """Get the dl_bandwidth."""
-
-        return self._dl_bandwidth
-
-    @dl_bandwidth.setter
-    def dl_bandwidth(self, dl_bandwidth):
-        """ Set the dl_bandwidth. """
-
-        self._dl_bandwidth = dl_bandwidth
-
-    @property
-    def ul_earfcn(self):
-        """Get the ul_earfcn."""
-
-        return self._ul_earfcn
-
-    @ul_earfcn.setter
-    def ul_earfcn(self, ul_earfcn):
-        """ Set the ul_earfcn. """
-
-        self._ul_earfcn = ul_earfcn
-
-    @property
-    def ul_bandwidth(self):
-        """Get the ul_bandwidth."""
-
-        return self._ul_bandwidth
-
-    @ul_bandwidth.setter
-    def ul_bandwidth(self, ul_bandwidth):
-        """ Set the ul_bandwidth. """
-
-        self._ul_bandwidth = ul_bandwidth
 
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        return "vbs %s pci %u dl_earfcn %u dl_earfcn %u" % \
-            (self.vbs.addr, self.pci, self.dl_earfcn, self.ul_earfcn)
+        return "vbs %s pci %u dl_earfcn %u dl_earfcn %u n_prbs %u" % \
+            (self.vbs.addr, self.pci, self.dl_earfcn, self.ul_earfcn,
+             self.n_prbs)
 
     def __str__(self):
         return self.to_str()
@@ -168,9 +123,8 @@ class Cell:
         out['addr'] = self.vbs.addr
         out['pci'] = self.pci
         out['dl_earfcn'] = self.dl_earfcn
-        out['dl_bandwidth'] = self.dl_bandwidth
         out['ul_earfcn'] = self.ul_earfcn
-        out['ul_bandwidth'] = self.ul_bandwidth
+        out['n_prbs'] = self.n_prbs
         out['cell_measurements'] = self.cell_measurements
         out['ue_measurements'] = self.ue_measurements
 

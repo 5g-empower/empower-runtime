@@ -22,6 +22,7 @@ import time
 from construct import Container
 from tornado.iostream import StreamClosedError
 
+from empower.managers.ranmanager.vbsp.cellpool import Cell
 from empower.managers.ranmanager.ranconnection import RANConnection
 from empower.core.etheraddress import EtherAddress
 
@@ -240,8 +241,8 @@ class VBSPConnection(RANConnection):
         self.device.last_seen = msg.seq
         self.device.last_seen_ts = time.time()
 
-    def _handle_caps_response(self, msg):
-        """Handle an incoming CAPS message."""
+    def _handle_capabilities_service(self, msg):
+        """Handle an incoming CAPABILITIES_SERVICE message."""
 
         # parse TLVs
         for tlv in msg.tlvs:
@@ -255,4 +256,13 @@ class VBSPConnection(RANConnection):
 
             self.log.debug("Processing options %s", parser.name)
 
-            print(option)
+            if tlv.type == self.proto.PT_CAPABILITIES_SERVICE_CELL:
+                self.device.cells[option.pci] = \
+                    Cell(vbs=self.device,
+                         pci=option.pci,
+                         dl_earfcn=option.dl_earfcn,
+                         ul_earfcn=option.ul_earfcn,
+                         n_prbs=option.n_prbs)
+
+        # set state to online
+        self.device.set_online()
