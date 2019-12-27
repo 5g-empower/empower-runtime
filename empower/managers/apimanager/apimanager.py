@@ -329,10 +329,10 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         self.send_error(401, message="URI not authorized")
 
 
-BOILER_PLATE = """# EmPOWER Core REST API
+BOILER_PLATE = """# REST API
 
-The EmPOWER Core API consists of a set of RESTful resources and their
-attributes. The base URL for the EmPOWER REST API is the following:
+The REST API consists of a set of RESTful resources and their attributes.
+The base URL for the REST API is the following:
 
     http{s}://{username}:{password}@{hostname}:{port}/api/v1/{resource}
 
@@ -341,7 +341,7 @@ combination for your controller.
 
 The current (and only) version of the API is v1.
 
-EmPOWER uses HTTP basic authentication control access to RESTful resource.
+The REST API uses HTTP basic authentication control access to RESTful resource.
 
 Notice that there are two kinds of accounts:
 
