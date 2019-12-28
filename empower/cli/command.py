@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""5G-EmPOWER Command Line Interface."""
+"""Command Line Interface."""
 
 import sys
 import base64

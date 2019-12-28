@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Public land mobile network  identifier (PLMNID)."""
+"""Public land mobile network identifier (PLMNID)."""
 
 import re
 

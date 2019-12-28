@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Base service class."""
+"""Service."""
 
 import uuid
 import pkgutil

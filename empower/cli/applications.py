@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Services CLI tools."""
+"""Applications CLI tools."""
 
 import uuid
 import argparse

@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Base worker class."""
+"""Worker."""
 
 from empower.core.service import EService
 

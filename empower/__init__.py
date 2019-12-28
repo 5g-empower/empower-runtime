@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Main 5G-EmPOWER Package."""
+"""Main package."""

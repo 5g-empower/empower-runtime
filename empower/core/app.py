@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Base app class."""
+"""Application."""
 
 from empower.core.service import EService
 

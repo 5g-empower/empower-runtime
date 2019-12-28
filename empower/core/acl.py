@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Base Access Control List class."""
+"""Access Control List."""
 
 from pymodm import MongoModel, fields
 
