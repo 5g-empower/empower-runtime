@@ -71,11 +71,8 @@ def connect(gargs, cmd, expected=200, request=None, headers=None):
 
     if response.status_code != expected:
 
-        if 'message' in data:
-            msg = "Result: %u %s (%s)" % \
-                (data['status_code'], data['reason'], data['message'])
-        else:
-            msg = "Result: %u %s" % (data['status_code'], data['reason'])
+        msg = "%u: %s (%s)" % \
+            (data['status_code'], data['title'], data['detail'])
 
         print(msg)
 
@@ -208,8 +205,8 @@ DESCS = {
 
     'add-wtp': "Add a new WTP.",
     'add-vbs': "Add a new VBS.",
-    'del-wtp': "Del a new WTP.",
-    'del-vbs': "Del a new VBS.",
+    'del-wtp': "Remove a WTP.",
+    'del-vbs': "Remove a VBS.",
     'create-project': "Create a new project.",
     'delete-project': "Delete a project.",
 
@@ -227,7 +224,7 @@ DESCS = {
 
     'list-lte-slices': "List LTE slices.",
     'upsert-lte-slice': "Create/Update a LTE slice",
-    'delete-lte-slice': "Delete a LTE slice",
+    'delete-lte-slice': "Delete an LTE slice",
 
     'worker-info': "Show the details of a worker",
     'application-info': "Show the details of an application",
