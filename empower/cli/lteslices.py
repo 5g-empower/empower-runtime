@@ -17,7 +17,6 @@
 
 """LTE SLices CLI tools."""
 
-import sys
 import uuid
 import argparse
 
@@ -42,7 +41,7 @@ def pa_list_lte_slices(args, cmd):
     return args, leftovers
 
 
-def do_list_lte_slices(gargs, args, leftovers):
+def do_list_lte_slices(gargs, args, _):
     """List lte slices."""
 
     url = '/api/v1/projects/%s/lte_slices' % args.project_id
@@ -89,7 +88,7 @@ def pa_upsert_lte_slice(args, cmd):
     return args, leftovers
 
 
-def do_upsert_lte_slice(gargs, args, leftovers):
+def do_upsert_lte_slice(gargs, args, _):
     """Create/update lte slice. """
 
     headers = command.get_headers(gargs)
@@ -142,7 +141,7 @@ def pa_delete_lte_slice(args, cmd):
     return args, leftovers
 
 
-def do_delete_lte_slice(gargs, args, leftovers):
+def do_delete_lte_slice(gargs, args, _):
     """Delete lte slice. """
 
     url = '/api/v1/projects/%s/lte_slices/%s' % \

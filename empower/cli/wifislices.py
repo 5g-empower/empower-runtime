@@ -17,7 +17,6 @@
 
 """WiFi SLices CLI tools."""
 
-import sys
 import uuid
 import argparse
 
@@ -42,7 +41,7 @@ def pa_list_wifi_slices(args, cmd):
     return args, leftovers
 
 
-def do_list_wifi_slices(gargs, args, leftovers):
+def do_list_wifi_slices(gargs, args, _):
     """List wifi slices."""
 
     url = '/api/v1/projects/%s/wifi_slices' % args.project_id
@@ -89,7 +88,7 @@ def pa_upsert_wifi_slice(args, cmd):
     return args, leftovers
 
 
-def do_upsert_wifi_slice(gargs, args, leftovers):
+def do_upsert_wifi_slice(gargs, args, _):
     """Create/update wifi slice. """
 
     headers = command.get_headers(gargs)
@@ -143,7 +142,7 @@ def pa_delete_wifi_slice(args, cmd):
     return args, leftovers
 
 
-def do_delete_wifi_slice(gargs, args, leftovers):
+def do_delete_wifi_slice(gargs, args, _):
     """Delete wifi slice. """
 
     url = '/api/v1/projects/%s/wifi_slices/%s' % \
