@@ -19,7 +19,6 @@
 
 from tornado.tcpserver import TCPServer
 
-from empower.core.launcher import srv_or_die
 from empower.core.service import EService
 
 HELLO_PERIOD = 2000
@@ -42,8 +41,6 @@ class RANManager(EService):
     """
 
     HANDLERS = []
-
-    projects_manager = None
 
     def __init__(self, context, service_id, device_type, connection_type,
                  proto, port):
@@ -79,8 +76,6 @@ class RANManager(EService):
         """Start api manager."""
 
         super().start()
-
-        self.projects_manager = srv_or_die("projectsmanager")
 
         for device in self.device_type.objects:
             self.devices[device.addr] = device

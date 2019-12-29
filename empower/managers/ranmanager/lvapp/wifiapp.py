@@ -17,14 +17,16 @@
 
 """Base Wi-Fi App class."""
 
-from empower.core.app import EApp
+from empower.core.service import EService
 
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 
+EVERY = 2000
 
-class EWApp(EApp):
+
+class EWApp(EService):
     """Base Wi-Fi App class."""
 
     def start(self):
@@ -33,8 +35,8 @@ class EWApp(EApp):
         # register callbacks
         lvapp.register_callback(lvapp.PT_CLIENT_LEAVE, self._lvap_leave)
         lvapp.register_callback(lvapp.PT_CLIENT_JOIN, self._lvap_join)
-        lvapp.register_callback(lvapp.PT_DEVICE_UP, self._wtp_up)
-        lvapp.register_callback(lvapp.PT_DEVICE_DOWN, self._wtp_down)
+        lvapp.register_callback(lvapp.PT_DEVICE_UP, self.wtp_up)
+        lvapp.register_callback(lvapp.PT_DEVICE_DOWN, self.wtp_down)
 
         # start the app
         super().start()
@@ -45,8 +47,8 @@ class EWApp(EApp):
         # unregister callbacks
         lvapp.unregister_callback(lvapp.PT_CLIENT_LEAVE, self._lvap_leave)
         lvapp.unregister_callback(lvapp.PT_CLIENT_JOIN, self._lvap_join)
-        lvapp.unregister_callback(lvapp.PT_DEVICE_UP, self._wtp_up)
-        lvapp.unregister_callback(lvapp.PT_DEVICE_DOWN, self._wtp_down)
+        lvapp.unregister_callback(lvapp.PT_DEVICE_UP, self.wtp_up)
+        lvapp.unregister_callback(lvapp.PT_DEVICE_DOWN, self.wtp_down)
 
         # stop the app
         super().stop()
@@ -100,20 +102,8 @@ class EWApp(EApp):
     def lvap_join(self, lvap):
         """Called when an LVAP joins a network."""
 
-    def _wtp_down(self, wtp):
-        """Called when a WTP disconnects from the controller."""
-
-        if wtp.addr in self.context.wtps:
-            self.wtp_down(wtp)
-
     def wtp_down(self, wtp):
         """Called when a WTP disconnects from the controller."""
-
-    def _wtp_up(self, wtp):
-        """Called when a WTP connects to the controller."""
-
-        if wtp.addr in self.context.wtps:
-            self.wtp_up(wtp)
 
     def wtp_up(self, wtp):
         """Called when a WTP connects to the controller."""

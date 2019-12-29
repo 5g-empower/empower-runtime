@@ -44,7 +44,6 @@ class ProjectsManager(EService):
                 ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler]
 
     projects = {}
-    accounts_manager = None
 
     def start(self):
         """Start projects manager."""

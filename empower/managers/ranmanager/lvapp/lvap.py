@@ -450,9 +450,7 @@ class LVAP:
                 raise TypeError("Invalid type: %s" % type(block))
 
         # If LVAP is associated to a shared tenant, then reset LVAP
-        projects_manager = srv_or_die("projectsmanager")
-
-        project = projects_manager.load_project_by_ssid(self.ssid)
+        project = srv_or_die("projectsmanager").load_project_by_ssid(self.ssid)
 
         if project and project.wifi_props and \
                 project.wifi_props.bssid_type == prj.T_BSSID_TYPE_SHARED:

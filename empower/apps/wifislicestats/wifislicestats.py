@@ -130,7 +130,7 @@ class SliceStats(EWApp):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.lvapp_manager.devices.values():
+        for wtp in self.wtps.values():
 
             if not wtp.connection:
                 continue

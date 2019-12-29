@@ -169,9 +169,9 @@ class EService:
             self.start()
 
     def write_points(self, points):
-        """Write points to InfluxDB."""
+        """Write points to context."""
 
-        self.context.ts_manager.write_points(points)
+        self.context.write_points(points)
 
     def start(self):
         """Start control loop."""

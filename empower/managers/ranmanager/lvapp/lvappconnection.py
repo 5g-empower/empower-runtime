@@ -24,6 +24,7 @@ from random import randint
 from construct import Container
 from tornado.iostream import StreamClosedError
 
+from empower.core.launcher import srv_or_die
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
@@ -220,7 +221,7 @@ class LVAPPConnection(RANConnection):
     def update_vaps(self):
         """Update active VAPs."""
 
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
 
             # project does not have wifi_props
             if not project.wifi_props:
@@ -248,7 +249,12 @@ class LVAPPConnection(RANConnection):
         """Update active Slices."""
 
         # send slices configuration
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
+
+            # project does not have wifi_props
+            if not project.wifi_props:
+                continue
+
             for slc in project.wifi_slices.values():
                 for block in self.device.blocks.values():
                     self.device.connection.send_set_slice(project, slc, block)
@@ -318,7 +324,7 @@ class LVAPPConnection(RANConnection):
 
         # Check is station is in ACL of any networks
         networks = \
-            self.manager.projects_manager.get_available_ssids(sta, block)
+            srv_or_die("projectsmanager").get_available_ssids(sta, block)
 
         if not networks:
             self.log.debug("No SSID available at this device")
@@ -391,7 +397,7 @@ class LVAPPConnection(RANConnection):
             return
 
         # Otherwise check if the requested BSSID belongs to a unique tenant
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
 
             if not project.wifi_props:
                 continue
@@ -411,7 +417,7 @@ class LVAPPConnection(RANConnection):
                 return
 
         # Finally check if this is a shared bssid
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
 
             if not project.wifi_props:
                 continue
@@ -454,7 +460,7 @@ class LVAPPConnection(RANConnection):
         incoming_ssid = SSID(request.ssid)
 
         # Check if the requested SSID is from a unique project
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
 
             if not project.wifi_props:
                 continue
@@ -480,7 +486,7 @@ class LVAPPConnection(RANConnection):
                 return
 
         # Check if the requested SSID is from a unique project
-        for project in self.manager.projects_manager.projects.values():
+        for project in srv_or_die("projectsmanager").projects.values():
 
             if not project.wifi_props:
                 continue
@@ -595,7 +601,7 @@ class LVAPPConnection(RANConnection):
         slice_id = str(status.slice_id)
         ssid = SSID(status.ssid)
 
-        project = self.manager.projects_manager.load_project_by_ssid(ssid)
+        project = srv_or_die("projectsmanager").load_project_by_ssid(ssid)
         block = self.device.blocks[iface_id]
 
         if not project:
@@ -638,7 +644,7 @@ class LVAPPConnection(RANConnection):
         bssid = EtherAddress(status.bssid)
         ssid = SSID(status.ssid)
 
-        project = self.manager.projects_manager.load_project_by_ssid(ssid)
+        project = srv_or_die("projectsmanager").load_project_by_ssid(ssid)
 
         if not project:
             self.log.warning("Unable to find SSID %s", ssid)
