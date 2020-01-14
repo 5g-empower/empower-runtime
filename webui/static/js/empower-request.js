@@ -368,6 +368,11 @@ __EMPOWER_WEBUI.ENTITY={
   APPLICATION: {
     APPLICATION: "APPLICATION",
     CATALOG: "APPLICATION_CATALOG",
+  },
+  ACL: "ACL",
+  SLICE:{
+    WIFI_SLICE:"WIFI_SLICE",
+    LTE_SLICE:"LTE_SLICE",
   }
 }
 
@@ -569,6 +574,84 @@ class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request {
 }
 
 /**
+ * Class WEBUI_Request_ACL extends WEBUI_Request to the ACL specific case. 
+ * It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_ACL extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "projects/" + project_id + "/wifi_acl/"+ key
+      }
+    }
+    return this._ENTRY_POINT + "projects/" + project_id + "/wifi_acl/"
+  }
+
+}
+
+/**
+ * Class WEBUI_Request_WIFI_SLICE extends WEBUI_Request to the WIFI slice specific case. 
+ * It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_WIFI_SLICE extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "projects/" + project_id + "/wifi_slices/"+ key
+      }
+    }
+    return this._ENTRY_POINT + "projects/" + project_id + "/wifi_slices/"
+  }
+
+}
+
+/**
+ * Class WEBUI_Request_LTE_SLICE extends WEBUI_Request to the LTE slice specific case. 
+ * It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_LTE_SLICE extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        return this._ENTRY_POINT + "projects/" + project_id + "/lte_slices/"+ key
+      }
+    }
+    return this._ENTRY_POINT + "projects/" + project_id + "/lte_slices/"
+  }
+
+}
+
+/**
  * Support factory for providing the proper WEBUI_Request_XXX class for the 
  * specified entity
  * 
@@ -595,6 +678,12 @@ function REST_REQ(entity){
       return new WEBUI_Request_APPLICATION()
     case __EMPOWER_WEBUI.ENTITY.APPLICATION.CATALOG:
       return new WEBUI_Request_APPLICATION_CATALOG()
+    case __EMPOWER_WEBUI.ENTITY.ACL:
+      return new WEBUI_Request_ACL()
+    case __EMPOWER_WEBUI.ENTITY.SLICE.WIFI_SLICE:
+      return new WEBUI_Request_WIFI_SLICE()
+    case __EMPOWER_WEBUI.ENTITY.SLICE.LTE_SLICE:
+      return new WEBUI_Request_LTE_SLICE()
     default:
       console.warn("Entity", 
         entity, 
