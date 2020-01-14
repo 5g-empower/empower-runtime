@@ -43,6 +43,11 @@ class HelloWorld(EApp):
         }
     """
 
+    def __eq__(self, other):
+        if isinstance(other, HelloWorld):
+            return self.message == other.message and self.every == other.every
+        return False
+
     @property
     def message(self):
         """Return message."""

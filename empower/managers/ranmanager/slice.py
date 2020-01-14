@@ -15,45 +15,67 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Access Control List."""
+"""EmPOWER Slice Class."""
 
-from pymodm import MongoModel, fields
+import logging
 
-from empower.core.etheraddress import EtherAddressField
+from empower.core.etheraddress import EtherAddress
 from empower.core.serialize import serializable_dict
 
 
 @serializable_dict
-class ACL(MongoModel):
-    """Access Control List."""
+class Slice:
+    """EmPOWER Slice Class."""
 
-    addr = EtherAddressField(primary_key=True)
-    desc = fields.CharField(required=True)
+    default_properties = {}
+
+    def __init__(self, slice_id, properties=None, devices=None):
+
+        # set read-only parameters
+        self.slice_id = int(slice_id)
+
+        # logger :)
+        self.log = logging.getLogger(self.__class__.__module__)
+
+        # parse properties
+        self.properties = self._parse_properties(properties)
+
+        # parse per device properties
+        self.devices = {}
+        if devices:
+            for device in devices:
+                self.devices[EtherAddress(device)] = \
+                    self._parse_properties(devices[device])
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
-        out = {
-            'addr': self.addr,
-            'desc': self.desc,
+        desc = {
+            'slice_id': self.slice_id,
+            'properties': self.properties,
+            'devices': self.devices
         }
 
-        return out
+        return desc
+
+    def _parse_properties(self, _):
+
+        return self.default_properties
 
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        return "%s" % self.addr
+        return "%s" % self.slice_id
 
     def __str__(self):
         return self.to_str()
 
     def __hash__(self):
-        return hash(self.addr)
+        return hash(self.slice_id)
 
     def __eq__(self, other):
-        if isinstance(other, ACL):
-            return self.addr == other.addr
+        if isinstance(other, Slice):
+            return self.slice_id == other.slice_id
         return False
 
     def __ne__(self, other):

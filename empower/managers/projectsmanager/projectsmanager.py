@@ -18,9 +18,8 @@
 """Projects manager."""
 
 import empower.apps
-import empower.primitives
 
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.service import EService
 
 from empower.managers.projectsmanager.project import Project
@@ -45,7 +44,6 @@ class ProjectsManager(EService):
                 ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler]
 
     projects = {}
-    accounts_manager = None
 
     def start(self):
         """Start projects manager."""
@@ -60,12 +58,7 @@ class ProjectsManager(EService):
     def catalog(self):
         """Return available apps."""
 
-        results = {}
-
-        results.update(self.walk_module(empower.apps))
-        results.update(self.walk_module(empower.primitives))
-
-        return results
+        return self.walk_module(empower.apps)
 
     def load_project_by_ssid(self, ssid):
         """Find a project by SSID."""

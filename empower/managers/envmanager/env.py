@@ -25,7 +25,7 @@ from pymodm import MongoModel, fields
 
 import empower.core.serialize as serialize
 
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
 
 
@@ -57,17 +57,11 @@ class Env(MongoModel):
         # Save pointer to EnvManager
         self.manager = srv_or_die("envmanager")
 
-        # Save pointer to LVAPPManager
-        self.lvapp_manager = srv_or_die("lvappmanager")
+    def write_points(self, points):
+        """Write points to time-series manager."""
 
-        # Save pointer to VBSPManager
-        self.vbsp_manager = srv_or_die("vbspmanager")
-
-        # Save pointer to TimeSeriesManaget
-        self.ts_manager = srv_or_die("tsmanager")
-
-        # Save pointer to ApiManager
-        self.api_manager = srv_or_die("apimanager")
+        ts_manager = srv_or_die("tsmanager")
+        ts_manager.write_points(points)
 
     def save_service_state(self, service_id):
         """Save service state."""
@@ -207,7 +201,8 @@ class Env(MongoModel):
 
         # register handlers
         for handler in service.HANDLERS:
-            self.api_manager.register_handler(handler)
+            api_manager = srv_or_die("apimanager")
+            api_manager.register_handler(handler)
             handler.service = service
 
         # start service

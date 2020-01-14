@@ -23,7 +23,7 @@ import empower.managers.apimanager.apimanager as apimanager
 
 from empower.core.acl import ACL
 from empower.core.etheraddress import EtherAddress
-from empower.core.resourcepool import ResourcePool
+from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 
 
 # pylint: disable=W0223

@@ -18,69 +18,94 @@
 """VBSP RAN Manager."""
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Flag, Bytes, Bit, \
-    BitStruct, Padding
+    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this
 
-PT_VERSION = 0x00
+PT_VERSION = 0x02
+
+MSG_TYPE_REQUEST = 0
+MSG_TYPE_RESPONSE = 1
+
+RESULT_SUCCESS = 0
+RESULT_FAIL = 1
+
+OP_SET = 0
+OP_ADD = 1
+OP_DEL = 2
+OP_GET = 3
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
 PT_CLIENT_JOIN = "client_join"
 PT_CLIENT_LEAVE = "client_leave"
 
-# action, type, opcode
-PT_HELLO_REQUEST = (0x01, 0, 3)
-PT_HELLO_RESPONSE = (0x01, 1, 3)
+PT_HELLO_SERVICE = 0x00
+PT_CAPABILITIES_SERVICE = 0x01
+
+TLVS = Struct(
+    "type" / Int16ub,
+    "length" / Int16ub,
+    "value" / Bytes(this.length - 4),
+)
 
 HEADER = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
         "padding" / Padding(7),
-        "request_response" / Flag
+        "msg_type" / Flag
     ),
-    "reserved1" / Int16ub,
+    "tsrc" / BitStruct(
+        "crud_result" / BitsInteger(2),
+        "action" / BitsInteger(14),
+    ),
     "length" / Int32ub,
-    "action" / Bytes(14),
-    "crud_succfail" / Bytes(2),
+    "padding"  / Bytes(2),
+    "device" / Bytes(6),
+    "seq" / Int32ub,
+    "xid" / Int32ub,
+)
+
+PACKET = Struct(
+    "version" / Int8ub,
+    "flags" / BitStruct(
+        "padding" / Padding(7),
+        "msg_type" / Flag
+    ),
+    "tsrc" / BitStruct(
+        "crud_result" / BitsInteger(2),
+        "action" / BitsInteger(14),
+    ),
+    "length" / Int32ub,
+    "padding"  / Bytes(2),
+    "device" / Bytes(6),
+    "seq" / Int32ub,
+    "xid" / Int32ub,
+    "tlvs" / GreedyRange(TLVS)
+)
+
+# TLV dicts
+
+PT_HELLO_SERVICE_PERIOD = 0x04
+PT_CAPABILITIES_SERVICE_CELL = 0x06
+
+HELLO_SERVICE_PERIOD = Struct(
+    "period" / Int32ub
+)
+HELLO_SERVICE_PERIOD.name = "hello_service_period"
+
+CAPABILITIES_SERVICE_CELL = Struct(
     "pci" / Int16ub,
-    "device" / Bytes(8),
-    "seq" / Int32ub,
-    "xid" / Int32ub,
+    "dl_earfcn" / Int32ub,
+    "ul_earfcn" / Int32ub,
+    "n_prbs" / Int8ub
 )
-HEADER.name = "header"
+CAPABILITIES_SERVICE_CELL.name = "capabilities_service_cell"
 
-HELLO_REQUEST = Struct(
-    "version" / Int8ub,
-    "flags" / BitStruct(
-        "padding" / Padding(7),
-        "type" / Flag
-    ),
-    "reserved1" / Int16ub,
-    "length" / Int32ub,
-    "action" / Bytes(14),
-    "opcode" / Bytes(2),
-    "reserved2" / Int16ub,
-    "device" / Bytes(8),
-    "seq" / Int32ub,
-    "xid" / Int32ub,
-)
-HELLO_REQUEST.name = "hello_request"
+TLVS = {
+    PT_HELLO_SERVICE_PERIOD: HELLO_SERVICE_PERIOD,
+    PT_CAPABILITIES_SERVICE_CELL: CAPABILITIES_SERVICE_CELL,
+}
 
-HELLO_RESPONSE = Struct(
-    "version" / Int8ub,
-    "flags" / BitStruct(
-        "padding" / Padding(7),
-        "ack" / Flag
-    ),
-    "reserved1" / Int16ub,
-    "length" / Int32ub,
-    "action" / Bytes(14),
-    "opcode" / Bytes(2),
-    "reserved2" / Int16ub,
-    "device" / Bytes(8),
-    "seq" / Int32ub,
-    "xid" / Int32ub,
-)
-HELLO_RESPONSE.name = "hello_response"
+# Packet types
 
 PT_TYPES = {
 
@@ -89,8 +114,8 @@ PT_TYPES = {
     PT_CLIENT_JOIN: None,
     PT_CLIENT_LEAVE: None,
 
-    PT_HELLO_REQUEST: HELLO_REQUEST,
-    PT_HELLO_RESPONSE: HELLO_RESPONSE,
+    PT_HELLO_SERVICE: (PACKET, "hello_service"),
+    PT_CAPABILITIES_SERVICE: (PACKET, "capabilities_service"),
 
 }
 

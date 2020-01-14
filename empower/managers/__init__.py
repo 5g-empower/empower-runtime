@@ -15,4 +15,4 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""5G-EmPOWER Services."""
+"""System manager."""

@@ -27,7 +27,7 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.worker import EWorker
+from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
 
 PT_WCS_REQUEST = 0x4A
 PT_WCS_RESPONSE = 0x4B
@@ -64,7 +64,7 @@ WCS_RESPONSE = Struct(
 WCS_RESPONSE.name = "wcs_response"
 
 
-class ChannelStats(EWorker):
+class ChannelStats(EWiFiWorker):
     """WiFi Channel Statistics Worker
 
     Parameters:
@@ -94,7 +94,7 @@ class ChannelStats(EWorker):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.lvapp_manager.devices.values():
+        for wtp in self.context.wtps.values():
 
             if not wtp.connection:
                 continue

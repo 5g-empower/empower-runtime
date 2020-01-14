@@ -136,24 +136,7 @@ class RANConnection:
     def handle_message(self, method, msg):
         """Handle incoming message."""
 
-        # If the default handler is defined then call it
-        handler_name = "_handle_%s" % method
-        if hasattr(self, handler_name):
-            handler = getattr(self, handler_name)
-            handler(msg)
-
-        # Call registered callbacks
-        if msg.type in self.proto.PT_TYPES_HANDLERS:
-            for handler in self.proto.PT_TYPES_HANDLERS[msg.type]:
-                handler(msg, self.device)
-
-        # Check if there are pending XIDs
-        if msg.xid in self.xids:
-            request = self.xids[msg.xid][0]
-            callback = self.xids[msg.xid][1]
-            if callback:
-                callback(msg, self.device, request)
-            del self.xids[msg.xid]
+        raise NotImplementedError()
 
     def on_read(self, future):
         """Assemble message from agent.

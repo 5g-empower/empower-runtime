@@ -32,15 +32,10 @@ def do_list_workers(gargs, args, leftovers):
 
         accum = []
 
-        accum.append("worker id ")
+        accum.append("worker_id ")
         accum.append(entry['service_id'])
-        accum.append(" status RUNNING ")
-        accum.append("\n  name: ")
+        accum.append(" name ")
         accum.append(entry['name'])
-        accum.append("\n  params:")
-
-        for k, val in entry['params'].items():
-            accum.append("\n    %s: %s" % (k, val))
 
         print(''.join(accum))
 
@@ -115,20 +110,7 @@ def do_load_worker(gargs, args, leftovers):
     url = '/api/v1/workers/%s' % worker_id
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
-    accum = []
-
-    accum.append("worker id ")
-    accum.append(data['service_id'])
-    accum.append(" status RUNNING ")
-    accum.append("\n  name: ")
-    accum.append(data['name'])
-
-    accum.append("\n  params:")
-
-    for k, val in data['params'].items():
-        accum.append("\n    %s: %s" % (k, val))
-
-    print(''.join(accum))
+    print(data['service_id'])
 
 
 def pa_unload_worker(args, cmd):
@@ -155,7 +137,7 @@ def do_unload_worker(gargs, args, _):
     url = '/api/v1/workers/%s' % args.worker_id
     command.connect(gargs, ('DELETE', url), 204)
 
-    print("worker id %s status STOPPED" % args.worker_id)
+    print(args.worker_id)
 
 
 def do_unload_all_workers(gargs, args, leftovers):
@@ -173,7 +155,7 @@ def do_unload_all_workers(gargs, args, leftovers):
         url = '/api/v1/workers/%s' % worker_id
         command.connect(gargs, ('DELETE', url), 204, headers=headers)
 
-        print("worker id %s status STOPPED" % worker_id)
+        print(worker_id)
 
 
 def pa_set_worker_params(args, cmd):
@@ -202,20 +184,21 @@ def do_set_worker_params(gargs, args, leftovers):
         "params": command.get_params(leftovers)
     }
 
+    print(request)
+
     headers = command.get_headers(gargs)
 
     url = '/api/v1/workers/%s' % args.worker_id
     command.connect(gargs, ('PUT', url), 204, request, headers=headers)
 
-    url = '/api/v1/projects/%s' % args.worker_id
+    url = '/api/v1/workers/%s' % args.worker_id
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     accum = []
 
-    accum.append("worker id ")
+    accum.append("worker_id ")
     accum.append(data['service_id'])
-    accum.append(" status RUNNING ")
-    accum.append("\n  name: ")
+    accum.append("\n  name ")
     accum.append(data['name'])
 
     accum.append("\n  params:")

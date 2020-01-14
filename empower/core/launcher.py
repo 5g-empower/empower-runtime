@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Bootstrap module."""
+"""Launcher module."""
 
 import configparser
 import ssl
@@ -159,7 +159,7 @@ def _read_config(args):
             if param == 'module':
                 continue
 
-            managers[mngr][param] = config[mngr][param]
+            managers[mngr]["params"][param] = config[mngr][param]
 
     return managers, managers_order
 

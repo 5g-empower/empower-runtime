@@ -15,4 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""5G-EmPOWER Primitives."""
+"""Wireless Termination Point."""
+
+from empower.managers.ranmanager.device import Device
+from empower.core.serialize import serializable_dict
+
+
+@serializable_dict
+class WTP(Device):
+    """Wireless Termination Point.
+
+    Attributes:
+        blocks: the interfaces supported by the WTP
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.blocks = {}
+
+    def to_dict(self):
+        """Return JSON-serializable representation of the object."""
+
+        out = super().to_dict()
+        out['blocks'] = self.blocks
+        return out

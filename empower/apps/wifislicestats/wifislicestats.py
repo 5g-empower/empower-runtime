@@ -26,7 +26,7 @@ import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.ssid import WIFI_NWID_MAXSIZE
 from empower.core.etheraddress import EtherAddress
-from empower.core.app import EApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWApp
 from empower.core.app import EVERY
 
 
@@ -69,7 +69,7 @@ WIFI_SLICE_STATS_RESPONSE = Struct(
 WIFI_SLICE_STATS_RESPONSE.name = "wifi_slice_stats_response"
 
 
-class SliceStats(EApp):
+class SliceStats(EWApp):
     """WiFi Slice Statistics Primitive.
 
     This primitive collects the slice statistics.
@@ -81,7 +81,7 @@ class SliceStats(EApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.primitives.wifislicestats.wifislicestats",
+            "name": "empower.apps.wifislicestats.wifislicestats",
             "params": {
                 "slice_id": 0,
                 "every": 2000
@@ -130,7 +130,7 @@ class SliceStats(EApp):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.lvapp_manager.devices.values():
+        for wtp in self.wtps.values():
 
             if not wtp.connection:
                 continue

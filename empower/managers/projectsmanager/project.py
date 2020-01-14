@@ -22,12 +22,13 @@ from pymodm.errors import ValidationError
 
 import empower.core.serialize as serialize
 from empower.managers.envmanager.env import Env
-from empower.core.slice import WiFiSlice, LTESlice
+from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
+from empower.managers.ranmanager.vbsp.lteslice import LTESlice
 from empower.core.etheraddress import EtherAddress
 from empower.core.acl import ACL
 from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
 
 T_BSSID_TYPE_SHARED = "shared"
@@ -286,7 +287,7 @@ class Project(Env):
 
         slc = WiFiSlice(**kwargs)
 
-        for wtp in self.lvapp_manager.devices.values():
+        for wtp in self.wtps.values():
             for block in wtp.blocks.values():
                 wtp.connection.send_set_slice(self, slc, block)
 
@@ -302,7 +303,7 @@ class Project(Env):
 
         slc = LTESlice(**kwargs)
 
-        for vbs in self.vbsp_manager.devices.values():
+        for vbs in self.vbses.values():
             for cell in vbs.cells.values():
                 vbs.connection.send_set_slice(self, slc, cell)
 
@@ -321,7 +322,7 @@ class Project(Env):
 
         slc = self.wifi_slices[slice_id]
 
-        for wtp in self.lvapp_manager.devices.values():
+        for wtp in self.wtps.values():
             for block in wtp.blocks.values():
                 wtp.connection.send_del_slice(self, slc.slice_id, block)
 
@@ -338,7 +339,7 @@ class Project(Env):
 
         slc = self.lte_slices[slice_id]
 
-        for vbs in self.vbsp_manager.devices.values():
+        for vbs in self.vbses.values():
             for cell in vbs.cells.values():
                 vbs.connection.send_del_slice(self, slc.slice_id, cell)
 
@@ -351,7 +352,7 @@ class Project(Env):
     def vbses(self):
         """Return the VBSes."""
 
-        return self.vbsp_manager.devices
+        return srv_or_die("vbspmanager").devices
 
     @property
     def ueqs(self):
@@ -360,7 +361,7 @@ class Project(Env):
         if not self.lte_props:
             return {}
 
-        ueqs = {k: v for k, v in self.vbsp_manager.ueqs.items()
+        ueqs = {k: v for k, v in srv_or_die("vbspmanager").ueqs.items()
                 if v.plmnid == self.lte_props.plmnid}
 
         return ueqs
@@ -369,7 +370,7 @@ class Project(Env):
     def wtps(self):
         """Return the WTPs."""
 
-        return self.lvapp_manager.devices
+        return srv_or_die("lvappmanager").devices
 
     @property
     def lvaps(self):
@@ -378,7 +379,7 @@ class Project(Env):
         if not self.wifi_props:
             return {}
 
-        lvaps = {k: v for k, v in self.lvapp_manager.lvaps.items()
+        lvaps = {k: v for k, v in srv_or_die("lvappmanager").lvaps.items()
                  if v.ssid == self.wifi_props.ssid}
 
         return lvaps
@@ -390,7 +391,7 @@ class Project(Env):
         if not self.wifi_props:
             return {}
 
-        vaps = {k: v for k, v in self.lvapp_manager.vaps.items()
+        vaps = {k: v for k, v in srv_or_die("lvappmanager").vaps.items()
                 if v.ssid == self.wifi_props.ssid}
 
         return vaps
