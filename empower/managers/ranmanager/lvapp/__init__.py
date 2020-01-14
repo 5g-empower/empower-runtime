@@ -87,6 +87,7 @@ HELLO_REQUEST = Struct(
     "seq" / Int32ub,
     "xid" / Int32ub,
     "device" / Bytes(6),
+    "period" / Int32ub,
 )
 HELLO_REQUEST.name = "hello_request"
 
@@ -97,6 +98,7 @@ HELLO_RESPONSE = Struct(
     "seq" / Int32ub,
     "xid" / Int32ub,
     "device" / Bytes(6),
+    "period" / Int32ub,
 )
 HELLO_RESPONSE.name = "hello_response"
 

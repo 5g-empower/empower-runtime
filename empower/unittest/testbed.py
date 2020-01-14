@@ -109,11 +109,8 @@ class TestTestbed(BaseTest):
             params = ("root", "root", "/vbses")
             self.post(params, data, 201)
 
-        # ALIX 2D
-        addrs = ["00:0D:B9:2F:56:64", "00:0D:B9:2F:56:58", "00:0D:B9:2F:56:5C",
-                 "00:0D:B9:2F:56:B4", "00:0D:B9:2F:55:CC", "00:0D:B9:2F:63:78",
-                 "00:0D:B9:30:3E:04", "00:0D:B9:30:3E:18", "00:0D:B9:2F:56:BC",
-                 "00:0D:B9:2F:56:48"]
+        # ALIX APU
+        addrs = ["00:0D:B9:3F:8A:E8"]
         for addr in addrs:
             data = {"addr": addr, "desc": "PC Engines ALIX 2D"}
             params = ("root", "root", "/wtps")

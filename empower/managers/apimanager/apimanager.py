@@ -121,8 +121,10 @@ class IndexHandler(BaseHandler):
             return None
 
         project_id = UUID(project_id.decode('UTF-8'))
+        projects_manager = srv_or_die("projectsmanager")
+        project = projects_manager.projects[project_id]
 
-        return self.service.projects_manager.projects[project_id]
+        return project
 
     @tornado.web.authenticated
     def get(self, args=None):
@@ -131,7 +133,8 @@ class IndexHandler(BaseHandler):
         try:
 
             username = self.get_secure_cookie("username").decode('UTF-8')
-            account = self.service.accounts_manager.accounts[username]
+            accounts_manager = srv_or_die("accountsmanager")
+            account = accounts_manager.accounts[username]
 
             page = "index.html" if not args else "%s.html" % args
 
@@ -178,7 +181,8 @@ class AuthSwitchProjectHandler(BaseHandler):
 
             # set project
             project_id = UUID(project_id)
-            project = self.service.projects_manager.projects[project_id]
+            projects_manager = srv_or_die("projectsmanager")
+            project = projects_manager.projects[project_id]
 
             if project.owner != username:
                 self.clear_cookie("project_id")
@@ -216,7 +220,9 @@ class AuthLoginHandler(BaseHandler):
         username = self.get_argument("username", "")
         password = self.get_argument("password", "")
 
-        if self.service.accounts_manager.check_permission(username, password):
+        accounts_manager = srv_or_die("accountsmanager")
+
+        if accounts_manager.check_permission(username, password):
             self.set_secure_cookie("username", username)
             self.redirect("/index.html")
         else:
@@ -452,9 +458,6 @@ class APIManager(EService):
     HANDLERS = [IndexHandler, AuthLoginHandler, AuthLogoutHandler,
                 DocHandler, AuthSwitchProjectHandler]
 
-    accounts_manager = None
-    projects_manager = None
-
     def __init__(self, context, service_id, webui, port):
 
         super().__init__(context=context, service_id=service_id, webui=webui,
@@ -506,9 +509,6 @@ class APIManager(EService):
         """Start api manager."""
 
         super().start()
-
-        self.accounts_manager = srv_or_die("accountsmanager")
-        self.projects_manager = srv_or_die("projectsmanager")
 
         self.http_server.listen(self.port)
 
