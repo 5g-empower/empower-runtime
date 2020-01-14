@@ -25,7 +25,7 @@ from construct import Container
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.etheraddress import EtherAddress
-from empower.core.app import EApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWApp
 from empower.core.app import EVERY
 
 
@@ -70,7 +70,7 @@ WIFI_RC_STATS_RESPONSE = Struct(
 WIFI_RC_STATS_RESPONSE.name = "wifi_rc_stats_response"
 
 
-class RCStats(EApp):
+class RCStats(EWApp):
     """WiFi Rate Control Statistics Primitive.
 
     This primitive collects the RC statistics from the specified LVAP.
@@ -82,7 +82,7 @@ class RCStats(EApp):
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.primitives.wifircstats.wifircstats",
+            "name": "empower.apps.wifircstats.wifircstats",
             "params": {
                 "sta": "11:22:33:44:55:66",
                 "every": 2000

@@ -32,11 +32,11 @@ from pymodm.errors import ValidationError
 
 from empower.core.serialize import serialize
 from empower.core.service import EService
-from empower.main import srv_or_die
+from empower.core.launcher import srv_or_die
 
 DEBUG = True
 DEFAULT_PORT = 8888
-DEFAULT_WEBUI = "/var/www/empower/"
+DEFAULT_WEBUI = "/var/www/webui/"
 COOKIE_SECRET = b'xyRTvZpRSUyk8/9/McQAvsQPB4Rqv0w9mBtIpH9lf1o='
 LOGIN_URL = "/auth/login"
 
@@ -329,10 +329,10 @@ class EmpowerAPIHandler(tornado.web.RequestHandler):
         self.send_error(401, message="URI not authorized")
 
 
-BOILER_PLATE = """# EmPOWER REST API
+BOILER_PLATE = """# REST API
 
-The EmPOWER API consists of a set of RESTful resources and their attributes.
-The base URL for the EmPOWER REST API is the following:
+The REST API consists of a set of RESTful resources and their attributes.
+The base URL for the REST API is the following:
 
     http{s}://{username}:{password}@{hostname}:{port}/api/v1/{resource}
 
@@ -341,7 +341,7 @@ combination for your controller.
 
 The current (and only) version of the API is v1.
 
-5G-EmPOWER uses HTTP basic authentication control access to RESTful resource.
+The REST API uses HTTP basic authentication control access to RESTful resource.
 
 Notice that there are two kinds of accounts:
 
@@ -445,10 +445,7 @@ class DocHandler(EmpowerAPIHandler):
 
 
 class APIManager(EService):
-    """Service exposing the 5G-EmPOWER REST API
-
-    This service exposes the 5G-EmPOWER REST API, the 'port' parameter
-    specifies on which port the HTTP server should listen.
+    """Service exposing a REST API
 
     Parameters:
         port: the port on which the HTTP server should listen (optional,

@@ -17,7 +17,7 @@
 
 """Virtual Base Station."""
 
-from empower.core.device import Device
+from empower.managers.ranmanager.device import Device
 from empower.core.serialize import serializable_dict
 
 

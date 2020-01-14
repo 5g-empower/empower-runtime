@@ -23,7 +23,7 @@ from empower.managers.ranmanager.ranmanager import RANManager
 from empower.managers.ranmanager.lvapp.wtphandler import WTPHandler
 from empower.managers.ranmanager.lvapp.lvaphandler import LVAPHandler
 from empower.managers.ranmanager.lvapp.lvappconnection import LVAPPConnection
-from empower.core.wtp import WTP
+from empower.managers.ranmanager.lvapp.wtp import WTP
 
 DEFAULT_PORT = 4433
 

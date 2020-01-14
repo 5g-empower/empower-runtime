@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Services CLI tools."""
+"""Applications CLI tools."""
 
 import uuid
 import argparse
@@ -51,16 +51,10 @@ def do_list_apps(gargs, args, _):
 
         accum = []
 
-        accum.append("app id ")
+        accum.append("app_id ")
         accum.append(entry['service_id'])
-        accum.append(" status RUNNING ")
-        accum.append("\n  name: ")
+        accum.append(" name ")
         accum.append(entry['name'])
-
-        accum.append("\n  params:")
-
-        for k, val in entry['params'].items():
-            accum.append("\n    %s: %s" % (k, val))
 
         print(''.join(accum))
 
@@ -139,20 +133,7 @@ def do_load_app(gargs, args, leftovers):
     url = '/api/v1/projects/%s/apps/%s' % (args.project_id, app_id)
     _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
-    accum = []
-
-    accum.append("app id ")
-    accum.append(data['service_id'])
-    accum.append(" status RUNNING ")
-    accum.append("\n  name: ")
-    accum.append(data['name'])
-
-    accum.append("\n  params:")
-
-    for k, val in data['params'].items():
-        accum.append("\n    %s: %s" % (k, val))
-
-    print(''.join(accum))
+    print(data['service_id'])
 
 
 def pa_unload_app(args, cmd):
@@ -182,7 +163,7 @@ def do_unload_app(gargs, args, _):
     url = '/api/v1/projects/%s/apps/%s' % (args.project_id, args.app_id)
     command.connect(gargs, ('DELETE', url), 204)
 
-    print("app id %s status STOPPED" % args.app_id)
+    print(args.app_id)
 
 
 def pa_unload_all_apps(args, cmd):
@@ -218,7 +199,7 @@ def do_unload_all_apps(gargs, args, _):
         url = '/api/v1/projects/%s/apps/%s' % (args.project_id, app_id)
         command.connect(gargs, ('DELETE', url), 204, headers=headers)
 
-        print("app id %s status STOPPED" % app_id)
+        print(app_id)
 
 
 def pa_set_app_params(args, cmd):
@@ -260,10 +241,9 @@ def do_set_app_params(gargs, args, leftovers):
 
     accum = []
 
-    accum.append("app id ")
+    accum.append("app_id ")
     accum.append(data['service_id'])
-    accum.append(" status RUNNING ")
-    accum.append("\n  name: ")
+    accum.append("\n  name ")
     accum.append(data['name'])
 
     accum.append("\n  params:")

@@ -15,10 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""LVAP Bin Counter Primitive."""
+"""TXP Bin Counter Primitive."""
 
 import time
-
 from datetime import datetime
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
@@ -27,22 +26,23 @@ from construct import Container
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.etheraddress import EtherAddress
-from empower.core.app import EApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWApp
 from empower.core.app import EVERY
 
-PT_BIN_COUNTERS_REQUEST = 0x82
-PT_BIN_COUNTERS_RESPONSE = 0x83
+PT_TXP_BIN_COUNTERS_REQUEST = 0x84
+PT_TXP_BIN_COUNTERS_RESPONSE = 0x85
 
-BIN_COUNTERS_REQUEST = Struct(
+TXP_BIN_COUNTERS_REQUEST = Struct(
     "version" / Int8ub,
     "type" / Int8ub,
     "length" / Int32ub,
     "seq" / Int32ub,
     "xid" / Int32ub,
     "device" / Bytes(6),
-    "sta" / Bytes(6),
+    "iface_id" / Int32ub,
+    "addr" / Bytes(6),
 )
-BIN_COUNTERS_REQUEST.name = "bin_counters_request"
+TXP_BIN_COUNTERS_REQUEST.name = "txp_bin_counters_request"
 
 COUNTERS_ENTRY = Struct(
     "size" / Int16ub,
@@ -50,86 +50,102 @@ COUNTERS_ENTRY = Struct(
 )
 COUNTERS_ENTRY.name = "counters_entry"
 
-BIN_COUNTERS_RESPONSE = Struct(
+TXP_BIN_COUNTERS_RESPONSE = Struct(
     "version" / Int8ub,
     "type" / Int8ub,
     "length" / Int32ub,
     "seq" / Int32ub,
     "xid" / Int32ub,
     "device" / Bytes(6),
-    "sta" / Bytes(6),
+    "iface_id" / Int32ub,
+    "addr" / Bytes(6),
     "nb_tx" / Int16ub,
-    "nb_rx" / Int16ub,
-    "stats" / Array(lambda ctx: ctx.nb_tx + ctx.nb_rx, COUNTERS_ENTRY),
+    "stats" / Array(lambda ctx: ctx.nb_tx, COUNTERS_ENTRY),
 )
-BIN_COUNTERS_RESPONSE.name = "bin_counters_response"
+TXP_BIN_COUNTERS_RESPONSE.name = "txp_bin_counters_response"
 
 
-class LVAPBinCounter(EApp):
-    """LVAP Bin Counter Primitive.
+class TXPBinCounter(EWApp):
+    """TXP Bin Counter Primitive.
 
-    This primitive collects the packet counters from the specified LVAP.
+    This primitive collects the packet counters from the specified address.
 
     Parameters:
-        sta: the LVAP to track as an EtherAddress (mandatory)
+        iface_id: the interface id (mandatory)
+        addr: the address to track as an EtherAddress (mandatory)
         bins: the bins for the measurements (optional, default: [8192])
         every: the loop period in ms (optional, default 2000ms)
 
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
         {
-            "name": "empower.primitives.lvapbincounter.lvapbincounter",
+            "name": "empower.apps.lvapbincounter.lvapbincounter",
             "params": {
-                "sta": "11:22:33:44:55:66",
+                "iface_id": 0,
+                "addr": "11:22:33:44:55:66",
                 "every": 2000
             }
         }
     """
 
-    def __init__(self, context, service_id, sta, bins="8192", every=EVERY):
+    def __init__(self, context, service_id, iface_id, addr, bins="8192",
+                 every=EVERY):
 
         super().__init__(context=context,
                          service_id=service_id,
-                         sta=sta,
+                         addr=addr,
+                         iface_id=iface_id,
                          bins=bins,
                          every=every)
 
         # Register messages
-        lvapp.register_message(PT_BIN_COUNTERS_REQUEST, BIN_COUNTERS_REQUEST)
-        lvapp.register_message(PT_BIN_COUNTERS_RESPONSE, BIN_COUNTERS_RESPONSE)
+        lvapp.register_message(PT_TXP_BIN_COUNTERS_REQUEST,
+                               TXP_BIN_COUNTERS_REQUEST)
+
+        lvapp.register_message(PT_TXP_BIN_COUNTERS_RESPONSE,
+                               TXP_BIN_COUNTERS_RESPONSE)
 
         # Data structures
         self.counters = {
             "tx_packets": [],
-            "rx_packets": [],
             "tx_bytes": [],
-            "rx_bytes": [],
             "tx_pps": [],
-            "rx_pps": [],
-            "tx_bps": [],
-            "rx_bps": []
+            "tx_bps": []
         }
 
         # Last seen time
         self.last = None
 
     def __eq__(self, other):
-        if isinstance(other, LVAPBinCounter):
-            return self.sta == other.sta and self.bins == other.bins and \
+        if isinstance(other, TXPBinCounter):
+            return self.addr == other.addr and self.bins == other.bins and \
+                   self.iface_id == other.iface_id and \
                    self.every == other.every
         return False
 
     @property
-    def sta(self):
+    def iface_id(self):
+        """ Return the interface. """
+
+        return self.params['iface_id']
+
+    @iface_id.setter
+    def iface_id(self, iface_id):
+        """ Set the interface. """
+
+        self.params['iface_id'] = int(iface_id)
+
+    @property
+    def addr(self):
         """ Return the station address. """
 
-        return self.params['sta']
+        return self.params['addr']
 
-    @sta.setter
-    def sta(self, sta):
+    @addr.setter
+    def addr(self, addr):
         """ Set the station address. """
 
-        self.params['sta'] = EtherAddress(sta)
+        self.params['addr'] = EtherAddress(addr)
 
     @property
     def bins(self):
@@ -167,7 +183,8 @@ class LVAPBinCounter(EApp):
         out = super().to_dict()
 
         out['bins'] = self.bins
-        out['sta'] = self.sta
+        out['addr'] = self.addr
+        out['iface_id'] = self.iface_id
         out['counters'] = self.counters
 
         return out
@@ -175,15 +192,16 @@ class LVAPBinCounter(EApp):
     def loop(self):
         """Send out requests"""
 
-        if self.sta not in self.context.lvaps:
+        if self.addr not in self.context.lvaps:
             return
 
-        lvap = self.context.lvaps[self.sta]
+        lvap = self.context.lvaps[self.addr]
 
-        msg = Container(length=BIN_COUNTERS_REQUEST.sizeof(),
-                        sta=lvap.addr.to_raw())
+        msg = Container(length=TXP_BIN_COUNTERS_REQUEST.sizeof(),
+                        iface_id=self.iface_id,
+                        addr=lvap.addr.to_raw())
 
-        lvap.wtp.connection.send_message(PT_BIN_COUNTERS_REQUEST,
+        lvap.wtp.connection.send_message(PT_TXP_BIN_COUNTERS_REQUEST,
                                          msg,
                                          self.handle_response)
 
@@ -255,24 +273,17 @@ class LVAPBinCounter(EApp):
         # update this object
 
         tx_samples = response.stats[0:response.nb_tx]
-        rx_samples = response.stats[response.nb_tx:-1]
 
         old_tx_bytes = self.counters["tx_bytes"]
-        old_rx_bytes = self.counters["rx_bytes"]
 
         old_tx_packets = self.counters["tx_packets"]
-        old_rx_packets = self.counters["rx_packets"]
 
         self.counters["tx_bytes"] = self.fill_bytes_samples(tx_samples)
-        self.counters["rx_bytes"] = self.fill_bytes_samples(rx_samples)
 
         self.counters["tx_packets"] = self.fill_packets_samples(tx_samples)
-        self.counters["rx_packets"] = self.fill_packets_samples(rx_samples)
 
         self.counters["tx_bps"] = [0.0] * len(self.bins)
-        self.counters["rx_bps"] = [0.0] * len(self.bins)
         self.counters["tx_pps"] = [0.0] * len(self.bins)
-        self.counters["rx_pps"] = [0.0] * len(self.bins)
 
         if self.last:
 
@@ -282,17 +293,9 @@ class LVAPBinCounter(EApp):
                 self.update_stats(delta, old_tx_bytes,
                                   self.counters["tx_bytes"])
 
-            self.counters["rx_bps"] = \
-                self.update_stats(delta, old_rx_bytes,
-                                  self.counters["rx_bytes"])
-
             self.counters["tx_pps"] = \
                 self.update_stats(delta, old_tx_packets,
                                   self.counters["tx_packets"])
-
-            self.counters["rx_pps"] = \
-                self.update_stats(delta, old_rx_packets,
-                                  self.counters["rx_packets"])
 
         # generate data points
         points = []
@@ -301,15 +304,11 @@ class LVAPBinCounter(EApp):
         for idx, _ in enumerate(self.bins):
 
             fields = {
-                "sta": self.sta,
+                "addr": self.addr,
                 "tx_bytes": self.counters["tx_bytes"][idx],
-                "rx_bytes": self.counters["rx_bytes"][idx],
                 "tx_packets": self.counters["tx_packets"][idx],
-                "rx_packets": self.counters["rx_packets"][idx],
                 "tx_bps": self.counters["tx_bps"][idx],
-                "rx_bps": self.counters["rx_bps"][idx],
-                "tx_pps": self.counters["tx_pps"][idx],
-                "rx_pps": self.counters["rx_pps"][idx]
+                "tx_pps": self.counters["tx_pps"][idx]
             }
 
             tags = dict(self.params)
@@ -334,8 +333,9 @@ class LVAPBinCounter(EApp):
         self.last = time.time()
 
 
-def launch(context, service_id, sta, bins="8192", every=EVERY):
+def launch(context, service_id, iface_id, addr, bins="8192", every=EVERY):
     """ Initialize the module. """
 
-    return LVAPBinCounter(context=context, service_id=service_id,
-                          sta=sta, bins=bins, every=every)
+    return TXPBinCounter(context=context, service_id=service_id,
+                         iface_id=iface_id, addr=addr, bins=bins,
+                         every=every)

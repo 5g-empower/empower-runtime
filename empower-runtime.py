@@ -17,7 +17,7 @@
 
 """Launch the 5G-EmPOWER Runtime."""
 
-from empower.main import main
+from empower.core.launcher import main
 
 
 if __name__ == '__main__':

@@ -22,10 +22,11 @@ import logging
 
 import empower.managers.projectsmanager.project as prj
 
-from empower.main import srv_or_die
-from empower.core.resourcepool import ResourceBlock
-from empower.core.resourcepool import ResourcePool
-from empower.core.txpolicy import TxPolicy, TX_AMSDU_LEN_8K
+from empower.core.launcher import srv_or_die
+from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
+from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
+from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
+from empower.managers.ranmanager.lvapp.txpolicy import TX_AMSDU_LEN_8K
 from empower.core.etheraddress import EtherAddress
 from empower.core.ssid import SSID
 from empower.core.serialize import serializable_dict
@@ -449,9 +450,7 @@ class LVAP:
                 raise TypeError("Invalid type: %s" % type(block))
 
         # If LVAP is associated to a shared tenant, then reset LVAP
-        projects_manager = srv_or_die("projectsmanager")
-
-        project = projects_manager.load_project_by_ssid(self.ssid)
+        project = srv_or_die("projectsmanager").load_project_by_ssid(self.ssid)
 
         if project and project.wifi_props and \
                 project.wifi_props.bssid_type == prj.T_BSSID_TYPE_SHARED:

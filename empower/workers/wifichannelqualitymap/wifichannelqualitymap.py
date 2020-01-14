@@ -24,7 +24,7 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.worker import EWorker
+from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
 from empower.core.etheraddress import EtherAddress
 
 PT_UCQM_REQUEST = 0x40
@@ -68,7 +68,7 @@ CQM_RESPONSE = Struct(
 CQM_RESPONSE.name = "cqm_response"
 
 
-class ChannelQualityMap(EWorker):
+class ChannelQualityMap(EWiFiWorker):
     """WiFi Channel Quality Map Worker
 
     Parameters:
@@ -100,7 +100,7 @@ class ChannelQualityMap(EWorker):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.lvapp_manager.devices.values():
+        for wtp in self.context.wtps.values():
 
             if not wtp.connection:
                 continue
