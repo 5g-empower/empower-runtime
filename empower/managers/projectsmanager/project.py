@@ -282,6 +282,28 @@ class Project(Env):
         # Save pointer to ProjectManager
         self.manager = srv_or_die("projectsmanager")
 
+    def upsert_acl(self, addr, desc):
+        """Upsert ACL."""
+
+        acl = ACL(addr=addr, desc=desc)
+
+        self.wifi_props.allowed[str(acl.addr)] = acl
+
+        self.save()
+
+        return acl
+
+    def remove_acl(self, addr=None):
+        """Upsert new slice."""
+
+        if addr:
+            del self.wifi_props.allowed[str(addr)]
+        else:
+            for k in list(self.wifi_props.allowed.keys()):
+                del self.wifi_props.allowed[k]
+
+        self.save()
+
     def upsert_wifi_slice(self, **kwargs):
         """Upsert new slice."""
 

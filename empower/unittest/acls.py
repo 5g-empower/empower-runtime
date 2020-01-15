@@ -223,6 +223,61 @@ class TestACLs(BaseTest):
         self.delete(("foo", "foo",
                      "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 204)
 
+    def test_delete_all_acls(self):
+        """test_modify_acls."""
+
+        data = {
+            "version": "1.0",
+            "owner": "foo",
+            "desc": "Test project",
+            "wifi_props": {
+                "ssid": "EmPOWER",
+                "allowed": {
+                    "04:46:65:49:e0:1f": {
+                        "addr": "04:46:65:49:e0:1f",
+                        "desc": "Some laptop"
+                    },
+                    "04:46:65:49:e0:11": {
+                        "addr": "04:46:65:49:e0:11",
+                        "desc": "Some other laptop"
+                    },
+                    "04:46:65:49:e0:12": {
+                        "addr": "04:46:65:49:e0:12",
+                        "desc": "Yet another laptop"
+                    }
+                }
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("foo", "foo",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("bar", "bar",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_acl")
+
+        self.delete(params, 204)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wifi_acl/"
+             "04:46:65:49:e0:12")
+
+        self.get(params, 404)
+
+        self.delete(("foo", "foo",
+                     "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 204)
+
 
 if __name__ == '__main__':
     unittest.main()
