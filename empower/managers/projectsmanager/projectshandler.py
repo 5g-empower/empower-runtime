@@ -367,12 +367,9 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
         project = self.service.projects[project_id]
 
         desc = "Generic Station" if 'desc' not in kwargs else kwargs['desc']
+        addr = EtherAddress(args[1])
 
-        allowed = project.wifi_props.allowed
-        acl = allowed[str(EtherAddress(args[1]))]
-        acl.desc = desc
-
-        project.save()
+        project.upsert_acl(addr, desc)
 
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def post(self, *args, **kwargs):
@@ -399,18 +396,13 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
         desc = "Generic Station" if 'desc' not in kwargs else kwargs['desc']
         addr = EtherAddress(kwargs['addr'])
 
-        allowed = project.wifi_props.allowed
-        acl = ACL(addr=addr, desc=desc)
+        acl = project.upsert_acl(addr, desc)
 
-        allowed[str(acl.addr)] = acl
-
-        project.save()
-
-        url = "/api/v1/projects/%s/wifi_acl/%s" % (project_id, addr)
+        url = "/api/v1/projects/%s/wifi_acl/%s" % (project_id, acl.addr)
 
         self.set_header("Location", url)
 
-    @apimanager.validate(returncode=204, min_args=2, max_args=2)
+    @apimanager.validate(returncode=204, min_args=1, max_args=2)
     def delete(self, *args, **kwargs):
         """Delete an entry in ACL.
 
@@ -423,15 +415,15 @@ class ProjectsWiFiACLHandler(apimanager.EmpowerAPIHandler):
 
             DELETE /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/
                 wifi_acl/60:57:18:B1:A4:B8
-
         """
 
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
-        del project.wifi_props.allowed[str(EtherAddress(args[1]))]
-
-        project.save()
+        if len(args) == 2:
+            project.remove_acl(EtherAddress(args[1]))
+        else:
+            project.remove_acl()
 
 
 # pylint: disable=W0223
