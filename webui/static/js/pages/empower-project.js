@@ -450,37 +450,16 @@ function remove_ACL(){
 
 function remove_ALL_ACLs(){
 
-  let remove_all =  function(data){
-
-    let acls = {}
-    if (CF._is_there(data.wifi_props)){
-      if (CF._is_there(data.wifi_props.allowed)){
-        acls = data.wifi_props.allowed
-      }
-    }
-
-    let rda = function(){
-      refresh_datatable_acls()
-    }
-
-    $.each( acls, function( key, val ) {
-      ENTITY = __EMPOWER_WEBUI.ENTITY.ACL
-
-      REST_REQ(ENTITY).configure_DELETE({
-        key: key,
-        success: [
-          empower_log_response, empower_alert_generate_success, rda ],
-        error: [ empower_log_response,  empower_alert_generate_error ]
-      })
-      .perform()
-    })
+  let rda = function(){
+    refresh_datatable_acls()
   }
 
-  ENTITY = __EMPOWER_WEBUI.ENTITY.PROJECT
-  REST_REQ(ENTITY).configure_GET({
-    key: __EMPOWER_WEBUI.PROJECT.ID,
-    success: [ empower_log_response, remove_all],
-    error: [ empower_log_response, empower_alert_generate_error ]
+  ENTITY = __EMPOWER_WEBUI.ENTITY.ACL
+
+  REST_REQ(ENTITY).configure_DELETE({
+    success: [
+      empower_log_response, empower_alert_generate_success, rda ],
+    error: [ empower_log_response,  empower_alert_generate_error ]
   })
   .perform()
 }
