@@ -122,9 +122,12 @@ class IndexHandler(BaseHandler):
 
         project_id = UUID(project_id.decode('UTF-8'))
         projects_manager = srv_or_die("projectsmanager")
-        project = projects_manager.projects[project_id]
 
-        return project
+        if project_id not in projects_manager.projects:
+            self.clear_cookie("project_id")
+            return None
+
+        return projects_manager.projects[project_id]
 
     @tornado.web.authenticated
     def get(self, args=None):
