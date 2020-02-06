@@ -127,7 +127,7 @@ class RANConnection:
 
         if self.device and not self.stream.closed():
             timeout = HELLO_PERIOD * 3
-            if (self.device.last_seen_ts + timeout) < time.time():
+            if (self.device.last_seen_ts + (timeout / 1000)) < time.time():
                 self.log.warning('Client inactive %s at %r',
                                  self.device.addr,
                                  self.stream.socket.getpeername())
