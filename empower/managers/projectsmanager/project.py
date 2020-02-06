@@ -371,12 +371,6 @@ class Project(Env):
         self.refresh_from_db()
 
     @property
-    def vbses(self):
-        """Return the VBSes."""
-
-        return srv_or_die("vbspmanager").devices
-
-    @property
     def ueqs(self):
         """Return the UEs."""
 
@@ -387,12 +381,6 @@ class Project(Env):
                 if v.plmnid == self.lte_props.plmnid}
 
         return ueqs
-
-    @property
-    def wtps(self):
-        """Return the WTPs."""
-
-        return srv_or_die("lvappmanager").devices
 
     @property
     def lvaps(self):
