@@ -51,7 +51,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
 
             [0]: the project id (mandatory)
             [1]: the app id (mandatory)
-            [3]: the mcast service MAC address (optional)
+            [2]: the mcast service MAC address (optional)
 
         Example URLs:
 
@@ -87,7 +87,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
 
         return self.service.mcast_services[EtherAddress(args[2])]
 
-    @apimanager.validate(returncode=201, min_args=2, max_args=2)
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
     def post(self, *args, **kwargs):
         """Add/update a new mcast service
 
@@ -99,6 +99,10 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
         Request:
 
             version: protocol version (1.0)
+            params: the set of parameters to be set
+
+        Parameters:
+
             ipaddress: the mcast IP address
             receivers: the list of mcast receptors
             status: the service status
@@ -110,17 +114,17 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
                 7069c865-8849-4840-9d96-e028663a5dcf/mcast_service
 
             {
-                "ipaddress": "224.0.1.200",
-                "receivers": ["ff:ff:ff:ff:ff:ff"],
-                "status": "true",
-                "service_type": "emergency"
+                "version": "1.0",
+                "params": {
+                    "ipaddress": "224.0.1.200",
+                    "receivers": ["ff:ff:ff:ff:ff:ff"],
+                    "status": "true",
+                    "service_type": "emergency"
+                }
             }
         """
 
-        addr = self.service.upsert_mcast_service(kwargs['ipaddress'],
-                                                 kwargs['receivers'],
-                                                 kwargs['status'],
-                                                 kwargs['service_type'])
+        addr = self.service.upsert_mcast_service(**kwargs['params'])
 
         self.service.save_service_state()
 
