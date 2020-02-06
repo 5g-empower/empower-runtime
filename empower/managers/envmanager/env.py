@@ -57,6 +57,18 @@ class Env(MongoModel):
         # Save pointer to EnvManager
         self.manager = srv_or_die("envmanager")
 
+    @property
+    def wtps(self):
+        """Return the WTPs."""
+
+        return srv_or_die("lvappmanager").devices
+
+    @property
+    def vbses(self):
+        """Return the VBSes."""
+
+        return srv_or_die("vbspmanager").devices
+
     def write_points(self, points):
         """Write points to time-series manager."""
 
