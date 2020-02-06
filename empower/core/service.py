@@ -24,6 +24,7 @@ import logging
 import tornado.ioloop
 
 from empower.core.serialize import serializable_dict
+from empower.core.launcher import srv_or_die
 
 
 @serializable_dict
@@ -83,16 +84,29 @@ class EService:
 
         self.context.save_service_state(self.service_id)
 
-    def register_service(self, name, **kwargs):
-        """Get a service.
+    def register_app(self, name, **kwargs):
+        """Register an application.
 
-        Return a service with the same name and parameters if already running
-        or start a new one."""
+        If an app with the same name and parameters is already running, then
+        that app instance will be returned. Otherwise a new app will be
+        spawned."""
 
         if not self.context:
             return None
 
-        return self.context.register_service(name, **kwargs)
+        return self.context.register_service(name, params=kwargs)
+
+    @classmethod
+    def register_worker(cls, name, **kwargs):
+        """Register a worker.
+
+        If a worker with the same name and parameters is already running then
+        that worker instance will be returned. Otherwise a new app will be
+        spawned."""
+
+        envmanager = srv_or_die("envmanager")
+
+        return envmanager.env.register_service(name, params=kwargs)
 
     def handle_callbacks(self):
         """Invoke registered callbacks."""

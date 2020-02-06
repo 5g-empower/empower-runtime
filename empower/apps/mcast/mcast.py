@@ -319,7 +319,7 @@ class Mcast(EWApp):
 
         service = "empower.apps.wifircstats.wifircstats"
         self.receptors[lvap.addr] = \
-            self.register_service(service, sta=lvap.addr)
+            self.register_worker(service, sta=lvap.addr)
 
     def lvap_leave(self, lvap):
         """Called when an LVAP leaves the network."""
