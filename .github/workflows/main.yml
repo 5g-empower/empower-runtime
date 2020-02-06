@@ -1,0 +1,9 @@
+on: push
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@v1
+      with:
+        args: -X POST https://hub.docker.com/api/build/v1/source/cfce4a34-bf71-4b36-a2b8-8fd285214247/trigger/eb7baadd-2076-40df-b6e7-b78ba17c7aa1/call/
