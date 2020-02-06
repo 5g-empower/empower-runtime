@@ -359,7 +359,7 @@ class LVAPPConnection(RANConnection):
 
         # If this probe request is not coming from the same interface on which
         # this LVAP is currenly running then ignore the probe
-        if lvap.blocks[0].block_id != iface_id:
+        if lvap.blocks[0] != block:
             return
 
         # If LVAP is not running then ignore
