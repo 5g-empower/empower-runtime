@@ -21,7 +21,7 @@ import sys
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.ranmanager.lvapp.wifiapp import EWApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
 from empower.core.app import EVERY
 from empower.core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
@@ -153,7 +153,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
         self.service.save_service_state()
 
 
-class Mcast(EWApp):
+class Mcast(EWiFiApp):
     """SDN@Play Multicast Manager.
 
     This app implements the SDN@Play [1] algorithm.
@@ -180,9 +180,11 @@ class Mcast(EWApp):
 
     HANDLERS = [McastServicesHandler]
 
-    def __init__(self, context, service_id, every=EVERY):
+    def __init__(self, context, service_id, demo_mode=TX_MCAST_SDNPLAY_H,
+                 every=EVERY):
 
-        super().__init__(context=context, service_id=service_id, every=every)
+        super().__init__(context=context, service_id=service_id,
+                         demo_mode=demo_mode, every=every)
 
         self.receptors = {}
         self.receptors_mcses = {}
@@ -194,7 +196,6 @@ class Mcast(EWApp):
         self.schedule = \
             [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy  # --> [DMS, LEGACY, LEGACY...]
-        self._demo_mode = TX_MCAST_SDNPLAY_H
         self._services_registered = 0
         self.status = {}
         self.storage['mcast_services'] = {}
@@ -323,7 +324,7 @@ class Mcast(EWApp):
 
         service = "empower.apps.wifircstats.wifircstats"
         self.receptors[lvap.addr] = \
-            self.register_worker(service, sta=lvap.addr)
+            self.register_service(service, sta=lvap.addr)
 
     def lvap_leave(self, lvap):
         """Called when an LVAP leaves the network."""
@@ -434,7 +435,7 @@ class Mcast(EWApp):
     def loop(self):
         """ Periodic job. """
 
-        # if the demo is now in DMS it should not calculate anything
+        # if the demo is now in DMS or legacy mode then return
         if self.demo_mode == TX_MCAST[TX_MCAST_DMS] or \
            self.demo_mode == TX_MCAST[TX_MCAST_LEGACY]:
 
@@ -499,7 +500,8 @@ class Mcast(EWApp):
         return out
 
 
-def launch(context, service_id, every=EVERY):
+def launch(context, service_id, demo_mode, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(context=context, service_id=service_id, every=every)
+    return Mcast(context=context, service_id=service_id, demo_mode=demo_mode,
+                 every=every)

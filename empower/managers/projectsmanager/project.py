@@ -17,6 +17,8 @@
 
 """Project Class."""
 
+from importlib import import_module
+
 from pymodm import fields, EmbeddedMongoModel
 from pymodm.errors import ValidationError
 
@@ -30,6 +32,7 @@ from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
 from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
+from empower.core.app import EApp
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -281,6 +284,18 @@ class Project(Env):
 
         # Save pointer to ProjectManager
         self.manager = srv_or_die("projectsmanager")
+
+    def load_service(self, service_id, name, params):
+        """Load a service instance."""
+
+        init_method = getattr(import_module(name), "launch")
+        service = init_method(context=self, service_id=service_id, **params)
+
+        print(type(service))
+        if not isinstance(service, EApp):
+            raise ValueError("Service %s not EApp type" % name)
+
+        return service
 
     def upsert_acl(self, addr, desc):
         """Upsert ACL."""

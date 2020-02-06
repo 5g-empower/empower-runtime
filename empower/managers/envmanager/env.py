@@ -27,6 +27,7 @@ import empower.core.serialize as serialize
 
 from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
+from empower.core.worker import EWorker
 
 
 @serializable_dict
@@ -189,6 +190,9 @@ class Env(MongoModel):
 
         init_method = getattr(import_module(name), "launch")
         service = init_method(context=self, service_id=service_id, **params)
+
+        if not isinstance(service, EWorker):
+            raise ValueError("Service %s not EWorker type" % name)
 
         return service
 

@@ -84,29 +84,17 @@ class EService:
 
         self.context.save_service_state(self.service_id)
 
-    def register_app(self, name, **kwargs):
-        """Register an application.
+    def register_service(self, name, **kwargs):
+        """Register a service.
 
-        If an app with the same name and parameters is already running, then
-        that app instance will be returned. Otherwise a new app will be
+        If a service with the same name and parameters is already running, then
+        that service instance will be returned. Otherwise a new service will be
         spawned."""
 
         if not self.context:
             return None
 
         return self.context.register_service(name, params=kwargs)
-
-    @classmethod
-    def register_worker(cls, name, **kwargs):
-        """Register a worker.
-
-        If a worker with the same name and parameters is already running then
-        that worker instance will be returned. Otherwise a new app will be
-        spawned."""
-
-        envmanager = srv_or_die("envmanager")
-
-        return envmanager.env.register_service(name, params=kwargs)
 
     def handle_callbacks(self):
         """Invoke registered callbacks."""
