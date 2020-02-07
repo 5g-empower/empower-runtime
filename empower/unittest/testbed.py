@@ -51,7 +51,7 @@ class TestTestbed(BaseTest):
             },
             "wifi_slices": [
                 {
-                    "slice_id": 80,
+                    "slice_id": 56,
                     "properties": {
                         "amsdu_aggregation": "false",
                         "quantum": 10000,
@@ -88,7 +88,7 @@ class TestTestbed(BaseTest):
             },
             "wifi_slices": [
                 {
-                    "slice_id": 80,
+                    "slice_id": 56,
                     "properties": {
                         "amsdu_aggregation": "false",
                         "quantum": 10000,
@@ -103,16 +103,25 @@ class TestTestbed(BaseTest):
         self.post(params, data, 201)
 
         # VBSes
-        addrs = ["00:00:00:00:00:01"]
-        for addr in addrs:
-            data = {"addr": addr, "desc": "Ettus B210"}
+        vbses = [
+            ("00:00:00:00:00:01", "Ettus B210")
+        ]
+        for vbs in vbses:
+            data = {"addr": vbs[0], "desc": vbs[1]}
             params = ("root", "root", "/vbses")
             self.post(params, data, 201)
 
-        # ALIX APU
-        addrs = ["00:0D:B9:3F:8A:E8"]
-        for addr in addrs:
-            data = {"addr": addr, "desc": "PC Engines ALIX 2D"}
+        # ALIX APUs
+        wtps = [
+            ("00:0D:B9:54:3B:DC", "PC Engines APU2 (1)"),
+            ("00:0D:B9:54:3D:00", "PC Engines APU2 (2)"),
+            ("00:0D:B9:54:3D:20", "PC Engines APU2 (3)"),
+            ("00:0D:B9:54:3C:CC", "PC Engines APU2 (4)"),
+            ("00:0D:B9:54:27:F8", "PC Engines APU2 (5)"),
+            ("00:0D:B9:54:3C:F4", "PC Engines APU2 (6)")
+        ]
+        for wtp in wtps:
+            data = {"addr": wtp[0], "desc": wtp[1]}
             params = ("root", "root", "/wtps")
             self.post(params, data, 201)
 
