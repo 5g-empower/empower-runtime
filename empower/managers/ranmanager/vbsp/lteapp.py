@@ -24,7 +24,7 @@ import empower.managers.ranmanager.vbsp as vbsp
 from empower.managers.ranmanager.vbsp.cellpool import CellPool
 
 
-class EWApp(EApp):
+class ELTEApp(EApp):
     """Base Wi-Fi App class."""
 
     def start(self):

@@ -17,6 +17,8 @@
 
 """Project Class."""
 
+from importlib import import_module
+
 from pymodm import fields, EmbeddedMongoModel
 from pymodm.errors import ValidationError
 
@@ -30,6 +32,7 @@ from empower.core.plmnid import PLMNIDField
 from empower.core.ssid import SSIDField
 from empower.core.launcher import srv_or_die
 from empower.core.serialize import serializable_dict
+from empower.core.app import EApp
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -282,6 +285,17 @@ class Project(Env):
         # Save pointer to ProjectManager
         self.manager = srv_or_die("projectsmanager")
 
+    def load_service(self, service_id, name, params):
+        """Load a service instance."""
+
+        init_method = getattr(import_module(name), "launch")
+        service = init_method(context=self, service_id=service_id, **params)
+
+        if not isinstance(service, EApp):
+            raise ValueError("Service %s not EApp type" % name)
+
+        return service
+
     def upsert_acl(self, addr, desc):
         """Upsert ACL."""
 
@@ -371,12 +385,6 @@ class Project(Env):
         self.refresh_from_db()
 
     @property
-    def vbses(self):
-        """Return the VBSes."""
-
-        return srv_or_die("vbspmanager").devices
-
-    @property
     def ueqs(self):
         """Return the UEs."""
 
@@ -387,12 +395,6 @@ class Project(Env):
                 if v.plmnid == self.lte_props.plmnid}
 
         return ueqs
-
-    @property
-    def wtps(self):
-        """Return the WTPs."""
-
-        return srv_or_die("lvappmanager").devices
 
     @property
     def lvaps(self):

@@ -27,7 +27,7 @@ from construct import Container
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.core.etheraddress import EtherAddress
-from empower.managers.ranmanager.lvapp.wifiapp import EWApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
 from empower.core.app import EVERY
 
 PT_BIN_COUNTERS_REQUEST = 0x82
@@ -65,7 +65,7 @@ BIN_COUNTERS_RESPONSE = Struct(
 BIN_COUNTERS_RESPONSE.name = "bin_counters_response"
 
 
-class LVAPBinCounter(EWApp):
+class LVAPBinCounter(EWiFiApp):
     """LVAP Bin Counter Primitive.
 
     This primitive collects the packet counters from the specified LVAP.

@@ -21,13 +21,15 @@ import sys
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.ranmanager.lvapp.wifiapp import EWApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
 from empower.core.app import EVERY
 from empower.core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_DMS
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_LEGACY
+from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_DMS_H
+from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_LEGACY_H
 from empower.managers.ranmanager.lvapp.resourcepool import BT_HT20
 
 TX_MCAST_SDNPLAY = 0x3
@@ -51,7 +53,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
 
             [0]: the project id (mandatory)
             [1]: the app id (mandatory)
-            [3]: the mcast service MAC address (optional)
+            [2]: the mcast service MAC address (optional)
 
         Example URLs:
 
@@ -87,7 +89,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
 
         return self.service.mcast_services[EtherAddress(args[2])]
 
-    @apimanager.validate(returncode=201, min_args=2, max_args=2)
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
     def post(self, *args, **kwargs):
         """Add/update a new mcast service
 
@@ -99,6 +101,10 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
         Request:
 
             version: protocol version (1.0)
+            params: the set of parameters to be set
+
+        Parameters:
+
             ipaddress: the mcast IP address
             receivers: the list of mcast receptors
             status: the service status
@@ -110,17 +116,17 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
                 7069c865-8849-4840-9d96-e028663a5dcf/mcast_service
 
             {
-                "ipaddress": "224.0.1.200",
-                "receivers": ["ff:ff:ff:ff:ff:ff"],
-                "status": "true",
-                "service_type": "emergency"
+                "version": "1.0",
+                "params": {
+                    "ipaddress": "224.0.1.200",
+                    "receivers": ["ff:ff:ff:ff:ff:ff"],
+                    "status": "true",
+                    "service_type": "emergency"
+                }
             }
         """
 
-        addr = self.service.upsert_mcast_service(kwargs['ipaddress'],
-                                                 kwargs['receivers'],
-                                                 kwargs['status'],
-                                                 kwargs['service_type'])
+        addr = self.service.upsert_mcast_service(**kwargs['params'])
 
         self.service.save_service_state()
 
@@ -149,7 +155,7 @@ class McastServicesHandler(apimanager.EmpowerAPIHandler):
         self.service.save_service_state()
 
 
-class Mcast(EWApp):
+class Mcast(EWiFiApp):
     """SDN@Play Multicast Manager.
 
     This app implements the SDN@Play [1] algorithm.
@@ -176,9 +182,11 @@ class Mcast(EWApp):
 
     HANDLERS = [McastServicesHandler]
 
-    def __init__(self, context, service_id, every=EVERY):
+    def __init__(self, context, service_id, demo_mode=TX_MCAST_SDNPLAY_H,
+                 every=EVERY):
 
-        super().__init__(context=context, service_id=service_id, every=every)
+        super().__init__(context=context, service_id=service_id,
+                         demo_mode=demo_mode, every=every)
 
         self.receptors = {}
         self.receptors_mcses = {}
@@ -190,9 +198,7 @@ class Mcast(EWApp):
         self.schedule = \
             [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy  # --> [DMS, LEGACY, LEGACY...]
-        self._demo_mode = TX_MCAST_SDNPLAY_H
         self._services_registered = 0
-        self.status = {}
         self.storage['mcast_services'] = {}
 
     def upsert_mcast_service(self, ipaddress, receivers, status, service_type):
@@ -285,34 +291,10 @@ class Mcast(EWApp):
     def demo_mode(self, mode):
         """Set the demo mode."""
 
+        if mode not in (TX_MCAST_LEGACY_H, TX_MCAST_DMS_H, TX_MCAST_SDNPLAY_H):
+            raise ValueError("Invalid demo_mode %s" % mode)
+
         self._demo_mode = mode
-
-        for addr, entry in self.mcast_services.items():
-
-            phase = self.get_next_group_phase(addr)
-
-            self.log.info("Mcast phase %s for group %s", TX_MCAST[phase], addr)
-
-            for block in self.blocks():
-
-                # fetch txp
-                txp = block.tx_policies[addr]
-
-                if mode == TX_MCAST[TX_MCAST_DMS]:
-
-                    txp.mcast = TX_MCAST_DMS
-
-                elif mode == TX_MCAST[TX_MCAST_LEGACY]:
-
-                    txp.mcast = TX_MCAST_LEGACY
-
-                    if block.band == BT_HT20:
-                        txp.ht_mcs = [min(block.ht_supports)]
-                    else:
-                        txp.mcs = [min(block.supports)]
-
-            if mode != TX_MCAST_SDNPLAY_H:
-                entry['mcs'] = "None"
 
     def lvap_join(self, lvap):
         """Called when an LVAP joins a tenant."""
@@ -430,26 +412,29 @@ class Mcast(EWApp):
     def loop(self):
         """ Periodic job. """
 
-        # if the demo is now in DMS it should not calculate anything
-        if self.demo_mode == TX_MCAST[TX_MCAST_DMS] or \
-           self.demo_mode == TX_MCAST[TX_MCAST_LEGACY]:
-
-            return
-
+        # otherwise apply the SDN@Play algorithm
         for block in self.blocks():
 
             for addr, entry in self.mcast_services.items():
-
-                phase = self.get_next_group_phase(addr)
-
-                self.log.info("Mcast phase %s for group %s",
-                              TX_MCAST[phase], addr)
 
                 # fetch txp
                 if addr not in block.tx_policies:
                     block.tx_policies[addr] = TxPolicy(addr, block)
 
                 txp = block.tx_policies[addr]
+
+                if self.demo_mode == TX_MCAST_DMS_H:
+                    txp.mcast = TX_MCAST_DMS
+                    continue
+
+                if self.demo_mode == TX_MCAST_LEGACY_H:
+                    txp.mcast = TX_MCAST_LEGACY
+                    continue
+
+                phase = self.get_next_group_phase(addr)
+
+                self.log.info("Mcast phase %s for group %s",
+                              TX_MCAST[phase], addr)
 
                 # If the service is disabled, DMS must be the multicast mode
                 if entry["status"] is False:
@@ -488,14 +473,14 @@ class Mcast(EWApp):
         out = super().to_dict()
 
         out['demo_mode'] = self.demo_mode
-        out['status'] = self.status
         out['schedule'] = [TX_MCAST[x] for x in self.schedule]
         out['mcast_services'] = self.mcast_services
 
         return out
 
 
-def launch(context, service_id, every=EVERY):
+def launch(context, service_id, demo_mode, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(context=context, service_id=service_id, every=every)
+    return Mcast(context=context, service_id=service_id, demo_mode=demo_mode,
+                 every=every)

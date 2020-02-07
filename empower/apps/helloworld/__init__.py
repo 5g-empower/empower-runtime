@@ -27,7 +27,7 @@ MANIFEST = {
             "desc": "The message to be printed.",
             "mandatory": False,
             "default": "World",
-            "type": "string"
+            "type": "str"
         },
         "every": {
             "desc": "The control loop period (in ms).",

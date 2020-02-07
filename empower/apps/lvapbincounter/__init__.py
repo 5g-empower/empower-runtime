@@ -32,7 +32,7 @@ MANIFEST = {
             "desc": "The bins for the measurements (comma separated).",
             "mandatory": False,
             "default": "8192",
-            "type": "list"
+            "type": "str"
         },
         "every": {
             "desc": "The control loop period (in ms).",

@@ -17,7 +17,7 @@
 
 """Base Wi-Fi Worker class."""
 
-from empower.core.service import EService
+from empower.core.worker import EWorker
 
 import empower.managers.ranmanager.lvapp as lvapp
 
@@ -27,7 +27,7 @@ from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 EVERY = 2000
 
 
-class EWiFiWorker(EService):
+class EWiFiWorker(EWorker):
     """Base Wi-Fi Worker class."""
 
     def start(self):

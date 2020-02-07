@@ -805,12 +805,12 @@ class ProjectLVAPsHandler(apimanager.EmpowerAPIHandler):
         project_id = uuid.UUID(args[0])
         project = self.service.projects[project_id]
 
-        lvap = project.lvaps[EtherAddress(args[0])]
+        lvap = project.lvaps[EtherAddress(args[1])]
 
         if "blocks" in kwargs:
 
-            addr = EtherAddress(kwargs['wtp'])
-            wtp = self.service.devices[addr]
+            wtp = project.wtps[EtherAddress(kwargs['wtp'])]
+
             pool = ResourcePool()
 
             for block_id in kwargs["blocks"]:
@@ -820,8 +820,7 @@ class ProjectLVAPsHandler(apimanager.EmpowerAPIHandler):
 
         elif "wtp" in kwargs:
 
-            wtp = self.service.devices[EtherAddress(kwargs['wtp'])]
-            lvap.wtp = wtp
+            lvap.wtp = project.wtps[EtherAddress(kwargs['wtp'])]
 
         if "encap" in kwargs:
 

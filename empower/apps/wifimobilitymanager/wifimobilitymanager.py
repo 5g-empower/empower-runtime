@@ -17,11 +17,11 @@
 
 """A simple Wi-Fi mobility manager."""
 
-from empower.managers.ranmanager.lvapp.wifiapp import EWApp
+from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
 from empower.core.app import EVERY
 
 
-class WiFiMobilityManager(EWApp):
+class WiFiMobilityManager(EWiFiApp):
     """A simple Wi-Fi mobility manager.
 
     This app will peridodically handover every LVAP in the network to the

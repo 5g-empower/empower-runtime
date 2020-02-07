@@ -17,7 +17,7 @@
 
 """Base Wi-Fi App class."""
 
-from empower.core.service import EService
+from empower.core.app import EApp
 
 import empower.managers.ranmanager.lvapp as lvapp
 
@@ -26,7 +26,7 @@ from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 EVERY = 2000
 
 
-class EWApp(EService):
+class EWiFiApp(EApp):
     """Base Wi-Fi App class."""
 
     def start(self):
