@@ -131,13 +131,13 @@ class RANManager(EService):
         return self.devices[device.addr]
 
     def remove_all(self):
-        """Remove all projects."""
+        """Remove all devices."""
 
         for addr in list(self.devices):
             self.remove(addr)
 
     def remove(self, addr):
-        """Remove project."""
+        """Remove device."""
 
         if addr not in self.devices:
             raise KeyError("Device %s not registered" % addr)
