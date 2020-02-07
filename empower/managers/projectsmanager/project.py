@@ -291,7 +291,6 @@ class Project(Env):
         init_method = getattr(import_module(name), "launch")
         service = init_method(context=self, service_id=service_id, **params)
 
-        print(type(service))
         if not isinstance(service, EApp):
             raise ValueError("Service %s not EApp type" % name)
 
