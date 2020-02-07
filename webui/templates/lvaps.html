@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Light Virtual Access Points</h1>
+    <div >
+      <a href="#" class="btn btn-sm btn-primary shadow-sm" onclick="refresh_datatable()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  </div>
+</div>
+
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
+</div>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" cellspacing="0">
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HANDOVER Modal -->
+<div class="modal fade" id="ho_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <!-- MODAL HEADER -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="ho_modal_title">LVAP Handover</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+        <form role="form">
+          <!-- LVAP INFO SECTION -->
+          <div class="form-group">
+            <div class="font-weight-bold text-center mb-2">LVAP Info</div>
+            <div class="px-2">
+              <div class="form-group">
+                <div class="row">
+                  <div class="col-4 font-italic font-weight-bold text-left pl-2 small mb-1">
+                    <span>Address</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_address">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-2 small mb-1">
+                    <span>BSSID</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_bssid">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-2 small mb-1">
+                    <span>SSID</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_ssid">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-2 small mb-1">
+                    <span>WTP</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-4 small mb-1">
+                    <i class="fas fa-arrow-right fa-sm mr-1"></i><span>Addr</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_current_wtp_addr">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-4 small mb-1">
+                    <i class="fas fa-arrow-right fa-sm mr-1"></i><span>Block Addr</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_current_wtp_hwaddr">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-4 small mb-1">
+                    <i class="fas fa-arrow-right fa-sm mr-1"></i><span>Channel</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_current_wtp_channel">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-4 small mb-1">
+                    <i class="fas fa-arrow-right fa-sm mr-1"></i><span>Band</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_current_wtp_band">
+                  </div>
+                  <div class="col-4 font-italic font-weight-bold text-left pl-4 small mb-1">
+                    <i class="fas fa-arrow-right fa-sm mr-1"></i><span>Description</span>
+                  </div>
+                  <div class="small col-8 mb-1 pl-4" id="ho_current_wtp_desc">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- HANDOVER SECTION -->
+          <div class="form-group" id="ho_handover_section">
+            <div class="font-weight-bold text-center mb-2">Handover</div>
+            <div class="px-2">
+              <div class="form-group">
+                <!-- <div class="col-12 d-flex mr-0 p-0 mt-2"> -->
+                <div class="row">
+                  <div class="col-6 my-auto p-0 font-italic text-center pr-2 small">
+                    <div class="font-weight-bold col-12 p-0 pr-2 text-center" id="ho_wtp_title">WTP</div>
+                    <div class="col-12 p-0 pr-2 d-flex  justify-content-center mb-2">
+                      <select class="form-control col-10 text-xs mt-1" id="edit_wtp" onchange="update_wtp_selection()">
+                      </select>
+                    </div>
+                    <div class="container row ml-0 px-2">
+                      <div class="col-4 font-italic font-weight-bold text-right pr-2 mb-1">
+                        Addr:
+                      </div>
+                      <div class="col-8 mb-1 text-left" id="ho_wtp_addr">
+                      </div>
+                      <div class="col-4 font-italic font-weight-bold text-right pr-2 mb-1">
+                        Desc:
+                      </div>
+                      <div class="col-8 mb-1 text-left" id="ho_wtp_desc">
+                      </div>
+                      <!-- <div class="col-12"> addr&nbsp<span id="ho_wtp_addr">Address</span></div>
+                      <div class="col-12" id="ho_wtp_desc">Description</div> -->
+                    </div>
+                  </div>
+                  <div class="col-6 p-0 font-italic text-center p-0 small">
+                    <div class="font-weight-bold col-12 p-0 pr-2 text-center" id="ho_block_title">Block</div>
+                    <div class="col-12 p-0 pr-2 d-flex  justify-content-center mb-2">
+                      <select class="form-control col-10 text-xs mt-1" id="edit_block" onchange="update_block_selection()">
+                      </select>
+                    </div>
+                    <div class="container row ml-0 px-2" id="ho_block_summary">
+                      <div class="col-4 font-italic font-weight-bold text-right pr-2 mb-1">
+                        Addr.:
+                      </div>
+                      <div class="col-8 mb-1 text-left" id="ho_wtp_hwaddr">
+                      </div>
+                      <div class="col-4 font-italic font-weight-bold text-right pl-0 pr-2 mb-1">
+                        Channel:
+                      </div>
+                      <div class="col-2 mb-1 text-left" id="ho_wtp_channel">
+                      </div>
+                      <div class="col-3 font-italic font-weight-bold text-right pr-2 mb-1">
+                        Band:
+                      </div>
+                      <div class="col-3 mb-1 text-left" id="ho_wtp_band">
+                      </div>
+                      <!-- <div class="col-12"> board&nbsp<span id="ho_wtp_hwaddr">MAC Address</span></div>
+                      <div class="col-12 text-center ">
+                        channel&nbsp<span id="ho_wtp_channel">Channel</span>, band&nbsp<span id="ho_wtp_band">Band</span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button data-dismiss="modal" class="btn btn-sm btn-secondary shadow-sm"><i
+            class="fas fa-sm text-white-50"></i>Cancel</button>
+        <button onclick="perform_handover()" data-toggle="modal" data-target="#ho_modal"
+          class="btn btn-sm btn-warning shadow-sm" id="ho_perform_btn"><i class="fas fa-exchange-alt fa-sm text-white-50 mr-1"></i>Perform</button>
+        <!-- <a href="#" onclick="inspect()" data-toggle="modal" data-target="#edit_lvap_modal"
+          class="btn btn-sm btn-info shadow-sm"><i class="fas fa-sm text-white-50 mr-1"></i>Inspect</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+{% end %}
+
+{% block js %}
+<script src="/static/js/pages/empower-lvaps.js"></script>
+{% end %}
+
+

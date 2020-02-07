@@ -101,6 +101,7 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
 
     if (need_auth) {
       this.REQUEST.beforeSend = function (req) {
+        console.log("Preparing an authorised request")
         req.setRequestHeader("Authorization", this.basic_auth());
         req.empower = {
           url: this.REQUEST.url,
@@ -351,6 +352,32 @@ class WEBUI_Request_DEVICE extends WEBUI_Request {
 }
 
 /**
+ * Class WEBUI_Request_CLIENT extends WEBUI_Request to the CLIENT specific case
+ * 
+ * @extends {WEBUI_Request}
+ */
+class WEBUI_Request_CLIENT extends WEBUI_Request {
+
+  /**
+   * @override
+   */
+  get_formatted_data(data, method = "GET") {
+
+    if ((method === "POST") ||
+      (method === "PUT")) {
+      if (!this._is_string(data)) {
+        data = JSON.stringify(data)
+      }
+    }
+    else {
+      data = ""
+    }
+
+    return super.get_formatted_data(data, method)
+  }
+}
+
+/**
  * Support global variable for storing the "entities" of EMPOWER and refer them 
  * univocally in the WEBUI
  */
@@ -359,6 +386,10 @@ __EMPOWER_WEBUI.ENTITY={
   DEVICE:{
     WTP: "WTP",
     VBS: "VBS"
+  },
+  CLIENT:{
+    LVAP: "LVAP",
+    UE: "UE"
   },
   PROJECT: "PROJECT",
   WORKER: {
@@ -652,6 +683,38 @@ class WEBUI_Request_LTE_SLICE extends WEBUI_Request {
 }
 
 /**
+ * Class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT to the LVAP specific 
+ * case. It is actually just an alias of the extended class
+ * 
+ * @extends {WEBUI_Request_CLIENT}
+ */
+class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
+
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        if (project_id !== ""){
+          return this._ENTRY_POINT + "projects/"+project_id+"/lvaps/" + key
+        }
+        else{
+          return this._ENTRY_POINT + "lvaps/"+key
+        }
+      }
+    }
+    return this._ENTRY_POINT + "lvaps"
+  }
+
+}
+
+/**
  * Support factory for providing the proper WEBUI_Request_XXX class for the 
  * specified entity
  * 
@@ -684,6 +747,8 @@ function REST_REQ(entity){
       return new WEBUI_Request_WIFI_SLICE()
     case __EMPOWER_WEBUI.ENTITY.SLICE.LTE_SLICE:
       return new WEBUI_Request_LTE_SLICE()
+    case __EMPOWER_WEBUI.ENTITY.CLIENT.LVAP:
+      return new WEBUI_Request_LVAP()
     default:
       console.warn("Entity", 
         entity, 
