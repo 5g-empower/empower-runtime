@@ -6,8 +6,6 @@ console.log("__EMPOWER_WEBUI",__EMPOWER_WEBUI)
 
 $(document).ready(function() {
 
-  // ENTITY = __EMPOWER_WEBUI.ENTITY.DEVICE.VBS
-
   aoColumns = [
     { "sTitle": "Address" },
     { "sTitle": "BSSID" },
@@ -15,10 +13,6 @@ $(document).ready(function() {
     { "sTitle": "WTP" },
     { "sTitle": "Actions", "sClass": "text-center" }
   ]
-
-  // if ( __EMPOWER_WEBUI.USER.USERNAME == "root" ) {
-  // aoColumns.push({ "sTitle": "Actions", "sClass": "text-center" })
-  // }
 
   DATATABLE = $('#dataTable').DataTable({
   "aoColumns": aoColumns
@@ -155,12 +149,6 @@ function trigger_ho_modal(lvap_key, inspect_mode=false){
     $("#ho_current_wtp_channel").text(wtp_channel)
     $("#ho_current_wtp_band").text(wtp_band)
     $("#ho_current_wtp_desc").text(wtp_desc)
-
-    // $("#ho_wtp_addr").text(wtp_addr)
-    // $("#ho_wtp_hwaddr").text(wtp_hwaddr)
-    // $("#ho_wtp_channel").text(wtp_channel)
-    // $("#ho_wtp_band").text(wtp_band)
-    // $("#ho_wtp_desc").text(wtp_desc)
 
     CURRENT_WTP = {
       addr: wtp_addr,

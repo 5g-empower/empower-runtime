@@ -115,8 +115,11 @@ $(document).ready(function() {
   });
 
   aoColumns_WIFI_SLICES = [
-    { "sTitle": "ID" },
-    { "sTitle": "Properties" },
+    { "sTitle": "ID", "sClass": "text-center"  },
+    // { "sTitle": "Properties" },
+    { "sTitle": "AMSDU Aggr.", "sClass": "text-center"  },
+    { "sTitle": "Quantum", "sClass": "text-center"  },
+    { "sTitle": "STA Scheduler", "sClass": "text-center"  },
     { "sTitle": "Devices", "sClass": "text-center"  },
     { "sTitle": "Actions", "sClass": "text-center"  },
   ]
@@ -126,8 +129,10 @@ $(document).ready(function() {
   });
 
   aoColumns_LTE_SLICES = [
-    { "sTitle": "ID" },
-    { "sTitle": "Properties" },
+    { "sTitle": "ID", "sClass": "text-center"  },
+    // { "sTitle": "Properties" },
+    { "sTitle": "RBGS", "sClass": "text-center"  },
+    { "sTitle": "UE Scheduler", "sClass": "text-center"  },
     { "sTitle": "Devices", "sClass": "text-center"  },
     { "sTitle": "Actions", "sClass": "text-center"  },
   ]
@@ -475,27 +480,42 @@ function format_datatable_wifi_slices_data( data ) {
 
   $.each( wifi_slices, function( key, val ) {
 
-    let properties = "-"
+    let amsdu_aggregation = "-"
+    let quantum = "-"
+    let sta_scheduler = "-"
     if (CF._is_there(val.properties)){
-      properties = ""
-      let counter = 0
-      $.each(val.properties, function(prop_key, prop_value){
-        if (prop_key === "sta_scheduler"){
-          let value = prop_value
-          OPTIONS_STA_SCHEDULER_WIFI.forEach(function(option){
-            if (parseInt(option.value) === parseInt(value)){
-              prop_value = prop_value+', <span class="font-italic">'+option.label+'<span>'
-            }
-          })
+      let prop = val.properties
+      amsdu_aggregation = prop.amsdu_aggregation
+      quantum = prop.quantum
+      sta_scheduler = prop.sta_scheduler
+      OPTIONS_STA_SCHEDULER_WIFI.forEach(function(option){
+        if (parseInt(option.value) === parseInt(sta_scheduler)){
+          sta_scheduler = sta_scheduler + "<br><span class='font-italic text-sm'>" + option.label + "</span>"
         }
-        properties += ""+
-        "<p class='py-1 my-0'><b class='pr-1'>"+prop_key+":</b>"+ prop_value + "</p>"
-        counter++
       })
-      if (counter === 0){
-        properties = "-"
-      }
     }
+    
+    // let properties = "-"
+    // if (CF._is_there(val.properties)){
+    //   properties = ""
+    //   let counter = 0
+    //   $.each(val.properties, function(prop_key, prop_value){
+    //     if (prop_key === "sta_scheduler"){
+    //       let value = prop_value
+    //       OPTIONS_STA_SCHEDULER_WIFI.forEach(function(option){
+    //         if (parseInt(option.value) === parseInt(value)){
+    //           prop_value = prop_value+', <span class="font-italic">'+option.label+'<span>'
+    //         }
+    //       })
+    //     }
+    //     properties += ""+
+    //     "<p class='py-1 my-0'><b class='pr-1'>"+prop_key+":</b>"+ prop_value + "</p>"
+    //     counter++
+    //   })
+    //   if (counter === 0){
+    //     properties = "-"
+    //   }
+    // }
 
     let devices = "-"
     if (CF._is_there(val.devices)){
@@ -535,7 +555,10 @@ function format_datatable_wifi_slices_data( data ) {
 
     DATATABLE_WIFI_SLICES.row.add([
         val['slice_id'],
-        properties,
+        // properties,
+        amsdu_aggregation,
+        quantum,
+        sta_scheduler,
         devices,
         actions
     ] )
@@ -605,46 +628,44 @@ function format_datatable_lte_slices_data( data ) {
 
   $.each( lte_slices, function( key, val ) {
 
-    // console.log("k",key)
-    // console.log("prop",val.properties)
-    // console.log("devs",val.devices)
+    
 
-    let properties = "-"
+    let rbgs = "-"
+    let ue_scheduler = "-"
     if (CF._is_there(val.properties)){
-      properties = ""
-      let counter = 0
-      $.each(val.properties, function(prop_key, prop_value){
-        if (prop_key === "ue_scheduler"){
-          let value = prop_value
-          OPTIONS_UE_SCHEDULER_LTE.forEach(function(option){
-            if (parseInt(option.value) === parseInt(value)){
-              prop_value = prop_value+', <span class="font-italic">'+option.label+'<span>'
-            }
-          })
+      let prop = val.properties
+      rbgs = prop.rbgs
+      ue_scheduler = prop.ue_scheduler
+      OPTIONS_UE_SCHEDULER_LTE.forEach(function(option){
+        if (parseInt(option.value) === parseInt(ue_scheduler)){
+          ue_scheduler = ue_scheduler + "<br><span class='font-italic text-sm'>" + option.label + "</span>"
         }
-        properties += ""+
-        "<p class='py-1 my-0'><b class='pr-1'>"+prop_key+":</b>"+ prop_value + "</p>"
-        counter++
       })
-      if (counter === 0){
-        properties = "-"
-      }
     }
 
-    // let devices = "-"
-    // if (CF._is_there(val.devices)){
-    //   devices = ""
+    // let properties = "-"
+    // if (CF._is_there(val.properties)){
+    //   properties = ""
     //   let counter = 0
-    //   $.each(val.devices, function(dev_key, dev_data){
-    //     console.log(dev_key)
-    //     devices += ""+
-    //     "<p class='py-1 my-0'><b class='pr-1'>"+dev_key+"</b></p>"
+    //   $.each(val.properties, function(prop_key, prop_value){
+    //     if (prop_key === "ue_scheduler"){
+    //       let value = prop_value
+    //       OPTIONS_UE_SCHEDULER_LTE.forEach(function(option){
+    //         if (parseInt(option.value) === parseInt(value)){
+    //           prop_value = prop_value+', <span class="font-italic">'+option.label+'<span>'
+    //         }
+    //       })
+    //     }
+    //     properties += ""+
+    //     "<p class='py-1 my-0'><b class='pr-1'>"+prop_key+":</b>"+ prop_value + "</p>"
     //     counter++
     //   })
     //   if (counter === 0){
-    //     devices = "-"
+    //     properties = "-"
     //   }
     // }
+
+    let devices = "-"
     if (CF._is_there(val.devices)){
       devices = ""
       let counter = 0
@@ -682,7 +703,9 @@ function format_datatable_lte_slices_data( data ) {
 
     DATATABLE_LTE_SLICES.row.add([
         val['slice_id'],
-        properties,
+        // properties,
+        rbgs,
+        ue_scheduler,
         devices,
         actions
     ] )
