@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">User Equipment</h1>
+    <div >
+      <a href="#" class="btn btn-sm btn-primary shadow-sm" onclick="refresh_datatable()"><i class="fas fa-undo fa-sm text-white-50"></i> Refresh</a>
+  </div>
+</div>
+
+<!-- Alert Box -->
+<div id="alert_box" class="my-2 p-2">
+</div>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" cellspacing="0">
+      </table>
+    </div>
+  </div>
+</div>
+
+
+{% end %}
+
+{% block js %}
+<script src="/static/js/pages/empower-ues.js"></script>
+{% end %}
+
+

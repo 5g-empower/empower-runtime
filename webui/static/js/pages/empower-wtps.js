@@ -39,7 +39,7 @@ $(document).ready(function() {
     { "sTitle": "Address" },
     { "sTitle": "Description" },
     { "sTitle": "Last seen" },
-    { "sTitle": "Address" },
+    { "sTitle": "IP Address" },
   ]
 
   if ( __EMPOWER_WEBUI.USER.USERNAME == "root" ) {
