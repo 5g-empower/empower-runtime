@@ -46,7 +46,7 @@ class LNS(MongoModel):
     The Device State machine is the following:
 
     active <-> suspended
-    
+
     Attributes:
         euid: This LNS EUID
         ip:   This LNS IP address (IPAddress)
@@ -70,7 +70,7 @@ class LNS(MongoModel):
         self.period = 0
         self.__state = P_STATE_SUSPENDED
         self.log = logging.getLogger("%s" % self.__class__.__module__)
-        
+
         return None
 
     @property
