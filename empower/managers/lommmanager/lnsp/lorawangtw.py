@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,21 +22,12 @@ import json
 
 from datetime import datetime
 from pymodm import MongoModel, fields
+from enum import Enum, unique
 
-from empower.datatypes.eui64 import EUI64Field, EUI64
+from empower.managers.lommmanager.datatypes.eui64 import EUI64Field, EUI64
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 from empower.managers.lommmanager.lnsp.lgtws_default_confs import LGTW_CONFIG_EU863_6CH
 
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
-
-from enum import Enum, unique
 @unique
 class lgtwState(Enum):
     """ Enumerate lGTW STATES """
@@ -170,12 +162,12 @@ class LoRaWANgtw(MongoModel):
     def state(self, new_state):
         """Set the lgtw state."""
         if new_state not in self.state.next_valid:
-            raise IOError("Invalid transistion %s -> %s" % (self.state.value, state.value))
-        elif self.state != new_state: 
+            raise IOError("Invalid transistion %s -> %s" % (self._state.value, new_state.value))
+        elif self._state != new_state: 
             self.log.info("New LoRAWAN GTW %s state transition %s->%s", 
                             self.lgtw_euid, self.state.value, new_state.value)
             self._state = new_state
-            self.connection.lgtw_new_state(self.state, new_state)   
+            self.connection.lgtw_new_state(self._state, new_state)   
         
     # """ Valid State Transisions """
     # def _online_online(self):

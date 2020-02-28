@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -129,14 +130,14 @@ def unregister_callbacks(app, callback_str='callback_'):
 def register_callback(event, handler):
     """Register new message and a new handler."""
     if event not in EVENT_HANDLERS:
-        raise KeyError("PT_TYPE %s undefined"%pt_type)
+        raise KeyError("EVENT_HANDLER %s undefined"%event)
     EVENT_HANDLERS[event].append(handler)
 
 
 def unregister_callback(event, handler):
     """Register new message and a new handler."""
     if event not in EVENT_HANDLERS:
-        raise KeyError("PT_TYPE %s undefined"%pt_type)
+        raise KeyError("EVENT_HANDLER %s undefined"%event)
     EVENT_HANDLERS[event].remove(handler)
 
 """ DEFAULTS """

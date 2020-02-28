@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,18 +22,8 @@
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.datatypes.eui64 import EUI64
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
 import json, traceback
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
-
     
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN GTWs."""
@@ -147,7 +138,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
 
-        lgtw = self.service.add_lgtw(**{"lns_euid":lns_euid,"lgtw_euid":lgtw_euid})
+        self.service.add_lgtw(**{"lns_euid":lns_euid,"lgtw_euid":lgtw_euid})
         print("/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
         self.set_header("Location", "/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
 

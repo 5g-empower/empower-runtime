@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,19 +20,11 @@
 
 """LNS Handlers for the LNS Discovery Server."""
 
-import empower.managers.apimanager.apimanager as apimanager
-
-from empower.datatypes.eui64 import EUI64
 import json, traceback
 
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
+import empower.managers.apimanager.apimanager as apimanager
+
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
 
 class LNSsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LNS."""
@@ -154,7 +147,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             }
         """
         try:
-            lnss = self.service.update_lns(args[0], **kwargs)
+            self.service.update_lns(args[0], **kwargs)
         except ValueError as err:
             self.set_status(400)
             self.finish({"status_code":400,"title":"Value error","detail":str(err)})

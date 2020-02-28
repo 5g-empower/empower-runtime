@@ -29,16 +29,9 @@ import datetime, json
 import empower.managers.lommmanager.lnsp as lnsp
 from   empower.core.app import EApp
 from   empower.core.app import EVERY
-        
-__author__       = "Cristina E. Costa"
-__credits__      = ["Cristina E. Costa"]
-__license__      = "Apache License, Version 2.0"
-__version__      = "1.0.0"
-__maintainer__   = "Cristina E. Costa"
-__email__        = "ccosta@fbk.eu"
-__status__       = "Dev"
+from   empower.managers.lommmanager.lommapp import LoMMApp
 
-class LoMMTest(EApp):
+class LoMMTest(LoMMApp):
     """LoMMTest App. The LoMM Test App, prints LoMM events data on screen.
 
     Attributes:
@@ -78,69 +71,6 @@ class LoMMTest(EApp):
         Gathering Radio Data Statistics Callbacks:    
             callback_new_radio_data: called when a LoRaWAN Radio GTW radio data is avaliable
     """
-    # List of empower-runtime manager/s used in the app
-    MODULES  = [lnsp] 
-        
-    def __init__(self, **kwargs):
-        """
-        Parameters:
-            project_id (UUID): the project id
-            service_id (UUID): the app id
-        """
-        self.__label = None
-        # Start loop
-        self.startloop = True
-        super().__init__(**kwargs)
-        # lnsp_manager = srv_or_die("lnsp_manager")
-                
-    def start(self):
-        """Run at app start."""
-        self.log.info("%s: Registering callbacks", self.label)
-        for module in self.MODULES:
-            module.register_callbacks(self)         
-        # start the app
-        super().start()
-        self.log.info("%s is up!" % self.label)
-
-    def stop(self):
-        """Run at app stop."""
-        self.log.info("%s: Unegistering callbacks", self.label)
-        for module in self.MODULES:
-            module.unregister_callbacks(self)     
-        # stop the app
-        super().stop()
-        
-    def loop(self):
-        """Periodic job."""
-        pass
-
-    @property
-    def lgtws(self):
-        """Return lGTWs registered in this project context."""
-        # return self.context.lgtws # from project context
-        return self.context.lns_manager.lgtws
-        
-    @property
-    def lenddevs(self):
-        """Return lGTWs registered in this project context."""
-        # return self.context.lenddevs  # from project context
-        return self.service.lns_manager.lenddevs
-
-    @property
-    def lnss(self):
-        """Return LNSS registered in this project context."""
-        # return self.context.lnss # from project context
-        return self.context.lnsp_manager.lnss
-
-    @property
-    def label(self):
-        """Return this app's label."""
-        return self.__label
-
-    @label.setter
-    def label(self, value):
-        """Set this app's label."""
-        self.__label = value
         
     """ 
     LoRaWAN GTW Events Callback
@@ -157,7 +87,7 @@ class LoMMTest(EApp):
         old_state = kwargs.get('old_state')
         new_state = kwargs.get('new_state')        
 
-        self.log.info("%s: lgtw %s is %s!", self.label, lgtw_id, new_state)
+        self.log.info("%s: lgtw %s transition frm %s to %s!", self.label, lgtw_id, old_state, new_state)
         
     """ 
     Uplink Web Socket Messages Callbacks
@@ -168,7 +98,7 @@ class LoMMTest(EApp):
         rx_time      = kwargs.get('rx_time')
         lgtw_version = kwargs.get('lgtw_version')
         
-        self.log.info("%s: lGTW %s, version request received ", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, version request received (%d)", self.label, str(lgtw_id), rx_time)
         self.log.info("%s: \n%s", self.label, json.dumps(lgtw_version))
         
     def callback_jreq(self,  **kwargs):
@@ -180,7 +110,7 @@ class LoMMTest(EApp):
         rctx       = kwargs.get('rctx')        
         phypayload = kwargs.get('PhyPayload')
         
-        self.log.info("%s: lGTW %s, join request frame received ", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, join request frame received (%d)", self.label, str(lgtw_id), rx_time)
         self.log.info("%s: PhyPayload: %s ", self.label, phypayload)
         self.log.info("%s: xtime=%d, rctx=%d", self.label, xtime, rctx)
         self.log.info("%s: \n%s", self.label, json.dumps(join_data, indent=2, sort_keys=True))
@@ -194,7 +124,7 @@ class LoMMTest(EApp):
         rctx       = kwargs.get('rctx')   
         phypayload = kwargs.get('PhyPayload')
         
-        self.log.info("%s: lGTW %s, uplink frame frame received ", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, uplink frame frame received (%d)", self.label, str(lgtw_id), rx_time)
         self.log.info("%s: PhyPayload: %s ", self.label, phypayload)
         self.log.info("%s: xtime=%d, rctx=%d", self.label, xtime, rctx)
         self.log.info("%s: \n%s", self.label, json.dumps(updf_data, indent=2, sort_keys=True))
@@ -207,8 +137,8 @@ class LoMMTest(EApp):
         xtime      = kwargs.get('xtime')
         rctx       = kwargs.get('rctx')
         
-        self.log.info("%s: lGTW %s, proprietary frame received ", self.label, str(lgtw_id))
-        self.log.info("%s: xtime=%d, rctx=%d", self.label, self.label, xtime, rctx)
+        self.log.info("%s: lGTW %s, proprietary frame received (%d)", self.label, str(lgtw_id), rx_time)
+        self.log.info("%s: xtime=%d, rctx=%d", self.label, xtime, rctx)
         self.log.info("%s: frmpayload=%s", self.label, frmpayload)
         
     def callback_dntxed(self, **kwargs):
@@ -221,14 +151,14 @@ class LoMMTest(EApp):
         rx_time    = kwargs.get('rx_time')
         dntxed     = kwargs.get('dntxed')
         
-        self.log.info("%s: lGTW %s, packet transmission confirmation received ", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, packet transmission confirmation received (%d)", self.label, str(lgtw_id), rx_time)
         self.log.info("%s: xtime=%d, rctx=%d", self.label, dntxed['xtime'], dntxed['rctx'])
         self.log.info("%s: \n%s", self.label, json.dumps(dntxed, indent=2, sort_keys=True))
         
     def callback_timesync(self,  **kwargs):
         """Callback when a new Timesync message arrives """           
         lgtw_id    = kwargs.get('lgtw_id')
-        rx_time    = kwargs.get('rx_time')
+        # rx_time    = kwargs.get('rx_time')
         
         if 'gpstime' in kwargs:
             self.log.info("%s: lGTW %s, Transferring GPS Time (timesync) message received (gpstime=%d, xtime=%d)", self.label, str(lgtw_id), kwargs['gpstime'], kwargs['xtime'])
@@ -238,19 +168,18 @@ class LoMMTest(EApp):
     def callback_rmtsh(self,  **kwargs):
         """Callback when a new remote shell message arrives """           
         lgtw_id      = kwargs.get('lgtw_id')
-        rx_time      = kwargs.get('rx_time')
+        # rx_time      = kwargs.get('rx_time')
         rmtsh        = kwargs.get('rmtsh')
         
         self.log.info("%s: lGTW %s, current remote shell sessions state received ", self.label, str(lgtw_id))
         
         for session in rmtsh:
             if rmtsh['started']:
-              self.log.info("%s: session pid = %d (running), user %s, %d secs since the input/output action", self.label, str(lgtw_id), 
-                            rmtsh['pid'], rmtsh['user'], rmtsh['age'])
+              self.log.info("%s: session pid = %d (running), user %s, %d secs since the input/output action", self.label, 
+                            session['pid'], session['user'], session['age'])
             else:
-              self.log.info("%s: session pid = %d, user %s, %d secs since the input/output action", self.label, str(lgtw_id), 
-                            rmtsh['pid'], rmtsh['user'], rmtsh['age'])
-
+              self.log.info("%s: session pid = %d, user %s, %d secs since the input/output action", self.label,  
+                            session['pid'], session['user'], session['age'])
 
     """ 
     Downlink Web Socket Messages
@@ -261,7 +190,7 @@ class LoMMTest(EApp):
         tx_time       = kwargs.get('tx_time')
         router_config = kwargs.get('msg')
         
-        self.log.info("%s: lGTW %s, lGTW configuration sent.", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, lGTW configuration sent. (%d)", self.label, str(lgtw_id), tx_time)
         self.log.info("%s: \n%s", self.label, json.dumps(router_config, indent=2, sort_keys=True))
         
     def callback_dnmsg(self,  **kwargs):
@@ -270,7 +199,7 @@ class LoMMTest(EApp):
         tx_time       = kwargs.get('tx_time')
         dnmsg         = kwargs.get('msg')
         
-        self.log.info("%s: lGTW %s, new frame sent for transmission.", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, new frame sent for transmission. (%d)", self.label, str(lgtw_id), tx_time)
         ##TODO CHECK
         if dnmsg:
             self.log.info("%s: xtime=%d, rctx=%d", self.label, dnmsg['xtime'], dnmsg['rctx'])
@@ -279,21 +208,23 @@ class LoMMTest(EApp):
     def callback_dnsched(self,  **kwargs):
         """Callback when a new downlink scheduled frame message is sent """          
         lgtw_id       = kwargs.get('lgtw_id')
-        tx_time       = kwargs.get('tx_time')
+        # tx_time       = kwargs.get('tx_time')
         dnsched       = kwargs.get('msg')
         
         self.log.info("%s: lGTW %s, new frames scheduled for transmission.", self.label, str(lgtw_id))
         for frame in dnsched:
             if "rctx" in dnsched:
-                self.log.info("%s: DR=%d, Freq=%d, priority=%d, gpstime=%d, rctx=%d", self.label, dnsched['DR'], dnsched['Freq'], dnsched['priority'], dnsched['gpstime'], dnsched['rctx'] )
+                self.log.info("%s: DR=%d, Freq=%d, priority=%d, gpstime=%d, rctx=%d", self.label, 
+                        frame['DR'], frame['Freq'], frame['priority'], frame['gpstime'], frame['rctx'] )
             else:
-                self.log.info("%s: DR=%d, Freq=%d, priority=%d, gpstime=%d", self.label, dnsched['DR'], dnsched['Freq'], dnsched['priority'], dnsched['gpstime'] )
+                self.log.info("%s: DR=%d, Freq=%d, priority=%d, gpstime=%d", self.label,
+                        frame['DR'], frame['Freq'], frame['priority'], frame['gpstime'] )
             self.log.info("%s: pdu=%s", self.label, dnsched['pdu'])
       
     def callback_dn_timesync(self,  **kwargs):
         """Callback when a new timesync message is sent """           
         lgtw_id       = kwargs.get('lgtw_id')
-        tx_time       = kwargs.get('tx_time')
+        # tx_time       = kwargs.get('tx_time')
         timesync      = kwargs.get('msg')
         
         self.log.info("%s: lGTW %s, timesync message (txtime=%d) sent to lGTW, gpstime=%d microsecs since GPS epoch ", self.label, str(lgtw_id), timesync['txtime'], timesync['gpstime'])
@@ -301,7 +232,7 @@ class LoMMTest(EApp):
     def callback_rmcmd(self,  **kwargs):
         """Callback when a new remote command message is sent """           
         lgtw_id       = kwargs.get('lgtw_id')
-        tx_time       = kwargs.get('tx_time')
+        # tx_time       = kwargs.get('tx_time')
         rmcmd         = kwargs.get('msg')
         args = ""
         for arg in rmcmd['arguments']:
@@ -311,7 +242,7 @@ class LoMMTest(EApp):
     def callback_dn_rmtsh(self,  **kwargs):
         """Callback when a new remote shell message is sent """           
         lgtw_id       = kwargs.get('lgtw_id')
-        tx_time       = kwargs.get('tx_time')
+        # tx_time       = kwargs.get('tx_time')
         rmtsh         = kwargs.get('msg')
         user          = rmtsh.get('user')
         term          = rmtsh.get('term')  
@@ -368,11 +299,12 @@ class LoMMTest(EApp):
         """Callback when a LoRaWAN Radio GTW radio data is avaliable"""
         lgtw_id    = kwargs.get('lgtw_id')
         radio_data = kwargs.get('radio_data')  
-        dev_eui    = kwargs.get('DevEui')
-        dev_addr   = kwargs.get('DevAddr')
-        rxtime     = kwargs.get('rxtime')
+        dev_eui    = kwargs.get('DevEui',"")
+        dev_addr   = kwargs.get('DevAddr',"")
+        rx_time    = kwargs.get('rx_time')
         
-        self.log.info("%s: lGTW %s, New Radio Data.", self.label, str(lgtw_id))
+        self.log.info("%s: lGTW %s, New Radio Data. (%d)", self.label, str(lgtw_id), rx_time)
+        self.log.info("%s: DevEUI %s, DevAddr %s", self.label, dev_eui, dev_addr)
         self.log.info("%s: \n%s", self.label, json.dumps(radio_data, indent=2, sort_keys=True))
 
 def launch(context, service_id, label="LoMM Test App"):

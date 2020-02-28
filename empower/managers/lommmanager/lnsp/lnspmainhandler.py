@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,22 +27,12 @@ import time, struct
 import json
 import tornado.websocket
 
-import empower.managers.lommmanager.lnsp as lnsp
-from   empower.managers.lommmanager.lnsp.lorawangtw import lgtwState
-from   empower.datatypes.eui64         import EUI64
-
 import logging
 LOG = logging.getLogger("LoRafNSPMainHandler")
 
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
+import empower.managers.lommmanager.lnsp as lnsp
+from   empower.managers.lommmanager.lnsp.lorawangtw import lgtwState
+from   empower.managers.lommmanager.datatypes.eui64         import EUI64
 
 
 class LNSPMainHandler(tornado.websocket.WebSocketHandler):
@@ -257,7 +248,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             data['dntxed']["gpstime"]  = dntxed_msg["gpstime"]       
         except KeyError as err:            
             LOG.info("Malformed DN TX confirmation message")
-            LOG.info(error)
+            LOG.info(err)
         except:
             raise
         else:        
@@ -287,7 +278,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
                 data["gpstime"] = timesync_msg["gpstime"]
             except KeyError as err:            
                 LOG.info("Malformed Timesync Message")
-                LOG.info(error)
+                LOG.info(err)
             except:
                 raise
         else:               
@@ -295,7 +286,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
                 data["txtime"] = timesync_msg["txtime"]
             except KeyError as err:            
                 LOG.info("Malformed Timesync Message")
-                LOG.info(error)
+                LOG.info(err)
             except:
                 raise
         """ Call registered callbacks """
@@ -411,7 +402,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             data["rctx"]     = join_msg['upinfo']["rctx"]  # specifies the antenna used
         except KeyError as err:            
             LOG.info("Malformed Join Request")
-            LOG.info(error)
+            LOG.info(err)
         except:
             raise
         else:
@@ -476,7 +467,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             None
         """
         data = {}
-        data["radio_data"] = self._handle_radio_data(join_msg, rxtime)      
+        data["radio_data"] = self._handle_radio_data(updf_msg, rxtime)      
         data["rxtime"]     = rxtime        
         try:
             data["FRMPayload"] = updf_msg["FRMPayload"]
@@ -484,7 +475,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             data["rctx"]       = updf_msg['upinfo']["rctx"]  # specifies the antenna used
         except KeyError as err:            
             LOG.info("Malformed Proprietary Frame")
-            LOG.info(error)
+            LOG.info(err)
         except:
             raise
         else:        

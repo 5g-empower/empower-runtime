@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,23 +19,11 @@
 """LoRa NS Discovery Protocol Server."""
 import json
 import tornado.websocket
-
-#import empower.logger
-#LOG = empower.logger.get_logger()
 import logging
+
 LOG = logging.getLogger("LoRaNSDPMainHandler")
-#LOG = logging.getLogger("%s" % self.__class__.__module__)
 
-from empower.datatypes.eui64 import EUI64
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
 
 class LNSDPMainHandler(tornado.websocket.WebSocketHandler):
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,16 +26,7 @@ from empower.managers.lommmanager.lnsdp.lnsshandler       import LNSsHandler
 from empower.managers.lommmanager.lnsdp.lgtwshandler      import LGTWsHandler
 from empower.managers.lommmanager.lnsdp.lnsdpmainhandler  import LNSDPMainHandler
 from empower.managers.lommmanager.lnsdp.lns import LNS
-from empower.datatypes.eui64 import EUI64
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
 
 class LNSDPManager(WSManager):
     """LNS Discovery Server Manager
@@ -114,9 +106,9 @@ class LNSDPManager(WSManager):
 
         if lgtws:
             for lgtw in lgtws:
-                if lgtw not in self.lnss.lgtws:
+                if lgtw not in lns.lgtws:
                     lns.lgtws.append(lgtws)
-        
+
         if uri:
             lns.uri = uri
 
@@ -160,7 +152,7 @@ class LNSDPManager(WSManager):
             else:
                 lns.lgtws = [lgtw_euid]
             lns.save()
-            self.lnss[euid] = lns
+            self.lnss[lgtw_euid] = lns
             
         return lgtw_euid
 

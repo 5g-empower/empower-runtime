@@ -15,13 +15,4 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""LoMM Test app."""
-
-from empower.core.app import EVERY
-
-MANIFEST = {
-    "label": "LoMMTest",
-    "desc":  "The LoMM Test App, prints LoMM events data on screen",
-    "params": {
-    }
-}
+"""LoMM Datatypes"""

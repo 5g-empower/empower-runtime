@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +15,11 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""LoRaWAN GTW regional default configurations"""
 
 # From https://github.com/lorabasics/basicstation/blob/master/pysys/tcutils.py w/ small changes
 LGTW_CONFIG_EU863_6CH = {
     'nocca':False,   # channel assessment
-    'nodc':True,     # duty-cycle
     'nodwell':False, # dwell-time
     'DRs': [[12, 125, 0],
         [11, 125, 0],

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2019 Roberto Riggio
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +21,7 @@
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.datatypes.eui64 import EUI64
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
 
 class LEndDevsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN End Devices."""
@@ -109,6 +110,6 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
         """
 
         if args:
-            self.service.remove_lenddev(EUI(args[0]))
+            self.service.remove_lenddev(EUI64(args[0]))
         else:
             self.service.remove_all_lenddevs()
