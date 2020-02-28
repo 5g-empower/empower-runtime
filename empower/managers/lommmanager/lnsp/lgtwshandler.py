@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2019 Roberto Riggio
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +18,10 @@
 """LoRaWAN GTWs Handlers."""
 
 # TODO ADD REFERENCE TO ALLOWED DEVICES
+
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.datatypes.eui64    import EUI64
+from empower.managers.lommmanager.datatypes.eui64    import EUI64
             
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN GTWs."""

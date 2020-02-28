@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,20 +30,9 @@ from empower.managers.lommmanager.lnsp.lnspmainhandler    import LNSPMainHandler
 from empower.managers.lommmanager.lnsp.lorawandevice      import LoRaWANEndDev
 from empower.managers.lommmanager.lnsp.lorawangtw         import LoRaWANgtw
 
-from empower.datatypes.eui64    import EUI64 
+from empower.managers.lommmanager.datatypes.eui64    import EUI64 
 from empower.managers.lommmanager.lnsp.lgtws_default_confs import LGTW_CONFIG_EU863_6CH
 from empower.managers.lommmanager.lnsp.lenddevs_confs      import LEND_DEVS
-
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
-
 
 class LNSPManager(WSManager):
     """LNS Discovery Server Manager
@@ -75,7 +65,6 @@ class LNSPManager(WSManager):
             
     def add_lenddev(self, devEUI, **kwargs):
         """Add new End Device."""
-        params = {}
         # joinEUI = kwargs.get("joinEUI")
         # if joinEUI:
         #     params["joinEUI"] = EUI64(joinEUI)
@@ -111,7 +100,7 @@ class LNSPManager(WSManager):
         try:
             lenddev = self.lenddevs[devEUI]
         except KeyError:
-            raise KeyError("End Device %s not registered in the LNS Server" % lgtw_devEUI)
+            raise KeyError("End Device %s not registered in the LNS Server" % devEUI)
         except:
             raise
         if joinEUI:

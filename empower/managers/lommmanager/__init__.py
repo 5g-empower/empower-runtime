@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
-
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,4 +16,5 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Base LoMM Manager."""
+"""Base LoMM managers."""
+

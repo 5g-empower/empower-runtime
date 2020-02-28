@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,21 +21,12 @@ import logging
 
 from datetime import datetime
 from pymodm import MongoModel, fields
+from enum import Enum, unique
 
 
-from empower.datatypes.eui64 import EUI64Field
+from empower.managers.lommmanager.datatypes.eui64 import EUI64Field, EUI64
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
-
-from enum import Enum, unique
 @unique
 class enddevState(Enum):
     """ Enumerate enddev STATES """
@@ -81,7 +73,6 @@ class LoRaWANEndDev(MongoModel):
     ##TODO Add session keys: <v1.1> NwsSKey, AppSKey
     lversion     = fields.CharField(required=True, blank=True, default="1.0")
     owner        = fields.CharField(required=True, blank=True, default=DEFAULT_OWNER)
-    state        = fields.CharField(required=True, blank=True, default="enddevState.GENERIC")
     activation   = fields.CharField(required=True, blank=True, default="ABP") # OTAA or ABP
     dev_class    = fields.CharField(required=True, blank=True, default="ClassA") # A, B, C
     desc         = fields.CharField(required=False, blank=True)
@@ -101,10 +92,10 @@ class LoRaWANEndDev(MongoModel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.__state          = enddevState.GENERIC
         self._serving_lgtw  = None
         self._type  = self.activation # ABR or OTA
-        
-        self.__state = enddevState.GENERIC
+        self.addr   = "" #TODO
         self.__connection = None
         self.log = logging.getLogger("%s" % self.__class__.__module__)
         return
@@ -115,15 +106,15 @@ class LoRaWANEndDev(MongoModel):
         return self.__state
 
     @state.setter
-    def state(self, state):
+    def state(self, new_state):
         """Set the Device state."""
         if new_state not in self.state.next_valid:
-            raise IOError("Invalid transistion %s -> %s" % (self.state.value, state.value))
+            raise IOError("Invalid transistion %s -> %s" % (self.state.value, new_state.value))
         elif self.state != new_state: 
             self.state = new_state
             self.log.info("New LoRAWAN End Device %s state transition %s->%s", 
                             self.devEUI, self.state.value, new_state.value)
-            self.connection.lgtw_new_state(self.state, new_state)  
+            self.connection.lgtw_new_state(self.state, new_state)
         # if self.state:
         #     method = "__%sdev_%s_%s" % (self._type, self._state, state)
         # if hasattr(self, method):
@@ -189,7 +180,6 @@ class LoRaWANEndDev(MongoModel):
                 "nwkSKey":      self.nwkSKey,
                 'last_seen':    self.last_seen,
                 'last_seen_ts': date,
-                'state':        self.state,
                 'lversion':     self.lversion, 
                 'owner':        self.owner,    
                 'state':        self.state.value,    
@@ -233,7 +223,7 @@ class LoRaWANEndDev(MongoModel):
 
     def handle_add_lgtw(self, euid):
         """ Save whe the lEndDev is seen by a new lGTW."""
-        if str(EUID64(euid)) not in self.lgtws_range:
+        if str(EUI64(euid)) not in self.lgtws_range:
             self.lgtws_range.append(euid)
 
     def handle_join_response(self):

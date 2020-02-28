@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Cristina Costa
+# Copyright (c) 2020 Fondazione Bruno Kessler
+# Author(s): Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,19 +23,8 @@ import logging
 from datetime import datetime
 from pymodm import MongoModel, fields
 
-from empower.datatypes.eui64    import EUI64Field
-from empower.datatypes.websocket import WSURIField
-
-__author__     = "Cristina E. Costa"
-__copyright__  = "Copyright 2019, FBK (https://www.fbk.eu)"
-__credits__    = ["Cristina E. Costa"]
-__license__    = "Apache License, Version 2.0"
-__version__    = "1.0.0"
-__maintainer__ = "Cristina E. Costa"
-__email__      = "ccosta@fbk.eu"
-__status__     = "Dev"
-
-
+from empower.managers.lommmanager.datatypes.eui64     import EUI64Field
+from empower.managers.lommmanager.datatypes.websocket import WSURIField
 
 P_STATE_ACTIVE      = "active"
 P_STATE_SUSPENDED   = "suspended"
@@ -46,7 +36,7 @@ class LNS(MongoModel):
     The Device State machine is the following:
 
     active <-> suspended
-
+    
     Attributes:
         euid: This LNS EUID
         ip:   This LNS IP address (IPAddress)
@@ -64,103 +54,103 @@ class LNS(MongoModel):
 
         super().__init__(**kwargs)
 
-        self.__connection = None
+        # self.__connection = None
         self.last_seen = 0
         self.last_seen_ts = 0
         self.period = 0
-        self.__state = P_STATE_SUSPENDED
+        # self.__state = P_STATE_SUSPENDED
         self.log = logging.getLogger("%s" % self.__class__.__module__)
-
+        
         return None
 
-    @property
-    def state(self):
-        """Return the state."""
+    # @property
+    # def state(self):
+    #     """Return the state."""
 
-        return self.__state
+    #     return self.__state
 
-    @state.setter
-    def state(self, state):
-        """Set the Device state."""
+    # @state.setter
+    # def state(self, state):
+    #     """Set the Device state."""
 
-        self.log.info("Device %s mode %s->%s", self.euid, self.state, state)
+    #     self.log.info("Device %s mode %s->%s", self.euid, self.state, state)
 
-        method = "_%s_%s" % (self.state, state)
+    #     method = "_%s_%s" % (self.state, state)
 
-        if hasattr(self, method):
-            callback = getattr(self, method)
-            callback()
-            return
+    #     if hasattr(self, method):
+    #         callback = getattr(self, method)
+    #         callback()
+    #         return
 
-        raise IOError("Invalid transistion %s -> %s" % (self.state, state))
+    #     raise IOError("Invalid transistion %s -> %s" % (self.state, state))
 
-    def set_connected(self):
-        """Move to connected state."""
+    # def set_connected(self):
+    #     """Move to connected state."""
 
-        self.state = P_STATE_CONNECTED
+    #     self.state = P_STATE_CONNECTED
 
-    def is_connected(self):
-        """Return true if the device is connected"""
+    # def is_connected(self):
+    #     """Return true if the device is connected"""
 
-        return self.state == P_STATE_CONNECTED or self.is_online()
+    #     return self.state == P_STATE_CONNECTED or self.is_online()
 
-    def set_disconnected(self):
-        """Move to connected state."""
+    # def set_disconnected(self):
+    #     """Move to connected state."""
 
-        self.state = P_STATE_DISCONNECTED
+    #     self.state = P_STATE_DISCONNECTED
 
-    def set_online(self):
-        """Move to connected state."""
+    # def set_online(self):
+    #     """Move to connected state."""
 
-        self.state = P_STATE_ONLINE
+    #     self.state = P_STATE_ONLINE
 
-    def is_online(self):
-        """Return true if the device is online"""
+    # def is_online(self):
+    #     """Return true if the device is online"""
 
-        return self.state == P_STATE_ONLINE
+    #     return self.state == P_STATE_ONLINE
 
-    def _online_online(self):
+    # def _online_online(self):
 
-        # null transition
-        pass
+    #     # null transition
+    #     pass
 
-    def _disconnected_connected(self):
+    # def _disconnected_connected(self):
 
-        # set new state
-        self.__state = P_STATE_CONNECTED
+    #     # set new state
+    #     self.__state = P_STATE_CONNECTED
 
-    def _connected_disconnected(self):
+    # def _connected_disconnected(self):
 
-        # set new state
-        self.__state = P_STATE_DISCONNECTED
+    #     # set new state
+    #     self.__state = P_STATE_DISCONNECTED
 
-    def _online_disconnected(self):
+    # def _online_disconnected(self):
 
-        # generate bye message
-        self.__connection.send_device_down_message_to_self()
+    #     # generate bye message
+    #     self.__connection.send_device_down_message_to_self()
 
-        # set new state
-        self.__state = P_STATE_DISCONNECTED
+    #     # set new state
+    #     self.__state = P_STATE_DISCONNECTED
 
-    def _connected_online(self):
+    # def _connected_online(self):
 
-        # set new state
-        self.__state = P_STATE_ONLINE
+    #     # set new state
+    #     self.__state = P_STATE_ONLINE
 
-        # generate register message
-        self.__connection.send_device_up_message_to_self()
+    #     # generate register message
+    #     self.__connection.send_device_up_message_to_self()
 
-    @property
-    def connection(self):
-        """Get the connection assigned to this Device."""
+    # @property
+    # def connection(self):
+    #     """Get the connection assigned to this Device."""
 
-        return self.__connection
+    #     return self.__connection
 
-    @connection.setter
-    def connection(self, connection):
-        """Set the connection assigned to this Device."""
+    # @connection.setter
+    # def connection(self, connection):
+    #     """Set the connection assigned to this Device."""
 
-        self.__connection = connection
+    #     self.__connection = connection
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -176,21 +166,21 @@ class LNS(MongoModel):
             'last_seen': self.last_seen,
             'last_seen_ts': date,
             'period': self.period,
-            'state': self.state
+            # 'state': self.state
         }
 
-        out['connection'] = \
-            self.connection.to_dict() if self.connection else None
+        # out['connection'] = \
+        #     self.connection.to_dict() if self.connection else None
 
         return out
 
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        if self.connection:
-            return "%s at %s last_seen %d" % (self.euid,
-                                              self.connection.to_str(),
-                                              self.last_seen)
+        # if self.connection:
+        #     return "%s at %s last_seen %d" % (self.euid,
+        #                                       self.connection.to_str(),
+        #                                       self.last_seen)
 
         return "%s" % self.euid
 
@@ -201,7 +191,7 @@ class LNS(MongoModel):
         return hash(self.euid)
 
     def __eq__(self, other):
-        if isinstance(other, Device):
+        if isinstance(other, LNS):
             return self.euid == other.euid
         return False
 
