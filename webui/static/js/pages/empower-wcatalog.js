@@ -72,6 +72,7 @@ function clear_worker_catalog(){
 }
 
 function alter_modal(key, descriptor){
+  console.log("ALTER MODAL",key, descriptor)
   let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal")
   modal_hacker.regenerate_title(descriptor.label)
   modal_hacker.configure_from_descriptor(key,descriptor)

@@ -507,7 +507,7 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
 
     $form_group.append($label)
 
-    let param_type = "type: '"+descriptor.type+"'"
+    // let param_type = "type: '"+descriptor.type+"'"
     let mandatory = "MANDATORY"
     if (!descriptor.mandatory){
       mandatory = "OPTIONAL"
@@ -516,22 +516,52 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
     if (this._is_there(descriptor.default)){
       _default = "default: "+ descriptor.default
     }
-    let $input = this._convert_html_to_jquery(
-      this._wrap_in_html(
-        "",
-        "INPUT",
-        {
-          class:"form-control text-xs",
-          id: key,
-          placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+
+    let $input = null
+    switch(descriptor.type){
+      case "str":
+      case "int":
+      case "EtherAddress":
+        $input = this._convert_html_to_jquery(
+          this._wrap_in_html(
+            "",
+            "INPUT",
+            {
+              class:"form-control text-xs",
+              id: key,
+              placeholder: mandatory + ", " + _default +" [ " + descriptor.type  + " ]"
+            }
+          )
+        )
+      default:
+        if (this._is_array(descriptor.type)){
+          $input = this._convert_html_to_jquery(
+            this._wrap_in_html(
+              "",
+              "SELECT",
+              {
+                class:"form-control text-xs",
+                id: key,
+                // placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+              }
+            )
+          )
+          descriptor.type.forEach(function(option){
+            let def = false
+            let selected = false
+            if (descriptor.default === option){
+              def = true
+              selected = true
+            }
+            $input.append(new Option(option, option, def, selected))
+          })
         }
-      )
-    )
+    }
     if (!descriptor.mandatory){
       // console.log("Assigning default")
       $input.attr("default",descriptor.default)
     }
-
+    
     $form_group.append($input)
 
     let description = descriptor.desc
@@ -562,9 +592,10 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
     //$form.append(this.generate_worker_description(descriptor.desc))
 
     if (this._is_there(descriptor.params)){
+      
       let $frame = this.generate_worker_params_frame()
       $.each(descriptor.params, function(key, val){
-        console.log("this",this)
+        // console.log("this",this)
         let $ig = this.generate_worker_parameter_input_group(key, val)
         $frame.append($ig)
       }.bind(this))
@@ -712,23 +743,71 @@ class WEBUI_Modal_Hacker_Application extends WEBUI_Modal_Hacker{
     if (this._is_there(descriptor.default)){
       _default = "default: "+ descriptor.default
     }
-    let $input = this._convert_html_to_jquery(
-      this._wrap_in_html(
-        "",
-        "INPUT",
-        {
-          class:"form-control text-xs",
-          id: key,
-          placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+    
+    
+    let $input = null
+    switch(descriptor.type){
+      case "str":
+      case "int":
+      case "EtherAddress":
+        $input = this._convert_html_to_jquery(
+          this._wrap_in_html(
+            "",
+            "INPUT",
+            {
+              class:"form-control text-xs",
+              id: key,
+              placeholder: mandatory + ", " + _default +" [ " + descriptor.type  + " ]"
+            }
+          )
+        )
+      default:
+        if (this._is_array(descriptor.type)){
+          $input = this._convert_html_to_jquery(
+            this._wrap_in_html(
+              "",
+              "SELECT",
+              {
+                class:"form-control text-xs",
+                id: key,
+                // placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+              }
+            )
+          )
+          descriptor.type.forEach(function(option){
+            let def = false
+            let selected = false
+            if (descriptor.default === option){
+              def = true
+              selected = true
+            }
+            $input.append(new Option(option, option, def, selected))
+          })
         }
-      )
-    )
+    }
     if (!descriptor.mandatory){
       // console.log("Assigning default")
       $input.attr("default",descriptor.default)
     }
-
+    
     $form_group.append($input)
+    // let $input = this._convert_html_to_jquery(
+    //   this._wrap_in_html(
+    //     "",
+    //     "INPUT",
+    //     {
+    //       class:"form-control text-xs",
+    //       id: key,
+    //       placeholder: mandatory + ", " + _default +" [ " + param_type  + " ]"
+    //     }
+    //   )
+    // )
+    // if (!descriptor.mandatory){
+    //   // console.log("Assigning default")
+    //   $input.attr("default",descriptor.default)
+    // }
+
+    // $form_group.append($input)
 
     let description = descriptor.desc
     if (!this._is_there(description)){
@@ -766,6 +845,35 @@ class WEBUI_Modal_Hacker_Application extends WEBUI_Modal_Hacker{
       }.bind(this))
       $form.append($frame)
     }
+
+    this._FIELDS = {}
+
+    let t = this
+
+    $.each(descriptor.params, function(key, val){
+      console.log()
+      let type = null
+      console.log(" HI HI HI val.type:",val.type)
+      switch(val.type){
+        case "str":
+        case "int":
+        case "EtherAddress":
+          type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
+          console.log("found type, type is now: ", type)
+          break
+        default:
+
+          if (t._is_array(val.type)){
+            type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
+          }
+          console.log("found type, type is now: ", type)
+      }
+      
+      $(document).ready(function(){
+        t._FIELDS[key]= t.retrieve_modal_field(type, key)
+      });
+    })
+
 
     let $body = this.retrieve_body()
     $body.empty()
