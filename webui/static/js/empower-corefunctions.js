@@ -44,6 +44,16 @@ class WEBUI_CoreFunctions{
   }
 
   /**
+   * This method checks if candidate argument is an array
+   * @param {*} candidate 
+   * 
+   * @return true if is an array, false otherwise
+   */
+  _is_array(candidate) {
+    return (candidate instanceof Array)
+  }
+
+  /**
    * This method checks if candidate argument is string
    * @param {*} candidate 
    * 

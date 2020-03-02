@@ -76,7 +76,8 @@ function clear_application_catalog(){
 }
 
 function alter_modal(key, descriptor){
-  let modal_hacker = new WEBUI_Modal_Hacker_Worker("application_modal")
+  console.log("ALTER MODAL",key, descriptor)
+  let modal_hacker = new WEBUI_Modal_Hacker_Application("application_modal")
   modal_hacker.regenerate_title(descriptor.label)
   modal_hacker.configure_from_descriptor(key,descriptor)
   modal_hacker.show()
@@ -86,9 +87,10 @@ function alter_modal(key, descriptor){
   )
   let run_button = modal_hacker.generate_footer_button_RUN()
   let f= function(){
-
+    console.log("f")
     let fields = {}
     $.each(descriptor.params, function(key, val){
+      console.log("alter_modal:",key,val)
       fields[key] = {
         type: "TEXT"
       }
