@@ -182,11 +182,11 @@ class Mcast(EWiFiApp):
 
     HANDLERS = [McastServicesHandler]
 
-    def __init__(self, context, service_id, demo_mode=TX_MCAST_SDNPLAY_H,
+    def __init__(self, context, service_id, mcast_policy=TX_MCAST_SDNPLAY_H,
                  every=EVERY):
 
         super().__init__(context=context, service_id=service_id,
-                         demo_mode=demo_mode, every=every)
+                         mcast_policy=mcast_policy, every=every)
 
         self.receptors = {}
         self.receptors_mcses = {}
@@ -282,19 +282,19 @@ class Mcast(EWiFiApp):
                                       service['service_type'])
 
     @property
-    def demo_mode(self):
-        """Get demo mode."""
+    def mcast_policy(self):
+        """Get mcast policy."""
 
-        return self._demo_mode
+        return self.params['mcast_policy']
 
-    @demo_mode.setter
-    def demo_mode(self, mode):
-        """Set the demo mode."""
+    @mcast_policy.setter
+    def mcast_policy(self, mode):
+        """Set the mcast policy."""
 
         if mode not in (TX_MCAST_LEGACY_H, TX_MCAST_DMS_H, TX_MCAST_SDNPLAY_H):
-            raise ValueError("Invalid demo_mode %s" % mode)
+            raise ValueError("Invalid mcast policy %s" % mode)
 
-        self._demo_mode = mode
+        self.params['mcast_policy'] = mode
 
     def lvap_join(self, lvap):
         """Called when an LVAP joins a tenant."""
@@ -423,11 +423,11 @@ class Mcast(EWiFiApp):
 
                 txp = block.tx_policies[addr]
 
-                if self.demo_mode == TX_MCAST_DMS_H:
+                if self.mcast_policy == TX_MCAST_DMS_H:
                     txp.mcast = TX_MCAST_DMS
                     continue
 
-                if self.demo_mode == TX_MCAST_LEGACY_H:
+                if self.mcast_policy == TX_MCAST_LEGACY_H:
                     txp.mcast = TX_MCAST_LEGACY
                     continue
 
@@ -472,15 +472,14 @@ class Mcast(EWiFiApp):
 
         out = super().to_dict()
 
-        out['demo_mode'] = self.demo_mode
         out['schedule'] = [TX_MCAST[x] for x in self.schedule]
         out['mcast_services'] = self.mcast_services
 
         return out
 
 
-def launch(context, service_id, demo_mode, every=EVERY):
+def launch(context, service_id, mcast_policy, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(context=context, service_id=service_id, demo_mode=demo_mode,
+    return Mcast(context=context, service_id=service_id, mcast_policy=mcast_policy,
                  every=every)
