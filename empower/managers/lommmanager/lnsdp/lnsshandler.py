@@ -24,14 +24,14 @@ import json, traceback
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 class LNSsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LNS."""
 
     URLS = [r"/api/v1/lnsd/lnss/?",
             r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/?"] # TODO CHECK EUI64 FORMAT
-            
+
     @apimanager.validate(max_args=1)
     def get(self, *args, **kwargs):
         """List devices.
@@ -61,7 +61,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             }
 
 
-           
+
         """
         if not args:
             out = []
@@ -119,8 +119,8 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             self.finish({"status_code":400,"title":"Value error","detail":str(err)})
         else:
             self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
-        
-        
+
+
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def put(self, *args, **kwargs):
         """Add a new LNS to the LNS Discovery Server Database.
@@ -128,7 +128,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
         Args:
 
             [0]: the lns euid (mandatory)
-            
+
         Request:
 
             version: protocol version (1.0)
@@ -153,7 +153,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             self.finish({"status_code":400,"title":"Value error","detail":str(err)})
         else:
             self.set_header("Location", "/api/v1/lnsd/lnss/%s" % args[0])
-        
+
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
         """Delete one or all devices.

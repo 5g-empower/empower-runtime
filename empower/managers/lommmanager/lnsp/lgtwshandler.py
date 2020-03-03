@@ -21,8 +21,8 @@
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.lommmanager.datatypes.eui64    import EUI64
-            
+from empower.core.eui64 import EUI64
+
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN GTWs."""
 
@@ -51,7 +51,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 {[...]},
             ]
 
-            GET /api/v1/lns/lgtws/b8:27:eb:ff:fe:e7:76:81 
+            GET /api/v1/lns/lgtws/b8:27:eb:ff:fe:e7:76:81
                 {
                 "lgtw_euid": "b8:27:eb:ff:fe:e7:76:81",
                 "desc": "iC880A Concentrator",
@@ -63,7 +63,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 "last_seen_ts": 1582026052.0,
                 "connection": null
                 }
-        """ 
+        """
         if len(args) == 0:
             desc = self.get_argument("desc",None)
             out  = []
@@ -78,7 +78,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             except ValueError  as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"lgtw_id wrong format","detail":str(err)})
-            
+
             if lgtw_euid in self.service.lgtws:
                 return [self.service.lgtws[lgtw_euid].to_dict()]
             else:

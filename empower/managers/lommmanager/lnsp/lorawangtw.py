@@ -24,7 +24,7 @@ from datetime import datetime
 from pymodm import MongoModel, fields
 from enum import Enum, unique
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64Field, EUI64
+from empower.core.eui64 import EUI64Field, EUI64
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 from empower.managers.lommmanager.lnsp.lgtws_default_confs import LGTW_CONFIG_EU863_6CH
 
@@ -35,11 +35,11 @@ class lgtwState(Enum):
     CONNECTED    = "connected"
     ONLINE       = "online"
     RMTSH        = "remote shell" # Remote Shell mode on
-    
+
     @property
     def next_valid(self):
         """Return the next valid state for lgtw.
-        
+
         The lgtw state machine is the following:
             disconnected <-> connected -> online
             online <-> rmsh
@@ -55,27 +55,27 @@ class lgtwState(Enum):
             return [self, lgtwState.DISCONNECTED, lgtwState.ONLINE]
         else:
             return []
-            
+
     @staticmethod
     def to_list():
         return [i.value for i in lgtwState]
 
 class LoRaWANgtw(MongoModel):
     """ LoRaWAN Gateway class
-    
+
     Attributes:
         owner (EUI64Field): Owner of the lGTW
         lgtw_euid (EUI):    LoRaWAN Gateway EUID
         name (CharField):   A human-radable name of this LoRaWAN Gateway
         desc (CharField):   A human-radable description of this LoRaWAN Gateway
         state (lgtwState):  This lGTW state
-        log ():             Logging facility     
-        lgtw_config (DictField):     Stores the configuration of the lGTW sent by the LNS       
+        log ():             Logging facility
+        lgtw_config (DictField):     Stores the configuration of the lGTW sent by the LNS
         last_seen_ts (IntegerField): Timestamp of the last message received
         last_seen (DateTimeField):   Sequence number of the last message received
         connection ():      WS connection
         rmtsh (bool):       Implements interactive remote sheel
-        prod  (bool):       
+        prod  (bool):
         gps (bool):         Implements GPS
         brand (str):        lgtw brand
         model (str):        lgtw model
@@ -87,7 +87,7 @@ class LoRaWANgtw(MongoModel):
 
     Methods:
         is_connected(self):     Return True if lGTW is connected
-        is_rmt_shell(self):     Return True if lGTW is in remote shell state 
+        is_rmt_shell(self):     Return True if lGTW is in remote shell state
         is_online(self):        Return True if lGTW is online
         set_connected(self):    Set lGTW to connected state
         set_disconnected(self): Set lGTW to disconnected state
@@ -131,7 +131,7 @@ class LoRaWANgtw(MongoModel):
     privacy       = {"status":"public","location":"public", "owner":"public"}
     radio_data    = [] # stats collected
     rx_messages   = 0
-    tx_messages   = 0 
+    tx_messages   = 0
     # Private attributes
     _state        = lgtwState.DISCONNECTED
     # Protected attributes
@@ -139,14 +139,14 @@ class LoRaWANgtw(MongoModel):
     __has_pps_signal = False
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)   
+        super().__init__(**kwargs)
         self.log = logging.getLogger("%s" % self.__class__.__module__)
 
     @property
     def state(self):
         """Return the state."""
         return self._state
-        
+
     # @state.setter
     # def state(self, state):
     #     """Set the lgtw state."""
@@ -154,21 +154,21 @@ class LoRaWANgtw(MongoModel):
     #     if hasattr(self, method):
     #         self.log.info("New LoRAWAN RGTW %s state transition %s->%s", self.lgtw_euid, self.state, state)
     #         callback = getattr(self, method)
-    #         callback()            
+    #         callback()
     #     else:
-    #         raise IOError("Invalid transistion %s -> %s" % (self.state, state))        
+    #         raise IOError("Invalid transistion %s -> %s" % (self.state, state))
     #     self.connection.lgtw_new_state(self.state, state)
     @state.setter
     def state(self, new_state):
         """Set the lgtw state."""
         if new_state not in self.state.next_valid:
             raise IOError("Invalid transistion %s -> %s" % (self._state.value, new_state.value))
-        elif self._state != new_state: 
-            self.log.info("New LoRAWAN GTW %s state transition %s->%s", 
+        elif self._state != new_state:
+            self.log.info("New LoRAWAN GTW %s state transition %s->%s",
                             self.lgtw_euid, self.state.value, new_state.value)
             self._state = new_state
-            self.connection.lgtw_new_state(self._state, new_state)   
-        
+            self.connection.lgtw_new_state(self._state, new_state)
+
     # """ Valid State Transisions """
     # def _online_online(self):
     #     # null transition
@@ -182,7 +182,7 @@ class LoRaWANgtw(MongoModel):
     #     # set new state
     #     self._state = lgtwState.CONNECTED
 
-    # def _connected_disconnected(self):        
+    # def _connected_disconnected(self):
     #     # set new state
     #     self._state = lgtwState.DISCONNECTED
 
@@ -193,7 +193,7 @@ class LoRaWANgtw(MongoModel):
     # def _connected_online(self):
     #     # set new state
     #     self._state = lgtwState.ONLINE
-        
+
     # def _online_rmtsh(self):
     #     # set new state
     #     self._state = lgtwState.RMTSH
@@ -226,17 +226,17 @@ class LoRaWANgtw(MongoModel):
     def set_online(self):
         """Move lGTW to online state."""
         self.state = lgtwState.ONLINE
-        
+
     def set_rmt_shell(self):
         """Move lGTW to remote shell state."""
         self.state = lgtwState.RMTSH
-        
+
     def set_send_rtt_on(self):
         """Send RTT message ON."""
         if not self.__send_rtt_on:
             self.__send_rtt_on = True
             self.connection.lgtw_rtt_on_set()
-        
+
     def set_send_rtt_off(self):
         """Send RTT message OFF."""
         if self.__send_rtt_on:
@@ -251,8 +251,8 @@ class LoRaWANgtw(MongoModel):
         """Return a JSON-serializable dictionary representing the PNFDev."""
         if not self.last_seen:
             self.last_seen = datetime.now()
-        date = datetime.timestamp(self.last_seen) 
-            
+        date = datetime.timestamp(self.last_seen)
+
         if self.connection:
             connection = self.connection.to_dict()
         else:

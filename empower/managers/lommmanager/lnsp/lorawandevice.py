@@ -24,7 +24,7 @@ from pymodm import MongoModel, fields
 from enum import Enum, unique
 
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64Field, EUI64
+from empower.core.eui64 import EUI64Field, EUI64
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 
 @unique
@@ -33,11 +33,11 @@ class enddevState(Enum):
     GENERIC     = "generic"
     COMISSIONED = "comissioned"
     ACTIVATED   = "activated"
-    
+
     @property
     def next_valid(self):
         """Return the next valid state for lgtw.
-        
+
         The lgtw state machine is the following:
             generic <-> comissioned <-> activated
         """
@@ -49,7 +49,7 @@ class enddevState(Enum):
             return [self, enddevState.COMISSIONED]
         else:
             return []
-            
+
     @staticmethod
     def to_list():
         return [i.value for i in enddevState]
@@ -64,7 +64,7 @@ class LoRaWANEndDev(MongoModel):
         log:  logging facility
     """
     devEUI       = EUI64Field(primary_key=True) # 64 bit lEndDev identifier, EUI-64
-    devAddr      = fields.CharField(required=False)   
+    devAddr      = fields.CharField(required=False)
     joinEUI      = EUI64Field(required=False, blank=True) # 64 bit Join Server identifier (appEUI for v<1.1), EUI-64
     appKey       = fields.CharField(required=False, blank=True)
     nwkKey       = fields.CharField(required=False, blank=True)
@@ -76,18 +76,18 @@ class LoRaWANEndDev(MongoModel):
     activation   = fields.CharField(required=True, blank=True, default="ABP") # OTAA or ABP
     dev_class    = fields.CharField(required=True, blank=True, default="ClassA") # A, B, C
     desc         = fields.CharField(required=False, blank=True)
-    tags         = fields.ListField(required=False, blank=True) 
-    lgtws_range  = fields.ListField(required=False, blank=True) 
+    tags         = fields.ListField(required=False, blank=True)
+    lgtws_range  = fields.ListField(required=False, blank=True)
     last_seen    = 0
     last_seen_ts = 0
     frames_up    = 0
     frames_down  = 0
-    frame_count  = 0 ##REVIEW 
-    location      = fields.ListField(required=False, blank=True) 
+    frame_count  = 0 ##REVIEW
+    location      = fields.ListField(required=False, blank=True)
     altitude      = fields.IntegerField(required=False, blank=True)
     fcntChecks    = fields.BooleanField(required=False, blank=True, default=False), # frame_counter_checks - REVIEW False vs. True
     fcntWidth     = fields.CharField(required=False, blank=True, default="16bit") # frame_counter_size "16bit"/"32bit" else None, # 16bit or 32bit
-    payloadFormat = fields.CharField(required=False, blank=True) 
+    payloadFormat = fields.CharField(required=False, blank=True)
 
 
     def __init__(self, **kwargs):
@@ -110,9 +110,9 @@ class LoRaWANEndDev(MongoModel):
         """Set the Device state."""
         if new_state not in self.state.next_valid:
             raise IOError("Invalid transistion %s -> %s" % (self.state.value, new_state.value))
-        elif self.state != new_state: 
+        elif self.state != new_state:
             self.state = new_state
-            self.log.info("New LoRAWAN End Device %s state transition %s->%s", 
+            self.log.info("New LoRAWAN End Device %s state transition %s->%s",
                             self.devEUI, self.state.value, new_state.value)
             self.connection.lgtw_new_state(self.state, new_state)
         # if self.state:
@@ -120,16 +120,16 @@ class LoRaWANEndDev(MongoModel):
         # if hasattr(self, method):
         #     callback = getattr(self, method)
         #     callback()
-        #     self.log.info("New LoRAWAN End Device %s state transition %s->%s", 
+        #     self.log.info("New LoRAWAN End Device %s state transition %s->%s",
         #                     self.devEUI, self.state.value, new_state.value)
         #     return
         # raise IOError("Invalid transistion %s -> %s" % (self.state, state))
-        
+
     """ Device Commissioning """
     def __ABRdev_generic_commissioned(self):
         self._state = enddevState.ACTIVATED # for ABR
         return self._state
-        
+
     def __OTAdev_generic_commissioned(self):
         self._state = enddevState.COMISSIONED # for OTA
         return self._state
@@ -137,24 +137,24 @@ class LoRaWANEndDev(MongoModel):
     """ Device Decommissioning """
     def __ABRdev_commissioned_generic(self):
         return self._state
-        
+
     def __OTAdev_commissioned_generic(self):
         self._state = enddevState.GENERIC # for OTA
         return self._state
-            
+
     """ Device Join """
-    def __ABRdev_commissioned_activated(self):    
+    def __ABRdev_commissioned_activated(self):
         return self._state
-        
+
     def __OTAdev_commissioned_activated(self):
-        self._state = enddevState.ACTIVATED # for OTA    
+        self._state = enddevState.ACTIVATED # for OTA
         return self._state
-    
-    """ OTA Device Exit """        
+
+    """ OTA Device Exit """
     def __OTAdev_activated_commissioned(self):
-        self._state = enddevState.COMISSIONED # for OTA    
+        self._state = enddevState.COMISSIONED # for OTA
         return self._state
-        
+
     @property
     def serving_lgtw(self):
         """Return the LoRaGTW serving this lEndDev"""
@@ -164,14 +164,14 @@ class LoRaWANEndDev(MongoModel):
     def serving_lgtw(self, serving_lgtw):
         """ Update lGTW of lEndDev."""
         self._serving_lgtw = serving_lgtw
-        # check if joined?        
-        
+        # check if joined?
+
     def to_dict(self):
         """Return a JSON-serializable dictionary representing the LoRaWAN Device."""
 
         date = datetime.fromtimestamp(self.last_seen_ts) \
             .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            
+
         out =  {"devEUI":       self.devEUI,
                 "joinEUI":      self.joinEUI,
                 "appKey":       self.appKey,
@@ -180,9 +180,9 @@ class LoRaWANEndDev(MongoModel):
                 "nwkSKey":      self.nwkSKey,
                 'last_seen':    self.last_seen,
                 'last_seen_ts': date,
-                'lversion':     self.lversion, 
-                'owner':        self.owner,    
-                'state':        self.state.value,    
+                'lversion':     self.lversion,
+                'owner':        self.owner,
+                'state':        self.state.value,
                 'activation':   self.activation,
                 'dev_class':    self.dev_class ,
                 'location':     self.location,
@@ -197,7 +197,7 @@ class LoRaWANEndDev(MongoModel):
             out['lgtws_range'] = self.lgtws_range
         if self.tags:
             out['devAddr'] = self.devAddr
-                
+
         return out
 
     def __eq__(self, other):

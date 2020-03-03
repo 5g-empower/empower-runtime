@@ -26,7 +26,7 @@ from empower.managers.lommmanager.lnsdp.lnsshandler       import LNSsHandler
 from empower.managers.lommmanager.lnsdp.lgtwshandler      import LGTWsHandler
 from empower.managers.lommmanager.lnsdp.lnsdpmainhandler  import LNSDPMainHandler
 from empower.managers.lommmanager.lnsdp.lns import LNS
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 class LNSDPManager(WSManager):
     """LNS Discovery Server Manager
@@ -43,26 +43,26 @@ class LNSDPManager(WSManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.lnss = {}
-        
+
     @property
     def lgtws(self):
         """Return the lgtws."""
         lgtws = {}
         for lns_euid in self.lnss:
             lns = self.lnss[lns_euid]
-            for lgtw_euid in lns.lgtws: 
+            for lgtw_euid in lns.lgtws:
                 if lgtw_euid not in lgtws:
-                    lgtws[lgtw_euid] = []                
+                    lgtws[lgtw_euid] = []
                 lgtws[lgtw_euid].append(lns_euid)
         return lgtws
-        
+
     def start(self):
         """Start control loop."""
-        super().start()     
-        """ retrieve data from the db """   
+        super().start()
+        """ retrieve data from the db """
         for lns in LNS.objects:
             self.lnss[lns.euid] = lns
-                
+
     def add_lns(self, lns_euid, **kwargs):
         """Add new lns."""
         try:
@@ -81,13 +81,13 @@ class LNSDPManager(WSManager):
 
         if lns_euid in self.lnss:
             raise ValueError("LNS %s already registered in the LNS Discovery Server" % lns_euid)
-       
+
         if lgtws:
             lns = LNS(uri=uri, euid=lns_euid, desc=desc, lgtws=lgtws).save()
         else:
             lns = LNS(uri=uri, euid=lns_euid, desc=desc).save()
         self.lnss[lns_euid] = lns
-       
+
         return self.lnss[lns_euid]
 
     def update_lns(self, lns_euid, **kwargs):
@@ -96,7 +96,7 @@ class LNSDPManager(WSManager):
         desc     = kwargs.get("desc")
         uri      = kwargs.get("uri")
         lgtws    = [EUI64(lgtw).id6 for lgtw in kwargs.get("lgtws",[])]
-        
+
         try:
             lns = self.lnss[lns_euid]
         except KeyError:
@@ -129,14 +129,14 @@ class LNSDPManager(WSManager):
         """Remove all LNSs."""
         for euid in list(self.lnss):
             self.remove_lns(EUI64(euid).id6)
-            
+
     def add_lgtw(self,  **kwargs):
         """Add new lgtw."""
         if 'lns_euid' not in kwargs:
             raise ValueError("lns_euid must be present")
         if 'lgtw_euid' not in kwargs:
             raise ValueError("lgtw_euid must be present")
-            
+
         lns_euid  = EUI64(kwargs.get("lns_euid")).id6
         lgtw_euid = EUI64(kwargs.get("lgtw_euid")).id6
         try:
@@ -153,23 +153,23 @@ class LNSDPManager(WSManager):
                 lns.lgtws = [lgtw_euid]
             lns.save()
             self.lnss[lgtw_euid] = lns
-            
+
         return lgtw_euid
 
     def remove_lgtw_from_lns(self, lgtw_euid, lns_euid):
         """Remove GTW from an LNS."""
-        try: 
+        try:
             lns = self.lnss[lns_euid]
         except KeyError:
             raise ValueError("%s not registered" % lns_euid)
         except:
-            raise              
-        
+            raise
+
         if lgtw_euid in lns.lgtws:
             lns.lgtws.remove(lgtw_euid)
             lns.save()
             self.lnss[lns_euid] = lns
-            
+
     def remove_lgtw(self, lgtw_euid, lns_euid = None):
         """Remove GTW (is an LNS is not specified, remove for all)."""
         if lns_euid:
