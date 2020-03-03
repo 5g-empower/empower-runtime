@@ -101,7 +101,7 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
 
     if (need_auth) {
       this.REQUEST.beforeSend = function (req) {
-        console.log("Preparing an authorised request")
+        // console.log("Preparing an authorised request")
         req.setRequestHeader("Authorization", this.basic_auth());
         req.empower = {
           url: this.REQUEST.url,

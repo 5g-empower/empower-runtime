@@ -2,9 +2,6 @@ $('#apps').removeClass('collapsed');
 $('#collapseThree').addClass('show');
 $('#apps_active').addClass('active');
 
-
-console.warn("THIS PAGE IS A WORK IN PROGRESS!")
-
 $(document).ready(function() {
 
   show_active_applications()
@@ -82,6 +79,10 @@ function clear_active_application_list(){
 }
 
 function alter_modal(type, key, descriptor){
+  console.log("ALTER MODAL", type, key, descriptor)
+
+  let cf = __EMPOWER_WEBUI.CORE_FUNCTIONS
+
   let modal_hacker = new WEBUI_Modal_Hacker_Application("application_modal")
 
   // let title = "Default title"
@@ -115,11 +116,26 @@ function alter_modal(type, key, descriptor){
   )
 
   let fields = {}
-    $.each(descriptor.params, function(key, val){
-      fields[key] = {
-        type: "TEXT"
-      }
-    })
+  $.each(descriptor.manifest.params, function(key, val){
+    let type = null
+    console.log("val.type:",val.type)
+    switch(val.type){
+      case "str":
+      case "int":
+      case "EtherAddress":
+        type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
+        console.log("found type, type is now: ", type)
+        break
+      default:
+        if (cf._is_array(val.type)){
+          type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
+        }
+        console.log("found type, type is now: ", type)
+    }
+    fields[key] = {
+      type: type
+    }
+  })
 
   let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"application_modal")
     .add_fields(fields)
@@ -134,7 +150,7 @@ function alter_modal(type, key, descriptor){
 
   let f= function(){
     
-    application_function(key, modal)
+    application_function(key, modal_hacker)
   }
 
   application_button.click(f)
@@ -158,6 +174,7 @@ function edit_application(uuid, modal){
   // $.each(modal._FIELDS, function(k, field){
   //   data.params[k] = field.get_value()
   // })
+  console.log("modal._FIELDS",modal._FIELDS)
   $.each(modal._FIELDS, function(k, field){
     data.params[k] = field.get_value()
     if (data.params[k] === ""){

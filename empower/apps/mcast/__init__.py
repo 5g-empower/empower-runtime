@@ -24,8 +24,8 @@ MANIFEST = {
     "desc": "This application makes white bunnies happy even if watched by "
             "many people.",
     "params": {
-        "demo_mode": {
-            "desc": "The operation mode (legacy, dms, sdn@play).",
+        "mcast_policy": {
+            "desc": "The multicast operation mode (legacy, dms, sdn@play).",
             "mandatory": False,
             "default": "sdn@play",
             "type": ["legacy", "dms", "sdn@play"]
