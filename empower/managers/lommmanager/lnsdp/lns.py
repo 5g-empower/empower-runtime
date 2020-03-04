@@ -23,8 +23,8 @@ import logging
 from datetime import datetime
 from pymodm import MongoModel, fields
 
-from empower.managers.lommmanager.datatypes.eui64     import EUI64Field
-from empower.managers.lommmanager.datatypes.websocket import WSURIField
+from empower.core.eui64 import EUI64Field
+from empower.core.wsuri import WSURIField
 
 P_STATE_ACTIVE      = "active"
 P_STATE_SUSPENDED   = "suspended"
@@ -36,7 +36,7 @@ class LNS(MongoModel):
     The Device State machine is the following:
 
     active <-> suspended
-    
+
     Attributes:
         euid: This LNS EUID
         ip:   This LNS IP address (IPAddress)
@@ -60,7 +60,7 @@ class LNS(MongoModel):
         self.period = 0
         # self.__state = P_STATE_SUSPENDED
         self.log = logging.getLogger("%s" % self.__class__.__module__)
-        
+
         return None
 
     # @property

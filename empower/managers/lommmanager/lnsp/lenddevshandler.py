@@ -21,7 +21,7 @@
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 class LEndDevsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN End Devices."""
@@ -46,7 +46,7 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
                 }
             ]
 
-            GET /api/v1/lns/lenddevs/00:28:A1:54:B8:91:72:D2 
+            GET /api/v1/lns/lenddevs/00:28:A1:54:B8:91:72:D2
             {
                     "devAddr": "0028A154B89172D2",
                     "desc": "End Device XXX"
@@ -63,7 +63,7 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
             except ValueError as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"devEUI wrong format","detail":str(err)})
-           
+
             return self.service.lenddevs[devEUI].to_dict()
 
     @apimanager.validate(returncode=201, min_args=0, max_args=0)

@@ -15,14 +15,16 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""Web Socket URI"""
+
+import ipaddress
+import re
 
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
 from pymodm import validators
 # from pymodm.compat import PY3
 
-import ipaddress
-import re
 
 class WSURIField(MongoBaseField):
     """A field that stores WS URIs.
@@ -32,7 +34,7 @@ class WSURIField(MongoBaseField):
     SCHEMES = set(['ws', 'wss'])
     DOMAIN_PATTERN = re.compile(
         r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}(?<!-)\.?)'  # domain
+        r'(?:[A-Z]{2, 6}\.?|[A-Z0-9-]{2,}(?<!-)\.?)'  # domain
         r'(?::\d+)?\Z',  # optional port
         re.IGNORECASE
     )
@@ -48,8 +50,8 @@ class WSURIField(MongoBaseField):
                      :class:`~pymodm.base.fields.MongoBaseField`
         """
         super(WSURIField, self).__init__(verbose_name=verbose_name,
-                                       mongo_name=mongo_name,
-                                       **kwargs)
+                                         mongo_name=mongo_name,
+                                         **kwargs)
 
         def validate_url(url):
             scheme, rest = url.split('://')
@@ -69,4 +71,4 @@ class WSURIField(MongoBaseField):
                         ipaddress.ip_address(domain)
                     except ValueError:
                         raise ValidationError('Invalid URL: ' + rest)
-        self.validators.append(validate_url)
+            validators.append(validate_url)

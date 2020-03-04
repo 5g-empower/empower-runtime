@@ -22,9 +22,9 @@
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 import json, traceback
-    
+
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
     """Handler for accessing LoRaWAN GTWs."""
 
@@ -32,7 +32,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws",
             r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws/([a-zA-Z0-9:]*)/?",
             ] # TODO CHECK EUI64 FORMAT
-            
+
     @apimanager.validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
         """List devices.
@@ -46,7 +46,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
 
             GET /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
 
-            {  
+            {
             "0000:0000:0000:0001":{
                     "lgtw_euid": ["b827:ebff:fee7:7681"],
                     "lns_euid": "0000:0000:0000:0001"
@@ -60,14 +60,14 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                     "lns_euid": "0000:0000:0000:0001"
             }
         """
-        
+
         lns_euid  = None
         lgtw_euid = None
 
         if args[0]:
             try:
                 lns_euid  = EUI64(args[0]).id6
-            except ValueError as err: 
+            except ValueError as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
 
@@ -75,11 +75,11 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             if args[1]:
                 try:
                     lgtw_euid = EUI64(args[1]).id6
-                except ValueError as err: 
+                except ValueError as err:
                     self.set_status(400)
                     self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
 
-        if len(args) == 2 and lns_euid and lgtw_euid:                
+        if len(args) == 2 and lns_euid and lgtw_euid:
             if lns_euid in self.service.lnss and lgtw_euid in self.service.lnss[lns_euid].lgtws:
                 return {"lns_euid":lns_euid,"lgtw_euid":self.service.lnss[lns_euid].lgtws}
             else:
@@ -102,8 +102,8 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             out = []
             for key in self.service.lnss:
                 out.append({"lns_euid":key, "lgtw_euid":self.service.lnss[key].lgtws})
-            return out        
-                
+            return out
+
     @apimanager.validate(returncode=201, min_args=2, max_args=2)
     def post(self, *args, **kwargs):
         """Add a new LoRaWAN GTW to the LNS Discovery Server Database.
@@ -120,21 +120,21 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         Example URLs:
 
             POST /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
-        """        
+        """
         lns_euid  = None
         lgtw_euid = None
 
         if args[0]:
             try:
                 lns_euid  = EUI64(args[0]).id6
-            except ValueError as err: 
+            except ValueError as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
 
         if args[1]:
             try:
                 lgtw_euid = EUI64(args[1]).id6
-            except ValueError as err: 
+            except ValueError as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
 
@@ -164,7 +164,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         if args[0]:
             try:
                 lns_euid  = EUI64(args[0]).id6
-            except ValueError as err: 
+            except ValueError as err:
                 self.set_status(400)
                 self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
 
@@ -172,7 +172,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             if args[1]:
                 try:
                     lgtw_euid = EUI64(args[1]).id6
-                except ValueError as err: 
+                except ValueError as err:
                     self.set_status(400)
                     self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
 
@@ -189,4 +189,4 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             for lns_euid in self.service.lnss:
                 for lgtw_euid in self.service.lgtws:
                     self.service.remove_lgtw_from_lns(lgtw_euid, lns_euid)
-            
+
