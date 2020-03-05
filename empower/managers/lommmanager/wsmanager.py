@@ -15,41 +15,41 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""Basic LoMM Web Socket (WS) Manager."""
+"""Generic LoMM Web Socket (WS) Service Manager."""
 
 import tornado.web
 
 from empower.core.service import EService
 
-class WSManager(EService):
-    """Basic WS Manager
 
-    Base class for text-based southbound Web Socket interface. 
-    This class must be extended in order to implement the protocol 
+class WSManager(EService):
+    """Generic LoMM Web Socket Service .
+
+    Base class for text-based southbound Web Socket interface.
+    This class must be extended in order to implement the protocol
     required by the specific device.
 
-    The only assumption this class makes is that the SBi is using 
-    Web Sockets. 
-    
+    The only assumption this class makes is that the SBi is using
+    Web Sockets.
+
     Moreover all devices must extend the Device base
     class and must use a 48 bits identifier (an Ethernet address).
 
     Parameters:
         port: the port on which the WS server should listen (optional)
     """
-    LABEL = "Generic LoMM Web Socket Server"
+
     DEFAULT_PORT = 8080
     HANDLERS = []
     WSHANDLERS = []
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.devices = {}
+    devices = {}
+    websocket = None
+    http_server = None
 
     @property
     def port(self):
         """Return port."""
-        return self.params.get("port", self.DEFAULT_PORT) 
+        return self.params.get("port", self.DEFAULT_PORT)
 
     @port.setter
     def port(self, value):
@@ -61,21 +61,20 @@ class WSManager(EService):
     def start(self):
         """Start control loop."""
         super().start()
-            
-        if self.WSHANDLERS:            
+
+        if self.WSHANDLERS:
             arguments = []
             for wshandler in self.WSHANDLERS:
-                arguments += wshandler.urls(dict(server=self))
-            self.ws = tornado.web.Application(arguments)
-            #self.ws = tornado.web.Application(arguments, debug=True)
-            
-            self.http_server = tornado.httpserver.HTTPServer(self.ws)
+                arguments += wshandler.urls(server=self)
+            self.websocket = tornado.web.Application(arguments)
+            # self.websocket = tornado.web.Application(arguments, debug=True)
+
+            self.http_server = tornado.httpserver.HTTPServer(self.websocket)
             self.http_server.listen(self.port)
             self.log.info("Listening on port %u", self.port)
-        
+
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
         out = super().to_dict()
-        out["port"]  = self.port
-        out["descr"] = self.LABEL
+        out["port"] = self.port
         return out

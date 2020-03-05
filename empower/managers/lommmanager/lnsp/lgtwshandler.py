@@ -17,17 +17,16 @@
 # under the License.
 """LoRaWAN GTWs Handlers."""
 
-# TODO ADD REFERENCE TO ALLOWED DEVICES
-
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.core.eui64 import EUI64
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
+
 
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
-    """Handler for accessing LoRaWAN GTWs."""
+    """REST API handler for managing LoRaWAN GTWs."""
 
     URLS = [r"/api/v1/lns/lgtws/?",
-            r"/api/v1/lns/lgtws/([a-zA-Z0-9:]*)/?"]
+            r"/api/v1/lns/lgtws/([a-zA-Z0-9: ]*)/?"]
 
     @apimanager.validate(max_args=1)
     def get(self, *args, **kwargs):
@@ -64,25 +63,27 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 "connection": null
                 }
         """
-        if len(args) == 0:
-            desc = self.get_argument("desc",None)
-            out  = []
-            for key in self.service.lgtws:
-                if desc and desc not in self.service.lgtws[key].to_dict()["desc"]:
-                    continue
-                out.append(self.service.lgtws[key].to_dict())
-            return out
-        else:
+        out = []
+        if len(args) == 1:
             try:
-                lgtw_euid = EUI64(args[0]).eui
-            except ValueError  as err:
+                lgtw_euid = EUI64(args[0]).eui64
+            except ValueError as err:
                 self.set_status(400)
-                self.finish({"status_code":400,"title":"lgtw_id wrong format","detail":str(err)})
+                self.finish({"status_code": 400,
+                             "title": "lgtw_id wrong format",
+                             "detail": str(err)})
 
             if lgtw_euid in self.service.lgtws:
-                return [self.service.lgtws[lgtw_euid].to_dict()]
-            else:
-                return []
+                out = [self.service.lgtws[lgtw_euid].to_dict()]
+            return out
+
+        desc = self.get_argument("desc", None)
+        for key in self.service.lgtws:
+            if (desc and
+                    desc not in self.service.lgtws[key].to_dict()["desc"]):
+                continue
+            out.append(self.service.lgtws[key].to_dict())
+        return out
 
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def post(self, *args, **kwargs):
@@ -102,16 +103,10 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 "desc": "LoRaWAN GTW iC880A"
             }
         """
-        try:
-            print(args[0])
-            print(kwargs)
-            lgtw = self.service.add_lgtw(args[0], **kwargs)
-        except:
-            raise
-        else:
-            self.set_header("Location", "/api/v1/lns/lgtw/%s" % lgtw.lgtw_euid)
+        lgtw = self.service.add_lgtw(args[0], **kwargs)
+        self.set_header("Location", "/api/v1/lns/lgtw/%s" % lgtw.lgtw_euid)
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+    @apimanager.validate(returncode=201, min_args=1, max_args=4)
     def put(self, *args, **kwargs):
         """Add a new LoRaWAN end device.
 
@@ -130,12 +125,8 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 "desc": "LoRaWAN GTW iC880A"
             }
         """
-        try:
-            lgtw = self.service.update_lgtw(args[0], **kwargs)
-        except:
-            raise
-        else:
-            self.set_header("Location", "/api/v1/lns/lgtw/%s" % lgtw.lgtw_euid)
+        lgtw = self.service.update_lgtw(args[0], **kwargs)
+        self.set_header("Location", "/api/v1/lns/lgtws/%s" % lgtw.lgtw_euid)
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
@@ -148,8 +139,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/lns/lgtws
             DELETE /api/v1/lns/lgtws/08:27:eb:ff:fe:e7:76:91
         """
-
         if args:
-            self.service.remove_lgtw(EUI64(args[0]).eui)
+            self.service.remove_lgtw(EUI64(args[0]).eui64)
         else:
             self.service.remove_all_lgtws()

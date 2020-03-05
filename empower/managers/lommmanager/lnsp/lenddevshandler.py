@@ -17,14 +17,13 @@
 # under the License.
 """LoRaWAN End Device Handlers."""
 
-# TODO ADD REFERENCE TO ALLOWED DEVICES
-
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.core.eui64 import EUI64
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
+
 
 class LEndDevsHandler(apimanager.EmpowerAPIHandler):
-    """Handler for accessing LoRaWAN End Devices."""
+    """REST API handler for managing LoRaWAN End Devices."""
 
     URLS = [r"/api/v1/lns/lenddevs/?",
             r"/api/v1/lns/lenddevs/([a-zA-Z0-9:]*)/?"]
@@ -57,16 +56,18 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
             for key in self.service.lenddevs:
                 out.append(self.service.lenddevs[key].to_dict())
             return out
-        else:
-            try:
-                devEUI = EUI64(args[0]).eui
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code":400,"title":"devEUI wrong format","detail":str(err)})
 
-            return self.service.lenddevs[devEUI].to_dict()
+        try:
+            dev_eui = str(EUI64(args[0]))
+        except ValueError as err:
+            self.set_status(400)
+            self.finish({"status_code": 400,
+                         "title": "devEUI wrong format",
+                         "detail": str(err)})
+        print(self.service.lenddevs)
+        return self.service.lenddevs[dev_eui].to_dict()
 
-    @apimanager.validate(returncode=201, min_args=0, max_args=0)
+    @apimanager.validate(returncode=201, min_args=0, max_args=1)
     def post(self, *args, **kwargs):
         """Add a new LoRaWAN end device.
 
@@ -92,10 +93,12 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
         """
         try:
             lenddev = self.service.add_lenddev(args[0], **kwargs)
-        except:
+        except Exception as err:
+            print(err)
             raise
         else:
-            self.set_header("Location", "/api/v1/lns/lenddevs/%s" % lenddev.devEUI)
+            self.set_header("Location",
+                            "/api/v1/lns/lenddevs/%s" % lenddev.dev_eui)
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
@@ -108,8 +111,7 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/lns/lenddevs
             DELETE /api/v1/lns/lenddevs/00:28:A1:54:B8:91:72:D2
         """
-
         if args:
-            self.service.remove_lenddev(EUI64(args[0]))
+            self.service.remove_lenddev(str(EUI64(args[0])))
         else:
             self.service.remove_all_lenddevs()

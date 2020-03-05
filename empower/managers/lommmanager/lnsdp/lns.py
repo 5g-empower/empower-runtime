@@ -23,11 +23,11 @@ import logging
 from datetime import datetime
 from pymodm import MongoModel, fields
 
-from empower.core.eui64 import EUI64Field
-from empower.core.wsuri import WSURIField
+from empower.managers.lommmanager.datatypes.eui64 import EUI64Field
+from empower.managers.lommmanager.datatypes.wsuri import WSURIField
 
-P_STATE_ACTIVE      = "active"
-P_STATE_SUSPENDED   = "suspended"
+P_STATE_ACTIVE = "active"
+P_STATE_SUSPENDED = "suspended"
 
 
 class LNS(MongoModel):
@@ -44,11 +44,10 @@ class LNS(MongoModel):
         desc: A human-radable description of this Device (str)
         log:  logging facility
     """
-    euid     = EUI64Field(primary_key=True) # 64 bit gateway identifier, EUI-64
-    uri      = WSURIField(required=True)
-    lgtws    = fields.ListField(default=[], blank=True, required=False)
-    desc     = fields.CharField(required=True)
-
+    euid = EUI64Field(primary_key=True)  # 64 bit gateway identifier, EUI-64
+    uri = WSURIField(required=True)
+    lgtws = fields.ListField(default=[], blank=True, required=False)
+    desc = fields.CharField(required=True)
 
     def __init__(self, **kwargs):
 
@@ -60,8 +59,6 @@ class LNS(MongoModel):
         self.period = 0
         # self.__state = P_STATE_SUSPENDED
         self.log = logging.getLogger("%s" % self.__class__.__module__)
-
-        return None
 
     # @property
     # def state(self):
@@ -162,7 +159,7 @@ class LNS(MongoModel):
             'euid': self.euid,
             'desc': self.desc,
             'uri': self.uri,
-            'lgtws':self.lgtws,
+            'lgtws': self.lgtws,
             'last_seen': self.last_seen,
             'last_seen_ts': date,
             'period': self.period,
@@ -182,7 +179,7 @@ class LNS(MongoModel):
         #                                       self.connection.to_str(),
         #                                       self.last_seen)
 
-        return "%s" % self.euid
+        return "LNSS object \"%s\", euid=%s" % (self.desc, self.euid)
 
     def __str__(self):
         return self.to_str()
