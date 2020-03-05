@@ -23,8 +23,8 @@ from datetime import datetime
 from enum import Enum, unique
 from pymodm import MongoModel, fields
 
-# from empower.managers.lommmanager.datatypes.eui64 import EUI64
-from empower.managers.lommmanager.datatypes.eui64 import EUI64Field
+# from empower.core.eui64 import EUI64
+from empower.core.eui64 import EUI64Field
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 
 

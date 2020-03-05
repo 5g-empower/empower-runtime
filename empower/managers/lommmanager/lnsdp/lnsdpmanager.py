@@ -24,7 +24,7 @@ from empower.managers.lommmanager.lnsdp.lgtwshandler import LGTWsHandler
 from empower.managers.lommmanager.lnsdp.lnsdpmainhandler \
     import LNSDPMainHandler
 from empower.managers.lommmanager.lnsdp.lns import LNS
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 
 class LNSDPManager(WSManager):

@@ -32,7 +32,7 @@ from empower.managers.lommmanager.lnsp.lnspmainhandler import LNSPMainHandler
 from empower.managers.lommmanager.lnsp.lorawandevice import LoRaWANEndDev
 from empower.managers.lommmanager.lnsp.lorawangtw import LoRaWANgtw
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 JSON_FILE = "empower/managers/lommmanager/lnsp/lgtws_default_conf.json"
 

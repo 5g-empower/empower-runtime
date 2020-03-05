@@ -42,7 +42,6 @@ class WSManager(EService):
     DEFAULT_PORT = 8080
     HANDLERS = []
     WSHANDLERS = []
-    devices = {}
     websocket = None
     http_server = None
 
