@@ -15,23 +15,20 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
-# TODO ADD REFERENCE TO ALLOWED DEVICES
-
 """LNS Handlers for the LNS Discovery Server."""
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.core.eui64 import EUI64
-import json, traceback
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
+
 
 class LGTWsHandler(apimanager.EmpowerAPIHandler):
-    """Handler for accessing LoRaWAN GTWs."""
+    """REST API handler for managing LoRaWAN GTWs data (LNSD db)."""
 
     URLS = [
-            r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws",
-            r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws/([a-zA-Z0-9:]*)/?",
-            ] # TODO CHECK EUI64 FORMAT
+        r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws",
+        r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/lgtws/([a-zA-Z0-9:]*)/?",
+        ]
 
     @apimanager.validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
@@ -61,48 +58,56 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        lns_euid  = None
-        lgtw_euid = None
+        lns_euid = args[0]
+        lgtw_euid = args[1] if len(args) == 2 else None
+        out = []
 
-        if args[0]:
+        if lns_euid:
             try:
-                lns_euid  = EUI64(args[0]).id6
+                lns_euid = EUI64(lns_euid).id6
             except ValueError as err:
                 self.set_status(400)
-                self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
+                return {"error": {"status_code": 400,
+                                  "title": "Value error (lns_euid)",
+                                  "detail": str(err)}}
 
-        if len(args) == 2:
-            if args[1]:
-                try:
-                    lgtw_euid = EUI64(args[1]).id6
-                except ValueError as err:
-                    self.set_status(400)
-                    self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
+        if lgtw_euid:
+            try:
+                lgtw_euid = EUI64(args[1]).id6
+            except ValueError as err:
+                self.set_status(400)
+                return {"error": {"status_code": 400,
+                                  "title": "Value error (lgtw_euid)",
+                                  "detail": str(err)}}
 
-        if len(args) == 2 and lns_euid and lgtw_euid:
-            if lns_euid in self.service.lnss and lgtw_euid in self.service.lnss[lns_euid].lgtws:
-                return {"lns_euid":lns_euid,"lgtw_euid":self.service.lnss[lns_euid].lgtws}
-            else:
-                return {}
-
-        elif len(args) == 2 and not lns_euid and lgtw_euid:
-            out = []
-            if lgtw_euid in self.service.lgtws:
-                for key in self.service.lgtws[lgtw_euid]:
-                    out.append({"lns_euid":key, "lgtw_euid":[lgtw_euid]})
-            return out
-
-        elif len(args) == 1 and lns_euid:
-            if  lns_euid in self.service.lnss:
-                return  {"lns_euid":lns_euid, "lgtw_euid":self.service.lnss[lns_euid].lgtws}
-            else:
-                return  {}
-
-        else:
-            out = []
+        if not lns_euid and not lgtw_euid:
+            # E.g. GET /api/v1/lnsd/lnss//lgtws/
             for key in self.service.lnss:
-                out.append({"lns_euid":key, "lgtw_euid":self.service.lnss[key].lgtws})
-            return out
+                out.append({"lns_euid": key,
+                            "lgtw_euid": self.service.lnss[key].lgtws})
+
+        elif (lns_euid in self.service.lnss and
+              lgtw_euid in self.service.lnss[lns_euid].lgtws):
+            # E.g. GET
+            # /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
+            out = {"lns_euid": lns_euid,
+                   "lgtw_euid": lgtw_euid}
+
+        elif lns_euid in self.service.lnss and not lgtw_euid:
+            # E.g.
+            # GET /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/
+            out = {"lns_euid": lns_euid,
+                   "lgtw_euid": self.service.lnss[lns_euid].lgtws}
+
+        elif not lns_euid and lgtw_euid in self.service.lgtws:
+            # E.g.
+            # GET /api/v1/lnsd/lnss//lgtws/b827:ebff:fee7:7681
+            for key in self.service.lgtws[lgtw_euid]:
+                out.append({"lns_euid": key, "lgtw_euid": [lgtw_euid]})
+
+        # If lns_euid and/or lgtw_euid are not in the database,
+        # return empty list
+        return out
 
     @apimanager.validate(returncode=201, min_args=2, max_args=2)
     def post(self, *args, **kwargs):
@@ -119,28 +124,34 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
 
         Example URLs:
 
-            POST /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
+        POST /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
         """
-        lns_euid  = None
+        lns_euid = None
         lgtw_euid = None
 
         if args[0]:
             try:
-                lns_euid  = EUI64(args[0]).id6
+                lns_euid = EUI64(args[0]).id6
             except ValueError as err:
                 self.set_status(400)
-                self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
+                self.finish({"status_code": 400,
+                             "title": "Value error (lns_euid)",
+                             "detail": str(err)})
 
         if args[1]:
             try:
                 lgtw_euid = EUI64(args[1]).id6
             except ValueError as err:
                 self.set_status(400)
-                self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
+                self.finish({"status_code": 400,
+                             "title": "Value error (lgtw_euid)",
+                             "detail": str(err)})
 
-        self.service.add_lgtw(**{"lns_euid":lns_euid,"lgtw_euid":lgtw_euid})
+        self.service.add_lgtw(**{"lns_euid": lns_euid, "lgtw_euid": lgtw_euid})
         print("/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
-        self.set_header("Location", "/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
+        self.set_header("Location",
+                        "/api/v1/lnsd/lnss/%s/lgtws/%s"
+                        % (lns_euid, lgtw_euid))
 
     @apimanager.validate(returncode=204, min_args=1, max_args=2)
     def delete(self, *args, **kwargs):
@@ -153,20 +164,22 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
 
         Example URLs:
 
-            DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
+        DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
 
-            DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
+        DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
         """
 
-        lns_euid  = None
+        lns_euid = None
         lgtw_euid = None
 
         if args[0]:
             try:
-                lns_euid  = EUI64(args[0]).id6
+                lns_euid = EUI64(args[0]).id6
             except ValueError as err:
                 self.set_status(400)
-                self.finish({"status_code":400,"title":"Value error (lns_euid)","detail":str(err)})
+                self.finish({"status_code": 400,
+                             "title": "Value error (lns_euid)",
+                             "detail": str(err)})
 
         if len(args) == 2:
             if args[1]:
@@ -174,19 +187,18 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                     lgtw_euid = EUI64(args[1]).id6
                 except ValueError as err:
                     self.set_status(400)
-                    self.finish({"status_code":400,"title":"Value error (lgtw_euid)","detail":str(err)})
+                    self.finish({"status_code": 400,
+                                 "title": "Value error (lgtw_euid)",
+                                 "detail": str(err)})
 
-        if   len(args) == 2 and lns_euid and lgtw_euid:
-            self.service.remove_lgtw(lns_euid, lns_euid)
-        elif len(args) == 2 and not lns_euid and args[1]:
-            self.service.remove_lgtw(lns_euid)
+        if len(args) == 2 and lns_euid and lgtw_euid:
+            self.service.remove_lgtw(lgtw_euid, lns_euid)
+        elif len(args) == 2 and not lns_euid and lgtw_euid:
+            self.service.remove_lgtw(lgtw_euid)
         elif lns_euid:
-            lns_euid = lns_euid
-            print(self.service.lgtws)
             for lgtw_euid in self.service.lgtws:
                 self.service.remove_lgtw(lgtw_euid, lns_euid)
         else:
             for lns_euid in self.service.lnss:
                 for lgtw_euid in self.service.lgtws:
-                    self.service.remove_lgtw_from_lns(lgtw_euid, lns_euid)
-
+                    self.service.remove_lgtw(lgtw_euid, lns_euid)

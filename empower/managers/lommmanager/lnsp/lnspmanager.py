@@ -15,168 +15,277 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""LNS Protocol Server Manager.
 
-# TODO ADD REFERENCE TO ALLOWED DEVICES
-"""LoRaWAN NS Discovery WS Server Manager."""
+Manages the Web Socket connection with the Semtech Basic Station LoRaWAN GTWs.
+"""
+import json
 
 import empower.managers.lommmanager.lnsp as lnsp
 
-from empower.managers.lommmanager.wsmanager               import WSManager
+from empower.managers.lommmanager.wsmanager import WSManager
 
-from empower.managers.lommmanager.lnsp.lenddevshandler    import LEndDevsHandler
-from empower.managers.lommmanager.lnsp.lgtwshandler       import LGTWsHandler
-from empower.managers.lommmanager.lnsp.lnspmainhandler    import LNSPMainHandler
+from empower.managers.lommmanager.lnsp.lenddevshandler import LEndDevsHandler
+from empower.managers.lommmanager.lnsp.lgtwshandler import LGTWsHandler
+from empower.managers.lommmanager.lnsp.lnspmainhandler import LNSPMainHandler
 
-from empower.managers.lommmanager.lnsp.lorawandevice      import LoRaWANEndDev
-from empower.managers.lommmanager.lnsp.lorawangtw         import LoRaWANgtw
+from empower.managers.lommmanager.lnsp.lorawandevice import LoRaWANEndDev
+from empower.managers.lommmanager.lnsp.lorawangtw import LoRaWANgtw
 
-from empower.core.eui64 import EUI64
-from empower.managers.lommmanager.lnsp.lgtws_default_confs import LGTW_CONFIG_EU863_6CH
-from empower.managers.lommmanager.lnsp.lenddevs_confs      import LEND_DEVS
+from empower.managers.lommmanager.datatypes.eui64 import EUI64
+
+JSON_FILE = "empower/managers/lommmanager/lnsp/lgtws_default_conf.json"
+
+# NOTE:
+# The LNS responds to a version message with a router_config message
+# to specify a channel plan for the Station and define
+# some basic operation modes
+# BASIC OPERATION MODES:
+#     'JoinEui': list of pairs of integer values encoding ranges of join EUIs.
+#                [[INT,INT],..]
+#                The JoinEui unique ID of the Join server, 64 bit number.
+#                Used to filter LoRa frames received by Station.
+#                Join request frames will be dropped by Station unless the
+#                field JoinEui in the message satisfies the condition
+#                BegEui<=JoinEui<=EndEui for at least one pair [BegEui,EndEui].
+#     'NetID': list of NetID values that are accepted by LNS [INT,..]
+#              The NetID is a 24-bit value used for identifying LoRaWAN
+#              network, have a non-collaborating network,
+#              you can use the 0x000000 or 0x000001.
+#              Used to filter LoRa frames received by Station.
+#     'nocca': disable clear channel assessment (bool),
+#              used only by debug builds of Station
+#     'nodwell': disable dwell-time (bool),
+#                used only by debug builds of Station
+#     'nodc': disable duty sycle (bool),
+#             used only by debug builds of Station,
+# CHANNEL PLAN:
+#     'region': base region name of channel plan (e.g.'EU863'). (str)
+#               the Basic Station controls certain regulatory behaviors such as
+#               clear channel assessment, duty-cycle and dwell-time
+#               limitations. Valid names are compatible with the names of
+#               the LoRaWAN Regional Parameters specification,
+#               except the end frequency is dropped (e.g., EU863 and US902).
+#     'hwspec': 'sx1301/**N**' (str)
+#               what concentrator hardware is needed to operate the channel
+#               plan. The assigned string MUST have the following form:
+#                             sx1301/**N**
+#               where N denotes the number of SX1301 concentrator chips
+#               required to operate the channel plan. Station will check this
+#               requirement against its hardware capabilities.
+#     'freq_range': lower and upper boundaries of the available spectrum for
+#                   the region set. [INT,INT] -->  min, max (hz)
+#                   Station will NOT allow downlink transmissions outside of
+#                   this frequency range.
+#     'DRs': available data rates of the channel plan
+#            [[INT,INT,INT],..] --> SF, BW, dnonly
+#            It is array of 16 entries with each entry being an array of three
+#            integers encoding:
+#                 the spreading factor SF (7..12 for LoRa, or 0 for FSK),
+#                 the bandwidth BW (125, 250, or 500 for LoRa, ignored for FSK)
+#                 a DNONLY flag (1 if the DR is valid for downlink frames only,
+#                                0 otherwise).
+#            TO CHECK - depends on regional settings
+#     'upchannels': [[868100000, 0, 5],
+#                    [868300000, 0, 5],
+#                    [868500000, 0, 5],
+#                    [868850000, 0, 5],
+#                    [869050000, 0, 5],
+#                    [869525000, 0, 5]]
+#                    TO CHECK - depends on regional settings
+#     'sx1301_conf': defines how the channel plan maps to the individual
+#                    SX1301 chips. Its value is an array of SX1301CONF objects.
+#                    [SX1301CONF,..].
+#                    The number of array elements MUST be in accordance with
+#                    the value of the field hwspec.
+#                    The layout of a SX1301CONF object looks like this:
+#                     {
+#                     "radio_0": { .. } // same structure as radio_1
+#                     "radio_1": {
+#                         "enable": BOOL,
+#                         "freq"  : INT
+#                     },
+#                     "chan_FSK": {
+#                         "enable": BOOL,
+#                         "radio": 0|1,
+#                         "if": INT
+#                     },
+#                     "chan_Lora_std": {
+#                         "enable": BOOL,
+#                         "radio": 0|1,
+#                         "if": INT,
+#                         "bandwidth": INT,
+#                         "spread_factor": INT
+#                     },
+#                     "chan_multiSF_0": { .. }
+#                     // _0 .. _7 all have the same structure
+#                     ..
+#                     "chan_multiSF_7": {
+#                         "enable": BOOL,
+#                         "radio": 0|1,
+#                         "if": INT
+#                     }
+#                     }
+
+# OTHER PARAMETERS (TO BE CHECKED) maybe depends on Basic Station version...
+#     'bcning': null,
+#     'max_eirp': 16.0,
+#     'protocol': 1,
+#     'config': {},
+
+#     'regionid': points to region in regions.json which
+#                 defines DRs and upchannels
+
+#  In the station2pkfwd, each region is defined with its regionid, name and
+#  configuration (region information is loaded from regions.yaml).
+#  https://github.com/lorabasics/basicstation/blob/master/examples/station2pkfwd/regions.yaml
+
+#  upchannels and DRs are injected into the router configurations which
+#  references this region with the regionid.
+
+#  Routers are configured in router-<ID>.yaml files (in station2pkfwd):
+#  each router configuration is merged with the region information and
+#  sent to Station on connect.
+# https://github.com/lorabasics/basicstation/blob/master/examples/station2pkfwd/router_config.py
+# https://github.com/lorabasics/basicstation/blob/master/examples/station2pkfwd/router-1.yaml
+#  Region and router configurations are loaded at startup.
+
 
 class LNSPManager(WSManager):
-    """LNS Discovery Server Manager
+    """LNS Protocol Server Manager.
 
     Parameters:
         port: the port on which the WS server should listen (optional,
             default: 6039)
     """
+
     DEFAULT_PORT = 6039
-    LABEL        = "LNS Discovery Server"
-    HANDLERS     = [LGTWsHandler, LEndDevsHandler]
-    WSHANDLERS   = [LNSPMainHandler]
+    HANDLERS = [LGTWsHandler, LEndDevsHandler]
+    WSHANDLERS = [LNSPMainHandler]
+    lenddevs = {}
+    lgtws = {}
 
     def __init__(self, **kwargs):
+        """Init LNS Protocol Manager."""
         super().__init__(**kwargs)
-        self.lenddevs = {}
-        # self.lenddevs = lnsp.LEND_DEVS
-        for lenddev in LEND_DEVS:
-            self.add_lenddev(**LEND_DEVS[lenddev])
-        self.lgtws = {}
+        with open(JSON_FILE, 'r') as fin:
+            lgtw_confs = json.load(fin)
+        self.lgtw_settings = lgtw_confs["LGTW_CONFIG_EU863_6CH"]
 
     def start(self):
         """Start control loop."""
         super().start()
-        """ retrieve data from the db """
+        # retrieve data from the db
         for dev in LoRaWANEndDev.objects:
-            self.lenddevs[str(dev.devEUI)] = dev
+            self.lenddevs[str(dev.dev_eui)] = dev
         for lgtw in LoRaWANgtw.objects:
-            self.lgtws[str(lgtw.lgtw_euid)]   = lgtw
+            self.lgtws[str(lgtw.lgtw_euid)] = lgtw
 
-    def add_lenddev(self, devEUI, **kwargs):
+    def add_lenddev(self, dev_eui, **kwargs):
         """Add new End Device."""
-        # joinEUI = kwargs.get("joinEUI")
-        # if joinEUI:
-        #     params["joinEUI"] = EUI64(joinEUI)
+        dev_eui = str(EUI64(dev_eui))
+        if dev_eui in self.lenddevs:
+            raise ValueError(
+                "End Device %s already registered in the LNS Server" % dev_eui)
+        kwargs["devEUI"] = dev_eui
+        lenddev = LoRaWANEndDev(**kwargs).save()
+        self.lenddevs[dev_eui] = lenddev
+        return self.lenddevs[dev_eui]
 
-        devEUI=devEUI.upper()
-        if devEUI in self.lenddevs:
-            raise ValueError("End Device %s already registered in the LNS Server" % devEUI)
-        lenddev = LoRaWANEndDev(
-            devEUI=devEUI,
-            devAddr=kwargs.get("devAddr").upper() if isinstance(kwargs.get("devAddr"), str) else None,
-            desc=kwargs.get("desc","Generic End Device"),
-            joinEUI=kwargs.get("joinEUI").upper() if isinstance(kwargs.get("joinEUI"), str) else None,
-            nwkKey=kwargs.get("nwkKey").upper() if isinstance(kwargs.get("nwkKey"), str) else None,
-            appKey=kwargs.get("appKey").upper() if isinstance(kwargs.get("appKey"), str) else None,
-            nwkSKey=kwargs.get("nwkSKey").upper() if isinstance(kwargs.get("nwkSKey"), str) else None,
-            appSKey=kwargs.get("appSKey").upper() if isinstance(kwargs.get("appSKey"), str) else None,
-            activation=kwargs.get("activation").upper if kwargs.get("activation").upper in  ["OTAA","ABP"] else None,
-            fcntWidth=kwargs.get("FCntWidth").lower if kwargs.get("FCntWidth").lower in ["16bit", "32bit"] else None, # 16bit or 32bit
-            # fcntChecks=kwargs.get("FCntChecks") if isinstance(kwargs.get("FCntChecks"), bool) else None,
-            location=kwargs.get("location") if isinstance(kwargs.get("location"), dict) else None,
-            payloadFormat=kwargs.get("payloadFormat").capitalize() if isinstance(kwargs.get("payloadFormat"), str) else None
-            ).save()
-        self.lenddevs[devEUI] = lenddev
-        return self.lenddevs[devEUI]
-
-    def update_lenddev(self, devEUI, **kwargs):
+    def update_lenddev(self, dev_eui, **kwargs):
         """Add new End Device."""
-        desc    = kwargs.get("desc","Generic End Device")
-        joinEUI = str(EUI64(kwargs.get("joinEUI","")))
-        appKey  = kwargs.get("appKey")
-        nwkKey  = kwargs.get("nwkKey")
+        dev_eui = str(EUI64(dev_eui))
+        desc = kwargs.get("desc", "Generic End Device")
+        join_eui = str(EUI64(kwargs.get("joinEUI", "")))
+        app_key = kwargs.get("appKey")
+        nwk_key = kwargs.get("nwkKey")
 
         try:
-            lenddev = self.lenddevs[devEUI]
+            lenddev = self.lenddevs[dev_eui]
         except KeyError:
-            raise KeyError("End Device %s not registered in the LNS Server" % devEUI)
-        except:
-            raise
-        if joinEUI:
-            lenddev.joinEUI = joinEUI
-        if appKey:
-            lenddev.appKey  = appKey
-        if nwkKey:
-            lenddev.nwkKey  = nwkKey
+            raise KeyError("End Device %s not registered in \
+                           the LNS Server" % dev_eui)
+        if join_eui:
+            lenddev.join_eui = join_eui
+        if app_key:
+            lenddev.app_key = app_key
+        if nwk_key:
+            lenddev.nwk_key = nwk_key
         if desc:
-            lenddev.desc    = desc
+            lenddev.desc = desc
 
         lenddev.save()
-        self.lenddevs[devEUI] = lenddev
-        return self.lenddevs[devEUI]
+        self.lenddevs[dev_eui] = lenddev
+        return self.lenddevs[dev_eui]
 
-    def remove_lenddev(self, devEUI):
+    def remove_lenddev(self, dev_eui):
         """Remove End Device."""
-        devEUI = str(EUI64(devEUI))
-        if devEUI not in self.lenddevs:
-            raise KeyError("End Device %s not registered" % devEUI)
-        lenddev = self.lenddevs[devEUI]
+        dev_eui = str(EUI64(dev_eui))
+        if dev_eui not in self.lenddevs:
+            raise KeyError("End Device %s not registered" % dev_eui)
+        lenddev = self.lenddevs[dev_eui]
         lenddev.delete()
-        del self.lenddevs[devEUI]
+        del self.lenddevs[dev_eui]
 
     def remove_all_lenddevs(self):
-        """Remove all LNSs."""
-        for devEUI in list(self.lenddevs):
-            self.remove_lenddev(devEUI)
+        """Remove all End Devices from LNS database."""
+        for dev_eui in list(self.lenddevs):
+            self.remove_lenddev(dev_eui)
 
     def add_lgtw(self, lgtw_euid, **kwargs):
-        desc         = kwargs.get("desc","Generic GTW")
-        name         = kwargs.get("name","lgtw")
-        owner        = str(EUI64(kwargs.get("owner", lnsp.DEFAULT_OWNER)))
-        lgtw_config  = kwargs.get("lgtw_config", LGTW_CONFIG_EU863_6CH)
+        """Add lGTW to LNS database."""
+        lgtw_euid = EUI64(lgtw_euid).eui64
+        name = kwargs.get("name", "BasicStation")
+        desc = kwargs.get("desc", "Generic GTW")
+        owner = str(kwargs.get("owner", lnsp.DEFAULT_OWNER))
+        lgtw_config = kwargs.get("lgtw_config", self.lgtw_settings)
 
         if lgtw_euid in self.lgtws:
-            raise ValueError("GTW %s already registered in the LNS Server" % lgtw_euid)
+            raise ValueError(
+                "GTW %s already registered in the LNS Server" %
+                lgtw_euid)
 
         self.lgtws[lgtw_euid] = LoRaWANgtw(
             lgtw_euid=lgtw_euid,
-            desc=desc, owner=owner,
-            lgtw_config=lgtw_config, name=name).save()
+            desc=desc, owner=owner, name=name,
+            lgtw_config=lgtw_config).save()
 
         return self.lgtws[lgtw_euid]
 
     def update_lgtw(self, lgtw_euid, **kwargs):
-        desc         = kwargs.get("desc","Generic GTW")
-        name         = kwargs.get("name","lgtw")
-        owner        = str(EUI64(kwargs.get("owner", lnsp.DEFAULT_OWNER)))
-        lgtw_config  = kwargs.get("lgtw_config", LGTW_CONFIG_EU863_6CH)
+        """Update lGTW in the LNS database."""
+        lgtw_euid = EUI64(lgtw_euid).eui64
+        desc = kwargs.get("desc")
+        name = kwargs.get("name")
+        owner = str(kwargs.get("owner"))
+        lgtw_config = kwargs.get("lgtw_config")
 
         if lgtw_euid not in self.lgtws:
-            raise ValueError("GTW %s not registered in the LNS Server" % lgtw_euid)
+            raise ValueError("GTW %s not registered in the \
+                             LNS Server" % lgtw_euid)
 
         try:
             lgtw = self.lgtws[lgtw_euid]
         except KeyError:
-            raise KeyError("%s not registered, register lgtw first" % lgtw_euid)
-        except:
-            raise
+            raise KeyError("%s not registered, \
+                           register lgtw first" % lgtw_euid)
+
         if owner:
-            name.lgtw_config = owner
-        if lgtw_config:
-            name.lgtw_config = lgtw_config
+            lgtw.owner = owner
         if name:
-            name.uri = name
+            lgtw.name = name
         if desc:
             lgtw.desc = desc
+        if lgtw_config:
+            lgtw.lgtw_config = lgtw_config
 
         self.lgtws[lgtw_euid] = lgtw.save()
 
         return self.lgtws[lgtw_euid]
 
     def remove_lgtw(self, lgtw_euid):
-        """Remove GTW."""
-        lgtw_euid = EUI64(lgtw_euid).eui
+        """Remove GTW from LNS database."""
+        lgtw_euid = EUI64(lgtw_euid).eui64
         if lgtw_euid not in self.lgtws:
             raise KeyError("GTW %s not registered" % lgtw_euid)
         lgtw = self.lgtws[lgtw_euid]
@@ -189,8 +298,6 @@ class LNSPManager(WSManager):
             self.remove_lgtw(lgtw_euid)
 
 
-
 def launch(**kwargs):
-    """Start LNS Discovery Server Module."""
-
+    """Start LNS Protocol Server Module."""
     return LNSPManager(**kwargs)
