@@ -15,9 +15,9 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 """LoRaWAN NS Discovery WS Server Manager."""
 
-# import empower.managers.lommmanager.lnsdp as lnsdp
 from empower.managers.lommmanager.wsmanager import WSManager
 from empower.managers.lommmanager.lnsdp.lnsshandler import LNSsHandler
 from empower.managers.lommmanager.lnsdp.lgtwshandler import LGTWsHandler
@@ -25,6 +25,8 @@ from empower.managers.lommmanager.lnsdp.lnsdpmainhandler \
     import LNSDPMainHandler
 from empower.managers.lommmanager.lnsdp.lns import LNS
 from empower.core.eui64 import EUI64
+
+DEFAULT_PORT = 6038
 
 
 class LNSDPManager(WSManager):
@@ -35,14 +37,17 @@ class LNSDPManager(WSManager):
             default: 6038)
     """
 
-    DEFAULT_PORT = 6038
     HANDLERS = [LNSsHandler, LGTWsHandler]
     WSHANDLERS = [LNSDPMainHandler]
-    lnss = {}
+
+    def __init__(self, context, service_id, port):
+        super().__init__(context=context, service_id=service_id, port=port)
+        self.lnss = {}
 
     @property
     def lgtws(self):
         """Return the lgtws."""
+
         lgtws = {}
         for lns_euid in self.lnss:
             lns = self.lnss[lns_euid]
@@ -54,7 +59,9 @@ class LNSDPManager(WSManager):
 
     def start(self):
         """Start control loop."""
+
         super().start()
+
         # retrieve LNS data from the db
         for lns in LNS.objects:
             self.lnss[lns.euid] = lns
@@ -182,6 +189,7 @@ class LNSDPManager(WSManager):
                 self.remove_lgtw_from_lns(lgtw_euid, item_euid)
 
 
-def launch(**kwargs):
-    """Start LNS Discovery Server Module."""
-    return LNSDPManager(**kwargs)
+def launch(context, service_id, port=DEFAULT_PORT):
+    """ Initialize the module. """
+
+    return LNSDPManager(context=context, service_id=service_id, port=port)
