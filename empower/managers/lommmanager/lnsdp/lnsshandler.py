@@ -19,7 +19,7 @@
 """LNS Handlers for the LNS Discovery Server."""
 
 import empower.managers.apimanager.apimanager as apimanager
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
+from empower.core.eui64 import EUI64
 
 
 class LNSsHandler(apimanager.EmpowerAPIHandler):

@@ -23,8 +23,8 @@ import logging
 from datetime import datetime
 from pymodm import MongoModel, fields
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64Field
-from empower.managers.lommmanager.datatypes.wsuri import WSURIField
+from empower.core.eui64 import EUI64Field
+from empower.core.wsuri import WSURIField
 
 P_STATE_ACTIVE = "active"
 P_STATE_SUSPENDED = "suspended"
