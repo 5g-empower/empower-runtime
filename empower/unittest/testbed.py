@@ -44,7 +44,7 @@ class TestTestbed(BaseTest):
                         "desc": "Dell Laptop"
                     },
                     "60:f4:45:d0:3b:fc": {
-                        "addr": "60:f4:45:d0:3b:fc",
+                        "addr": "60:83:73:03:83:A3",
                         "desc": "Roberto's iPhone"
                     }
                 }
