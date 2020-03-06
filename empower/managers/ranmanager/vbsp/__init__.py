@@ -58,7 +58,7 @@ HEADER = Struct(
         "action" / BitsInteger(14),
     ),
     "length" / Int32ub,
-    "padding"  / Bytes(2),
+    "padding" / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
@@ -75,7 +75,7 @@ PACKET = Struct(
         "action" / BitsInteger(14),
     ),
     "length" / Int32ub,
-    "padding"  / Bytes(2),
+    "padding" / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
@@ -133,6 +133,36 @@ def register_message(pt_type, parser):
 
     if pt_type not in PT_TYPES_HANDLERS:
         PT_TYPES_HANDLERS[pt_type] = []
+
+
+def register_callbacks(app, callback_str='handle_'):
+    """Register callbacks."""
+
+    for pt_type in PT_TYPES_HANDLERS:
+
+        if not PT_TYPES[pt_type]:
+            handler_name = callback_str + pt_type
+        else:
+            handler_name = callback_str + PT_TYPES[pt_type][1]
+
+        if hasattr(app, handler_name):
+            handler = getattr(app, handler_name)
+            PT_TYPES_HANDLERS[pt_type].append(handler)
+
+
+def unregister_callbacks(app, callback_str='handle_'):
+    """Unregister callbacks."""
+
+    for pt_type in PT_TYPES_HANDLERS:
+
+        if not PT_TYPES[pt_type]:
+            handler_name = callback_str + pt_type
+        else:
+            handler_name = callback_str + PT_TYPES[pt_type][1]
+
+        if hasattr(app, handler_name):
+            handler = getattr(app, handler_name)
+            PT_TYPES_HANDLERS[pt_type].remove(handler)
 
 
 def register_callback(pt_type, handler):

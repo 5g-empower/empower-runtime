@@ -30,29 +30,7 @@ EVERY = 2000
 class EWiFiWorker(EWorker):
     """Base Wi-Fi Worker class."""
 
-    def start(self):
-        """Start app."""
-
-        # register callbacks
-        lvapp.register_callback(lvapp.PT_CLIENT_LEAVE, self.lvap_leave)
-        lvapp.register_callback(lvapp.PT_CLIENT_JOIN, self.lvap_join)
-        lvapp.register_callback(lvapp.PT_DEVICE_UP, self.wtp_up)
-        lvapp.register_callback(lvapp.PT_DEVICE_DOWN, self.wtp_down)
-
-        # start the app
-        super().start()
-
-    def stop(self):
-        """Stop app."""
-
-        # unregister callbacks
-        lvapp.unregister_callback(lvapp.PT_CLIENT_LEAVE, self.lvap_leave)
-        lvapp.unregister_callback(lvapp.PT_CLIENT_JOIN, self.lvap_join)
-        lvapp.unregister_callback(lvapp.PT_DEVICE_UP, self.wtp_up)
-        lvapp.unregister_callback(lvapp.PT_DEVICE_DOWN, self.wtp_down)
-
-        # stop the app
-        super().stop()
+    MODULES = [lvapp]
 
     def blocks(self):
         """Return the ResourseBlocks available to this app."""
@@ -85,14 +63,14 @@ class EWiFiWorker(EWorker):
 
         return srv_or_die("lvappmanager").vaps
 
-    def lvap_leave(self, lvap):
-        """Called when an LVAP leaves a network."""
+    def handle_client_leave(self, lvap):
+        """Called when a client leaves a network (no check on project)."""
 
-    def lvap_join(self, lvap):
-        """Called when an LVAP joins a network."""
+    def handle_client_join(self, lvap):
+        """Called when a client joins a network (no check on project)."""
 
-    def wtp_down(self, wtp):
+    def handle_device_down(self, wtp):
         """Called when a WTP disconnects from the controller."""
 
-    def wtp_up(self, wtp):
+    def handle_device_up(self, wtp):
         """Called when a WTP connects to the controller."""

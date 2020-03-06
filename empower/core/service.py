@@ -24,7 +24,6 @@ import logging
 import tornado.ioloop
 
 from empower.core.serialize import serializable_dict
-from empower.core.launcher import srv_or_die
 
 
 @serializable_dict
