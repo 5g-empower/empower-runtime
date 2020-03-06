@@ -296,14 +296,14 @@ class Mcast(EWiFiApp):
 
         self.params['mcast_policy'] = mode
 
-    def lvap_join(self, lvap):
+    def handle_lvap_join(self, lvap):
         """Called when an LVAP joins a tenant."""
 
         service = "empower.apps.wifircstats.wifircstats"
         self.receptors[lvap.addr] = \
             self.register_service(service, sta=lvap.addr)
 
-    def lvap_leave(self, lvap):
+    def handle_lvap_leave(self, lvap):
         """Called when an LVAP leaves the network."""
 
         if lvap.addr in self.receptors:
@@ -481,5 +481,5 @@ class Mcast(EWiFiApp):
 def launch(context, service_id, mcast_policy, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(context=context, service_id=service_id, mcast_policy=mcast_policy,
-                 every=every)
+    return Mcast(context=context, service_id=service_id,
+                 mcast_policy=mcast_policy, every=every)

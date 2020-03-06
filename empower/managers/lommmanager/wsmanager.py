@@ -39,41 +39,40 @@ class WSManager(EService):
         port: the port on which the WS server should listen (optional)
     """
 
-    DEFAULT_PORT = 8080
     HANDLERS = []
     WSHANDLERS = []
-    websocket = None
-    http_server = None
+
+    def __init__(self, context, service_id, port):
+
+        super().__init__(context=context, service_id=service_id, port=port)
+
+        arguments = []
+        for wshandler in self.WSHANDLERS:
+            arguments += wshandler.urls(server=self)
+
+        self.websocket = tornado.web.Application(arguments)
+        self.http_server = tornado.httpserver.HTTPServer(self.websocket)
 
     @property
     def port(self):
         """Return port."""
-        return self.params.get("port", self.DEFAULT_PORT)
+
+        return self.params["port"]
 
     @port.setter
     def port(self, value):
         """Set port."""
+
         if "port" in self.params and self.params["port"]:
             raise ValueError("Param port can not be changed")
+
         self.params["port"] = int(value)
 
     def start(self):
-        """Start control loop."""
+        """Start WSManager manager."""
+
         super().start()
 
-        if self.WSHANDLERS:
-            arguments = []
-            for wshandler in self.WSHANDLERS:
-                arguments += wshandler.urls(server=self)
-            self.websocket = tornado.web.Application(arguments)
-            # self.websocket = tornado.web.Application(arguments, debug=True)
+        self.http_server.listen(self.port)
 
-            self.http_server = tornado.httpserver.HTTPServer(self.websocket)
-            self.http_server.listen(self.port)
-            self.log.info("Listening on port %u", self.port)
-
-    def to_dict(self):
-        """Return JSON-serializable representation of the object."""
-        out = super().to_dict()
-        out["port"] = self.port
-        return out
+        self.log.info("Listening on port %u", self.port)

@@ -17,13 +17,13 @@
 # under the License.
 """LoMM Test App."""
 
-import empower.managers.lommmanager.lnsp as lnsp
 from empower.core.app import EApp
-# from empower.core.app import EVERY
+
+import empower.managers.lommmanager.lnsp as lnsp
+
 from empower.core.launcher import srv_or_die
 
-MODULES = [lnsp]  # List of empower-runtime manager/s used in the app
-LABEL = "Generic LoMM App"
+EVERY = 2000
 
 
 class LoMMApp(EApp):
@@ -35,7 +35,6 @@ class LoMMApp(EApp):
         lgtws (dict): Registered LoRaWAN GTWs
         lenddevs (dict): Registered End Devices
         lnss (dict): Registered LNSs
-        label (str): Application label (used in the log entries)
 
     Avaliable LoMM lnsp callbacks:
         LoRaWAN GTW Events Callbacks:
@@ -68,88 +67,25 @@ class LoMMApp(EApp):
             callback_new_radio_data: called when a lGTW radio data is avaliable
     """
 
-    def __init__(self, **kwargs):
-        """Init LoMM App.
-
-        Parameters:
-            project_id (UUID): the project id
-            service_id (UUID): the app id
-        """
-        self.__label = kwargs.get("label", LABEL)
-        self.__modules = kwargs.get("modules", MODULES)
-        self.startloop = True
-        super().__init__(**kwargs)
-
-    def start(self):
-        """Run at app start."""
-        self.log.info("%s: Registering callbacks", self.label)
-        for module in self.__modules:
-            module.register_callbacks(self)
-        super().start()
-        self.log.info("%s is up!", self.label)
-
-    def stop(self):
-        """Run at app stop."""
-        self.log.info("%s: Unegistering callbacks", self.label)
-        for module in self.__modules:
-            module.unregister_callbacks(self)
-        super().stop()
+    MODULES = [lnsp]
 
     @property
     def lgtws(self):
         """Return lGTWs registered in this project context."""
+
         lnsp_manager = srv_or_die("lnspmanager")
         return lnsp_manager.lgtws
-        # return self.context.lns_manager.lgtws
 
     @property
     def lenddevs(self):
         """Return lEndDevs registered in this project context."""
+
         lnsp_manager = srv_or_die("lnspmanager")
         return lnsp_manager.lenddevs
-        # return self.context.lns_manager.lenddevs
 
     @property
     def lnss(self):
         """Return LNSs registered in this project context."""
+
         lnspd_manager = srv_or_die("lnspdmanager")
         return lnspd_manager.lnss
-        # return self.context.lnsp_manager.lnss
-
-    @property
-    def label(self):
-        """Return this app's label."""
-        return self.__label
-
-    @label.setter
-    def label(self, value):
-        """Set this app's label."""
-        self.__label = value
-
-    """
-    Add Callbacks Below. Avaliable callbacks:
-        - LoRaWAN GTW Events:
-            new_state_transition
-        - Uplink Web Socket Messages Events:
-            version, jreq, updf, propdf, dntxed, timesync, rmtsh
-        - Downlink Web Socket Messages Events:
-            router_config, dnmsg, dnsched, dn_timesync, rmcmd, dn_rmtsh
-        - Monitoring Round-trip Times Events:
-            rtt_data_rx, rtt_query, rtt_on, rtt_off
-        - Gathering Radio Data Statistics Events:
-            new_radio_data
-
-    e.g. Callback for new Uplink Data Frame event:
-
-    def callback_updf(self,  **kwargs):
-        lgtw_id = kwargs.get('lgtw_id')
-        # rx_time = kwargs.get('rx_time')
-        updf_data = kwargs.get('updf_data')
-        xtime = kwargs.get('xtime')
-        rctx = kwargs.get('rctx')
-        phypayload = kwargs.get('PhyPayload')
-
-        self.log.info("%s: lGTW %s, upl frame recv.", self.label, str(lgtw_id))
-        self.log.info("%s: PhyPayload: %s ", self.label, phypayload)
-        self.log.info("%s: xtime=%d, rctx=%d", self.label, xtime, rctx)
-    """
