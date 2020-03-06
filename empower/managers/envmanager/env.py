@@ -132,7 +132,7 @@ class Env(MongoModel):
 
         # If not found abort
         if service_id not in self.services:
-            raise KeyError("Service %s not registered" % service_id)
+            raise KeyError("Service %s not running" % service_id)
 
         # Stop the service
         self.stop_service(service_id)
@@ -172,6 +172,13 @@ class Env(MongoModel):
 
                 self.start_service(service_id, name, params, storage)
 
+            except ModuleNotFoundError as ex:
+
+                self.manager.log.error("Unable to start service %s: %s",
+                                       name, ex)
+
+                self.remove_service_state(service_id)
+
             except TypeError as ex:
 
                 self.manager.log.error("Unable to start service %s: %s",
@@ -208,6 +215,11 @@ class Env(MongoModel):
         self.manager.log.info("  - params: %s", params)
 
         service = self.load_service(service_id, name, params)
+
+        if not service:
+            self.manager.log.error("Unable to start service id %s name %s",
+                                   service_id, name)
+            return
 
         # add to service list
         self.services[service.service_id] = service
