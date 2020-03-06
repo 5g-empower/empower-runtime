@@ -21,7 +21,6 @@ import uuid
 
 import empower.managers.apimanager.apimanager as apimanager
 
-from empower.core.acl import ACL
 from empower.core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 

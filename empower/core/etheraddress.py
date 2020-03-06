@@ -40,7 +40,7 @@ class EtherAddress:
                 # hex
                 if len(addr) == 17:
                     if addr[2::3] != ':::::' and addr[2::3] != '-----':
-                        raise RuntimeError("Bad format for ethernet address")
+                        raise ValueError("Bad format for ethernet address")
                     # Address of form xx:xx:xx:xx:xx:xx
                     # Pick out the hex digits only
                     addr = ''.join(
@@ -99,7 +99,7 @@ class EtherAddress:
         else:
             try:
                 other = EtherAddress(other).to_raw()
-            except RuntimeError:
+            except ValueError:
                 return False
         for cnt in range(0, 6):
             if (self._value[cnt] & other[cnt]) != self._value[cnt]:
@@ -118,7 +118,7 @@ class EtherAddress:
         else:
             try:
                 other = EtherAddress(other).to_raw()
-            except RuntimeError:
+            except ValueError:
                 return False
         if self._value == other:
             return True
