@@ -150,6 +150,8 @@ JSON_FILE = "empower/managers/lommmanager/lnsp/lgtws_default_conf.json"
 # https://github.com/lorabasics/basicstation/blob/master/examples/station2pkfwd/router-1.yaml
 #  Region and router configurations are loaded at startup.
 
+DEFAULT_PORT = 6039
+
 
 class LNSPManager(WSManager):
     """LNS Protocol Server Manager.
@@ -159,7 +161,6 @@ class LNSPManager(WSManager):
             default: 6039)
     """
 
-    DEFAULT_PORT = 6039
     HANDLERS = [LGTWsHandler, LEndDevsHandler]
     WSHANDLERS = [LNSPMainHandler]
     lenddevs = {}
@@ -298,6 +299,7 @@ class LNSPManager(WSManager):
             self.remove_lgtw(lgtw_euid)
 
 
-def launch(**kwargs):
-    """Start LNS Protocol Server Module."""
-    return LNSPManager(**kwargs)
+def launch(context, service_id, port=DEFAULT_PORT):
+    """ Initialize the module. """
+
+    return LNSPManager(context=context, service_id=service_id, port=port)

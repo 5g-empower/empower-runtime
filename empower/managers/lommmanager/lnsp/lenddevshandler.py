@@ -57,13 +57,7 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
                 out.append(self.service.lenddevs[key].to_dict())
             return out
 
-        try:
-            dev_eui = str(EUI64(args[0]))
-        except ValueError as err:
-            self.set_status(400)
-            self.finish({"status_code": 400,
-                         "title": "devEUI wrong format",
-                         "detail": str(err)})
+        dev_eui = str(EUI64(args[0]))
         print(self.service.lenddevs)
         return self.service.lenddevs[dev_eui].to_dict()
 
@@ -84,21 +78,16 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
                 "version":"1.0",
                 "desc": "LoRaWAN End Device"
                 "joinEUI": joinEUI
-                "appKey":   cryptographic application key
-                "nwkKey":   cryptographic network key
-                "appSKey":  cryptographic session application key
-                "nwkSKey":  cryptographic session network key
+                "appKey": cryptographic application key
+                "nwkKey": cryptographic network key
+                "appSKey": cryptographic session application key
+                "nwkSKey": cryptographic session network key
                 [..]
             }
         """
-        try:
-            lenddev = self.service.add_lenddev(args[0], **kwargs)
-        except Exception as err:
-            print(err)
-            raise
-        else:
-            self.set_header("Location",
-                            "/api/v1/lns/lenddevs/%s" % lenddev.dev_eui)
+        lenddev = self.service.add_lenddev(args[0], **kwargs)
+        self.set_header("Location",
+                        "/api/v1/lns/lenddevs/%s" % lenddev.dev_eui)
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
