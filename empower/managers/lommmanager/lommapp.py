@@ -69,6 +69,11 @@ class LoMMApp(EApp):
 
     MODULES = [lnsp]
 
+    def __init__(self, context, **kwargs):
+
+        super().__init__(context=context, **kwargs)
+        self.label = self.manifest["label"]
+
     @property
     def lgtws(self):
         """Return lGTWs registered in this project context."""

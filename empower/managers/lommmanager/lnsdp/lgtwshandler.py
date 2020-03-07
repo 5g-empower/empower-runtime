@@ -63,22 +63,10 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         out = []
 
         if lns_euid:
-            try:
-                lns_euid = EUI64(lns_euid).id6
-            except ValueError as err:
-                self.set_status(400)
-                return {"error": {"status_code": 400,
-                                  "title": "Value error (lns_euid)",
-                                  "detail": str(err)}}
+            lns_euid = EUI64(lns_euid).id6
 
         if lgtw_euid:
-            try:
-                lgtw_euid = EUI64(args[1]).id6
-            except ValueError as err:
-                self.set_status(400)
-                return {"error": {"status_code": 400,
-                                  "title": "Value error (lgtw_euid)",
-                                  "detail": str(err)}}
+            lgtw_euid = EUI64(args[1]).id6
 
         if not lns_euid and not lgtw_euid:
             # E.g. GET /api/v1/lnsd/lnss//lgtws/
@@ -130,22 +118,10 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         lgtw_euid = None
 
         if args[0]:
-            try:
-                lns_euid = EUI64(args[0]).id6
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code": 400,
-                             "title": "Value error (lns_euid)",
-                             "detail": str(err)})
+            lns_euid = EUI64(args[0]).id6
 
         if args[1]:
-            try:
-                lgtw_euid = EUI64(args[1]).id6
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code": 400,
-                             "title": "Value error (lgtw_euid)",
-                             "detail": str(err)})
+            lgtw_euid = EUI64(args[1]).id6
 
         self.service.add_lgtw(**{"lns_euid": lns_euid, "lgtw_euid": lgtw_euid})
         print("/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
@@ -173,23 +149,11 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         lgtw_euid = None
 
         if args[0]:
-            try:
-                lns_euid = EUI64(args[0]).id6
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code": 400,
-                             "title": "Value error (lns_euid)",
-                             "detail": str(err)})
+            lns_euid = EUI64(args[0]).id6
 
         if len(args) == 2:
             if args[1]:
-                try:
-                    lgtw_euid = EUI64(args[1]).id6
-                except ValueError as err:
-                    self.set_status(400)
-                    self.finish({"status_code": 400,
-                                 "title": "Value error (lgtw_euid)",
-                                 "detail": str(err)})
+                lgtw_euid = EUI64(args[1]).id6
 
         if len(args) == 2 and lns_euid and lgtw_euid:
             self.service.remove_lgtw(lgtw_euid, lns_euid)

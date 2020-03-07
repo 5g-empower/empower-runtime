@@ -64,23 +64,25 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                 }
         """
         out = []
+        desc = self.get_argument("desc", None)
+        name = self.get_argument("name", None)
+
         if len(args) == 1:
-            try:
-                lgtw_euid = EUI64(args[0]).eui64
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code": 400,
-                             "title": "lgtw_id wrong format",
-                             "detail": str(err)})
+            lgtw_euid = EUI64(args[0]).eui64
 
             if lgtw_euid in self.service.lgtws:
-                out = [self.service.lgtws[lgtw_euid].to_dict()]
+                lgtw = self.service.lgtws[lgtw_euid].to_dict()
+                if not ((desc and (desc not in lgtw["desc"])) or
+                        (name and (name not in lgtw["name"]))):
+                    out = [lgtw]
             return out
 
-        desc = self.get_argument("desc", None)
         for key in self.service.lgtws:
             if (desc and
                     desc not in self.service.lgtws[key].to_dict()["desc"]):
+                continue
+            if (name and
+                    name not in self.service.lgtws[key].to_dict()["name"]):
                 continue
             out.append(self.service.lgtws[key].to_dict())
         return out
