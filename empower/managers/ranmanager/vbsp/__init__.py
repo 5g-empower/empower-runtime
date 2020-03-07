@@ -40,6 +40,7 @@ PT_CLIENT_LEAVE = "client_leave"
 
 PT_HELLO_SERVICE = 0x00
 PT_CAPABILITIES_SERVICE = 0x01
+PT_UE_REPORTS_SERVICE = 0x02
 
 TLVS = Struct(
     "type" / Int16ub,
@@ -116,6 +117,7 @@ PT_TYPES = {
 
     PT_HELLO_SERVICE: (PACKET, "hello_service"),
     PT_CAPABILITIES_SERVICE: (PACKET, "capabilities_service"),
+    PT_UE_REPORTS_SERVICE: (PACKET, "ue_reports_service"),
 
 }
 
