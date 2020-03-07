@@ -25,6 +25,8 @@ from tornado.iostream import StreamClosedError
 from empower.managers.ranmanager.vbsp.cellpool import Cell
 from empower.managers.ranmanager.ranconnection import RANConnection
 from empower.core.etheraddress import EtherAddress
+from empower.managers.ranmanager.vbsp import HELLO_SERVICE_PERIOD, \
+    PT_HELLO_SERVICE_PERIOD
 
 
 class VBSPConnection(RANConnection):
@@ -194,6 +196,13 @@ class VBSPConnection(RANConnection):
         msg.xid = self.xid
         msg.tlvs = []
 
+        if not tlvs:
+            tlvs = []
+
+        for tlv in tlvs:
+            msg.tlvs.append(tlv)
+            msg.length += tlv.length
+
         addr = self.stream.socket.getpeername()
 
         self.log.debug("Sending %s message to %s seq %u",
@@ -213,12 +222,30 @@ class VBSPConnection(RANConnection):
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
                                  crud_result=self.proto.OP_GET)
 
+    def send_ue_reports_request(self):
+        """Send a UE_REPORTS message."""
+
+        return self.send_message(action=self.proto.PT_UE_REPORTS_SERVICE,
+                                 msg_type=self.proto.MSG_TYPE_REQUEST,
+                                 crud_result=self.proto.OP_GET)
+
     def send_hello_response(self, period):
         """Send an HELLO response message."""
 
+        hello_tlv = Container()
+        hello_tlv.period = period
+
+        value = HELLO_SERVICE_PERIOD.build(hello_tlv)
+
+        tlv = Container()
+        tlv.type = PT_HELLO_SERVICE_PERIOD
+        tlv.length = 4 + len(value)
+        tlv.value = value
+
         return self.send_message(action=self.proto.PT_HELLO_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_RESPONSE,
-                                 crud_result=self.proto.RESULT_SUCCESS)
+                                 crud_result=self.proto.RESULT_SUCCESS,
+                                 tlvs=[tlv])
 
     def _handle_hello_service(self, msg):
         """Handle an incoming HELLO message."""
@@ -266,3 +293,6 @@ class VBSPConnection(RANConnection):
 
         # set state to online
         self.device.set_online()
+
+        # enable UE reports
+        self.send_ue_reports_request()
