@@ -85,15 +85,8 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                     continue
                 out.append(self.service.lnss[key].to_dict())
             return out
-        try:
-            lnss = self.service.lnss[EUI64(args[0]).id6].to_dict()
-        except KeyError as err:
-            self.set_status(400)
-            return {"error": {"status_code": 400,
-                              "title": "LNS euid not found in the database",
-                              "detail": str(err)}}
-        else:
-            return lnss
+        lnss = self.service.lnss[EUI64(args[0]).id6].to_dict()
+        return lnss
 
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def post(self, *args, **kwargs):
@@ -117,16 +110,9 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                 "desc": "LNS XXX"
             }
         """
-        try:
-            print(args[0])
-            lnss = self.service.add_lns(args[0], **kwargs)
-        except ValueError as err:
-            self.set_status(400)
-            self.finish({"status_code": 400,
-                         "title": "Value error",
-                         "detail": str(err)})
-        else:
-            self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
+        print(args[0])
+        lnss = self.service.add_lns(args[0], **kwargs)
+        self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
 
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
     def put(self, *args, **kwargs):
@@ -153,15 +139,8 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                 "desc": "LNS XXX"
             }
         """
-        try:
-            self.service.update_lns(args[0], **kwargs)
-        except ValueError as err:
-            self.set_status(400)
-            self.finish({"status_code": 400,
-                         "title": "Value error",
-                         "detail": str(err)})
-        else:
-            self.set_header("Location", "/api/v1/lnsd/lnss/%s" % args[0])
+        self.service.update_lns(args[0], **kwargs)
+        self.set_header("Location", "/api/v1/lnsd/lnss/%s" % args[0])
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
@@ -178,17 +157,6 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
         """
 
         if args:
-            try:
-                self.service.remove_lns(EUI64(args[0]).id6)
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code": 400,
-                             "title": "Value error",
-                             "detail": str(err)})
-            # except Exception:
-            #     self.set_status(500)
-            #     self.finish({"status_code": 500,
-            #                  "title": "Server error",
-            #                  "detail": "unknown internal error"})
+            self.service.remove_lns(EUI64(args[0]).id6)
         else:
             self.service.remove_all_lnss()
