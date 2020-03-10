@@ -22,6 +22,8 @@ import argparse
 
 import empower.cli.command as command
 
+from empower.core.service import CALLBACK_REST
+
 
 def do_list_workers(gargs, args, leftovers):
     """List currently running workers. """
@@ -184,8 +186,6 @@ def do_set_worker_params(gargs, args, leftovers):
         "params": command.get_params(leftovers)
     }
 
-    print(request)
-
     headers = command.get_headers(gargs)
 
     url = '/api/v1/workers/%s' % args.worker_id
@@ -207,3 +207,48 @@ def do_set_worker_params(gargs, args, leftovers):
         accum.append("\n    %s: %s" % (k, val))
 
     print(''.join(accum))
+
+
+def pa_add_callback(args, cmd):
+    """Add a callback. """
+
+    usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
+
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
+
+    required = parser.add_argument_group('required named arguments')
+
+    required.add_argument('-a', '--worker_id', help='The worker id',
+                          required=True, type=uuid.UUID, dest="worker_id")
+
+    required.add_argument('-n', '--name', help='The name of the callback',
+                          required=True, type=str, dest="name")
+
+    required.add_argument('-c', '--callback', help='The URL of the callback',
+                          required=True, type=str, dest="callback")
+
+    (args, leftovers) = parser.parse_known_args(args)
+
+    return args, leftovers
+
+
+def do_add_callback(gargs, args, leftovers):
+    """Add a callback. """
+
+    request = {
+        "version": "1.0",
+        "name": args.name,
+        "callback_type": CALLBACK_REST,
+        "callback": args.callback
+    }
+
+    headers = command.get_headers(gargs)
+    url = '/api/v1/workers/%s/callbacks' % args.worker_id
+    command.connect(gargs, ('POST', url), 201, request, headers=headers)
+
+    url = '/api/v1/workers/%s/callbacks/%s' % (args.worker_id, args.name)
+
+    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
+
+    print(data)

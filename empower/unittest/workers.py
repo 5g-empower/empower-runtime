@@ -295,7 +295,7 @@ class TestWorkers(BaseTest):
         params = ("root", "root", loc)
         self.get(params, 404)
 
-    def test_modify_app_invalid_param_value(self):
+    def test_modify_worker_invalid_param_value(self):
         """test_modify_app_invalid_param_value."""
 
         self.get(("root", "root", "/workers"), 200)
@@ -319,6 +319,43 @@ class TestWorkers(BaseTest):
 
         params = ("root", "root", loc)
         self.put(params, data, 400)
+
+        params = ("root", "root", loc)
+        self.get(params, 200)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
+    def test_add_callback(self):
+        """test_add_callback."""
+
+        self.get(("root", "root", "/workers"), 200)
+
+        data = {
+            "name": "empower.workers.wifichannelstats.wifichannelstats",
+        }
+
+        params = ("root", "root", "/workers")
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        params = ("root", "root", loc)
+        self.get(params, 200)
+
+        data = {
+            "version": "1.0",
+            "name": "default",
+            "callback": "http://www.domain.io/resource",
+            "callback_type": "rest"
+        }
+
+        params = ("root", "root", loc + "/callbacks")
+        self.post(params, data, 201)
+
+        loc = resp.headers['Location'].replace("/api/v1", "")
 
         params = ("root", "root", loc)
         self.get(params, 200)

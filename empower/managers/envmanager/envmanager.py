@@ -23,6 +23,8 @@ import empower.workers
 
 from empower.core.service import EService
 
+from empower.managers.envmanager.workercallbackshandler import \
+    WorkerCallbacksHandler
 from empower.managers.envmanager.workershandler import WorkersHandler
 from empower.managers.envmanager.cataloghandler import CatalogHandler
 from empower.managers.envmanager.envhandler import EnvHandler
@@ -33,7 +35,8 @@ from empower.managers.envmanager.env import Env
 class EnvManager(EService):
     """Projects manager."""
 
-    HANDLERS = [WorkersHandler, CatalogHandler, EnvHandler]
+    HANDLERS = [WorkersHandler, WorkerCallbacksHandler, CatalogHandler,
+                EnvHandler]
 
     env = None
 

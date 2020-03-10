@@ -83,7 +83,8 @@ class Env(MongoModel):
 
         self.bootstrap[str(service.service_id)] = {
             "name": service.name,
-            "params": serialize.serialize(service.params)
+            "params": serialize.serialize(service.params),
+            "callbacks": serialize.serialize(service.callbacks)
         }
 
         self.storage[str(service.service_id)] = \
@@ -167,10 +168,13 @@ class Env(MongoModel):
 
                 name = self.bootstrap[service_id]['name']
                 params = self.bootstrap[service_id]['params']
+                callbacks = self.bootstrap[service_id]['callbacks']
+
                 storage = self.storage[service_id]
                 service_id = uuid.UUID(service_id)
 
-                self.start_service(service_id, name, params, storage)
+                self.start_service(service_id, name, params, storage,
+                                   callbacks)
 
             except ModuleNotFoundError as ex:
 
@@ -203,7 +207,8 @@ class Env(MongoModel):
 
         return service
 
-    def start_service(self, service_id, name, params, storage=None):
+    def start_service(self, service_id, name, params, storage=None,
+                      callbacks=None):
         """Start a service."""
 
         # wait we are trying to start a service that already exists, abort
@@ -226,6 +231,10 @@ class Env(MongoModel):
 
         # set storage
         service.set_storage(storage)
+
+        # set callbacks
+        if callbacks:
+            service.callbacks = callbacks
 
         # register handlers
         for handler in service.HANDLERS:

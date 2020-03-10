@@ -20,10 +20,21 @@
 import uuid
 import pkgutil
 import logging
+import types
+import json
 
+from urllib.parse import urlparse
+
+import requests
 import tornado.ioloop
 
 from empower.core.serialize import serializable_dict
+from empower.core.serialize import serialize
+
+CALLBACK_NATIVE = "native"
+CALLBACK_REST = "rest"
+
+CALLBACK_TYPES = [CALLBACK_NATIVE, CALLBACK_REST]
 
 
 @serializable_dict
@@ -48,7 +59,7 @@ class EService:
             kwargs['every'] = -1
 
         # Service's callbacks
-        self.callbacks = set()
+        self.callbacks = dict()
 
         # Set logger
         self.log = logging.getLogger(self.name)
@@ -95,21 +106,76 @@ class EService:
 
         return self.context.register_service(name, params=kwargs)
 
-    def handle_callbacks(self):
+    def handle_callbacks(self, params=None, name="default"):
         """Invoke registered callbacks."""
 
-        for callback in self.callbacks:
-            callback(self)
+        if name not in self.callbacks:
+            return
 
-    def add_callback(self, method):
+        callback_type = self.callbacks[name]['callback_type']
+        argument = params if params else self
+        callback = self.callbacks[name]['callback']
+
+        self.log.info("Handling callback %s (%s)", name, callback_type)
+
+        # if type is native just invoke it with the specified params
+        if self.callbacks[name]['callback_type'] == CALLBACK_NATIVE:
+            callback(params)
+            return
+
+        # if type is REST make a post with the serialized params
+        if self.callbacks[name]['callback_type'] == CALLBACK_REST:
+            response = requests.post(url=callback, json=serialize(argument))
+            self.log.info("POST %s - %u", callback, response.status_code)
+
+    def add_callback(self, callback, name="default",
+                     callback_type=CALLBACK_NATIVE):
         """Add a new callback."""
 
-        self.callbacks.add(method)
+        if 'callbacks' not in self.manifest:
+            raise KeyError("Callback %s not defined" % name)
 
-    def remove_callback(self, method):
+        if name not in self.manifest['callbacks']:
+            raise KeyError("Callback %s not defined" % name)
+
+        if callback_type not in CALLBACK_TYPES:
+            raise ValueError("Invalid callback type: %s" % callback_type)
+
+        # native callbacks are not save to the service state
+        if callback_type == CALLBACK_NATIVE:
+
+            if not isinstance(callback,
+                              (types.FunctionType, types.MethodType)):
+
+                raise ValueError("Callback not callable")
+
+            self.callbacks[name] = {
+                "name": name,
+                "callback": callback,
+                "callback_type": CALLBACK_NATIVE
+            }
+
+            return
+
+        # rest callbacks can be saved to service state
+        if callback_type == CALLBACK_REST:
+
+            self.callbacks[name] = {
+                "name": name,
+                "callback": urlparse(callback).geturl(),
+                "callback_type": CALLBACK_REST
+            }
+
+            self.save_service_state()
+
+            return
+
+        raise ValueError("Invalid input to add callback")
+
+    def rem_callback(self, name="default"):
         """Remove a callback."""
 
-        self.callbacks.remove(method)
+        del self.callbacks[name]
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -119,6 +185,7 @@ class EService:
         output['service_id'] = self.service_id
         output['manifest'] = self.manifest
         output['name'] = self.name
+        output['callbacks'] = self.callbacks
         output['params'] = self.params
 
         if self.context:

@@ -48,7 +48,8 @@ from empower.cli.applications import pa_list_apps, do_list_apps, \
 
 from empower.cli.workers import do_list_workers, do_list_workers_catalog, \
     pa_load_worker, do_load_worker, pa_unload_worker, do_unload_worker, \
-    do_unload_all_workers, pa_set_worker_params, do_set_worker_params
+    do_unload_all_workers, pa_set_worker_params, do_set_worker_params, \
+    pa_add_callback, do_add_callback
 
 from empower.core.serialize import serialize
 
@@ -190,6 +191,7 @@ CMDS = {
     'unload-worker': (pa_unload_worker, do_unload_worker),
     'unload-all-workers': (pa_none, do_unload_all_workers),
     'set-worker-params': (pa_set_worker_params, do_set_worker_params),
+    'add-callback': (pa_add_callback, do_add_callback),
 
 }
 
@@ -238,6 +240,8 @@ DESCS = {
     'unload-worker': "Unload a worker",
     'unload-all-workers': "Unload all workers",
     'set-worker-params': "Set worker parameter",
+    'add-callback': "add a callback",
+
 }
 
 

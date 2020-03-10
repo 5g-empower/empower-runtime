@@ -20,6 +20,7 @@
 import uuid
 import ipaddress
 import datetime
+import types
 
 from functools import singledispatch
 
@@ -29,6 +30,12 @@ def serialize(obj):
     """Recursively serialise objects."""
 
     return obj
+
+
+@serialize.register(types.FunctionType)
+@serialize.register(types.MethodType)
+def _(obj):
+    return obj.__name__
 
 
 @serialize.register(dict)
