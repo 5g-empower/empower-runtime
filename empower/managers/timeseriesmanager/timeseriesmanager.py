@@ -25,7 +25,7 @@ from influxdb import InfluxDBClient
 from empower.core.service import EService
 from empower.core.serialize import serialize
 
-DEFAULT_DATABASE = "empower"
+DEFAULT_DATABASE = "tsmanager"
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 8086
 DEFAULT_USERNAME = "root"
