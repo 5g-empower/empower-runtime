@@ -18,10 +18,8 @@
 """Service."""
 
 import uuid
-import pkgutil
 import logging
 import types
-import json
 
 from urllib.parse import urlparse
 
@@ -68,7 +66,7 @@ class EService:
         self.worker = None
 
         # Persistent dict
-        self.storage = {}
+        self.configuration = {}
 
         # Service parameters
         self.params = {}
@@ -76,15 +74,6 @@ class EService:
         # Set service parameters
         for param in kwargs:
             setattr(self, param, kwargs[param])
-
-    def set_storage(self, storage=None):
-        """Set persistent attributes."""
-
-        if not storage:
-            return
-
-        for attribute in storage:
-            setattr(self, attribute, storage[attribute])
 
     def save_service_state(self):
         """Save service state."""
@@ -176,6 +165,7 @@ class EService:
         """Remove a callback."""
 
         del self.callbacks[name]
+        self.save_service_state()
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
@@ -272,45 +262,6 @@ class EService:
         """Control loop."""
 
         self.log.info("Empty loop")
-
-    @classmethod
-    def walk_module(cls, package):
-        """Inspect the specified module for services."""
-
-        results = {}
-
-        pkgs = pkgutil.walk_packages(package.__path__)
-
-        for _, module_name, is_pkg in pkgs:
-
-            __import__(package.__name__ + "." + module_name)
-
-            if not is_pkg:
-                continue
-
-            if not hasattr(package, module_name):
-                continue
-
-            module = getattr(package, module_name)
-
-            if not hasattr(module, "MANIFEST"):
-                continue
-
-            manifest = getattr(module, "MANIFEST")
-
-            name = package.__name__ + "." + module_name + "." + module_name
-
-            manifest['name'] = name
-
-            if 'label' not in manifest:
-                manifest['label'] = module_name
-
-            if 'desc' not in manifest:
-                manifest['desc'] = "No description available"
-
-            results[name] = manifest
-
-        return results
 
     def to_str(self):
         """Return an ASCII representation of the object."""

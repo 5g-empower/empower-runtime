@@ -21,6 +21,8 @@ import uuid
 
 import empower.workers
 
+from empower.core.walkmodule import walk_module
+
 from empower.core.service import EService
 
 from empower.managers.envmanager.workercallbackshandler import \
@@ -28,7 +30,6 @@ from empower.managers.envmanager.workercallbackshandler import \
 from empower.managers.envmanager.workershandler import WorkersHandler
 from empower.managers.envmanager.cataloghandler import CatalogHandler
 from empower.managers.envmanager.envhandler import EnvHandler
-
 from empower.managers.envmanager.env import Env
 
 
@@ -55,7 +56,7 @@ class EnvManager(EService):
     def catalog(self):
         """Return available workers."""
 
-        return self.walk_module(empower.workers)
+        return walk_module(empower.workers)
 
 
 def launch(context, service_id):

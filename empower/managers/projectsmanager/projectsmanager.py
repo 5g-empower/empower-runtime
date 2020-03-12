@@ -19,6 +19,8 @@
 
 import empower.apps
 
+from empower.core.walkmodule import walk_module
+
 from empower.core.launcher import srv_or_die
 from empower.core.service import EService
 
@@ -58,7 +60,7 @@ class ProjectsManager(EService):
     def catalog(self):
         """Return available apps."""
 
-        return self.walk_module(empower.apps)
+        return walk_module(empower.apps)
 
     def load_project_by_ssid(self, ssid):
         """Find a project by SSID."""

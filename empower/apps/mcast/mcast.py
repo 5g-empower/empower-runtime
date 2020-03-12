@@ -199,7 +199,7 @@ class Mcast(EWiFiApp):
             [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy  # --> [DMS, LEGACY, LEGACY...]
         self._services_registered = 0
-        self.storage['mcast_services'] = {}
+        self.configuration['mcast_services'] = {}
 
     def upsert_mcast_service(self, ipaddress, receivers, status, service_type):
         """Update/insert new mcast services.
@@ -252,7 +252,7 @@ class Mcast(EWiFiApp):
     def mcast_services(self):
         """Get the list of active mcast services."""
 
-        return self.storage['mcast_services']
+        return self.configuration['mcast_services']
 
     @mcast_services.setter
     def mcast_services(self, services):
@@ -273,7 +273,7 @@ class Mcast(EWiFiApp):
         }
         """
 
-        self.storage['mcast_services'] = {}
+        self.configuration['mcast_services'] = {}
 
         for service in services.values():
             self.upsert_mcast_service(service['ipaddress'],

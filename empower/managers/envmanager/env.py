@@ -38,15 +38,12 @@ class Env(MongoModel):
         project_id: The project identifier. Notice how there is only one Env
             instance active at any given time and that the project_id of the
             workers loaded by Env is always set to the Env's project_id
-        bootstrap: the list of services to be loaded at bootstrap with their
-            configuration
-        storage: the configuration of the services
+        bootstrap: the list of services to be loaded at bootstrap
         services: the services
     """
 
     project_id = fields.UUIDField(primary_key=True)
     bootstrap = fields.DictField(required=False, blank=True)
-    storage = fields.DictField(required=False, blank=True)
 
     def __init__(self, *args, **kwargs):
 
@@ -84,11 +81,9 @@ class Env(MongoModel):
         self.bootstrap[str(service.service_id)] = {
             "name": service.name,
             "params": serialize.serialize(service.params),
-            "callbacks": serialize.serialize(service.callbacks)
+            "callbacks": serialize.serialize(service.callbacks),
+            "configuration": serialize.serialize(service.configuration)
         }
-
-        self.storage[str(service.service_id)] = \
-            serialize.serialize(service.storage)
 
         self.save()
 
@@ -96,9 +91,19 @@ class Env(MongoModel):
         """Remove service state."""
 
         del self.bootstrap[str(service_id)]
-        del self.storage[str(service_id)]
 
         self.save()
+
+    def load_service(self, service_id, name, params):
+        """Load a service instance."""
+
+        init_method = getattr(import_module(name), "launch")
+        service = init_method(context=self, service_id=service_id, **params)
+
+        if not isinstance(service, EWorker):
+            raise ValueError("Service %s not EWorker type" % name)
+
+        return service
 
     def register_service(self, name, params, service_id=None):
         """Register service."""
@@ -169,11 +174,11 @@ class Env(MongoModel):
                 name = self.bootstrap[service_id]['name']
                 params = self.bootstrap[service_id]['params']
                 callbacks = self.bootstrap[service_id]['callbacks']
+                configuration = self.bootstrap[service_id]['configuration']
 
-                storage = self.storage[service_id]
                 service_id = uuid.UUID(service_id)
 
-                self.start_service(service_id, name, params, storage,
+                self.start_service(service_id, name, params, configuration,
                                    callbacks)
 
             except ModuleNotFoundError as ex:
@@ -196,18 +201,7 @@ class Env(MongoModel):
         for service_id in self.bootstrap:
             self.stop_service(uuid.UUID(service_id))
 
-    def load_service(self, service_id, name, params):
-        """Load a service instance."""
-
-        init_method = getattr(import_module(name), "launch")
-        service = init_method(context=self, service_id=service_id, **params)
-
-        if not isinstance(service, EWorker):
-            raise ValueError("Service %s not EWorker type" % name)
-
-        return service
-
-    def start_service(self, service_id, name, params, storage=None,
+    def start_service(self, service_id, name, params, configuration=None,
                       callbacks=None):
         """Start a service."""
 
@@ -217,7 +211,7 @@ class Env(MongoModel):
 
         # this will look for the launch method and call it
         self.manager.log.info("Loading service: %s (%s)", name, service_id)
-        self.manager.log.info("  - params: %s", params)
+        self.manager.log.info(" - params: %s", params)
 
         service = self.load_service(service_id, name, params)
 
@@ -229,8 +223,10 @@ class Env(MongoModel):
         # add to service list
         self.services[service.service_id] = service
 
-        # set storage
-        service.set_storage(storage)
+        # set configuration
+        if configuration:
+            for entry in configuration:
+                setattr(service, entry, configuration[entry])
 
         # set callbacks
         if callbacks:
@@ -264,7 +260,6 @@ class Env(MongoModel):
 
         output['project_id'] = self.project_id
         output['bootstrap'] = self.bootstrap
-        output['storage'] = self.storage
 
         output['platform'] = {
             "machine": platform.machine(),
