@@ -15,7 +15,7 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""LNS Protocol Manager"""
+"""LNS Protocol Manager."""
 
 LORAWAN_VERSION = "1.0"
 
@@ -144,10 +144,11 @@ def unregister_callback(event, handler):
 def lenddevs_by_dev_addr(lenddevs):
     """Return lGTWs in this project."""
     output = {}
-    for dev_eui in lenddevs.keys():
-        dev_addr = lenddevs[dev_eui].get("DevAddr")
+    for dev_eui, lenddev in lenddevs.items():
+        dev_addr = lenddev.dev_addr
         if dev_addr:
-            dev_addr = dev_addr.capitalize()
-            output[dev_addr] = lenddevs[dev_eui]
-            output[dev_addr]["DevEUI"] = dev_eui.capitalize()
+            if isinstance(dev_addr, int):
+                output[dev_addr] = dev_eui
+            else:
+                output[int(dev_addr, 16)] = dev_eui
     return output

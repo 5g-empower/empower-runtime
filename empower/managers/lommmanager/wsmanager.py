@@ -43,7 +43,7 @@ class WSManager(EService):
     WSHANDLERS = []
 
     def __init__(self, context, service_id, port):
-
+        """Initialize web socket handlers."""
         super().__init__(context=context, service_id=service_id, port=port)
 
         arguments = []
@@ -56,13 +56,11 @@ class WSManager(EService):
     @property
     def port(self):
         """Return port."""
-
         return self.params["port"]
 
     @port.setter
     def port(self, value):
         """Set port."""
-
         if "port" in self.params and self.params["port"]:
             raise ValueError("Param port can not be changed")
 
@@ -70,7 +68,6 @@ class WSManager(EService):
 
     def start(self):
         """Start WSManager manager."""
-
         super().start()
 
         self.http_server.listen(self.port)

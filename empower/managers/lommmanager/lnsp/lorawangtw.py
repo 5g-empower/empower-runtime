@@ -32,6 +32,8 @@ from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 class LGtwState(Enum):
     """Enumerate lGTW states."""
 
+    # TODO Full test of lGtw State Machine
+
     DISCONNECTED = "disconnected"
     CONNECTED = "connected"
     ONLINE = "online"
@@ -128,6 +130,7 @@ class LoRaWANgtw(MongoModel):
     #   "nodwell"    : BOOL                    // BooleanField
     lgtw_version = fields.DictField(required=False, blank=True)
     # lgtw version information is sent by the Basic Station at connection time
+    # NOTE maybe there is no need to save it in the database
     ipaddr = fields.GenericIPAddressField(required=False, blank=True)
     last_seen = fields.DateTimeField(required=False)
     last_seen_ts = fields.IntegerField(required=False)
@@ -153,6 +156,11 @@ class LoRaWANgtw(MongoModel):
     __send_rtt_on = True
     __has_pps_signal = False
 
+    class Meta:
+        """Define custom collection name."""
+
+        collection_name = "lomm_lgtw"
+
     def __init__(self, **kwargs):
         """Initialize."""
         super().__init__(**kwargs)
@@ -163,19 +171,6 @@ class LoRaWANgtw(MongoModel):
         """Return the state."""
         return self._state
 
-    # @state.setter
-    # def state(self, state):
-    #     """Set the lgtw state."""
-    #     method = "_%s_%s" % (self.state, state)
-    #     if hasattr(self, method):
-    #         self.log.info("New LoRAWAN RGTW %s state transition %s->%s",
-    #                       self.lgtw_euid, self.state, state)
-    #         callback = getattr(self, method)
-    #         callback()
-    #     else:
-    #         raise IOError("Invalid transistion %s -> %s"
-    #                       % (self.state, state))
-    #     self.connection.lgtw_new_state(self.state, state)
     @state.setter
     def state(self, new_state):
         """Set the lgtw state."""
@@ -189,40 +184,6 @@ class LoRaWANgtw(MongoModel):
                           new_state.value)
             self._state = new_state
             self.connection.lgtw_new_state(self._state, new_state)
-
-    # TODO Check lGtw State Machine
-    # """ Valid State Transisions """
-    # def _online_online(self):
-    #     # null transition
-    #     pass
-
-    # def _disconnected_disconnected(self):
-    #     # null transition
-    #     pass
-
-    # def _disconnected_connected(self):
-    #     # set new state
-    #     self._state = LGtwState.CONNECTED
-
-    # def _connected_disconnected(self):
-    #     # set new state
-    #     self._state = LGtwState.DISCONNECTED
-
-    # def _online_disconnected(self):
-    #     # set new state
-    #     self._state = LGtwState.DISCONNECTED
-
-    # def _connected_online(self):
-    #     # set new state
-    #     self._state = LGtwState.ONLINE
-
-    # def _online_rmtsh(self):
-    #     # set new state
-    #     self._state = LGtwState.RMTSH
-
-    # def _rmtsh_online(self):
-    #     # set new state
-    #     self._state = LGtwState.ONLINE
 
     def is_connected(self):
         """Return if lGTW is connected."""
@@ -274,20 +235,15 @@ class LoRaWANgtw(MongoModel):
             self.last_seen = datetime.now()
         date = datetime.timestamp(self.last_seen)
 
-        if self.connection:
-            connection = self.connection.to_dict()
-        else:
-            connection = None
-
         return {
             'name': self.name,
-            'lgtw_euid': str(self.lgtw_euid),
+            'lgtw_euid': self.lgtw_euid.id6,
             'desc': self.desc,
-            'state': self.state.value,  # CC changed
+            'state': self.state.value,
             'owner': str(self.owner),
             'lgtw_version': self.lgtw_version,
             'lgtw_config': self.lgtw_config,
             'last_seen': self.last_seen,
             'last_seen_ts': date,
-            'connection': connection
+            'ipaddr': self.ipaddr
             }

@@ -35,12 +35,10 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         """List devices.
 
         Args:
-
             [0]: the lnss euid (optional)
             [1]: the lgtw euid (optional)
 
         Example URLs:
-
             GET /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
 
             {
@@ -57,16 +55,15 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
                     "lns_euid": "0000:0000:0000:0001"
             }
         """
-
         lns_euid = args[0]
         lgtw_euid = args[1] if len(args) == 2 else None
         out = []
 
         if lns_euid:
-            lns_euid = EUI64(lns_euid).id6
+            lns_euid = EUI64(lns_euid)
 
         if lgtw_euid:
-            lgtw_euid = EUI64(args[1]).id6
+            lgtw_euid = EUI64(args[1])
 
         if not lns_euid and not lgtw_euid:
             # E.g. GET /api/v1/lnsd/lnss//lgtws/
@@ -102,7 +99,6 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         """Add a new LoRaWAN GTW to the LNS Discovery Server Database.
 
         Args:
-
             [0]: the lnss euid (optional)
             [1]: the lgtw euid (optional)
 
@@ -118,10 +114,10 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         lgtw_euid = None
 
         if args[0]:
-            lns_euid = EUI64(args[0]).id6
+            lns_euid = EUI64(args[0])
 
         if args[1]:
-            lgtw_euid = EUI64(args[1]).id6
+            lgtw_euid = EUI64(args[1])
 
         self.service.add_lgtw(**{"lns_euid": lns_euid, "lgtw_euid": lgtw_euid})
         print("/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
@@ -134,7 +130,6 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         """Delete one or all LoRaWAN GTW from LSN Discovery Server.
 
         Args:
-
             [0]: the lnss euid
             [1]: the lgtw euid
 
@@ -144,16 +139,15 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
 
         DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
         """
-
         lns_euid = None
         lgtw_euid = None
 
         if args[0]:
-            lns_euid = EUI64(args[0]).id6
+            lns_euid = EUI64(args[0])
 
         if len(args) == 2:
             if args[1]:
-                lgtw_euid = EUI64(args[1]).id6
+                lgtw_euid = EUI64(args[1])
 
         if len(args) == 2 and lns_euid and lgtw_euid:
             self.service.remove_lgtw(lgtw_euid, lns_euid)

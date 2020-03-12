@@ -57,7 +57,7 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
                 out.append(self.service.lenddevs[key].to_dict())
             return out
 
-        dev_eui = str(EUI64(args[0]))
+        dev_eui = EUI64(args[0])
         print(self.service.lenddevs)
         return self.service.lenddevs[dev_eui].to_dict()
 
@@ -101,6 +101,6 @@ class LEndDevsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/lns/lenddevs/00:28:A1:54:B8:91:72:D2
         """
         if args:
-            self.service.remove_lenddev(str(EUI64(args[0])))
+            self.service.remove_lenddev(EUI64(args[0]))
         else:
             self.service.remove_all_lenddevs()

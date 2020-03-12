@@ -68,7 +68,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         name = self.get_argument("name", None)
 
         if len(args) == 1:
-            lgtw_euid = EUI64(args[0]).eui64
+            lgtw_euid = EUI64(args[0])
 
             if lgtw_euid in self.service.lgtws:
                 lgtw = self.service.lgtws[lgtw_euid].to_dict()
@@ -142,6 +142,6 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/lns/lgtws/08:27:eb:ff:fe:e7:76:91
         """
         if args:
-            self.service.remove_lgtw(EUI64(args[0]).eui64)
+            self.service.remove_lgtw(EUI64(args[0]))
         else:
             self.service.remove_all_lgtws()

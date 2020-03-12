@@ -178,26 +178,26 @@ class LNSPManager(WSManager):
         super().start()
         # retrieve data from the db
         for dev in LoRaWANEndDev.objects:
-            self.lenddevs[str(dev.dev_eui)] = dev
+            self.lenddevs[dev.dev_eui] = dev
         for lgtw in LoRaWANgtw.objects:
-            self.lgtws[str(lgtw.lgtw_euid)] = lgtw
+            self.lgtws[lgtw.lgtw_euid] = lgtw
 
     def add_lenddev(self, dev_eui, **kwargs):
         """Add new End Device."""
-        dev_eui = str(EUI64(dev_eui))
+        dev_eui = EUI64(dev_eui)
         if dev_eui in self.lenddevs:
             raise ValueError(
                 "End Device %s already registered in the LNS Server" % dev_eui)
-        kwargs["devEUI"] = dev_eui
+        kwargs["dev_eui"] = dev_eui
         lenddev = LoRaWANEndDev(**kwargs).save()
         self.lenddevs[dev_eui] = lenddev
         return self.lenddevs[dev_eui]
 
     def update_lenddev(self, dev_eui, **kwargs):
         """Add new End Device."""
-        dev_eui = str(EUI64(dev_eui))
+        dev_eui = EUI64(dev_eui)
         desc = kwargs.get("desc", "Generic End Device")
-        join_eui = str(EUI64(kwargs.get("joinEUI", "")))
+        join_eui = EUI64(kwargs.get("joinEUI", ""))
         app_key = kwargs.get("appKey")
         nwk_key = kwargs.get("nwkKey")
 
@@ -221,7 +221,7 @@ class LNSPManager(WSManager):
 
     def remove_lenddev(self, dev_eui):
         """Remove End Device."""
-        dev_eui = str(EUI64(dev_eui))
+        dev_eui = EUI64(dev_eui)
         if dev_eui not in self.lenddevs:
             raise KeyError("End Device %s not registered" % dev_eui)
         lenddev = self.lenddevs[dev_eui]
@@ -235,7 +235,7 @@ class LNSPManager(WSManager):
 
     def add_lgtw(self, lgtw_euid, **kwargs):
         """Add lGTW to LNS database."""
-        lgtw_euid = EUI64(lgtw_euid).eui64
+        lgtw_euid = EUI64(lgtw_euid)
         name = kwargs.get("name", "BasicStation")
         desc = kwargs.get("desc", "Generic GTW")
         owner = str(kwargs.get("owner", lnsp.DEFAULT_OWNER))
@@ -255,7 +255,7 @@ class LNSPManager(WSManager):
 
     def update_lgtw(self, lgtw_euid, **kwargs):
         """Update lGTW in the LNS database."""
-        lgtw_euid = EUI64(lgtw_euid).eui64
+        lgtw_euid = EUI64(lgtw_euid)
         desc = kwargs.get("desc")
         name = kwargs.get("name")
         owner = str(kwargs.get("owner"))
@@ -286,7 +286,7 @@ class LNSPManager(WSManager):
 
     def remove_lgtw(self, lgtw_euid):
         """Remove GTW from LNS database."""
-        lgtw_euid = EUI64(lgtw_euid).eui64
+        lgtw_euid = EUI64(lgtw_euid)
         if lgtw_euid not in self.lgtws:
             raise KeyError("GTW %s not registered" % lgtw_euid)
         lgtw = self.lgtws[lgtw_euid]
@@ -300,6 +300,5 @@ class LNSPManager(WSManager):
 
 
 def launch(context, service_id, port=DEFAULT_PORT):
-    """ Initialize the module. """
-
+    """Initialize the module."""
     return LNSPManager(context=context, service_id=service_id, port=port)
