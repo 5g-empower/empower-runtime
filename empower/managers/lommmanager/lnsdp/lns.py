@@ -21,21 +21,48 @@
 import logging
 
 from datetime import datetime
+import ipaddress
+import re
 from pymodm import MongoModel, fields
-
+from pymodm.errors import ValidationError
 from empower.core.eui64 import EUI64Field
-from empower.core.wsuri import WSURIField
 
-P_STATE_ACTIVE = "active"
-P_STATE_SUSPENDED = "suspended"
+
+def validator_ws_uri(value):
+    """Validate if the value is a valid ws/wss uri."""
+    DOMAIN_PATTERN = re.compile(
+        r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+        r'(?:[A-Z]{2, 6}\.?|[A-Z0-9-]{2,}(?<!-)\.?)'  # domain
+        r'(?::\d+)?\Z',  # optional port
+        re.IGNORECASE
+    )
+    PATH_PATTERN = re.compile(r'\A\S*\Z')
+
+    scheme, rest = value.split('://')
+
+    if scheme.lower() not in ['ws', 'wss']:
+        raise ValidationError('Unrecognized scheme: ' + scheme)
+
+    domain, _, path = rest.partition('/')
+
+    if not PATH_PATTERN.match(path):
+        raise ValidationError('Invalid path: ' + path)
+
+    if not DOMAIN_PATTERN.match(domain):
+        # Check if it is an IP address
+        try:
+            ipaddress.ip_address(domain)
+        except ValueError:
+            try:
+                # Check if there's a port. Remove it, and try again.
+                domain, port = domain.rsplit(':', 1)
+                ipaddress.ip_address(domain)
+            except ValueError:
+                raise ValidationError('Invalid URL: ' + rest)
 
 
 class LNS(MongoModel):
     """LNS class.
-
-    The Device State machine is the following:
-
-    active <-> suspended
 
     Attributes:
         euid: This LNS EUID
@@ -44,156 +71,70 @@ class LNS(MongoModel):
         desc: A human-radable description of this Device (str)
         log:  logging facility
     """
-    euid = EUI64Field(primary_key=True)  # 64 bit gateway identifier, EUI-64
-    uri = WSURIField(required=True)
-    lgtws = fields.ListField(default=[], blank=True, required=False)
-    desc = fields.CharField(required=True)
+
+    euid = EUI64Field(primary_key=True)  # 64 bit lns identifier, EUI-64
+    uri = fields.CharField(required=True,
+                           validators=[validator_ws_uri])
+    lgtws = fields.ListField(required=False, blank=True,
+                             field=EUI64Field(),
+                             verbose_name="List of lGtws",
+                             mongo_name="lgtws"
+                             )
+    desc = fields.CharField(required=False)
+
+    class Meta:
+        """Specify custom collection name in mongodb."""
+
+        collection_name = "lomm_lns"
 
     def __init__(self, **kwargs):
-
+        """Initialize attributes."""
         super().__init__(**kwargs)
 
-        # self.__connection = None
         self.last_seen = 0
         self.last_seen_ts = 0
         self.period = 0
-        # self.__state = P_STATE_SUSPENDED
         self.log = logging.getLogger("%s" % self.__class__.__module__)
-
-    # @property
-    # def state(self):
-    #     """Return the state."""
-
-    #     return self.__state
-
-    # @state.setter
-    # def state(self, state):
-    #     """Set the Device state."""
-
-    #     self.log.info("Device %s mode %s->%s", self.euid, self.state, state)
-
-    #     method = "_%s_%s" % (self.state, state)
-
-    #     if hasattr(self, method):
-    #         callback = getattr(self, method)
-    #         callback()
-    #         return
-
-    #     raise IOError("Invalid transistion %s -> %s" % (self.state, state))
-
-    # def set_connected(self):
-    #     """Move to connected state."""
-
-    #     self.state = P_STATE_CONNECTED
-
-    # def is_connected(self):
-    #     """Return true if the device is connected"""
-
-    #     return self.state == P_STATE_CONNECTED or self.is_online()
-
-    # def set_disconnected(self):
-    #     """Move to connected state."""
-
-    #     self.state = P_STATE_DISCONNECTED
-
-    # def set_online(self):
-    #     """Move to connected state."""
-
-    #     self.state = P_STATE_ONLINE
-
-    # def is_online(self):
-    #     """Return true if the device is online"""
-
-    #     return self.state == P_STATE_ONLINE
-
-    # def _online_online(self):
-
-    #     # null transition
-    #     pass
-
-    # def _disconnected_connected(self):
-
-    #     # set new state
-    #     self.__state = P_STATE_CONNECTED
-
-    # def _connected_disconnected(self):
-
-    #     # set new state
-    #     self.__state = P_STATE_DISCONNECTED
-
-    # def _online_disconnected(self):
-
-    #     # generate bye message
-    #     self.__connection.send_device_down_message_to_self()
-
-    #     # set new state
-    #     self.__state = P_STATE_DISCONNECTED
-
-    # def _connected_online(self):
-
-    #     # set new state
-    #     self.__state = P_STATE_ONLINE
-
-    #     # generate register message
-    #     self.__connection.send_device_up_message_to_self()
-
-    # @property
-    # def connection(self):
-    #     """Get the connection assigned to this Device."""
-
-    #     return self.__connection
-
-    # @connection.setter
-    # def connection(self, connection):
-    #     """Set the connection assigned to this Device."""
-
-    #     self.__connection = connection
 
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
-
         date = datetime.fromtimestamp(self.last_seen_ts) \
             .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         out = {
-            'euid': self.euid,
+            'euid': self.euid.id6,
             'desc': self.desc,
             'uri': self.uri,
-            'lgtws': self.lgtws,
+            'lgtws': [lgtw.id6 for lgtw in self.lgtws],
             'last_seen': self.last_seen,
             'last_seen_ts': date,
             'period': self.period,
-            # 'state': self.state
         }
-
-        # out['connection'] = \
-        #     self.connection.to_dict() if self.connection else None
 
         return out
 
     def to_str(self):
         """Return an ASCII representation of the object."""
-
-        # if self.connection:
-        #     return "%s at %s last_seen %d" % (self.euid,
-        #                                       self.connection.to_str(),
-        #                                       self.last_seen)
-
-        return "LNSS object \"%s\", euid=%s" % (self.desc, self.euid)
+        return "LNSS object \"%s\", euid=%s" % (self.desc, self.euid.id6)
 
     def __str__(self):
+        """Return string format."""
         return self.to_str()
 
     def __hash__(self):
+        """Return hash."""
         return hash(self.euid)
 
     def __eq__(self, other):
+        """Return if are equal based on euid."""
         if isinstance(other, LNS):
             return self.euid == other.euid
         return False
 
     def __ne__(self, other):
+        """Return negation."""
         return not self.__eq__(other)
 
     def __repr__(self):
+        """Return represention."""
         return self.__class__.__name__ + "('" + self.to_str() + "')"

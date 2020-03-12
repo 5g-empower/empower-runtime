@@ -41,13 +41,13 @@ class LNSDPManager(WSManager):
     WSHANDLERS = [LNSDPMainHandler]
 
     def __init__(self, context, service_id, port):
+        """Initilize arguments."""
         super().__init__(context=context, service_id=service_id, port=port)
         self.lnss = {}
 
     @property
     def lgtws(self):
         """Return the lgtws."""
-
         lgtws = {}
         for lns_euid in self.lnss:
             lns = self.lnss[lns_euid]
@@ -59,7 +59,6 @@ class LNSDPManager(WSManager):
 
     def start(self):
         """Start control loop."""
-
         super().start()
 
         # retrieve LNS data from the db
@@ -67,44 +66,43 @@ class LNSDPManager(WSManager):
             self.lnss[lns.euid] = lns
 
     def add_lns(self, lns_euid, **kwargs):
-        """Add a new LNS.
-
-        Overwrites if LNS exists."""
+        """Add a new LNS. Overwrites LNS if it already exists."""
         try:
-            lns_euid = EUI64(lns_euid).id6
-        except Exception:
-            raise ValueError("LNS euid (lns_euid) not valid")
+            lns_euid = EUI64(lns_euid)
+        except Exception as err:
+            raise ValueError("LNS euid (lns_euid) not valid %s" % err)
 
         desc = kwargs.get("desc", "Generic LNS")
         uri = kwargs.get("uri")
         lgtws = kwargs.get("lgtws", [])
 
-        if lns_euid in self.lnss:
-            # raise ValueError(
-            #     "LNS %s already registered in the LNS Discovery Server" %
-            #     lns_euid)
-            pass
+        # if lns_euid in self.lnss:
+        #    raise ValueError(
+        #        "LNS %s already registered in the LNS Discovery Server" %
+        #        lns_euid)
+        #    pass
 
         if lgtws:
             try:
-                lgtws + [EUI64(lgtw).id6 for lgtw in lgtws]
-            except Exception:
-                raise ValueError(
-                    "lGTW euid (lgtw_euid=%s) not valid" %
-                    str(lgtws))
+                lgtws = [EUI64(lgtw).id6 for lgtw in lgtws]
+                # TODO CHECK expression
+            except Exception as err:
+                raise ValueError("lGTW euids (%r) not valid - %s" %
+                                 (lgtws, err))
             lns = LNS(uri=uri, euid=lns_euid, desc=desc, lgtws=lgtws).save()
         else:
             lns = LNS(uri=uri, euid=lns_euid, desc=desc).save()
+
         self.lnss[lns_euid] = lns
 
         return self.lnss[lns_euid]
 
     def update_lns(self, lns_euid, **kwargs):
         """Update lns data."""
-        lns_euid = EUI64(lns_euid).id6
+        lns_euid = EUI64(lns_euid)
         desc = kwargs.get("desc")
         uri = kwargs.get("uri")
-        lgtws = [EUI64(lgtw).id6 for lgtw in kwargs.get("lgtws", [])]
+        lgtws = kwargs.get("lgtws", [])
 
         try:
             lns = self.lnss[lns_euid]
@@ -112,10 +110,14 @@ class LNSDPManager(WSManager):
             raise KeyError("%s not registered, register lns first" % lns_euid)
 
         if lgtws:
+            try:
+                lgtws = [EUI64(lgtw) for lgtw in lgtws]
+            except Exception as err:
+                raise ValueError("lGTW euids (%r) not valid - %s" %
+                                 (lgtws, err))
             for lgtw in lgtws:
                 if lgtw not in lns.lgtws:
                     lns.lgtws.append(lgtw)
-                    print()
 
         if uri:
             lns.uri = uri
@@ -128,7 +130,7 @@ class LNSDPManager(WSManager):
     def remove_lns(self, lns_euid):
         """Remove LNS."""
         try:
-            lns_euid = EUI64(lns_euid).id6
+            lns_euid = EUI64(lns_euid)
         except Exception:
             raise ValueError("LNS euid (lns_euid) not valid")
         if lns_euid not in self.lnss:
@@ -151,8 +153,8 @@ class LNSDPManager(WSManager):
         if 'lgtw_euid' not in kwargs:
             raise ValueError("lgtw_euid must be present")
 
-        lns_euid = EUI64(kwargs.get("lns_euid")).id6
-        lgtw_euid = EUI64(kwargs.get("lgtw_euid")).id6
+        lns_euid = EUI64(kwargs.get("lns_euid"))
+        lgtw_euid = EUI64(kwargs.get("lgtw_euid"))
         try:
             lns = self.lnss[lns_euid]
         except KeyError:
@@ -176,6 +178,7 @@ class LNSDPManager(WSManager):
             raise ValueError("%s not registered" % lns_euid)
 
         if lgtw_euid in lns.lgtws:
+            print(lgtw_euid)
             lns.lgtws.remove(lgtw_euid)
             lns.save()
             self.lnss[lns_euid] = lns
@@ -190,6 +193,5 @@ class LNSDPManager(WSManager):
 
 
 def launch(context, service_id, port=DEFAULT_PORT):
-    """ Initialize the module. """
-
+    """Initialize the module."""
     return LNSDPManager(context=context, service_id=service_id, port=port)

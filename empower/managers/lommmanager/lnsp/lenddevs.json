@@ -15,7 +15,7 @@
     {
         "devEUI": "00:04:a3:0b:00:1b:ae:6b",
         "label": "my_ttu",
-        "activation": "OTAA",
+        "activation": "OTA",
         "joinEUI": "70B3D57ED0010747",
         "nwkKey": "D8823E63C25FCF11E33C38B5DF2900D9",
         "devAddr": null,

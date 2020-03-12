@@ -14,7 +14,7 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""LoMM Test App for Empower
+"""LoMM Test App for Empower.
 
 The lomm_test application prints on screen data upon LoMM events:
     - LoRaWAN GTW Events:
@@ -82,7 +82,7 @@ class LoMMTest(LoMMApp):
 
     # LoRaWAN GTW Events Callback
     def callback_new_state_transition(self, **kwargs):
-        """Callback when a GTW changes its state
+        """Print log info when a GTW changes its state.
 
         Parameters:
             lgtw_id (UID): LoRaWAN GTW ID
@@ -101,7 +101,7 @@ class LoMMTest(LoMMApp):
 
     # Uplink Web Socket Messages Callbacks
     def callback_version(self,  **kwargs):
-        """Callback when a new Version message arrives """
+        """Print log info when a new Version message arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         rx_time = kwargs.get("rx_time", 0)
         lgtw_version = kwargs.get("lgtw_version", "")
@@ -112,7 +112,7 @@ class LoMMTest(LoMMApp):
         self.log.info("%s: \n%s", self.label, json.dumps(lgtw_version))
 
     def callback_jreq(self,  **kwargs):
-        """Callback when a new JREQ Frame arrives """
+        """Print log info when a new JREQ Frame arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         rx_time = kwargs.get("rx_time", 0)
         join_data = kwargs.get("join_data", "")
@@ -130,7 +130,7 @@ class LoMMTest(LoMMApp):
             json.dumps(join_data, indent=2, sort_keys=True))
 
     def callback_updf(self,  **kwargs):
-        """Callback when a new Uplink Data Frame arrives """
+        """Print log info when a new Uplink Data Frame arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         rx_time = kwargs.get("rx_time", 0)
         updf_data = kwargs.get("updf_data", "")
@@ -148,7 +148,7 @@ class LoMMTest(LoMMApp):
             json.dumps(updf_data, indent=2, sort_keys=True))
 
     def callback_propdf(self,  **kwargs):
-        """Callback when a new Proprietary Frame arrives """
+        """Print log info when a new Proprietary Frame arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         rx_time = kwargs.get("rx_time", 0)
         frmpayload = kwargs.get("FRMPayload", "")
@@ -162,9 +162,9 @@ class LoMMTest(LoMMApp):
         self.log.info("%s: frmpayload=%s", self.label, frmpayload)
 
     def callback_dntxed(self, **kwargs):
-        """Callback when a new Transmit Confirmation message arrives
+        """Print log info when a new Transmit Confirmation message arrives.
 
-        This message is only sent when a frame has been put on air.
+        This method is called when a frame has been put on air.
         There is no feedback to the LNS if a frame could not be sent
         """
         lgtw_id = kwargs.get("lgtw_id", "")
@@ -182,7 +182,7 @@ class LoMMTest(LoMMApp):
             self.label, json.dumps(dntxed, indent=2, sort_keys=True))
 
     def callback_timesync(self,  **kwargs):
-        """Callback when a new Timesync message arrives """
+        """Print log info when a new Timesync message arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # rx_time = kwargs.get("rx_time", 0)
 
@@ -198,7 +198,7 @@ class LoMMTest(LoMMApp):
                 self.label, lgtw_id, kwargs["txtime"])
 
     def callback_rmtsh(self,  **kwargs):
-        """Callback when a new remote shell message arrives """
+        """Print log info when a new remote shell message arrives."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # rx_time = kwargs.get("rx_time", 0)
         rmtsh = kwargs.get("rmtsh", "")
@@ -223,7 +223,7 @@ class LoMMTest(LoMMApp):
     Downlink Web Socket Messages
     """
     def callback_router_config(self,  **kwargs):
-        """Callback when a new remote shell message is sent """
+        """Print log info when a new remote shell message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         tx_time = kwargs.get("tx_time", "")
         router_config = kwargs.get("msg", "")
@@ -236,7 +236,7 @@ class LoMMTest(LoMMApp):
             json.dumps(router_config, indent=2, sort_keys=True))
 
     def callback_dnmsg(self,  **kwargs):
-        """Callback when a new downlink frame message is sent """
+        """Print log info when a new downlink frame message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         tx_time = kwargs.get("tx_time", "")
         dnmsg = kwargs.get("msg", "")
@@ -254,7 +254,7 @@ class LoMMTest(LoMMApp):
                 json.dumps(dnmsg, indent=2, sort_keys=True))
 
     def callback_dnsched(self,  **kwargs):
-        """Callback when a new downlink scheduled frame message is sent """
+        """Print log info when a new DN scheduled frame message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # tx_time = kwargs.get("tx_time", "")
         dnsched = kwargs.get("msg", "")
@@ -276,7 +276,7 @@ class LoMMTest(LoMMApp):
             self.log.info("%s: pdu=%s", self.label, dnsched["pdu"])
 
     def callback_dn_timesync(self,  **kwargs):
-        """Callback when a new timesync message is sent """
+        """Print log info when a new timesync message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # tx_time = kwargs.get("tx_time", "")
         timesync = kwargs.get("msg", "")
@@ -287,7 +287,7 @@ class LoMMTest(LoMMApp):
             self.label, lgtw_id, timesync["txtime"], timesync["gpstime"])
 
     def callback_rmcmd(self,  **kwargs):
-        """Callback when a new remote command message is sent """
+        """Print log info when a new remote command message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # tx_time = kwargs.get("tx_time", "")
         rmcmd = kwargs.get("msg", "")
@@ -299,7 +299,7 @@ class LoMMTest(LoMMApp):
             self.label, lgtw_id, rmcmd["command"], args)
 
     def callback_dn_rmtsh(self,  **kwargs):
-        """Callback when a new remote shell message is sent """
+        """Print log info when a new remote shell message is sent."""
         lgtw_id = kwargs.get("lgtw_id", "")
         # tx_time = kwargs.get("tx_time", "")
         rmtsh = kwargs.get("msg", "")
@@ -322,7 +322,7 @@ class LoMMTest(LoMMApp):
 
     # Monitoring Round-trip Times
     def callback_rtt_data_rx(self, **kwargs):
-        """Callback when new RTT data is avaliable
+        """Print log info when new RTT data is avaliable.
 
         The field RefTime is calculated from the last received MuxTime adjusted
         by the time interval on the router between the arrival of MuxTime
@@ -340,7 +340,7 @@ class LoMMTest(LoMMApp):
             self.label, lgtw_id, RefTime)
 
     def callback_rtt_query(self, **kwargs):
-        """ Callback new RTT query is sent
+        """Print log info when new RTT query is sent.
 
         Note: The field MuxTime contains a float value representing
         a UTC timestamp with fractional seconds and marks the time
@@ -353,18 +353,18 @@ class LoMMTest(LoMMApp):
             ", MuxTime = %f" % 0.0 if isinstance(MuxTime, float) else "")
 
     def callback_rtt_on(self, **kwargs):
-        """ Callback RTT query is set to ON """
+        """Print log info  when RTT query is set to ON."""
         lgtw_id = kwargs.get("lgtw_id", "")
         self.log.info("%s: lGTW %s, RTT set to ON.", self.label, lgtw_id)
 
     def callback_rtt_off(self, **kwargs):
-        """ Callback RTT query is set to OFF """
+        """Print log info  when RTT query is set to OFF."""
         lgtw_id = kwargs.get("lgtw_id", "")
         self.log.info("%s: lGTW %s, RTT set to OFF.", self.label, lgtw_id)
 
     # Gathering Radio Data statistics
     def callback_new_radio_data(self, **kwargs):
-        """Callback when a LoRaWAN Radio GTW radio data is avaliable"""
+        """Print log info when a LoRaWAN Radio GTW radio data is avaliable."""
         lgtw_id = kwargs.get("lgtw_id", "")
         radio_data = kwargs.get("radio_data", "")
         dev_eui = kwargs.get("DevEui", "")
@@ -382,6 +382,6 @@ class LoMMTest(LoMMApp):
             json.dumps(radio_data, indent=2, sort_keys=True))
 
 
-def launch(context, service_id):
-    """Initialize the module."""
-    return LoMMTest(context=context, service_id=service_id)
+def launch(context, service_id, label="LoMMTest"):
+    """Launch LoMM Test App."""
+    return LoMMTest(context=context, service_id=service_id, label=label)

@@ -15,8 +15,6 @@
 # KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
-#  #CC V.1.1 adding reference to LoRaWAN Gateway
 """LNS Basic Station Web Socket Protocol Handler.
 
 Handles the WS connection with a Basic Station lGTW
@@ -35,7 +33,7 @@ LOG = logging.getLogger("LoRafNSPMainHandler")
 
 
 class LNSPMainHandler(tornado.websocket.WebSocketHandler):
-    """LNS Basic Station Web Socket Protocol Handler"""
+    """LNS Basic Station Web Socket Protocol Handler."""
 
     HANDLERS = [r"/router-(.*)"]
     LABEL = "LoRaWAN Forwarding Network Server"
@@ -49,24 +47,25 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     @classmethod
     def urls(cls, **kwargs):
-        """Return a list of handlers"""
+        """Return a list of handlers."""
         return [
             # (r'/router-info/', cls, kwargs),   # Route/Handler/kwargs
             (h, cls, kwargs) for h in cls.HANDLERS  # Route/Handler/kwargs
         ]
 
     def check_origin(self, origin):
-        """
-        By default, [check_origin] rejects all requests with an origin on a
-        host other than this one.
-        This is a security protection against cross site scripting attacks
-        on browsers, since WebSockets are allowed to bypass the usual
-        same-origin policies and don’t use CORS headers.
-        This is an important security measure; don’t disable it without
+        """Reject all requests with an origin on non specified hosts.
+
+        Use this method a security protection against cross site scripting
+        attacks on browsers, since WebSockets are allowed to bypass the
+        usual same-origin policies and don’t use CORS headers.
+
+        This is an important security measure: don’t disable it without
         understanding the security implications.
-        In particular, if your authentication is cookie-based, you must either
-        restrict the origins allowed by check_origin() or implement your own
-        XSRF-like protection for websocket connections.
+
+        In particular, if your authentication is cookie-based, you must
+        either restrict the origins allowed by check_origin() or implement
+        your own XSRF-like protection for websocket connections.
         See these articles for more:
         https://devcenter.heroku.com/articles/websocket-security
         http://www.tornadoweb.org/en/stable/websocket.html#configuration
@@ -78,27 +77,25 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         #        return True
 
     def initialize(self, server):
-        """Initialize LNS protocol WS server"""
+        """Initialize LNS protocol WS server."""
         self.server = server
 
     def to_dict(self):
         """Return dict representation of object."""
         return {"handler": self.HANDLERS,
                 "desc": self.LABEL,
-                "lgtw_euid": str(self.lgtw.lgtw_euid),
+                "lgtw_euid": self.lgtw.lgtw_euid.id6,
                 "lgtw_ipaddr": self.lgtw.ipaddr}
 
     # def open(self, lgtw_euid):
     def open(self, *args: str, **kwargs: str):
-        """Invoked when a new WebSocket is opened.
+        """Exec code when a new WebSocket is opened.
 
-        The arguments to `open` are extracted from the `tornado.web.URLSpec`
-        regular expression, just like the arguments to
-        `tornado.web.RequestHandler.get`.
-        It gets LoRa GTW ID from url.
+        The arguments to `open` are extracted from
+        the `tornado.web.URLSpec` regular expression,
+        just like the arguments to `tornado.web.RequestHandler.get`.
         """
-        # lgtw_euid = EUI64(lgtw_euid).eui64
-        lgtw_euid = EUI64(args[0]).eui64
+        lgtw_euid = EUI64(args[0])
         try:
             self.lgtw = self.server.lgtws[lgtw_euid]
         except KeyError:
@@ -115,12 +112,12 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         self.lgtw.connection = self
         # set lGTW state to CONNECTED
         self.lgtw.set_connected()
-        LOG.info("Connected to lGtw %s", str(self.lgtw.lgtw_euid))
+        LOG.info("Connected to lGtw %s", self.lgtw.lgtw_euid.id6)
 
     def on_close(self):
-        """ Handles lGTW disconnection """
+        """Exec code when a existing WebSocket is closed."""
         if self.lgtw and self.lgtw.lgtw_euid:
-            LOG.info("LoRa GTW disconnected: %s", str(self.lgtw.lgtw_euid))
+            LOG.info("LoRa GTW disconnected: %s", self.lgtw.lgtw_euid.id6)
             # reset state
             self.lgtw.set_disconnected()
             self.lgtw.last_seen = datetime.fromtimestamp(
@@ -132,7 +129,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             LOG.info("LoRa GTW disconnected: not a valid GTW")
 
     def on_message(self, message):
-        """Handles incoming message."""
+        """Exec code when a new message arrives."""
         rxtime = datetime.now().timestamp()
         if self.lgtw:
             self.lgtw.last_seen_ts = rxtime
@@ -149,13 +146,13 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
                     LOG.error("Unknown message type %s", msgtype)
                     return
                 LOG.info("Got a %s message from LGTW %s", msgtype,
-                         str(self.lgtw.lgtw_euid))
+                         self.lgtw.lgtw_euid.id6)
                 # If lGTW is not online, check if version or new state msg
                 if (msgtype not in [lnsp.PT_LGTW_VERSION] and
                         not self.lgtw.is_online()):
                     LOG.info("Got %s message from non connected LGTW %s, \
                              dropping message",
-                             msgtype, str(self.lgtw.lgtw_euid))
+                             msgtype, self.lgtw.lgtw_euid.id6)
                     return
                 # Retrieve the msg handler
                 msg_handler_name = "_handle_%s" % msgtype
@@ -170,14 +167,15 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             self.close()
 
     def call_registered_callbacks(self, pt_type, **kwargs):
-        """ Call registered callbacks """
-        kwargs['lgtw_id'] = str(self.lgtw.lgtw_euid)
+        """Call registered callbacks."""
+        kwargs['lgtw_id'] = self.lgtw.lgtw_euid
         if pt_type in lnsp.EVENT_HANDLERS:
             for handler in lnsp.EVENT_HANDLERS[pt_type]:
                 handler(**kwargs)
 
     def _handle_rtt_data_rx(self, reftime, rxtime):
         """Handle rtt between lgtw and Ctrl data incoming message.
+
         Args:
             message
         Returns:
@@ -210,7 +208,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
                 self.lgtw.lgtw_version["protocol"] = lgtw_version["protocol"]
             except KeyError as err:
                 LOG.info("Malformmed version message from LoRaWAN GTW (%s)",
-                         str(self.lgtw.lgtw_euid))
+                         self.lgtw.lgtw_euid.id6)
                 LOG.info(err)
                 LOG.info("Closing connection...")
                 self.close()
@@ -249,10 +247,12 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def _handle_dntxed(self, dntxed_msg, rxtime):
         """Handle an incoming Transmit Confirmation Frame from a device.
+
         This message is only sent when a frame has been put on air.
         There is no feedback to the LNS if a frame could not be sent
         (e.g., because it was too late, there was a conflict with ongoing
         transmit, or the gateway’s duty cycle was exhausted).
+
         Args:
             dntxed_msg, a Transmit Confirmation message
         Returns:
@@ -280,6 +280,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def _handle_timesync(self, timesync_msg, rxtime):
         """Handle an incoming Transmit Confirmation Frame from a device.
+
         **If** Station has access to a PPS signal aligned to GPS seconds,
         it will infer the sychronization to GPS time
         by running a protocol with the LNS.
@@ -312,9 +313,10 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         self.call_registered_callbacks(lnsp.PT_DN_TIMESYNC, **data)
 
     def _handle_rmtsh(self, rmtsh_msg, rxtime):
-        """Handles Station response after a remote shell request.
-           Station responds with a message describing the current state
-           of all sessions.
+        """Handle Station response after a remote shell request.
+
+        Station responds with a message describing the current state
+        of all sessions.
 
         Args:
             dntxed_msg, a Transmit Confirmation message
@@ -357,6 +359,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
     # Handling uplink messages from lEndDev
     def _handle_radio_data(self, rx_msg, rxtime):
         """Handle an radio metatadata of incoming message.
+
         Args:
             message
         Returns:
@@ -412,6 +415,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def _handle_jreq(self, join_msg, rxtime):
         """Handle an incoming Join Request from a device.
+
         Args:
             join_msg, a JOIN message
         Returns:
@@ -423,13 +427,10 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         data["join_data"] = {}
         try:
             data["join_data"]["MHdr"] = join_msg["MHdr"]
-            data["join_data"]["JoinEui"] = \
-                join_msg["JoinEui"].replace("-", "").replace(":", "")
-            data["join_data"]["DevEui"] = \
-                join_msg["DevEui"].replace("-", "").replace(":", "")
+            data["join_data"]["JoinEui"] = EUI64(join_msg["JoinEui"])
+            data["join_data"]["DevEui"] = EUI64(join_msg["DevEui"])
             data["join_data"]["DevNonce"] = join_msg["DevNonce"]
             data["join_data"]["MIC"] = join_msg["MIC"] & (2**32 - 1)
-            # TODO CHECK MIC
             data["xtime"] = join_msg['upinfo']["xtime"]
             # internal time of the lGTW
             data["rctx"] = join_msg['upinfo']["rctx"]
@@ -439,16 +440,19 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             LOG.info(err)
         else:
             data["PhyPayload"] = struct.pack("<BQQHI", join_msg["MHdr"],
-                                             int(data["join_data"]["JoinEui"],
-                                                 16),
-                                             int(data["join_data"]["DevEui"],
-                                                 16),
+                                             int(data["join_data"]["JoinEui"]),
+                                             int(data["join_data"]["DevEui"]),
+                                             # TODO check if int(value,16)
+                                             # is needed
+                                             #  int(data["join_data"]["JoinEui"],
+                                             #      16),
+                                             #  int(data["join_data"]["DevEui"],
+                                             #      16),
                                              join_msg["DevNonce"] & 0xFFFF,
                                              join_msg["MIC"] &
                                              (2**32 - 1)).hex()
             if data["join_data"]["DevEui"] in self.server.lenddevs:
-                LOG.info(
-                    self.server.lenddevs[data["join_data"]["DevEui"]].join_eui)
+                LOG.info(data["join_data"])
                 # TODO implementation of Join Data handling
             else:
                 LOG.info("Device %s  is not in the database",
@@ -460,6 +464,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def _handle_updf(self, updf_msg, rxtime):
         """Handle an incoming Data Frame from a device.
+
         Args:
             upmsg, a Uplink message
         Returns:
@@ -472,14 +477,12 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         try:
             data["updf_data"]["MHdr"] = updf_msg["MHdr"]
             data["updf_data"]["DevAddr"] = updf_msg["DevAddr"] & (2**32 - 1)
-            # TODO CHECK DevAddr format
             data["updf_data"]["FCtrl"] = updf_msg["FCtrl"]
             data["updf_data"]["FCnt"] = updf_msg["FCnt"]
             data["updf_data"]["FOpts"] = updf_msg["FOpts"]
             data["updf_data"]["FPort"] = updf_msg["FPort"]
             data["updf_data"]["FRMPayload"] = updf_msg["FRMPayload"]
             data["updf_data"]["MIC"] = updf_msg["MIC"] & (2**32 - 1)
-            # TODO CHECK MIC format
             data["xtime"] = updf_msg['upinfo']["xtime"]
             # internal time of the lGTW
             data["rctx"] = updf_msg['upinfo']["rctx"]
@@ -515,6 +518,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def _handle_propdf(self, updf_msg, rxtime):
         """Handle an incoming Proprietary Data Frame from a device.
+
         Args:
             upmsg, a Proprietary Uplink message
         Returns:
@@ -539,7 +543,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     # Handling Downlink Messages
     def send_message(self, msgtype, msg):
-        """ Download Frame """
+        """Download Frame."""
         if msgtype in lnsp.DN_PACKET_TYPES:
             msg['msgtype'] = msgtype
             if self.lgtw.is_send_rtt_on():
@@ -596,7 +600,8 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             self.send_message(lnsp.PT_DN_MSG, msg)
 
     def send_lgtw_dnschede(self, schedule):
-        """Send Multicast Schedule to lGTW
+        """Send Multicast Schedule to lGTW.
+
         Messages of type dnsched can be use to schedule a set of multicast
         messages in one go. Each of the message elements needs to specify
         a GPS time at which it shall be sent.
@@ -639,9 +644,10 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         self.send_message(lnsp.PT_CONFIG, msg)
 
     def send_lgtw_timesync_gps_time(self, xtime, gpstime):
-        """ Send GPS Time to GTW.
-            The LNS SHALL periodically send the following message to
-            lGTW to transfer GPS time
+        """Send GPS Time to GTW.
+
+        The LNS SHALL periodically send the following message to
+        lGTW to transfer GPS time
         """
         # call registered callbacks
         self.call_registered_callbacks(lnsp.PT_DN_TIMESYNC,
@@ -656,8 +662,9 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_lgtw_timesync_replay(self, txtime, gpstime):
         """Send GPS Time to lGTW as a timesync replay.
-           the downstream response SHOULD be sent by the LNS immediately
-           after reception of the corresponding upstream timesync message.
+
+        the downstream response SHOULD be sent by the LNS immediately
+        after reception of the corresponding upstream timesync message.
         """
         msg = {
             "txtime": int(txtime),
@@ -677,7 +684,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
         self.send_message(lnsp.PT_RUN_CMD, params)
 
     def send_lgtw_rmtsh_start(self, user, term):
-        """Opens a remote shell with the LGTW."""
+        """Open a remote shell with the LGTW."""
         if self.lgtw.rmtsh:
             params = {
                 "user": user,
@@ -711,7 +718,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
             pass
 
     def send_lgtw_rmtsh_query(self, user, term):
-        """Queries current remote shell session state."""
+        """Query current remote shell session state."""
         if self.lgtw.rmtsh:
             if self.lgtw.is_rmt_shell():
                 params = {
@@ -736,7 +743,7 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     # Handling lGTW Events
     def lgtw_new_state(self, old_state, new_state):
-        """Used by LoRaWANgtw to notify a new state """
+        """Notify a lGtw new state."""
         # Call registered callbacks
         self.call_registered_callbacks(lnsp.NEW_STATE,
                                        old_state=old_state.value,
@@ -744,9 +751,9 @@ class LNSPMainHandler(tornado.websocket.WebSocketHandler):
 
     # Handling RTT Events
     def rtt_on_set(self):
-        """ call callbacks  """
+        """Call callbacks when RTT is on."""
         self.call_registered_callbacks(lnsp.NEW_RTT_ON)
 
     def rtt_off_set(self):
-        """ call callbacks  """
+        """Call callbacks when RTT is off."""
         self.call_registered_callbacks(lnsp.NEW_RTT_OFF)

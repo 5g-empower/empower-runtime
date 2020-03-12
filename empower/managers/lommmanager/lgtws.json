@@ -1,0 +1,32 @@
+[
+    {
+    "lgtw_euid":"EUI64",
+    "name":"Generic lGtw",
+    "desc":"lGtw description",
+    "owner":"00000",
+    "lgtw_version":"1.0",
+    "rmtsh": false,
+    "prod": false,
+    "gps": false,
+    "brand": "IMST",
+    "model": "iC880A",
+    "antenna": {"type": "xxx",
+            "placement": "indoor",
+            "location": [46, 11, 0]},
+    "location": [43, 45],
+    "privacy": {"status": "public", "location": "public", "owner": "public"},
+    "region_id":"00001",
+    "lgtw_config":{
+        "NetID":["0000","0001"],
+        "JoinEui":[["000000","000004"],["000003","000004"]],
+        "region":"EU863",
+        "freq_range":[8888,9999],
+        "DRs":[[1, 9999, 1], [2, 9999, 1]],
+        "hwspec":"sx1201/1",
+        "sx1301_conf": [],
+        "nocca": true,
+        "nodc": true,
+        "nodwell": true
+    }
+}
+]

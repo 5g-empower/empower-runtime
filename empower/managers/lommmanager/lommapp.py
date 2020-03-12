@@ -69,28 +69,20 @@ class LoMMApp(EApp):
 
     MODULES = [lnsp]
 
-    def __init__(self, context, **kwargs):
-
-        super().__init__(context=context, **kwargs)
-        self.label = self.manifest["label"]
-
     @property
     def lgtws(self):
         """Return lGTWs registered in this project context."""
-
         lnsp_manager = srv_or_die("lnspmanager")
         return lnsp_manager.lgtws
 
     @property
     def lenddevs(self):
         """Return lEndDevs registered in this project context."""
-
         lnsp_manager = srv_or_die("lnspmanager")
         return lnsp_manager.lenddevs
 
     @property
     def lnss(self):
         """Return LNSs registered in this project context."""
-
         lnspd_manager = srv_or_die("lnspdmanager")
         return lnspd_manager.lnss

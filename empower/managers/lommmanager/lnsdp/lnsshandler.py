@@ -33,7 +33,6 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
         """List devices.
 
         Args:
-
             [0]: the lns euid (optional)
 
         Example URLs:
@@ -85,7 +84,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                     continue
                 out.append(self.service.lnss[key].to_dict())
             return out
-        lnss = self.service.lnss[EUI64(args[0]).id6].to_dict()
+        lnss = self.service.lnss[EUI64(args[0])].to_dict()
         return lnss
 
     @apimanager.validate(returncode=201, min_args=1, max_args=1)
@@ -110,7 +109,6 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                 "desc": "LNS XXX"
             }
         """
-        print(args[0])
         lnss = self.service.add_lns(args[0], **kwargs)
         self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
 
@@ -119,7 +117,6 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
         """Add a new LNS to the LNS Discovery Server Database.
 
         Args:
-
             [0]: the lns euid (mandatory)
 
         Request:
@@ -147,7 +144,6 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
         """Delete one or all devices.
 
         Args:
-
             [0]: the lnss euid
 
         Example URLs:
@@ -155,8 +151,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             DELETE /api/v1/lnsd/lnss
             DELETE /api/v1/lnsd/lnss/00-0D-B9-2F-56-64
         """
-
         if args:
-            self.service.remove_lns(EUI64(args[0]).id6)
+            self.service.remove_lns(args[0])
         else:
             self.service.remove_all_lnss()
