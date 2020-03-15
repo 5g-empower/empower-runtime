@@ -22,6 +22,7 @@ from empower.core.app import EVERY
 MANIFEST = {
     "label": "LVAP Bin Counter",
     "desc": "Tracks TX/RX packets/bytes counters for a given LVAP",
+    "modules": ['lvapp'],
     "params": {
         "sta": {
             "desc": "The LVAP to monitor.",

@@ -23,6 +23,7 @@ MANIFEST = {
     "label": "Wi-Fi Events Test App",
     "desc": "This application just prints some messages to the log when"
             "events occurs",
+    "modules": ['lvapp'],
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

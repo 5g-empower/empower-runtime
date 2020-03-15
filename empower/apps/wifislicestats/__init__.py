@@ -22,6 +22,7 @@ from empower.core.app import EVERY
 MANIFEST = {
     "label": "Wi-Fi Slice Stats",
     "desc": "Tracks Wi-Fi slice statistics",
+    "modules": ['lvapp'],
     "params": {
         "slice_id": {
             "desc": "The slice to monitor.",

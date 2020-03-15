@@ -23,6 +23,7 @@ MANIFEST = {
     "callbacks": {
         "default": "Called when new measurements are available"
     },
+    "modules": ['lvapp'],
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

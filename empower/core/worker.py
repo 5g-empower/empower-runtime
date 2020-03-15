@@ -25,6 +25,26 @@ EVERY = 2000
 class EWorker(EService):
     """Base worker class."""
 
+    MODULES = []
+
     def __init__(self, context, **kwargs):
 
         super().__init__(context=context, **kwargs)
+
+    def start(self):
+        """Start worker."""
+
+        for module in self.MODULES:
+            module.register_callbacks(self)
+
+        # start the worker
+        super().start()
+
+    def stop(self):
+        """Stop worker."""
+
+        for module in self.MODULES:
+            module.unregister_callbacks(self)
+
+        # stop the worker
+        super().stop()

@@ -44,9 +44,12 @@ def walk_module(package):
 
         manifest = getattr(module, "MANIFEST")
 
-        name = package.__name__ + "." + module_name + "." + module_name
+        if 'name' not in manifest:
+            name = package.__name__ + "." + module_name + "." + module_name
+            manifest['name'] = name
 
-        manifest['name'] = name
+        if 'modules' not in manifest:
+            manifest['modules'] = []
 
         if 'label' not in manifest:
             manifest['label'] = module_name
@@ -54,6 +57,6 @@ def walk_module(package):
         if 'desc' not in manifest:
             manifest['desc'] = "No description available"
 
-        results[name] = manifest
+        results[manifest['name']] = manifest
 
     return results

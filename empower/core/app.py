@@ -46,4 +46,5 @@ class EApp(EService):
         for module in self.MODULES:
             module.unregister_callbacks(self)
 
+        # stop the app
         super().stop()
