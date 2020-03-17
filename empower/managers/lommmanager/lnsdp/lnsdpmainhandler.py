@@ -128,17 +128,17 @@ class LNSDPMainHandler(tornado.websocket.WebSocketHandler):
 
     def send_lns_discovery_request_replay(self):
         """Execute a remote command on LGTW."""
-        reply_message = {"router": self.lgtw_id}
+        reply_message = {"router": self.lgtw_id.id6}
         for lns_euid in self.server.lnss:
             if self.lgtw_id in self.server.lnss[lns_euid].lgtws:
-                reply_message["muxs"] = lns_euid
-                reply_message["router"] = self.lgtw_id
+                reply_message["muxs"] = lns_euid.id6
+                reply_message["router"] = self.lgtw_id.id6
                 reply_message["uri"] = self.server.lnss[lns_euid].uri
-                reply_message["uri"] += self.lgtw_id
+                reply_message["uri"] += self.lgtw_id.id6
                 break
         else:
             reply_message["error"] = "Unknown LoRaWAN Radio GTW ("
-            reply_message["error"] += self.lgtw_id + ")"
+            reply_message["error"] += self.lgtw_id.id6 + ")"
 
         LOG.info("LNS Discovery Request reply: %s", json.dumps(reply_message))
         self.write_message(json.dumps(reply_message))
