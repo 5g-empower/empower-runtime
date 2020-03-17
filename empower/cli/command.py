@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2019 Roberto Riggio
+# Copyright (c) 2019 Fondazione Bruno Kessler
+# Author(s): Roberto Riggio (rriggio@fbk.eu), Cristina Costa (ccosta@fbk.eu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,10 +22,18 @@ import sys
 import base64
 import getpass
 import json
+import pkgutil
+import importlib
 
 from argparse import ArgumentParser
 
 import requests
+
+from requests.exceptions import ConnectionError as RequestConnectionError
+
+import empower.cli
+
+from empower.core.serialize import serialize
 
 from empower.cli.devices import do_list_wtps, do_list_vbses, do_add_wtp, \
     pa_add_wtp, do_add_vbs, pa_add_vbs, do_del_vbs, pa_del_vbs, do_del_wtp, \
@@ -48,13 +57,42 @@ from empower.cli.applications import pa_list_apps, do_list_apps, \
 
 from empower.cli.workers import do_list_workers, do_list_workers_catalog, \
     pa_load_worker, do_load_worker, pa_unload_worker, do_unload_worker, \
-    do_unload_all_workers, pa_set_worker_params, do_set_worker_params, \
-    pa_add_callback, do_add_callback
+    do_unload_all_workers, pa_set_worker_params, do_set_worker_params
 
-from empower.core.serialize import serialize
+USAGE = "%(prog)s {0}"
+URL = "%s://%s%s:%s"
+
+DESCS = {}
+CMDS = {}
+
+for _, name, is_pkg in pkgutil.walk_packages(empower.cli.__path__):
+
+    if is_pkg and name.endswith("_commands"):
+
+        package = importlib.import_module("empower.cli." + name)
+        pkgs = pkgutil.walk_packages(package.__path__)
+
+        for _, module_name, _ in pkgs:
+
+            __module = importlib.import_module(
+                package.__name__ + "." + module_name)
+
+            CMDS[module_name] = [None, None]
+
+            if hasattr(__module, "PARSER"):
+                CMDS[module_name][0] = getattr(__module, __module.PARSER)
+
+            if hasattr(__module, "EXEC"):
+                CMDS[module_name][1] = getattr(__module, __module.EXEC)
+
+            DESCS[module_name] = ""
+
+            if hasattr(__module, "DESC"):
+                DESCS[module_name] = __module.DESC
 
 
-def connect(gargs, cmd, expected=200, request=None, headers=None):
+def connect(gargs, cmd, expected=200, request=None,
+            headers=None, exit_on_err=True):
     """ Run command. """
 
     if not headers:
@@ -75,9 +113,11 @@ def connect(gargs, cmd, expected=200, request=None, headers=None):
         msg = "%u: %s (%s)" % \
             (data['status_code'], data['title'], data['detail'])
 
-        print(msg)
-
-        sys.exit()
+        if exit_on_err:
+            print(msg)
+            sys.exit()
+        else:
+            raise Exception(msg)
 
     return response, data
 
@@ -91,13 +131,15 @@ def get_headers(gargs):
 
     if gargs.no_passwd:
         return headers
-
-    if gargs.passwdfile is None:
-        passwd = getpass.getpass("Password: ")
-    else:
+    if gargs.passwdfile is not None:
         passwd = open(gargs.passwdfile, "r").read().strip()
+        auth_str = "%s:%s" % (gargs.user, passwd)
+    elif gargs.auth is not None:
+        auth_str = gargs.auth
+    else:
+        passwd = getpass.getpass("Password: ")
+        auth_str = "%s:%s" % (gargs.user, passwd)
 
-    auth_str = "%s:%s" % (gargs.user, passwd)
     auth = base64.b64encode(auth_str.encode('utf-8'))
 
     headers['Authorization'] = 'Basic %s' % auth.decode('utf-8')
@@ -129,33 +171,7 @@ def pa_none(args, cmd):
     return args, leftovers
 
 
-def pa_help(args, cmd):
-    """ Help option parser. """
-
-    usage = "%s <cmd>" % USAGE.format(cmd)
-    (args, leftovers) = ArgumentParser(usage=usage).parse_known_args(args)
-    return args, leftovers
-
-
-def do_help(gargs, args, leftovers):
-    """ Help execute method. """
-
-    if len(leftovers) != 1:
-        print("No command specified")
-        print_available_cmds()
-        sys.exit()
-
-    try:
-        (parse_args, _) = CMDS[leftovers[0]]
-        parse_args(['--help'], leftovers[0])
-    except KeyError:
-        print("Invalid command: %s is an unknown command." % leftovers[0])
-        sys.exit()
-
-
-CMDS = {
-    'help': (pa_help, do_help),
-
+CMDS.update({
     'list-apps-catalog': (pa_none, do_list_apps_catalog),
     'list-workers-catalog': (pa_none, do_list_workers_catalog),
 
@@ -191,24 +207,16 @@ CMDS = {
     'unload-worker': (pa_unload_worker, do_unload_worker),
     'unload-all-workers': (pa_none, do_unload_all_workers),
     'set-worker-params': (pa_set_worker_params, do_set_worker_params),
-    'add-callback': (pa_add_callback, do_add_callback),
 
-}
+})
 
-
-USAGE = "%(prog)s {0}"
-
-
-URL = "%s://%s%s:%s"
-
-
-DESCS = {
-    'help': "Print help message.",
+DESCS.update({
 
     'add-wtp': "Add a new WTP.",
     'add-vbs': "Add a new VBS.",
     'del-wtp': "Remove a WTP.",
     'del-vbs': "Remove a VBS.",
+
     'create-project': "Create a new project.",
     'delete-project': "Delete a project.",
 
@@ -240,15 +248,14 @@ DESCS = {
     'unload-worker': "Unload a worker",
     'unload-all-workers': "Unload all workers",
     'set-worker-params': "Set worker parameter",
-    'add-callback': "add a callback",
-
-}
+})
 
 
 def parse_global_args(arglist):
     """ Parse global arguments list. """
 
     usage = "%s [options] command [command options]" % sys.argv[0]
+
     args = []
 
     while arglist and arglist[0] not in CMDS:
@@ -263,6 +270,8 @@ def parse_global_args(arglist):
                         help="REST server port; default=8888")
     parser.add_argument("-u", "--user", dest="user", default="root",
                         help="EmPOWER admin user; default='root'")
+    parser.add_argument("-a", "--auth", dest="auth", default=None,
+                        help="EmPOWER admin user:passw")
     parser.add_argument("-n", "--no-passwd", action="store_true",
                         dest="no_passwd", default=False,
                         help="Run without password; default false")
@@ -280,7 +289,8 @@ def print_available_cmds():
     """ Print list of available commands. """
 
     cmds = list(CMDS.keys())
-    cmds.remove('help')
+    if 'help' in cmds:
+        cmds.remove('help')
     cmds.sort()
     print("\nAvailable commands are: ")
     for cmd in cmds:
@@ -304,9 +314,20 @@ def main():
         sys.exit()
 
     (parse_args, do_func) = CMDS[rargs[0]]
-    (args, leftovers) = parse_args(rargs[1:], rargs[0])
 
-    do_func(gargs, args, leftovers)
+    if parse_args:
+        (args, leftovers) = parse_args(rargs[1:], rargs[0])
+    else:
+        (args, leftovers) = pa_none(rargs[1:], rargs[0])
+
+    if leftovers and rargs[0] != "help":
+        print("Warning - unknown parameters: ", ', '.join(leftovers))
+
+    if do_func:
+        try:
+            do_func(gargs, args, leftovers)
+        except RequestConnectionError:
+            print("Failed to establish a connection with the Controller")
 
 
 if __name__ == '__main__':

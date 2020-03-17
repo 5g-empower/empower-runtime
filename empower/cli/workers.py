@@ -20,7 +20,7 @@
 import uuid
 import argparse
 
-import empower.cli.command as command
+from empower.cli import command
 
 from empower.core.service import CALLBACK_REST
 

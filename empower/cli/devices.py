@@ -19,7 +19,7 @@
 
 import argparse
 
-import empower.cli.command as command
+from empower.cli import command
 
 from empower.core.etheraddress import EtherAddress
 
