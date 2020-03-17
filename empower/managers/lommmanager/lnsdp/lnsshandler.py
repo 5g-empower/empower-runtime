@@ -19,6 +19,7 @@
 """LNS Handlers for the LNS Discovery Server."""
 
 import empower.managers.apimanager.apimanager as apimanager
+
 from empower.core.eui64 import EUI64
 
 
@@ -41,12 +42,11 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
 
             [
                 {
-                    "euid": "0000:0000:0000:0003",
-                    "desc": "LNS Server",
-                    "uri": "ws://192.168.12.100:6039/router-",
+                    "euid": "0000:0000:0000:0001",
+                    "desc": "Generic LNS",
+                    "uri": "ws://0.0.0.0:6038/router-",
                     "lgtws": [
-                        "0827:ebff:fee7:7697",
-                        "0827:ebff:fee7:7610"
+                        "b827:ebff:fee7:7681"
                     ],
                     "last_seen": 0,
                     "last_seen_ts": "1970-01-01T01:00:00.000000Z",
@@ -57,37 +57,23 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             GET /api/v1/lnsd/lnss/::1
 
             {
-            "euid":"::1",
-            "uri":"ws://0.0.0.0:6038/router-",
-            "desc": "LNS XXX"
+                "euid": "0000:0000:0000:0001",
+                "desc": "Generic LNS",
+                "uri": "ws://0.0.0.0:6038/router-",
+                "lgtws": [
+                    "b827:ebff:fee7:7681"
+                ],
+                "last_seen": 0,
+                "last_seen_ts": "1970-01-01T01:00:00.000000Z",
+                "period": 0
             }
 
         """
-        if not args:
-            # E.g. GET /api/v1/lnsd/lnss/
-            out = []
-            desc = self.get_argument("desc", None)
-            state = self.get_argument("state", None)
-            lgtw_euid = self.get_argument("lgtw_euid", None)
-            for key in self.service.lnss:
-                # keep only if desc in LNS description
-                if (desc and
-                        desc not in self.service.lnss[key].to_dict()["desc"]):
-                    continue
-                # keep only if state matches
-                if (state and
-                        state != self.service.lnss[key].to_dict()["state"]):
-                    continue
-                # keep only if manages lgtw_id
-                if (lgtw_euid and lgtw_euid not in
-                        self.service.lnss[key].to_dict()["lgtws"]):
-                    continue
-                out.append(self.service.lnss[key].to_dict())
-            return out
-        lnss = self.service.lnss[EUI64(args[0])].to_dict()
-        return lnss
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+        return self.service.lnss \
+            if not args else self.service.lnss[EUI64(args[0])]
+
+    @apimanager.validate(returncode=201, min_args=0, max_args=0)
     def post(self, *args, **kwargs):
         """Add a new LNS to the LNS Discovery Server Database.
 
@@ -104,20 +90,33 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
 
             {
                 "version":"1.0",
+                "euid": "0000:0000:0000:0001",
                 "lgtws":["b827:ebff:fee7:7681"],
                 "uri":"ws://0.0.0.0:6038/router-",
-                "desc": "LNS XXX"
+                "desc": "Generic LNS"
             }
         """
-        lnss = self.service.add_lns(args[0], **kwargs)
+
+        euid = EUI64(kwargs['euid'])
+
+        if 'desc' in kwargs:
+            lnss = self.service.add_lns(euid=euid,
+                                        uri=kwargs['uri'],
+                                        lgtws=kwargs['lgtws'],
+                                        desc=kwargs['desc'])
+        else:
+            lnss = self.service.add_lns(euid=euid, uri=kwargs['uri'],
+                                        lgtws=kwargs['uri'])
+
         self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+    @apimanager.validate(returncode=204, min_args=1, max_args=1)
     def put(self, *args, **kwargs):
         """Add a new LNS to the LNS Discovery Server Database.
 
         Args:
-            [0]: the lns euid (mandatory)
+
+            [0]: the lns id in eui64 or euid format (mandatory)
 
         Request:
 
@@ -133,25 +132,33 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                 "version":"1.0",
                 "lgtws":["b827:ebff:fee7:7681"],
                 "uri":"ws://0.0.0.0:6038/router-",
-                "desc": "LNS XXX"
+                "desc": "Generic LNS"
             }
         """
-        self.service.update_lns(args[0], **kwargs)
-        self.set_header("Location", "/api/v1/lnsd/lnss/%s" % args[0])
+
+        euid = EUI64(args[0])
+
+        if 'desc' in kwargs:
+            self.service.update_lns(euid=euid, uri=kwargs['uri'],
+                                    lgtws=kwargs['lgtws'], desc=kwargs['desc'])
+        else:
+            self.service.update_lns(euid=euid, uri=kwargs['uri'],
+                                    lgtws=kwargs['lgtws'])
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
         """Delete one or all devices.
 
         Args:
-            [0]: the lnss euid
+            [0]: the lns id in eui64 or euid format (optional)
 
         Example URLs:
 
             DELETE /api/v1/lnsd/lnss
-            DELETE /api/v1/lnsd/lnss/00-0D-B9-2F-56-64
+            DELETE /api/v1/lnsd/lnss/::1
         """
+
         if args:
-            self.service.remove_lns(args[0])
+            self.service.remove_lns(EUI64(args[0]))
         else:
             self.service.remove_all_lnss()

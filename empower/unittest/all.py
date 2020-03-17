@@ -27,6 +27,7 @@ from .wifislices import TestWiFiSlices
 from .lteslices import TestLTESlices
 from .applications import TestApplications
 from .workers import TestWorkers
+from .lomm import TestLOMM
 
 
 def full_suite():
@@ -100,6 +101,10 @@ def full_suite():
     suite.addTest(TestApplications('test_modify_app_invalid_param_name'))
     suite.addTest(TestApplications('test_modify_app_param'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_value'))
+
+    suite.addTest(TestLOMM('test_create_new_lns_missing_euid'))
+    suite.addTest(TestLOMM('test_create_new_lns'))
+    suite.addTest(TestLOMM('test_create_new_lgtw'))
 
     return suite
 

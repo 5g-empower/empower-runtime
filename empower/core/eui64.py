@@ -22,6 +22,8 @@ import re
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
 
+from empower.core.serialize import serializable_string
+
 EUI64_PATTERN = re.compile("^([0-9a-fA-F]){2}(:([0-9a-fA-F]){2}){7}$")
 """Regular expression matching a well formed EUI using colon """
 
@@ -32,6 +34,7 @@ ID6_PATTERN = re.compile("^([0-9a-fA-F]){1,4}(:([0-9a-fA-F]){1,4}){3}$")
 """Id6 regular expression matching representation after :: expansion"""
 
 
+@serializable_string
 class EUI64():
     """EUI64."""
 
@@ -135,9 +138,9 @@ class EUI64():
         """Return the bool value."""
         return bool(self._value)
 
-    # def __len__(self):
-    #     """Return the lenght."""
-    #     return len(self._value)
+    def __len__(self):
+        """Return the lenght."""
+        return len(self._value)
 
     def __hash__(self):
         """Return a hash value."""
@@ -150,7 +153,7 @@ class EUI64():
 
     def __str__(self):
         """Return EUID in string format."""
-        return self.id6.replace(":", "")
+        return self.id6
 
     def __int__(self):
         """Return EUID in int format."""

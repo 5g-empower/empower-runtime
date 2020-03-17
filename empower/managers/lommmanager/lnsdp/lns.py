@@ -19,13 +19,16 @@
 """Base device class."""
 
 import logging
-
-from datetime import datetime
 import ipaddress
 import re
+
+from datetime import datetime
+
 from pymodm import MongoModel, fields
 from pymodm.errors import ValidationError
+
 from empower.core.eui64 import EUI64Field
+from empower.core.serialize import serializable_dict
 
 
 def validator_ws_uri(value):
@@ -61,6 +64,7 @@ def validator_ws_uri(value):
                 raise ValidationError('Invalid URL: ' + rest)
 
 
+@serializable_dict
 class LNS(MongoModel):
     """LNS class.
 
@@ -102,10 +106,10 @@ class LNS(MongoModel):
             .strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         out = {
-            'euid': self.euid.id6,
+            'euid': self.euid,
             'desc': self.desc,
             'uri': self.uri,
-            'lgtws': [lgtw.id6 for lgtw in self.lgtws],
+            'lgtws': [lgtw for lgtw in self.lgtws],
             'last_seen': self.last_seen,
             'last_seen_ts': date,
             'period': self.period,

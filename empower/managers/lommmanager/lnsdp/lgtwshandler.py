@@ -42,21 +42,23 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             GET /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
 
             {
-            "0000:0000:0000:0001":{
-                    "lgtw_euid": ["b827:ebff:fee7:7681"],
-                    "lns_euid": "0000:0000:0000:0001"
-                }
+                "lns_euid": "0000000000000001",
+                "lgtw_euid": [
+                    "b827ebfffee77681"
+                ]
             }
 
             GET /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
 
             {
-                    "lgtw_euid": "b827:ebff:fee7:7681",
-                    "lns_euid": "0000:0000:0000:0001"
+                "lns_euid": "0000000000000001",
+                "lgtw_euid": "b827ebfffee77681"
             }
         """
+
         lns_euid = args[0]
         lgtw_euid = args[1] if len(args) == 2 else None
+
         out = []
 
         if lns_euid:
@@ -68,8 +70,8 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         if not lns_euid and not lgtw_euid:
             # E.g. GET /api/v1/lnsd/lnss//lgtws/
             for key in self.service.lnss:
-                out.append({"lns_euid": key,
-                            "lgtw_euid": self.service.lnss[key].lgtws})
+                out.append({"lns_euidx": EUI64(key),
+                            "lgtw_euids": self.service.lnss[key].lgtws})
 
         elif (lns_euid in self.service.lnss and
               lgtw_euid in self.service.lnss[lns_euid].lgtws):
@@ -88,10 +90,13 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             # E.g.
             # GET /api/v1/lnsd/lnss//lgtws/b827:ebff:fee7:7681
             for key in self.service.lgtws[lgtw_euid]:
-                out.append({"lns_euid": key, "lgtw_euid": [lgtw_euid]})
+                out.append({"lns_euid": EUI64(key), "lgtw_euid": [lgtw_euid]})
 
-        # If lns_euid and/or lgtw_euid are not in the database,
-        # return empty list
+        else:
+
+            raise KeyError("Unable to find pair (%s, %s)" %
+                           (lns_euid, lgtw_euid))
+
         return out
 
     @apimanager.validate(returncode=201, min_args=2, max_args=2)
@@ -99,28 +104,21 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         """Add a new LoRaWAN GTW to the LNS Discovery Server Database.
 
         Args:
-            [0]: the lnss euid (optional)
-            [1]: the lgtw euid (optional)
 
-        Request:
-
-            version: protocol version (1.0)
+            [0]: the lnss euid (mandatory)
+            [1]: the lgtw euid (mandatory)
 
         Example URLs:
 
-        POST /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
+            POST /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/
+                b827:ebff:fee7:7681
         """
-        lns_euid = None
-        lgtw_euid = None
 
-        if args[0]:
-            lns_euid = EUI64(args[0])
+        lns_euid = EUI64(args[0])
+        lgtw_euid = EUI64(args[1])
 
-        if args[1]:
-            lgtw_euid = EUI64(args[1])
+        self.service.add_lgtw(lns_euid=lns_euid, lgtw_euid=lgtw_euid)
 
-        self.service.add_lgtw(**{"lns_euid": lns_euid, "lgtw_euid": lgtw_euid})
-        print("/api/v1/lnsd/lnss/%s/lgtws/%s" % (lns_euid, lgtw_euid))
         self.set_header("Location",
                         "/api/v1/lnsd/lnss/%s/lgtws/%s"
                         % (lns_euid, lgtw_euid))
@@ -130,14 +128,15 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         """Delete one or all LoRaWAN GTW from LSN Discovery Server.
 
         Args:
+
             [0]: the lnss euid
             [1]: the lgtw euid
 
         Example URLs:
 
-        DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
-
-        DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/b827:ebff:fee7:7681
+            DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws
+            DELETE /api/v1/lnsd/lnss/0000:0000:0000:0001/lgtws/
+                b827:ebff:fee7:7681
         """
         lns_euid = None
         lgtw_euid = None
