@@ -115,8 +115,7 @@ class EUI64(int):
             data = re.sub('::$', ':0:0', data)
             data = re.sub('::', ':0:', data)
         if ID6_PATTERN.match(data):
-            data = re.sub(r':', '', data).lower()
-            # data = data.replace(":", "")
+            data = data.split(':')
             return ((int(data[0], 16) << 48) |
                     (int(data[1], 16) << 32) |
                     (int(data[2], 16) << 16) |
