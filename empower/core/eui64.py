@@ -32,15 +32,11 @@ ID6_PATTERN = re.compile("^([0-9a-fA-F]){1,4}(:([0-9a-fA-F]){1,4}){3}$")
 """Id6 regular expression matching representation after :: expansion"""
 
 
-class EUI64(int):
+class EUI64():
     """EUI64."""
 
     DEFAULT_VALUE = None
     BYTES = 8
-
-    def __new__(self, value):
-        """Create a new istance."""
-        return int.__new__(self, self._to_raw_(value))
 
     def __init__(self, data=None):
         """Initialize internal value of EUI64."""
@@ -87,13 +83,12 @@ class EUI64(int):
             return int.from_bytes(data, byteorder="little")
         if not isinstance(data, str):
             raise ValueError('Invalid EUID: %r' % data)
-        data = re.sub(r' ', '', data).lower()
-        # eliminate spaces and ":", ".", "-"
-        data = re.sub(r'[.:-]', ':', data)
-        # eliminate spaces and ":", ".", "-"
+        data = re.sub(r' ', '', data)
+        # eliminate spaces
+        data = re.sub(r'[.-]', ':', data)
+        # substitute "." and "-" with ":"
         if EUI64_PATTERN.match(data) or PLAIN_PATTERN.match(data):
-            data = re.sub(r':', '', data).lower()
-            # data = data.replace(":", "")
+            data = re.sub(r':', '', data)
             data = [data[i:i+2] for i in range(0, len(data), 2)]
             return ((int(data[0], 16) << 56) |
                     (int(data[1], 16) << 48) |
@@ -115,8 +110,7 @@ class EUI64(int):
             data = re.sub('::$', ':0:0', data)
             data = re.sub('::', ':0:', data)
         if ID6_PATTERN.match(data):
-            data = re.sub(r':', '', data).lower()
-            # data = data.replace(":", "")
+            data = data.split(':')
             return ((int(data[0], 16) << 48) |
                     (int(data[1], 16) << 32) |
                     (int(data[2], 16) << 16) |
@@ -157,6 +151,10 @@ class EUI64(int):
     def __str__(self):
         """Return EUID in string format."""
         return self.id6.replace(":", "")
+
+    def __int__(self):
+        """Return EUID in int format."""
+        return self._value
 
 
 class EUI64Field(MongoBaseField):
