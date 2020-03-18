@@ -35,10 +35,6 @@ import empower.cli
 
 from empower.core.serialize import serialize
 
-from empower.cli.devices import do_list_wtps, do_list_vbses, do_add_wtp, \
-    pa_add_wtp, do_add_vbs, pa_add_vbs, do_del_vbs, pa_del_vbs, do_del_wtp, \
-    pa_del_wtp
-
 from empower.cli.projects import do_list_projects, do_create_project, \
     pa_create_project, do_delete_project, pa_delete_project
 
@@ -74,21 +70,22 @@ for _, name, is_pkg in pkgutil.walk_packages(empower.cli.__path__):
 
         for _, module_name, _ in pkgs:
 
-            __module = importlib.import_module(
-                package.__name__ + "." + module_name)
+            module = importlib.import_module(package.__name__ + "." +
+                                             module_name)
 
-            CMDS[module_name] = [None, None]
+            cmd_name = module.NAME
 
-            if hasattr(__module, "PARSER"):
-                CMDS[module_name][0] = getattr(__module, __module.PARSER)
+            CMDS[cmd_name] = [None, None]
+            DESCS[cmd_name] = ""
 
-            if hasattr(__module, "EXEC"):
-                CMDS[module_name][1] = getattr(__module, __module.EXEC)
+            if hasattr(module, "PARSER"):
+                CMDS[cmd_name][0] = getattr(module, module.PARSER)
 
-            DESCS[module_name] = ""
+            if hasattr(module, "EXEC"):
+                CMDS[cmd_name][1] = getattr(module, module.EXEC)
 
-            if hasattr(__module, "DESC"):
-                DESCS[module_name] = __module.DESC
+            if hasattr(module, "DESC"):
+                DESCS[cmd_name] = module.DESC
 
 
 def connect(gargs, cmd, expected=200, request=None,
@@ -175,14 +172,6 @@ CMDS.update({
     'list-apps-catalog': (pa_none, do_list_apps_catalog),
     'list-workers-catalog': (pa_none, do_list_workers_catalog),
 
-    'add-wtp': (pa_add_wtp, do_add_wtp),
-    'add-vbs': (pa_add_vbs, do_add_vbs),
-    'del-wtp': (pa_del_wtp, do_del_wtp),
-    'del-vbs': (pa_del_vbs, do_del_vbs),
-
-    'list-wtps': (pa_none, do_list_wtps),
-    'list-vbses': (pa_none, do_list_vbses),
-
     'create-project': (pa_create_project, do_create_project),
     'delete-project': (pa_delete_project, do_delete_project),
     'list-projects': (pa_none, do_list_projects),
@@ -212,16 +201,9 @@ CMDS.update({
 
 DESCS.update({
 
-    'add-wtp': "Add a new WTP.",
-    'add-vbs': "Add a new VBS.",
-    'del-wtp': "Remove a WTP.",
-    'del-vbs': "Remove a VBS.",
-
     'create-project': "Create a new project.",
     'delete-project': "Delete a project.",
 
-    'list-wtps': "List WTPs.",
-    'list-vbses': "List VBSes.",
     'list-workers': "List active workers.",
     'list-projects': "List projects.",
     'list-workers-catalog': "List available workers.",
