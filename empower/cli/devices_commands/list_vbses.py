@@ -14,21 +14,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""List VBSes."""
 
 from empower.cli import command
 
-# CLI Command Name
-NAME = "list-vbses"
 
-# CLI Command Description
-DESC = "List VBSes."
-
-# CLI Command Function Pointers (None, exec)
-EXEC = "do_list_vbses"
-
-
-def do_list_vbses(gargs, *_):
+def do_cmd(gargs, *_):
     """ List the VBSes. """
 
     _, data = command.connect(gargs, ('GET', '/api/v1/vbses'), 200)

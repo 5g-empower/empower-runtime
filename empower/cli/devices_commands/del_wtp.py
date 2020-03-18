@@ -14,7 +14,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""Del a WTP."""
 
 import argparse
 
@@ -22,18 +22,8 @@ from empower.cli import command
 
 from empower.core.etheraddress import EtherAddress
 
-# CLI Command Name
-NAME = "del-wtp"
 
-# CLI Command Description
-DESC = "Del a WTP."
-
-# CLI Command Function Pointers (parser, exec)
-PARSER = "pa_del_wtp"
-EXEC = "do_del_wtp"
-
-
-def pa_del_wtp(args, cmd):
+def pa_cmd(args, cmd):
     """Del WTP parser method. """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
@@ -51,7 +41,7 @@ def pa_del_wtp(args, cmd):
     return args, leftovers
 
 
-def do_del_wtp(gargs, args, _):
+def do_cmd(gargs, args, _):
     """ Del a WTP """
 
     command.connect(gargs, ('DELETE', '/api/v1/wtps/%s' % args.addr), 204)

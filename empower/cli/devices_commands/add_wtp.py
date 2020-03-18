@@ -14,7 +14,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""Add a new WTP."""
 
 import argparse
 
@@ -22,18 +22,8 @@ from empower.cli import command
 
 from empower.core.etheraddress import EtherAddress
 
-# CLI Command Name
-NAME = "add-wtp"
 
-# CLI Command Description
-DESC = "Add a new WTP."
-
-# CLI Command Function Pointers (parser, exec)
-PARSER = "pa_add_wtp"
-EXEC = "do_add_wtp"
-
-
-def pa_add_wtp(args, cmd):
+def pa_cmd(args, cmd):
     """Add WTP parser method. """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
@@ -55,7 +45,7 @@ def pa_add_wtp(args, cmd):
     return args, leftovers
 
 
-def do_add_wtp(gargs, args, _):
+def do_cmd(gargs, args, _):
     """ Add a new WTP """
 
     request = {

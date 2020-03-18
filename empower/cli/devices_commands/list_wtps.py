@@ -14,21 +14,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""List WTPs."""
 
 from empower.cli import command
 
-# CLI Command Name
-NAME = "list-wtps"
 
-# CLI Command Description
-DESC = "List WTPs."
-
-# CLI Command Function Pointers (None, exec)
-EXEC = "do_list_wtps"
-
-
-def do_list_wtps(gargs, *_):
+def do_cmd(gargs, *_):
     """ List the WTPs. """
 
     _, data = command.connect(gargs, ('GET', '/api/v1/wtps'), 200)

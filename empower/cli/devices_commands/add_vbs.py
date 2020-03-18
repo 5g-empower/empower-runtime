@@ -14,7 +14,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""Add a new VBS."""
 
 import argparse
 
@@ -22,18 +22,8 @@ from empower.cli import command
 
 from empower.core.etheraddress import EtherAddress
 
-# CLI Command Name
-NAME = "add-vbs"
 
-# CLI Command Description
-DESC = "Add a new VBS."
-
-# CLI Command Function Pointers (parser, exec)
-PARSER = "pa_add_vbs"
-EXEC = "do_add_vbs"
-
-
-def pa_add_vbs(args, cmd):
+def pa_cmd(args, cmd):
     """Add VBS parser method. """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
@@ -55,7 +45,7 @@ def pa_add_vbs(args, cmd):
     return args, leftovers
 
 
-def do_add_vbs(gargs, args, _):
+def do_cmd(gargs, args, _):
     """ Add a new VBS """
 
     request = {

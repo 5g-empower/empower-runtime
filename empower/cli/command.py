@@ -35,9 +35,6 @@ import empower.cli
 
 from empower.core.serialize import serialize
 
-from empower.cli.projects import do_list_projects, do_create_project, \
-    pa_create_project, do_delete_project, pa_delete_project
-
 from empower.cli.wifislices import pa_list_wifi_slices, do_list_wifi_slices, \
     pa_upsert_wifi_slice, do_upsert_wifi_slice, pa_delete_wifi_slice, \
     do_delete_wifi_slice
@@ -73,19 +70,12 @@ for _, name, is_pkg in pkgutil.walk_packages(empower.cli.__path__):
             module = importlib.import_module(package.__name__ + "." +
                                              module_name)
 
-            cmd_name = module.NAME
+            cmd_name = module_name.replace("_", "-")
+            pa_cmd = module.pa_cmd if hasattr(module, 'pa_cmd') else None
+            do_cmd = module.do_cmd
 
-            CMDS[cmd_name] = [None, None]
-            DESCS[cmd_name] = ""
-
-            if hasattr(module, "PARSER"):
-                CMDS[cmd_name][0] = getattr(module, module.PARSER)
-
-            if hasattr(module, "EXEC"):
-                CMDS[cmd_name][1] = getattr(module, module.EXEC)
-
-            if hasattr(module, "DESC"):
-                DESCS[cmd_name] = module.DESC
+            CMDS[cmd_name] = [pa_cmd, do_cmd]
+            DESCS[cmd_name] = module.__doc__
 
 
 def connect(gargs, cmd, expected=200, request=None,
@@ -172,12 +162,9 @@ def pa_none(args, cmd):
 
 
 CMDS.update({
+
     'list-apps-catalog': (pa_none, do_list_apps_catalog),
     'list-workers-catalog': (pa_none, do_list_workers_catalog),
-
-    'create-project': (pa_create_project, do_create_project),
-    'delete-project': (pa_delete_project, do_delete_project),
-    'list-projects': (pa_none, do_list_projects),
 
     'list-workers': (pa_none, do_list_workers),
     'list-apps': (pa_list_apps, do_list_apps),
@@ -204,11 +191,7 @@ CMDS.update({
 
 DESCS.update({
 
-    'create-project': "Create a new project.",
-    'delete-project': "Delete a project.",
-
     'list-workers': "List active workers.",
-    'list-projects': "List projects.",
     'list-workers-catalog': "List available workers.",
     'list-apps': "List active apps.",
     'list-apps-catalog': "List available apps.",
@@ -308,11 +291,10 @@ def main():
     if leftovers and rargs[0] != "help":
         print("Warning - unknown parameters: ", ', '.join(leftovers))
 
-    if do_func:
-        try:
-            do_func(gargs, args, leftovers)
-        except RequestConnectionError:
-            print("Failed to establish a connection with the Controller")
+    try:
+        do_func(gargs, args, leftovers)
+    except RequestConnectionError:
+        print("Failed to establish a connection with the Controller")
 
 
 if __name__ == '__main__':

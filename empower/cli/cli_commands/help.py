@@ -14,34 +14,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-""" Help CLI tools."""
+"""Print help message."""
 
 import argparse
 import sys
 
 from empower.cli import command
 
-# CLI Command Name
-NAME = "help"
 
-# CLI Command Description
-DESC = "Print help message."
-
-# CLI Command Function Pointers (parser, exec)
-PARSER = "pa_help"
-EXEC = "do_help"
-
-
-def pa_help(args, cmd):
+def pa_cmd(args, cmd):
     """ Help option parser. """
 
     usage = "%s <cmd>" % command.USAGE.format(cmd)
-    (args, leftovers) = argparse.ArgumentParser(
-        usage=usage).parse_known_args(args)
+    (args, leftovers) = \
+        argparse.ArgumentParser(usage=usage).parse_known_args(args)
     return args, leftovers
 
 
-def do_help(gargs, args, leftovers):
+def do_cmd(gargs, args, leftovers):
     """ Help execute method. """
 
     if len(leftovers) != 1:

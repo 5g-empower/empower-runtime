@@ -14,17 +14,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Del a VBS."""
+"""Delete a project."""
 
+import uuid
 import argparse
 
 from empower.cli import command
 
-from empower.core.etheraddress import EtherAddress
-
 
 def pa_cmd(args, cmd):
-    """Del VBS parser method. """
+    """Delete project parser method. """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
@@ -33,8 +32,8 @@ def pa_cmd(args, cmd):
 
     required = parser.add_argument_group('required named arguments')
 
-    required.add_argument('-a', '--addr', help='The device address',
-                          required=True, type=EtherAddress, dest="addr")
+    required.add_argument('-p', '--project_id', help='The project id',
+                          required=True, type=uuid.UUID)
 
     (args, leftovers) = parser.parse_known_args(args)
 
@@ -42,7 +41,8 @@ def pa_cmd(args, cmd):
 
 
 def do_cmd(gargs, args, _):
-    """ Del a VBS """
+    """Delete a project. """
 
-    command.connect(gargs, ('DELETE', '/api/v1/vbses/%s' % args.addr), 204)
-    print(args.addr)
+    url = '/api/v1/projects/%s' % args.project_id
+    command.connect(gargs, ('DELETE', url), 204)
+    print(args.project_id)
