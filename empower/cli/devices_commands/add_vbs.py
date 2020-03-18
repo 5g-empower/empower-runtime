@@ -46,7 +46,8 @@ def pa_add_vbs(args, cmd):
     required.add_argument('-a', '--addr', help='The device address',
                           required=True, type=EtherAddress, dest="addr")
 
-    parser.add_argument("-d", "--desc", dest="desc", type=str, default=None,
+    parser.add_argument("-d", "--desc", dest="desc", type=str,
+                        default="Generic VBS",
                         help="A human readable description of the device")
 
     (args, leftovers) = parser.parse_known_args(args)
@@ -58,16 +59,10 @@ def do_add_vbs(gargs, args, _):
     """ Add a new VBS """
 
     request = {
-        "version": "1.0",
-        "addr": args.addr
+        "addr": args.addr,
+        "desc": args.desc
     }
 
-    if args.desc:
-        request["desc"] = args.desc
-
-    headers = command.get_headers(gargs)
-
-    url = '/api/v1/vbses'
-    command.connect(gargs, ('POST', url), 201, request, headers=headers)
+    command.connect(gargs, ('POST', '/api/v1/vbses'), 201, request)
 
     print(args.addr)

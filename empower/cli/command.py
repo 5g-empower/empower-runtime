@@ -98,6 +98,9 @@ def connect(gargs, cmd, expected=200, request=None,
     url = "%s://%s:%s" % (gargs.transport, gargs.host, gargs.port)
     method = getattr(requests, cmd[0].lower())
 
+    if request:
+        request["version"] = "1.0"
+
     response = method(url + cmd[1], headers=headers, json=serialize(request))
 
     try:
