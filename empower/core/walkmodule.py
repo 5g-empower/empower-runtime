@@ -27,12 +27,16 @@ def walk_module(package):
 
     pkgs = pkgutil.walk_packages(package.__path__)
 
-    for _, module_name, is_pkg in pkgs:
-
-        __import__(package.__name__ + "." + module_name)
+    for importer, module_name, is_pkg in pkgs:
 
         if not is_pkg:
             continue
+
+        # only import from subfolders of the package
+        if not any(importer.path.startswith(p) for p in package.__path__):
+            continue
+
+        __import__(package.__name__ + "." + module_name)
 
         if not hasattr(package, module_name):
             continue
