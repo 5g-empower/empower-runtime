@@ -21,8 +21,6 @@ import argparse
 
 from empower.cli import command
 
-DESC = "List LoRaWAN LNSs in the discovery service."
-
 
 def pa_cmd(args, cmd):
     """List LNSs parser method.
@@ -43,8 +41,9 @@ def pa_cmd(args, cmd):
     """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
 
-    parser = argparse.ArgumentParser(usage=usage, description=DESC)
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
 
     parser.add_argument(
         '-n', '--lns_euid', help='show results for the specified LNS id only',

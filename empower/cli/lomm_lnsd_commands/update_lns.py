@@ -21,8 +21,6 @@ import argparse
 
 from empower.cli import command
 
-DESC = "Update an existing LNS in the discovery service database."
-
 
 def pa_cmd(args, cmd):
     """Update LNS parser method.
@@ -49,8 +47,9 @@ def pa_cmd(args, cmd):
     """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
+    desc = command.DESCS[cmd]
 
-    parser = argparse.ArgumentParser(usage=usage, description=DESC)
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
 
     required = parser.add_argument_group('required named arguments')
 
