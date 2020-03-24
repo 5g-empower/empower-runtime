@@ -65,27 +65,37 @@ class LNSDPManager(WSManager):
         for lns in LNS.objects:
             self.lnss[lns.euid] = lns
 
-    def add_lns(self, euid, uri, lgtws, desc="Generic LNS"):
-        """Add a new LNS. Overwrites LNS if it already exists."""
+    def add_lns(self, euid, uri, lgtws=None, desc="Generic LNS"):
+        """Add a new LNS."""
 
         if euid in self.lnss:
             raise ValueError("LNS %s already defined" % euid)
 
-        lgtws = [EUI64(lgtw).id6 for lgtw in lgtws]
+        if not lgtws:
+            lgtws = []
+        else:
+            lgtws = [EUI64(lgtw).id6 for lgtw in lgtws]
+
         lns = LNS(uri=uri, euid=euid, desc=desc, lgtws=lgtws).save()
+
         self.lnss[euid] = lns
 
         return self.lnss[euid]
 
-    def update_lns(self, euid, uri, lgtws, desc="Generic LNS"):
+    def update_lns(self, euid, uri, lgtws=None, desc="Generic LNS"):
         """Update LNS data."""
 
         lns = self.lnss[euid]
 
+        if not lgtws:
+            lgtws = []
+        else:
+            lgtws = [EUI64(lgtw).id6 for lgtw in lgtws]
+
         try:
             lns.uri = uri
             lns.desc = desc
-            lns.lgtws = [EUI64(lgtw) for lgtw in lgtws]
+            lns.lgtws = lgtws
             lns.save()
         finally:
             lns.refresh_from_db()

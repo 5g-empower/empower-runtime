@@ -83,6 +83,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             euid: the lns id in eui64 or euid format (mandatory)
             uri: the lns uri template (mandatory)
             desc: a human readable description of the device (optional)
+            lgtws: the of lGTWS (optional)
 
         Example URLs:
 
@@ -97,16 +98,9 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        euid = EUI64(kwargs['euid'])
+        kwargs['euid'] = EUI64(kwargs['euid'])
 
-        if 'desc' in kwargs:
-            lnss = self.service.add_lns(euid=euid,
-                                        uri=kwargs['uri'],
-                                        lgtws=kwargs['lgtws'],
-                                        desc=kwargs['desc'])
-        else:
-            lnss = self.service.add_lns(euid=euid, uri=kwargs['uri'],
-                                        lgtws=kwargs['uri'])
+        lnss = self.service.add_lns(**kwargs)
 
         self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
 
@@ -123,6 +117,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             version: protocol version (1.0)
             uri: the lns uri template (mandatory)
             desc: a human readable description of the device (optional)
+            lgtws: the of lGTWS (optional)
 
         Example URLs:
 
@@ -136,14 +131,7 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        euid = EUI64(args[0])
-
-        if 'desc' in kwargs:
-            self.service.update_lns(euid=euid, uri=kwargs['uri'],
-                                    lgtws=kwargs['lgtws'], desc=kwargs['desc'])
-        else:
-            self.service.update_lns(euid=euid, uri=kwargs['uri'],
-                                    lgtws=kwargs['lgtws'])
+        self.service.update_lns(euid=EUI64(args[0]), **kwargs)
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
