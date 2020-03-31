@@ -178,6 +178,21 @@ class EmbeddedLTEProps(EmbeddedMongoModel):
         return output
 
 
+class EmbeddedLoraProps(EmbeddedMongoModel):
+    """Embedded Lora Properties."""
+
+    netid = fields.IntegerField(required=True)
+
+    def to_dict(self):
+        """ Return a JSON-serializable dictionary """
+
+        output = {}
+
+        output['netid'] = self.netid
+
+        return output
+
+
 @serializable_dict
 class Project(Env):
     """Project class.
@@ -186,6 +201,7 @@ class Project(Env):
         owner: The username of the user that requested this pool
         wifi_props: The Wi-Fi properties
         lte_props: The LTE properties
+        lora_props: The LTE properties
         wifi_slices: The definition of the Wi-Fi slices
         lte_slices: The definition of the Wi-Fi slices
 
@@ -218,6 +234,12 @@ class Project(Env):
             "mcc": "001",
             "mnc": "01"
         }
+    }
+
+    The Lora properties are defined starting from a JSON document like the
+    following:
+    {
+        "netid": 0x1
     }
 
     A Wi-Fi slice is defined starting from a JSON document like the
@@ -275,6 +297,7 @@ class Project(Env):
     desc = fields.CharField(required=True)
     wifi_props = fields.EmbeddedDocumentField(EmbeddedWiFiProps)
     lte_props = fields.EmbeddedDocumentField(EmbeddedLTEProps)
+    lora_props = fields.EmbeddedDocumentField(EmbeddedLoraProps)
     wifi_slices = WiFiSlicesDictField(required=False, blank=True)
     lte_slices = LTESlicesDictField(required=False, blank=True)
 
@@ -434,6 +457,9 @@ class Project(Env):
 
         output['lte_props'] = \
             self.lte_props.to_dict() if self.lte_props else None
+
+        output['lora_props'] = \
+            self.lora_props.to_dict() if self.lora_props else None
 
         output['wifi_slices'] = \
             self.wifi_slices if self.wifi_slices else None

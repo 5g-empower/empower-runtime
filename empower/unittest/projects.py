@@ -201,6 +201,34 @@ class TestProjects(BaseTest):
             ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
         self.post(params, data, 400)
 
+    def test_create_lora_project(self):
+        """test_create_lora_project"""
+
+        data = {
+            "version": "1.0",
+            "owner": "foo",
+            "desc": "Test LoRA project",
+            "lora_props": {
+                "netid": 0x24
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("foo", "foo",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("bar", "bar",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.delete(("foo", "foo",
+                     "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 204)
+
 
 if __name__ == '__main__':
     unittest.main()

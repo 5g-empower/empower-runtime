@@ -47,19 +47,9 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
             [
                 {
                     "bootstrap": {
-                        "7069c865-8849-4840-9d96-e028663a5dcf": {
-                            "name": "empower.apps.wifimobilitymanager.
-                                wifimobilitymanager",
-                            "params": {
-                                "every": 2000,
-                                "project_id": "52313ecb-9d00-4b7d-b873-
-                                    b55d3d9ada26",
-                                "service_id": "7069c865-8849-4840-9d96-
-                                    e028663a5dcf"
-                            }
-                        }
                     },
                     "desc": "5G-EmPOWER Wi-Fi Network",
+                    "lora_props": null,
                     "lte_props": null,
                     "lte_slices": {
                         "0": {
@@ -130,19 +120,9 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
 
             {
                 "bootstrap": {
-                    "7069c865-8849-4840-9d96-e028663a5dcf": {
-                        "name": "empower.apps.wifimobilitymanager.
-                            wifimobilitymanager",
-                        "params": {
-                            "every": 2000,
-                            "project_id": "52313ecb-9d00-4b7d-b873-
-                                b55d3d9ada26",
-                            "service_id": "7069c865-8849-4840-9d96-
-                                e028663a5dcf"
-                        }
-                    }
                 },
                 "desc": "5G-EmPOWER Wi-Fi Network",
+                "lora_props": null,
                 "lte_props": null,
                 "lte_slices": {
                     "0": {
@@ -233,6 +213,7 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
 
         wifi_props = kwargs['wifi_props'] if 'wifi_props' in kwargs else None
         lte_props = kwargs['lte_props'] if 'lte_props' in kwargs else None
+        lora_props = kwargs['lora_props'] if 'lora_props' in kwargs else None
 
         wifi_slcs = kwargs['wifi_slices'] if 'wifi_slices' in kwargs else None
         lte_slcs = kwargs['lte_slices'] if 'lte_slices' in kwargs else None
@@ -241,7 +222,8 @@ class ProjectsHandler(apimanager.EmpowerAPIHandler):
                                       desc=kwargs['desc'],
                                       owner=kwargs['owner'],
                                       wifi_props=wifi_props,
-                                      lte_props=lte_props)
+                                      lte_props=lte_props,
+                                      lora_props=lora_props)
 
         if wifi_slcs:
             for wifi_slice in wifi_slcs:

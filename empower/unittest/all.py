@@ -63,6 +63,7 @@ def full_suite():
     suite.addTest(TestProjects('test_create_wifi_project_wrong_bssid_type'))
     suite.addTest(TestProjects('test_create_lte_project'))
     suite.addTest(TestProjects('test_create_lte_project_wrong_plmnid'))
+    suite.addTest(TestProjects('test_create_lora_project'))
 
     suite.addTest(TestACLs('test_add_acls'))
     suite.addTest(TestACLs('test_add_acls_invalid_creds'))

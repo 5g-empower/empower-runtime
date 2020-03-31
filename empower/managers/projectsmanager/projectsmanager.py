@@ -27,6 +27,7 @@ from empower.core.service import EService
 from empower.managers.projectsmanager.project import Project
 from empower.managers.projectsmanager.project import EmbeddedWiFiProps
 from empower.managers.projectsmanager.project import EmbeddedLTEProps
+from empower.managers.projectsmanager.project import EmbeddedLoraProps
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 
@@ -120,7 +121,8 @@ class ProjectsManager(EService):
 
         return networks
 
-    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None):
+    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None,
+               lora_props=None):
         """Create new project."""
 
         if project_id in self.projects:
@@ -138,6 +140,9 @@ class ProjectsManager(EService):
 
         if lte_props:
             project.lte_props = EmbeddedLTEProps(**lte_props)
+
+        if lora_props:
+            project.lora_props = EmbeddedLoraProps(**lora_props)
 
         project.save()
 
