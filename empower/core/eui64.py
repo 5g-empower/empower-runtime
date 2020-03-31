@@ -138,10 +138,6 @@ class EUI64():
         """Return the bool value."""
         return bool(self._value)
 
-    def __len__(self):
-        """Return the lenght."""
-        return len(self._value)
-
     def __hash__(self):
         """Return a hash value."""
         return hash(self._value)

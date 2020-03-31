@@ -70,7 +70,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
         if not lns_euid and not lgtw_euid:
             # E.g. GET /api/v1/lnsd/lnss//lgtws/
             for key in self.service.lnss:
-                out.append({"lns_euid": EUI64(key),
+                out.append({"lns_euid": key,
                             "lgtw_euids": self.service.lnss[key].lgtws})
 
         elif (lns_euid in self.service.lnss and
@@ -90,7 +90,7 @@ class LGTWsHandler(apimanager.EmpowerAPIHandler):
             # E.g.
             # GET /api/v1/lnsd/lnss//lgtws/b827:ebff:fee7:7681
             for key in self.service.lgtws[lgtw_euid]:
-                out.append({"lns_euid": EUI64(key), "lgtw_euid": [lgtw_euid]})
+                out.append({"lns_euid": key, "lgtw_euid": [lgtw_euid]})
 
         else:
 

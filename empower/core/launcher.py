@@ -105,7 +105,12 @@ def _setup_db(args):
 def _setup_logging(args):
     """ Setup logging. """
 
-    log_config = args.config + "/logging.cfg"
+    runtime_config = args.config + "/runtime.cfg"
+    config = configparser.ConfigParser()
+    config.read(runtime_config)
+
+    log_config = config.get('general', 'logging',
+                            fallback="/etc/empower/logging.cfg")
 
     if not os.path.exists(log_config):
         print("Could not find logging config file: %s" % log_config)
