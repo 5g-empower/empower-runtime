@@ -48,10 +48,6 @@ from empower.cli.applications import pa_list_apps, do_list_apps, \
     do_unload_app, pa_unload_all_apps, do_unload_all_apps, pa_set_app_params, \
     do_set_app_params
 
-from empower.cli.workers import do_list_workers, do_list_workers_catalog, \
-    pa_load_worker, do_load_worker, pa_unload_worker, do_unload_worker, \
-    do_unload_all_workers, pa_set_worker_params, do_set_worker_params
-
 USAGE = "%(prog)s {0}"
 URL = "%s://%s%s:%s"
 
@@ -164,9 +160,7 @@ def pa_none(args, cmd):
 CMDS.update({
 
     'list-apps-catalog': (pa_none, do_list_apps_catalog),
-    'list-workers-catalog': (pa_none, do_list_workers_catalog),
 
-    'list-workers': (pa_none, do_list_workers),
     'list-apps': (pa_list_apps, do_list_apps),
 
     'list-wifi-slices': (pa_list_wifi_slices, do_list_wifi_slices),
@@ -182,17 +176,10 @@ CMDS.update({
     'unload-all-apps': (pa_unload_all_apps, do_unload_all_apps),
     'set-app-params': (pa_set_app_params, do_set_app_params),
 
-    'load-worker': (pa_load_worker, do_load_worker),
-    'unload-worker': (pa_unload_worker, do_unload_worker),
-    'unload-all-workers': (pa_none, do_unload_all_workers),
-    'set-worker-params': (pa_set_worker_params, do_set_worker_params),
-
 })
 
 DESCS.update({
 
-    'list-workers': "List active workers.",
-    'list-workers-catalog': "List available workers.",
     'list-apps': "List active apps.",
     'list-apps-catalog': "List available apps.",
 
@@ -212,10 +199,6 @@ DESCS.update({
     'unload-all-apps': "Unload all applications",
     'set-app-params': "Set application parameters",
 
-    'load-worker': "Load a worker",
-    'unload-worker': "Unload a worker",
-    'unload-all-workers': "Unload all workers",
-    'set-worker-params': "Set worker parameter",
 })
 
 

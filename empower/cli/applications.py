@@ -20,7 +20,7 @@
 import uuid
 import argparse
 
-from  empower.cli import command
+from empower.cli import command
 
 
 def pa_list_apps(args, cmd):

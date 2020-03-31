@@ -14,30 +14,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""List projects."""
+"""Unload all worker."""
 
 from empower.cli import command
 
 
 def do_cmd(gargs, *_):
-    """List projects. """
+    """Unload all workers. """
 
-    _, data = command.connect(gargs, ('GET', '/api/v1/projects'), 200)
+    headers = command.get_headers(gargs)
+
+    url = '/api/v1/workers'
+    _, data = command.connect(gargs, ('GET', url), 200, headers=headers)
 
     for entry in data.values():
 
-        accum = []
+        worker_id = entry['service_id']
 
-        accum.append("project_id ")
+        url = '/api/v1/workers/%s' % worker_id
+        command.connect(gargs, ('DELETE', url), 204, headers=headers)
 
-        accum.append(entry['project_id'])
-
-        accum.append(" desc \"%s\"" % entry['desc'])
-
-        if 'wifi_props' in entry and entry['wifi_props']:
-            accum.append(" ssid \"%s\"" % entry['wifi_props']['ssid'])
-
-        if 'lte_props' in entry and entry['lte_props']:
-            accum.append(" plmnid \"%s\"" % entry['lte_props']['plmnid'])
-
-        print(''.join(accum))
+        print(worker_id)
