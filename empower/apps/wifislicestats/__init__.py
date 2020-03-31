@@ -23,6 +23,9 @@ MANIFEST = {
     "label": "Wi-Fi Slice Stats",
     "desc": "Tracks Wi-Fi slice statistics",
     "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "slice_id": {
             "desc": "The slice to monitor.",

@@ -108,6 +108,11 @@ class RCStats(EWiFiApp):
         self.best_prob = None
         self.best_tp = None
 
+    def __eq__(self, other):
+        if isinstance(other, RCStats):
+            return self.sta == other.sta and self.every == other.every
+        return False
+
     @property
     def sta(self):
         """ Return the station address. """

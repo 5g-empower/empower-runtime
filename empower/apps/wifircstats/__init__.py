@@ -23,6 +23,9 @@ MANIFEST = {
     "label": "Wi-Fi RC Stats",
     "desc": "Tracks Wi-Fi rate control statistics for a given LVAP",
     "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "sta": {
             "desc": "The LVAP to monitor.",

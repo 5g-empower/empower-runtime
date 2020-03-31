@@ -31,6 +31,8 @@ from empower.managers.projectsmanager.project import EmbeddedLoraProps
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 
+from empower.managers.projectsmanager.appcallbackhandler import \
+    AppCallbacksHandler
 from empower.managers.projectsmanager.cataloghandler import CatalogHandler
 from empower.managers.projectsmanager.appshandler import AppsHandler
 
@@ -44,7 +46,8 @@ class ProjectsManager(EService):
 
     HANDLERS = [CatalogHandler, AppsHandler, ProjectLVAPsHandler,
                 ProjectsHandler, ProjectsWiFiACLHandler,
-                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler]
+                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler,
+                AppCallbacksHandler]
 
     projects = {}
 

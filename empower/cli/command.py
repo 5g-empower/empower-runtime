@@ -43,11 +43,6 @@ from empower.cli.lteslices import pa_list_lte_slices, do_list_lte_slices, \
     pa_upsert_lte_slice, do_upsert_lte_slice, pa_delete_lte_slice, \
     do_delete_lte_slice
 
-from empower.cli.applications import pa_list_apps, do_list_apps, \
-    do_list_apps_catalog, pa_load_app, do_load_app, pa_unload_app, \
-    do_unload_app, pa_unload_all_apps, do_unload_all_apps, pa_set_app_params, \
-    do_set_app_params
-
 USAGE = "%(prog)s {0}"
 URL = "%s://%s%s:%s"
 
@@ -159,10 +154,6 @@ def pa_none(args, cmd):
 
 CMDS.update({
 
-    'list-apps-catalog': (pa_none, do_list_apps_catalog),
-
-    'list-apps': (pa_list_apps, do_list_apps),
-
     'list-wifi-slices': (pa_list_wifi_slices, do_list_wifi_slices),
     'upsert-wifi-slice': (pa_upsert_wifi_slice, do_upsert_wifi_slice),
     'delete-wifi-slice': (pa_delete_wifi_slice, do_delete_wifi_slice),
@@ -171,17 +162,9 @@ CMDS.update({
     'upsert-lte-slice': (pa_upsert_lte_slice, do_upsert_lte_slice),
     'delete-lte-slice': (pa_delete_lte_slice, do_delete_lte_slice),
 
-    'load-app': (pa_load_app, do_load_app),
-    'unload-app': (pa_unload_app, do_unload_app),
-    'unload-all-apps': (pa_unload_all_apps, do_unload_all_apps),
-    'set-app-params': (pa_set_app_params, do_set_app_params),
-
 })
 
 DESCS.update({
-
-    'list-apps': "List active apps.",
-    'list-apps-catalog': "List available apps.",
 
     'list-wifi-slices': "List Wi-Fi slices.",
     'upsert-wifi-slice': "Create/Update a Wi-Fi slice",
@@ -193,11 +176,6 @@ DESCS.update({
 
     'worker-info': "Show the details of a worker",
     'application-info': "Show the details of an application",
-
-    'load-app': "Load an application",
-    'unload-app': "Unload an application",
-    'unload-all-apps': "Unload all applications",
-    'set-app-params': "Set application parameters",
 
 })
 

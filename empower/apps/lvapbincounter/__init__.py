@@ -23,6 +23,9 @@ MANIFEST = {
     "label": "LVAP Bin Counter",
     "desc": "Tracks TX/RX packets/bytes counters for a given LVAP",
     "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "sta": {
             "desc": "The LVAP to monitor.",

@@ -105,6 +105,12 @@ class SliceStats(EWiFiApp):
         # Data structures
         self.stats = {}
 
+    def __eq__(self, other):
+        if isinstance(other, HelloWorld):
+            return self.slice_id == other.slice_id and \
+                   self.every == other.every
+        return False
+
     @property
     def slice_id(self):
         """ Return the slice_id """
