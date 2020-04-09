@@ -19,13 +19,16 @@
 
 Handles the WS connection with a Basic Station lGTW
 """
+
 from datetime import datetime
+
 import struct
 import json
 import logging
 import tornado.websocket
 
 import empower.managers.lommmanager.lnsp as lnsp
+
 from empower.managers.lommmanager.lnsp.lorawangtw import LGtwState
 from empower.core.eui64 import EUI64
 
