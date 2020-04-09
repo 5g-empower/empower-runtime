@@ -81,18 +81,18 @@ def do_cmd(gargs, args, _):
             out += key + ":" + value + " "
         print(out)
 
-    else:
+        return
 
-        url = "/api/v1/lnsd/lnss"
-        _, data = command.connect(gargs, ('GET', url), 200)
-        for entry in data.values():
-            out = ""
-            for key in entry:
-                value = "None"
-                if entry[key]:
-                    if isinstance(entry[key], list):
-                        value = "'" + ",'".join(entry[key]) + "'"
-                    else:
-                        value = "'" + str(entry[key]) + "'"
-                out += key + ":" + value + " "
-            print(out)
+    url = "/api/v1/lnsd/lnss"
+    _, data = command.connect(gargs, ('GET', url), 200)
+    for entry in data.values():
+        out = ""
+        for key in entry:
+            value = "None"
+            if entry[key]:
+                if isinstance(entry[key], list):
+                    value = "'" + ",'".join(entry[key]) + "'"
+                else:
+                    value = "'" + str(entry[key]) + "'"
+            out += key + ":" + value + " "
+        print(out)

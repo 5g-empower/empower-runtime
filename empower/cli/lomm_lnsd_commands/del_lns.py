@@ -16,7 +16,6 @@
 
 """Delete LoRaWAN LNS from the discovery service."""
 
-import uuid
 import argparse
 
 from empower.cli import command
@@ -31,8 +30,6 @@ def pa_cmd(args, cmd):
 
     optional arguments:
       -h, --help            show this help message and exit
-      -p PROJECT_ID, --project_id PROJECT_ID
-                            project id
 
     required named arguments:
       -e LNS_EUID, --lns_euid LNS_EUID
@@ -51,10 +48,6 @@ def pa_cmd(args, cmd):
         required=True,
         type=str, dest="lns_euid")
 
-    parser.add_argument(
-        '-p', '--project_id', help='project id',
-        type=uuid.UUID, dest="project_id")
-
     (args, leftovers) = parser.parse_known_args(args)
 
     return args, leftovers
@@ -62,10 +55,7 @@ def pa_cmd(args, cmd):
 
 def do_cmd(gargs, args, _):
     """Delete an LNS."""
-    # if args.project_id:
-    #   url = '/api/v1/projects/%s/lnss/%s' % args.project_id, args.lns_euid
-    # else:
-    #   url = '/api/v1/lnsd/lnss/%s' % args.lns_euid
+
     url = '/api/v1/lnsd/lnss/%s' % args.lns_euid
     command.connect(gargs, ('DELETE', url), 204)
     print(args.lns_euid)

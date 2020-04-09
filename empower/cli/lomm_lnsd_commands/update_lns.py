@@ -16,7 +16,6 @@
 
 """Update an existing LNS in the discovery service database."""
 
-import uuid
 import argparse
 
 from empower.cli import command
@@ -36,8 +35,6 @@ def pa_cmd(args, cmd):
       -g LGTWS, --lgtws LGTWS
                             list of lGTWs to be updated in the discovery
                             service database (default add)
-      -p PROJECT_ID, --project_id PROJECT_ID
-                            project id
 
     required named arguments:
       -n LNS_EUID, --lns_euid LNS_EUID
@@ -76,10 +73,6 @@ def pa_cmd(args, cmd):
             discovery service database (default add)',
         type=str, dest="lgtws")
 
-    parser.add_argument(
-        '-p', '--project_id', help='project id',
-        type=uuid.UUID, dest="project_id")
-
     (args, leftovers) = parser.parse_known_args(args)
 
     return args, leftovers
@@ -100,10 +93,6 @@ def do_cmd(gargs, args, _):
     if args.owner:
         request["owner"] = args.owner
 
-    # if args.project_id:
-    #   url = '/api/v1/projects/%s/lnss' % args.project_id
-    # else:
-    #   url = '/api/v1/lnsd/lnss'
     url = '/api/v1/lnsd/lnss/%s' % args.lns_euid
     command.connect(gargs, ('PUT', url), 204, request)
 
