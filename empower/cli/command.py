@@ -35,14 +35,6 @@ import empower.cli
 
 from empower.core.serialize import serialize
 
-from empower.cli.wifislices import pa_list_wifi_slices, do_list_wifi_slices, \
-    pa_upsert_wifi_slice, do_upsert_wifi_slice, pa_delete_wifi_slice, \
-    do_delete_wifi_slice
-
-from empower.cli.lteslices import pa_list_lte_slices, do_list_lte_slices, \
-    pa_upsert_lte_slice, do_upsert_lte_slice, pa_delete_lte_slice, \
-    do_delete_lte_slice
-
 USAGE = "%(prog)s {0}"
 URL = "%s://%s%s:%s"
 
@@ -150,34 +142,6 @@ def pa_none(args, cmd):
     parser = ArgumentParser(usage=USAGE.format(cmd), description=DESCS[cmd])
     (args, leftovers) = parser.parse_known_args(args)
     return args, leftovers
-
-
-CMDS.update({
-
-    'list-wifi-slices': (pa_list_wifi_slices, do_list_wifi_slices),
-    'upsert-wifi-slice': (pa_upsert_wifi_slice, do_upsert_wifi_slice),
-    'delete-wifi-slice': (pa_delete_wifi_slice, do_delete_wifi_slice),
-
-    'list-lte-slices': (pa_list_lte_slices, do_list_lte_slices),
-    'upsert-lte-slice': (pa_upsert_lte_slice, do_upsert_lte_slice),
-    'delete-lte-slice': (pa_delete_lte_slice, do_delete_lte_slice),
-
-})
-
-DESCS.update({
-
-    'list-wifi-slices': "List Wi-Fi slices.",
-    'upsert-wifi-slice': "Create/Update a Wi-Fi slice",
-    'delete-wifi-slice': "Delete a Wi-Fi slice",
-
-    'list-lte-slices': "List LTE slices.",
-    'upsert-lte-slice': "Create/Update a LTE slice",
-    'delete-lte-slice': "Delete an LTE slice",
-
-    'worker-info': "Show the details of a worker",
-    'application-info': "Show the details of an application",
-
-})
 
 
 def parse_global_args(arglist):

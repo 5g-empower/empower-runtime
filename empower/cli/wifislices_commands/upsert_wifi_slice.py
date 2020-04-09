@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""WiFi SLices CLI tools."""
+"""WiFi Slices CLI tools."""
 
 import uuid
 import argparse
@@ -23,48 +23,8 @@ import argparse
 from empower.cli import command
 
 
-def pa_list_wifi_slices(args, cmd):
-    """List wifi slices parser method."""
-
-    usage = "%s <options>" % command.USAGE.format(cmd)
-    desc = command.DESCS[cmd]
-
-    parser = argparse.ArgumentParser(usage=usage, description=desc)
-
-    required = parser.add_argument_group('required named arguments')
-
-    required.add_argument('-p', '--project_id', help='The project id',
-                          required=True, type=uuid.UUID, dest="project_id")
-
-    (args, leftovers) = parser.parse_known_args(args)
-
-    return args, leftovers
-
-
-def do_list_wifi_slices(gargs, args, _):
-    """List wifi slices."""
-
-    url = '/api/v1/projects/%s/wifi_slices' % args.project_id
-    _, slcs = command.connect(gargs, ('GET', url), 200)
-
-    accum = []
-
-    accum.append("project id ")
-    accum.append(str(args.project_id))
-
-    for slc in slcs.values():
-
-        accum.append("\nslice_id ")
-        accum.append(str(slc['slice_id']))
-
-        for k, val in slc['properties'].items():
-            accum.append("\n    %s: %s" % (k, val))
-
-    print(''.join(accum))
-
-
-def pa_upsert_wifi_slice(args, cmd):
-    """Create/update wifi slice parser method. """
+def pa_cmd(args, cmd):
+    """Create/update Wi-Fi slice parser method. """
 
     usage = "%s <options>" % command.USAGE.format(cmd)
     desc = command.DESCS[cmd]
@@ -88,8 +48,8 @@ def pa_upsert_wifi_slice(args, cmd):
     return args, leftovers
 
 
-def do_upsert_wifi_slice(gargs, args, _):
-    """Create/update wifi slice. """
+def do_cmd(gargs, args, _):
+    """Create/update Wi-Fi slice. """
 
     headers = command.get_headers(gargs)
 
@@ -119,34 +79,3 @@ def do_upsert_wifi_slice(gargs, args, _):
         accum.append("\n    %s: %s" % (k, val))
 
     print(''.join(accum))
-
-
-def pa_delete_wifi_slice(args, cmd):
-    """Delete wifi slice parser method. """
-
-    usage = "%s <options>" % command.USAGE.format(cmd)
-    desc = command.DESCS[cmd]
-
-    parser = argparse.ArgumentParser(usage=usage, description=desc)
-
-    required = parser.add_argument_group('required named arguments')
-
-    required.add_argument('-p', '--project_id', help='The project id',
-                          required=True, type=uuid.UUID, dest="project_id")
-
-    required.add_argument('-s', '--slice_id', help='The slice id',
-                          required=True, type=int, dest="slice_id")
-
-    (args, leftovers) = parser.parse_known_args(args)
-
-    return args, leftovers
-
-
-def do_delete_wifi_slice(gargs, args, _):
-    """Delete wifi slice. """
-
-    url = '/api/v1/projects/%s/wifi_slices/%s' % \
-        (args.project_id, args.slice_id)
-    command.connect(gargs, ('DELETE', url), 204)
-
-    print(args.slice_id)
