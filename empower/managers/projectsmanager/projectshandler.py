@@ -807,3 +807,79 @@ class ProjectLVAPsHandler(apimanager.EmpowerAPIHandler):
 
             encap = EtherAddress(kwargs["encap"])
             lvap.encap = encap
+
+
+# pylint: disable=W0223
+class ProjectUsersHandler(apimanager.EmpowerAPIHandler):
+    """Handler for accessing LVAPs. in a project"""
+
+    URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/users/?",
+            r"/api/v1/projects/([a-zA-Z0-9-]*)/users/([0-9]*)/?"]
+
+    @apimanager.validate(min_args=1, max_args=2)
+    def get(self, *args, **kwargs):
+        """List the users.
+
+        Args:
+
+            [0]: the UE IMSI(optional)
+
+        Example URLs:
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/users
+
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/users/
+                222930100001114
+
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        return project.users \
+            if len(args) == 1 else project.users[int(args[1])]
+
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
+    def put(self, *args, **kwargs):
+        """Modify the LVAP
+
+        Args:
+
+            [0], the project id (mandatory)
+            [1]: the lvap address (mandatory)
+
+        Example URLs:
+
+            PUT /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps/
+                60:F4:45:D0:3B:FC
+
+            {
+                "version": "1.0",
+                "wtp": "04:F0:21:09:F9:AA"
+            }
+        """
+
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        lvap = project.lvaps[EtherAddress(args[1])]
+
+        if "blocks" in kwargs:
+
+            wtp = project.wtps[EtherAddress(kwargs['wtp'])]
+
+            pool = ResourcePool()
+
+            for block_id in kwargs["blocks"]:
+                pool.append(wtp.blocks[block_id])
+
+            lvap.blocks = pool
+
+        elif "wtp" in kwargs:
+
+            lvap.wtp = project.wtps[EtherAddress(kwargs['wtp'])]
+
+        if "encap" in kwargs:
+
+            encap = EtherAddress(kwargs["encap"])
+            lvap.encap = encap

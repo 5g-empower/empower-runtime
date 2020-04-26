@@ -18,7 +18,7 @@
 """VBSP RAN Manager."""
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Flag, Bytes, Bit, \
-    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this
+    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this, Int64ub
 
 PT_VERSION = 0x02
 
@@ -87,6 +87,7 @@ PACKET = Struct(
 
 PT_HELLO_SERVICE_PERIOD = 0x04
 PT_CAPABILITIES_SERVICE_CELL = 0x06
+PT_UE_REPORTS_SERVICE_IDENTITY = 0x07
 
 HELLO_SERVICE_PERIOD = Struct(
     "period" / Int32ub
@@ -101,9 +102,20 @@ CAPABILITIES_SERVICE_CELL = Struct(
 )
 CAPABILITIES_SERVICE_CELL.name = "capabilities_service_cell"
 
+UE_REPORTS_SERVICE_IDENTITY = Struct(
+    "imsi" / Int64ub,
+    "tmsi" / Int32ub,
+    "rnti" / Int16ub,
+    "status" / Int8ub,
+    "pci" / Int16ub,
+)
+UE_REPORTS_SERVICE_IDENTITY.name = "ue_reports_service_identity"
+
+
 TLVS = {
     PT_HELLO_SERVICE_PERIOD: HELLO_SERVICE_PERIOD,
     PT_CAPABILITIES_SERVICE_CELL: CAPABILITIES_SERVICE_CELL,
+    PT_UE_REPORTS_SERVICE_IDENTITY: UE_REPORTS_SERVICE_IDENTITY,
 }
 
 # Packet types

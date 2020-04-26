@@ -102,9 +102,24 @@ class TestTestbed(BaseTest):
             ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada36")
         self.post(params, data, 201)
 
+        data = {
+            "owner": "foo",
+            "desc": "EmPOWER 4G",
+            "lte_props": {
+                "plmnid": {
+                    "mcc": "222",
+                    "mnc": "93"
+                }
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada46")
+        self.post(params, data, 201)
+
         # VBSes
         vbses = [
-            ("00:00:00:00:00:01", "Ettus B210")
+            ("00:00:00:00:01:9B", "Ettus B210")
         ]
         for vbs in vbses:
             data = {"addr": vbs[0], "desc": vbs[1]}

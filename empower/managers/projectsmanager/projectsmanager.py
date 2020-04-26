@@ -38,7 +38,7 @@ from empower.managers.projectsmanager.appshandler import AppsHandler
 
 from empower.managers.projectsmanager.projectshandler import ProjectsHandler, \
     ProjectsWiFiACLHandler, ProjectsWiFiSlicesHandler, \
-    ProjectsLTESlicesHandler, ProjectLVAPsHandler
+    ProjectsLTESlicesHandler, ProjectLVAPsHandler, ProjectUsersHandler
 
 
 class ProjectsManager(EService):
@@ -47,7 +47,7 @@ class ProjectsManager(EService):
     HANDLERS = [CatalogHandler, AppsHandler, ProjectLVAPsHandler,
                 ProjectsHandler, ProjectsWiFiACLHandler,
                 ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler,
-                AppCallbacksHandler]
+                AppCallbacksHandler, ProjectUsersHandler]
 
     projects = {}
 

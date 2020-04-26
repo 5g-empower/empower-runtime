@@ -21,6 +21,7 @@ import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.managers.ranmanager.ranmanager import RANManager
 from empower.managers.ranmanager.vbsp.vbshandler import VBSHandler
+from empower.managers.ranmanager.vbsp.userhandler import UserHandler
 from empower.managers.ranmanager.vbsp.vbspconnection import VBSPConnection
 from empower.managers.ranmanager.vbsp.vbs import VBS
 
@@ -36,7 +37,7 @@ class VBSPManager(RANManager):
             default: 5533)
     """
 
-    HANDLERS = [VBSHandler]
+    HANDLERS = [VBSHandler, UserHandler]
 
     def __init__(self, context, service_id, port):
 
@@ -47,7 +48,7 @@ class VBSPManager(RANManager):
                          proto=vbsp,
                          port=port)
 
-        self.ueqs = {}
+        self.users = {}
 
 
 def launch(context, service_id, port=DEFAULT_PORT):

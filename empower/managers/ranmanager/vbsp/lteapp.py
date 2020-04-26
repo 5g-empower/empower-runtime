@@ -49,10 +49,10 @@ class ELTEApp(EApp):
         return self.context.vbses
 
     @property
-    def ues(self):
+    def users(self):
         """Return the UEs available to this app."""
 
-        return self.context.ueqs
+        return self.context.users
 
     def handle_client_leave(self, ueq):
         """Called when a client leaves a network."""

@@ -23,6 +23,8 @@ from construct import Container
 from tornado.iostream import StreamClosedError
 
 from empower.managers.ranmanager.vbsp.cellpool import Cell
+from empower.managers.ranmanager.vbsp.user import User, \
+    USER_STATUS_DISCONNECTED
 from empower.managers.ranmanager.ranconnection import RANConnection
 from empower.core.etheraddress import EtherAddress
 from empower.managers.ranmanager.vbsp import HELLO_SERVICE_PERIOD, \
@@ -152,12 +154,12 @@ class VBSPConnection(RANConnection):
 
         self.log.warning("Device disconnected: %s", self.device.addr)
 
-        # Remove hosted UEQs
-        ueqs = [ueq for ueq in self.manager.ueqs.values()
-                if ueq.vbs.addr == self.device.addr]
+        # Remove hosted Users
+        users = [user for user in self.manager.users.values()
+                 if user.cell.vbs.addr == self.device.addr]
 
-        for ueq in list(ueqs):
-            del self.manager.ueqs[ueq.addr]
+        for user in list(users):
+            del self.manager.users[user.imsi]
 
         # reset state
         self.device.set_disconnected()
@@ -214,6 +216,9 @@ class VBSPConnection(RANConnection):
             self.xids[msg.xid] = (msg, callback)
 
         return msg.xid
+
+    def send_set_slice(self, project, slc, cell):
+        """Send an SET_SLICE response message."""
 
     def send_caps_request(self):
         """Send a CAPS_REQUEST message."""
@@ -294,5 +299,41 @@ class VBSPConnection(RANConnection):
         # set state to online
         self.device.set_online()
 
-        # enable UE reports
+        # send UE reports request
         self.send_ue_reports_request()
+
+    def _handle_ue_reports_service(self, msg):
+        """Handle an incoming CAPABILITIES_SERVICE message."""
+
+        # parse TLVs
+        for tlv in msg.tlvs:
+
+            if tlv.type not in self.proto.TLVS:
+                self.log.warning("Unknown options %u", tlv.type)
+                continue
+
+            parser = self.proto.TLVS[tlv.type]
+            option = parser.parse(tlv.value)
+
+            self.log.debug("Processing options %s", parser.name)
+
+            if tlv.type == self.proto.PT_UE_REPORTS_SERVICE_IDENTITY:
+
+                if option.pci not in self.device.cells:
+                    self.log.warning("Unable to find pci %u", option.pcis)
+
+                cell = self.device.cells[option.pci]
+
+                user = User(imsi=option.imsi,
+                            tmsi=option.tmsi,
+                            rnti=option.rnti,
+                            status=option.status,
+                            cell=cell)
+
+                self.manager.users[option.imsi] = user
+
+                if option.status == USER_STATUS_DISCONNECTED:
+                    del self.manager.users[option.imsi]
+                    self.log.info("Removing %s", user)
+                else:
+                    self.log.info("Adding %s", user)

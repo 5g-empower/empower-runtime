@@ -408,16 +408,16 @@ class Project(Env):
         self.refresh_from_db()
 
     @property
-    def ueqs(self):
+    def users(self):
         """Return the UEs."""
 
         if not self.lte_props:
             return {}
 
-        ueqs = {k: v for k, v in srv_or_die("vbspmanager").ueqs.items()
-                if v.plmnid == self.lte_props.plmnid}
+        users = {k: v for k, v in srv_or_die("vbspmanager").users.items()
+                 if v.plmnid == self.lte_props.plmnid}
 
-        return ueqs
+        return users
 
     @property
     def lvaps(self):
