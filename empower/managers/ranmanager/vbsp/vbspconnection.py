@@ -182,9 +182,6 @@ class VBSPConnection(RANConnection):
                      callback=None):
         """Send message and set common parameters."""
 
-        if action == 0x03:
-            return
-
         parser = self.proto.PT_TYPES[action][0]
         name = self.proto.PT_TYPES[action][1]
 
