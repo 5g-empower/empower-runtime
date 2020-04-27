@@ -28,10 +28,10 @@ MSG_TYPE_RESPONSE = 1
 RESULT_SUCCESS = 0
 RESULT_FAIL = 1
 
-OP_SET = 0
-OP_ADD = 1
-OP_DEL = 2
-OP_GET = 3
+OP_UNDEFINED = 0
+OP_CREATE_UPDATE = 1
+OP_DELETE = 2
+OP_RETRIEVE = 3
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
@@ -51,8 +51,8 @@ TLVS = Struct(
 HEADER = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
-        "padding" / Padding(7),
-        "msg_type" / Flag
+        "msg_type" / Flag,
+        "padding" / Padding(7)
     ),
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
@@ -68,8 +68,8 @@ HEADER = Struct(
 PACKET = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
-        "padding" / Padding(7),
-        "msg_type" / Flag
+        "msg_type" / Flag,
+        "padding" / Padding(7)
     ),
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
@@ -201,3 +201,35 @@ def unregister_callback(pt_type, handler):
         return
 
     PT_TYPES_HANDLERS[pt_type].remove(handler)
+
+
+def decode_msg(msg_type, crud_result):
+    """Return the tuple (msg_type, crud_result)."""
+
+    if int(msg_type) == MSG_TYPE_REQUEST:
+
+        msg_type_str = "request"
+
+        if crud_result == OP_UNDEFINED:
+            crud_result_str = "undefined"
+        elif crud_result == OP_CREATE_UPDATE:
+            crud_result_str = "create_update"
+        elif crud_result == OP_DELETE:
+            crud_result_str = "delete"
+        elif crud_result == OP_RETRIEVE:
+            crud_result_str = "retrieve"
+        else:
+            crud_result_str = "unknown"
+
+        return (msg_type_str, crud_result_str)
+
+    msg_type_str = "response"
+
+    if crud_result == RESULT_SUCCESS:
+        crud_result_str = "success"
+    elif crud_result == RESULT_FAIL:
+        crud_result_str = "fail"
+    else:
+        crud_result_str = "unknown"
+
+    return (msg_type_str, crud_result_str)

@@ -77,8 +77,11 @@ class VBSPConnection(RANConnection):
         parser = self.proto.PT_TYPES[hdr.tsrc.action][0]
         name = self.proto.PT_TYPES[hdr.tsrc.action][1]
         msg = parser.parse(self.buffer)
-        self.log.debug("Got %s message from %s seq %u", name,
-                       EtherAddress(addr), msg.seq)
+
+        tmp = self.proto.decode_msg(hdr.flags.msg_type, hdr.tsrc.crud_result)
+
+        self.log.debug("Got %s message (%s, %s) from %s seq %u", name,
+                       tmp[0], tmp[1], EtherAddress(addr), msg.seq)
 
         # If Device is not online and is not connected, then the only message
         # type we can accept is HELLO_RESPONSE
@@ -107,11 +110,15 @@ class VBSPConnection(RANConnection):
         # If device is not online but it is connected, then we can accept both
         # HELLO_RESPONSE and CAP_RESPONSE message
         if device.is_connected() and not device.is_online():
+
             valid = (self.proto.PT_HELLO_SERVICE,
                      self.proto.PT_CAPABILITIES_SERVICE)
+
             if msg.tsrc.action not in valid:
+
                 if not self.stream.closed():
                     self.wait()
+
                 return
 
         # Otherwise handle message
@@ -175,6 +182,9 @@ class VBSPConnection(RANConnection):
                      callback=None):
         """Send message and set common parameters."""
 
+        if action == 0x03:
+            return
+
         parser = self.proto.PT_TYPES[action][0]
         name = self.proto.PT_TYPES[action][1]
 
@@ -207,8 +217,10 @@ class VBSPConnection(RANConnection):
 
         addr = self.stream.socket.getpeername()
 
-        self.log.debug("Sending %s message to %s seq %u",
-                       name, addr[0], msg.seq)
+        tmp = self.proto.decode_msg(msg_type, crud_result)
+
+        self.log.debug("Sending %s message (%s, %s) to %s seq %u",
+                       name, tmp[0], tmp[1], addr[0], msg.seq)
 
         self.stream.write(parser.build(msg))
 
@@ -225,14 +237,14 @@ class VBSPConnection(RANConnection):
 
         return self.send_message(action=self.proto.PT_CAPABILITIES_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
-                                 crud_result=self.proto.OP_GET)
+                                 crud_result=self.proto.OP_RETRIEVE)
 
     def send_ue_reports_request(self):
         """Send a UE_REPORTS message."""
 
         return self.send_message(action=self.proto.PT_UE_REPORTS_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
-                                 crud_result=self.proto.OP_GET)
+                                 crud_result=self.proto.OP_RETRIEVE)
 
     def send_hello_response(self, period):
         """Send an HELLO response message."""
@@ -268,6 +280,7 @@ class VBSPConnection(RANConnection):
             self.log.debug("Processing options %s", parser.name)
 
             if tlv.type == self.proto.PT_HELLO_SERVICE_PERIOD:
+                self.log.info("Hello period set to %usms", option.period)
                 self.send_hello_response(option.period)
 
         self.device.last_seen = msg.seq
