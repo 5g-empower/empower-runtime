@@ -118,7 +118,7 @@ class UEMeasurements(ELTEApp):
 
         return out
 
-    def handle_ue_measurement(self, user, crud):
+    def config_ue_measurement(self, user, crud):
         """Send UE measurement config."""
 
         tlvs = []
@@ -152,12 +152,12 @@ class UEMeasurements(ELTEApp):
     def handle_ue_join(self, user):
         """Called when a UE joins the network."""
 
-        self.handle_ue_measurement(user, vbsp.OP_CREATE_UPDATE)
+        self.config_ue_measurement(user, vbsp.OP_CREATE)
 
     def handle_ue_leave(self, user):
         """Called when a UE leaves the network."""
 
-        self.handle_ue_measurement(user, vbsp.OP_DELETE)
+        self.config_ue_measurement(user, vbsp.OP_DELETE)
 
     def handle_response(self, *args, **kwargs):
         """Handle an incoming UE_MEASUREMENTS message."""

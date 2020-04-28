@@ -29,9 +29,10 @@ RESULT_SUCCESS = 0
 RESULT_FAIL = 1
 
 OP_UNDEFINED = 0
-OP_CREATE_UPDATE = 1
-OP_DELETE = 2
-OP_RETRIEVE = 3
+OP_CREATE = 1
+OP_UPDATE = 2
+OP_DELETE = 3
+OP_RETRIEVE = 4
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
@@ -212,8 +213,10 @@ def decode_msg(msg_type, crud_result):
 
         if crud_result == OP_UNDEFINED:
             crud_result_str = "undefined"
-        elif crud_result == OP_CREATE_UPDATE:
-            crud_result_str = "create_update"
+        elif crud_result == OP_CREATE:
+            crud_result_str = "create"
+        elif crud_result == OP_UPDATE:
+            crud_result_str = "update"
         elif crud_result == OP_DELETE:
             crud_result_str = "delete"
         elif crud_result == OP_RETRIEVE:
