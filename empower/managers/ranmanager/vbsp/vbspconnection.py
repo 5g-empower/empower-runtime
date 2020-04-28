@@ -166,6 +166,7 @@ class VBSPConnection(RANConnection):
                  if user.cell.vbs.addr == self.device.addr]
 
         for user in list(users):
+            self.send_client_leave_message_to_self(user)
             del self.manager.users[user.imsi]
 
         # reset state
@@ -334,6 +335,24 @@ class VBSPConnection(RANConnection):
 
                 cell = self.device.cells[option.pci]
 
+                if option.status == USER_STATUS_DISCONNECTED:
+
+                    if option.imsi not in self.manager.users:
+                        self.log.warning("IMSI not found%s", option.imsi)
+                        continue
+
+                    user = self.manager.users[option.imsi]
+
+                    self.send_client_leave_message_to_self(user)
+                    del self.manager.users[option.imsi]
+                    self.log.info("Removing %s", user)
+
+                    continue
+
+                if option.imsi in self.manager.users:
+                    self.log.warning("IMSI found%s", option.imsi)
+                    continue
+
                 user = User(imsi=option.imsi,
                             tmsi=option.tmsi,
                             rnti=option.rnti,
@@ -341,9 +360,5 @@ class VBSPConnection(RANConnection):
                             cell=cell)
 
                 self.manager.users[option.imsi] = user
-
-                if option.status == USER_STATUS_DISCONNECTED:
-                    del self.manager.users[option.imsi]
-                    self.log.info("Removing %s", user)
-                else:
-                    self.log.info("Adding %s", user)
+                self.send_client_join_message_to_self(user)
+                self.log.info("Adding %s", user)

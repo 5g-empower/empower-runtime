@@ -81,8 +81,14 @@ class UEMeasurements(ELTEApp):
 
         # Hard coded ue measurements
         self.rrc_measurements_params = [
-            {"earfcn": 3400, "interval": 2000,
-             "max_cells": 2, "max_measure": 2}
+            {"earfcn": 3400,
+             "interval": 2000,
+             "max_cells": 2,
+             "max_measure": 2},
+            {"earfcn": 3400,
+             "interval": 2000,
+             "max_cells": 2,
+             "max_measure": 2}
         ]
 
         # Last seen time
@@ -112,23 +118,8 @@ class UEMeasurements(ELTEApp):
 
         return out
 
-    def handle_vbs_down(self, vbs):
-        """Called when a vbs disconnects to the controller."""
-
-        if self.imsi not in self.context.users:
-            return
-
-        user = self.context.users[self.imsi]
-
-        print(user.vbs)
-
-    def loop(self):
-        """Send out requests"""
-
-        if self.imsi not in self.context.users:
-            return
-
-        user = self.context.users[self.imsi]
+    def handle_ue_measurement(self, user, crud):
+        """Send UE measurement config."""
 
         tlvs = []
 
@@ -154,9 +145,19 @@ class UEMeasurements(ELTEApp):
 
         user.vbs.connection.send_message(action=PT_UE_MEASUREMENTS_SERVICE,
                                          msg_type=vbsp.MSG_TYPE_REQUEST,
-                                         crud_result=vbsp.OP_CREATE_UPDATE,
+                                         crud_result=crud,
                                          tlvs=tlvs,
                                          callback=self.handle_response)
+
+    def handle_ue_join(self, user):
+        """Called when a UE joins the network."""
+
+        self.handle_ue_measurement(user, vbsp.OP_CREATE_UPDATE)
+
+    def handle_ue_leave(self, user):
+        """Called when a UE leaves the network."""
+
+        self.handle_ue_measurement(user, vbsp.OP_DELETE)
 
     def handle_response(self, *args, **kwargs):
         """Handle an incoming UE_MEASUREMENTS message."""

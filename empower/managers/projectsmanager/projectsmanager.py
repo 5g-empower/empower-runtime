@@ -202,6 +202,16 @@ class ProjectsManager(EService):
             del lvap.wtp.connection.manager.lvaps[lvap.addr]
             lvap.clear_blocks()
 
+        # Remove hosted UEs
+        for user in list(project.users.values()):
+
+            # The UEs is associated
+            if user.plmnid and user.vbs.connection:
+                user.vbs.connection.send_client_leave_message_to_self(user)
+
+            # Reset the LVAP
+            del user.vbs.connection.manager.users[user.imsi]
+
         # Remove hosted VAPs
         for vap in list(project.vaps.values()):
 
