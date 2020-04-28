@@ -109,6 +109,9 @@ class UEMeasurements(ELTEApp):
 
         self.params['imsi'] = int(imsi)
 
+    def loop(self):
+        """Periodic loop."""
+
     def to_dict(self):
         """ Return a JSON-serializable."""
 
