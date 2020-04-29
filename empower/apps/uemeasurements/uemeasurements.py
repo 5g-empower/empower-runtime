@@ -26,8 +26,8 @@ from empower.core.app import EVERY
 
 PT_UE_MEASUREMENTS_SERVICE = 0x03
 
-PT_MEASUREMENTS_SERVICE_CONFIG = 0x08
-PT_MEASUREMENTS_SERVICE_REPORT = 0x09
+TLV_MEASUREMENTS_SERVICE_CONFIG = 0x08
+TLV_MEASUREMENTS_SERVICE_REPORT = 0x09
 
 UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
     "measure_id" / Int16ub,
@@ -140,7 +140,7 @@ class UEMeasurements(ELTEApp):
             value = UE_MEASUREMENTS_SERVICE_CONFIG.build(rrc_measurement_tlv)
 
             tlv = Container()
-            tlv.type = PT_MEASUREMENTS_SERVICE_CONFIG
+            tlv.type = TLV_MEASUREMENTS_SERVICE_CONFIG
             tlv.length = 4 + len(value)
             tlv.value = value
 

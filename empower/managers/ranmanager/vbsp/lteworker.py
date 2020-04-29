@@ -19,48 +19,41 @@
 
 from empower.core.worker import EWorker
 
-import empower.managers.ranmanager.lvapp as lvapp
+import empower.managers.ranmanager.vbsp as vbsp
 
-from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
+from empower.core.launcher import srv_or_die
+from empower.managers.ranmanager.vbsp.cellpool import CellPool
 
-EVERY = 2000
 
+class ELTEWorker(EWorker):
+    """Base LTE Worker class."""
 
-class EWiFiWorker(EWorker):
-    """Base Wi-Fi Worker class."""
+    MODULES = [vbsp]
 
-    MODULES = [lvapp]
+    def cells(self):
+        """Return the Cells available to this app."""
 
-    def blocks(self):
-        """Return the ResourseBlocks available to this app."""
+        # Initialize the Cell Pool
+        pool = CellPool()
 
-        # Initialize the Resource Pool
-        pool = ResourcePool()
-
-        # Update the pool with all the available ResourseBlocks
-        for wtp in self.wtps.values():
-            for block in wtp.blocks.values():
-                pool.append(block)
+        # Update the pool with all the available Cells
+        for vbs in self.vbses.values():
+            for cell in vbs.cells.values():
+                pool.append(cell)
 
         return pool
 
     @property
-    def wtps(self):
-        """Return the WTPs available to this app."""
+    def vbses(self):
+        """Return the VBSes available to this app."""
 
-        return self.context.wtps
-
-    @property
-    def lvaps(self):
-        """Return the LVAPs available to this app."""
-
-        return self.context.lvaps
+        return self.context.vbses
 
     @property
-    def vaps(self):
-        """Return the VAPs."""
+    def users(self):
+        """Return the UEs available to this app."""
 
-        return self.context.vaps
+        return self.context.users
 
     def handle_client_leave(self, lvap):
         """Called when a client leaves a network (no check on project)."""

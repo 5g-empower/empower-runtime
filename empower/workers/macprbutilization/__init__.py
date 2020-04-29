@@ -15,23 +15,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""UE Measurements."""
+"""MAC PRB Utilization Reports."""
 
 from empower.core.app import EVERY
 
 MANIFEST = {
-    "label": "UE Measurements",
-    "desc": "Start UE Measurements",
+    "label": "MAC PRB Utilization Reports",
+    "desc": "Collect the MAC level PRB utilization reports",
     "modules": ['vbsp'],
     "callbacks": {
         "default": "Called when new measurements are available"
     },
     "params": {
-        "imsi": {
-            "desc": "The UE to monitor.",
-            "mandatory": True,
-            "type": "int"
-        },
         "every": {
             "desc": "The control loop period (in ms).",
             "mandatory": False,
