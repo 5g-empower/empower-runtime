@@ -17,6 +17,8 @@
 
 """MAC PRB Utilization Reports."""
 
+import time
+
 from construct import Struct, Int16ub, Int32ub
 
 import empower.managers.ranmanager.vbsp as vbsp
@@ -85,6 +87,9 @@ class MACPrbUtilization(ELTEWorker):
     def handle_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS message."""
 
+        # set last iteration time
+        self.last = time.time()
+
         # parse TLVs
         for tlv in msg.tlvs:
 
@@ -104,8 +109,11 @@ class MACPrbUtilization(ELTEWorker):
 
             cell.mac_prb_utilization = {
                 "dl_prb_counter": option.dl_prb_counter,
-                "ul_prb_counter": option.ul_prb_counter
+                "ul_prb_counter": option.ul_prb_counter,
             }
+
+        # handle callbacks
+        self.handle_callbacks()
 
 
 def launch(context, service_id, every=EVERY):
