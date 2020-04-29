@@ -82,7 +82,7 @@ class MACPrbUtilization(ELTEWorker):
                                         tlvs=[],
                                         callback=self.handle_response)
 
-    def handle_response(self, msg, vbs, request):
+    def handle_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS message."""
 
         # parse TLVs
