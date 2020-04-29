@@ -97,7 +97,15 @@ class MACPrbUtilization(ELTEWorker):
 
             self.log.debug("Processing options %s", parser.name)
 
-            print(option)
+            if option.pci not in vbs.cells:
+                self.log.warning("PCI %u not found", option.pci)
+
+            cell = vbs.cells[option.pci]
+
+            cell.mac_prb_utilization = {
+                "dl_prb_counter": option.dl_prb_counter,
+                "ul_prb_counter": option.ul_prb_counter
+            }
 
 
 def launch(context, service_id, every=EVERY):

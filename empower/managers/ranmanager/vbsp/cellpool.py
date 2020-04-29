@@ -89,7 +89,7 @@ class Cell:
         self.ul_earfcn = ul_earfcn
         self.n_prbs = n_prbs
         self.ue_measurements = {}
-        self.cell_measurements = {}
+        self.mac_prb_utilization = {}
 
     def to_str(self):
         """Return an ASCII representation of the object."""
@@ -125,7 +125,7 @@ class Cell:
         out['dl_earfcn'] = self.dl_earfcn
         out['ul_earfcn'] = self.ul_earfcn
         out['n_prbs'] = self.n_prbs
-        out['cell_measurements'] = self.cell_measurements
+        out['mac_prb_utilization'] = self.mac_prb_utilization
         out['ue_measurements'] = self.ue_measurements
 
         return out
