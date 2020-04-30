@@ -97,6 +97,28 @@ class UEMeasurements(ELTEApp):
     def __eq__(self, other):
         return super().__eq__(other) and self.imsi == other.imsi
 
+    def start(self):
+        """Start app."""
+
+        super().start()
+
+        if self.imsi not in self.context.users:
+            return
+
+        user = self.context.users[self.imsi]
+        self.config_ue_measurement(user, vbsp.OP_CREATE)
+
+    def stop(self):
+        """Stop app."""
+
+        if self.imsi not in self.context.users:
+            return
+
+        user = self.context.users[self.imsi]
+        self.config_ue_measurement(user, vbsp.OP_DELETE)
+
+        super().stop()
+
     @property
     def imsi(self):
         """ Return the UE IMSI. """

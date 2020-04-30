@@ -265,6 +265,8 @@ class VBSPConnection(RANConnection):
     def _handle_hello_service(self, msg):
         """Handle an incoming HELLO message."""
 
+        period = 0;
+
         # parse TLVs
         for tlv in msg.tlvs:
 
@@ -279,8 +281,10 @@ class VBSPConnection(RANConnection):
 
             if tlv.type == self.proto.PT_HELLO_SERVICE_PERIOD:
                 self.log.info("Hello period set to %usms", option.period)
+                period = option.period
                 self.send_hello_response(option.period)
 
+        self.device.period = period
         self.device.last_seen = msg.seq
         self.device.last_seen_ts = time.time()
 
