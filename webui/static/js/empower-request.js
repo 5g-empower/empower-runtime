@@ -1,14 +1,14 @@
 
 
 /**
- * Class WEBUI_Request provides a manager for HTTP asynchronous requests for the 
+ * Class WEBUI_Request provides a manager for HTTP asynchronous requests for the
  * WEBUI.
- * 
- * @requires js/support/empower-global.js 
+ *
+ * @requires js/support/empower-global.js
  * @requires js/support/empower-corefunctions.js
- * 
+ *
  * @extends WEBUI_CoreFunctions
- * 
+ *
  */
 class WEBUI_Request extends WEBUI_CoreFunctions{
 
@@ -16,9 +16,9 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   _REQ_TIMEOUT_INTERVAL = 2000 //ms
 
   /**
-   * Constructor: it assumes global variable __EMPOWER_WEBUI.USER.BASIC_AUTH 
+   * Constructor: it assumes global variable __EMPOWER_WEBUI.USER.BASIC_AUTH
    * being properly set
-   * 
+   *
    */
   constructor() {
 
@@ -38,9 +38,9 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method returns the Basic authentication value to be inserted in 
+   * This method returns the Basic authentication value to be inserted in
    * the request header
-   * 
+   *
    * @return {string} Basic Authentication
    */
 
@@ -50,32 +50,32 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method configures the asynchronous HTTP request (ajax) according 
+   * This method configures the asynchronous HTTP request (ajax) according
    * to the params passed
-   * 
+   *
    * @param {Object} options - All the configuration options.
    * @param {?string} options.method - The HTTP method to use for the request.
-   * @param {?string} options.dataType - The type of data that expected back 
+   * @param {?string} options.dataType - The type of data that expected back
    *                                     from the server.
    * @param {?(Object|string)} options.data - Data to be sent to the server.
-   * @param {?boolean} options.cache - If set to false, it will force requested 
+   * @param {?boolean} options.cache - If set to false, it will force requested
    *                                   pages not to be cached by the browser.
    * @param {?function[]} options.success - A sequence of functions to be called
    *                                        if the request succeeds.
-   * @param {?function[]} options.complete - A sequence of functions to be 
-   *                                        called when the request finishes 
-   *                                        (after success and error callbacks 
+   * @param {?function[]} options.complete - A sequence of functions to be
+   *                                        called when the request finishes
+   *                                        (after success and error callbacks
    *                                        are executed).
-   * @param {?function[]} options.error - A sequence of functions to be called 
+   * @param {?function[]} options.error - A sequence of functions to be called
    *                                      if the request fails.
-   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the 
-   *                                    request. A value of 0 means there will 
+   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the
+   *                                    request. A value of 0 means there will
    *                                    be no timeout.
-   * @param {?boolean} options.auth_requested - true if authentication is 
+   * @param {?boolean} options.auth_requested - true if authentication is
    *                                            required, false otherwise.
-   * @param {?Object|string} options.key - a parameter identifying the specific 
+   * @param {?Object|string} options.key - a parameter identifying the specific
    *                                      target of the request
-   * 
+   *
    * @return {Object} current WEBUI_Request instance
    */
   configure({ method = "GET",
@@ -134,10 +134,10 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   /**
    * This method returns the data properly formatted for the associated HTML
    *  Request type
-   * 
-   * @param {?(Object|string)} data 
-   * @param {string} method 
-   * 
+   *
+   * @param {?(Object|string)} data
+   * @param {string} method
+   *
    * @return {string} data formatted for request
    */
   get_formatted_data(data, method = GET) {
@@ -153,33 +153,33 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * 
-   * @param {string} method 
-   * @param {Object|string} key 
+   *
+   * @param {string} method
+   * @param {Object|string} key
    */
   get_URL(method, key) {
     return this._ENTRY_POINT
   }
 
   /**
-   * This method configures the asynchronous GET HTTP request (ajax) 
+   * This method configures the asynchronous GET HTTP request (ajax)
    * according to the params passed
-   * 
+   *
    * @param {Object} options - All the configuration options.
    * @param {?function[]} options.success - A sequence of functions to be called
    *                                        if the request succeeds.
-   * @param {?function[]} options.complete - A sequence of functions to be 
-   *                                        called when the request finishes 
-   *                                        (after success and error callbacks 
+   * @param {?function[]} options.complete - A sequence of functions to be
+   *                                        called when the request finishes
+   *                                        (after success and error callbacks
    *                                        are executed).
-   * @param {?function[]} options.error - A sequence of functions to be called 
+   * @param {?function[]} options.error - A sequence of functions to be called
    *                                      if the request fails.
-   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the 
-   *                                    request. A value of 0 means there will 
+   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the
+   *                                    request. A value of 0 means there will
    *                                    be no timeout.
-   * @param {?Object|string} options.key - a parameter identifying the specific 
+   * @param {?Object|string} options.key - a parameter identifying the specific
    *                                      target of the request
-   * 
+   *
    * @return {Object} current WEBUI_Request instance
    */
   configure_GET({ cache = false,
@@ -199,25 +199,25 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method configures the asynchronous POST HTTP request (ajax) 
+   * This method configures the asynchronous POST HTTP request (ajax)
    * according to the params passed
-   * 
+   *
    * @param {Object} options - All the configuration options.
    * @param {?(Object|string)} options.data - Data to be sent to the server.
-   * @param {?boolean} options.cache - If set to false, it will force requested 
+   * @param {?boolean} options.cache - If set to false, it will force requested
    *                                   pages not to be cached by the browser.
    * @param {?function[]} options.success - A sequence of functions to be called
    *                                        if the request succeeds.
-   * @param {?function[]} options.complete - A sequence of functions to be 
-   *                                        called when the request finishes 
-   *                                        (after success and error callbacks 
+   * @param {?function[]} options.complete - A sequence of functions to be
+   *                                        called when the request finishes
+   *                                        (after success and error callbacks
    *                                        are executed).
-   * @param {?function[]} options.error - A sequence of functions to be called 
+   * @param {?function[]} options.error - A sequence of functions to be called
    *                                      if the request fails.
-   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the 
-   *                                    request. A value of 0 means there will 
+   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the
+   *                                    request. A value of 0 means there will
    *                                    be no timeout.
-   * 
+   *
    * @return {Object} current WEBUI_Request instance
    */
   configure_POST({ cache = false,
@@ -236,27 +236,27 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method configures the asynchronous PUT HTTP request (ajax) 
+   * This method configures the asynchronous PUT HTTP request (ajax)
    * according to the params passed
-   * 
+   *
    * @param {Object} options - All the configuration options.
    * @param {?(Object|string)} options.data - Data to be sent to the server.
-   * @param {?boolean} options.cache - If set to false, it will force requested 
+   * @param {?boolean} options.cache - If set to false, it will force requested
    *                                   pages not to be cached by the browser.
    * @param {?function[]} options.success - A sequence of functions to be called
    *                                        if the request succeeds.
-   * @param {?function[]} options.complete - A sequence of functions to be 
-   *                                        called when the request finishes 
-   *                                        (after success and error callbacks 
+   * @param {?function[]} options.complete - A sequence of functions to be
+   *                                        called when the request finishes
+   *                                        (after success and error callbacks
    *                                        are executed).
-   * @param {?function[]} options.error - A sequence of functions to be called 
+   * @param {?function[]} options.error - A sequence of functions to be called
    *                                      if the request fails.
-   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the 
-   *                                    request. A value of 0 means there will 
+   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the
+   *                                    request. A value of 0 means there will
    *                                    be no timeout.
-   * @param {?Object|string} options.key - a parameter identifying the specific 
+   * @param {?Object|string} options.key - a parameter identifying the specific
    *                                      target of the request
-   * 
+   *
    * @return {Object} current WEBUI_Request instance
    */
   configure_PUT({ cache = false,
@@ -278,26 +278,26 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method configures the asynchronous DELETE HTTP request (ajax) 
+   * This method configures the asynchronous DELETE HTTP request (ajax)
    * according to the params passed
-   * 
+   *
    * @param {Object} options - All the configuration options.
-   * @param {?boolean} options.cache - If set to false, it will force requested 
+   * @param {?boolean} options.cache - If set to false, it will force requested
    *                                   pages not to be cached by the browser.
    * @param {?function[]} options.success - A sequence of functions to be called
    *                                        if the request succeeds.
-   * @param {?function[]} options.complete - A sequence of functions to be 
-   *                                        called when the request finishes 
-   *                                        (after success and error callbacks 
+   * @param {?function[]} options.complete - A sequence of functions to be
+   *                                        called when the request finishes
+   *                                        (after success and error callbacks
    *                                        are executed).
-   * @param {?function[]} options.error - A sequence of functions to be called 
+   * @param {?function[]} options.error - A sequence of functions to be called
    *                                      if the request fails.
-   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the 
-   *                                    request. A value of 0 means there will 
+   * @param {?number} options.timeout - Set a timeout (in milliseconds) for the
+   *                                    request. A value of 0 means there will
    *                                    be no timeout.
-   * @param {?Object|string} options.key - a parameter identifying the specific 
+   * @param {?Object|string} options.key - a parameter identifying the specific
    *                                      target of the request
-   * 
+   *
    * @return {Object} current WEBUI_Request instance
    */
   configure_DELETE({ cache = false,
@@ -317,7 +317,7 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
   }
 
   /**
-   * This method performs the currently configured (this._REQUEST) 
+   * This method performs the currently configured (this._REQUEST)
    * asynchronous HTTP request
    */
   perform() {
@@ -327,7 +327,7 @@ class WEBUI_Request extends WEBUI_CoreFunctions{
 
 /**
  * Class WEBUI_Request_DEVICE extends WEBUI_Request to the DEVICE specific case
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_DEVICE extends WEBUI_Request {
@@ -353,7 +353,7 @@ class WEBUI_Request_DEVICE extends WEBUI_Request {
 
 /**
  * Class WEBUI_Request_CLIENT extends WEBUI_Request to the CLIENT specific case
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_CLIENT extends WEBUI_Request {
@@ -378,7 +378,7 @@ class WEBUI_Request_CLIENT extends WEBUI_Request {
 }
 
 /**
- * Support global variable for storing the "entities" of EMPOWER and refer them 
+ * Support global variable for storing the "entities" of EMPOWER and refer them
  * univocally in the WEBUI
  */
 __EMPOWER_WEBUI.ENTITY={
@@ -408,9 +408,9 @@ __EMPOWER_WEBUI.ENTITY={
 }
 
 /**
- * Class WEBUI_Request_WTP extends WEBUI_Request_DEVICE to the WTP specific 
+ * Class WEBUI_Request_WTP extends WEBUI_Request_DEVICE to the WTP specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request_DEVICE}
  */
 class WEBUI_Request_WTP extends WEBUI_Request_DEVICE {
@@ -432,9 +432,9 @@ class WEBUI_Request_WTP extends WEBUI_Request_DEVICE {
 }
 
 /**
- * Class WEBUI_Request_VBS extends WEBUI_Request_DEVICE to the VBS specific 
+ * Class WEBUI_Request_VBS extends WEBUI_Request_DEVICE to the VBS specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request_DEVICE}
  */
 class WEBUI_Request_VBS extends WEBUI_Request_DEVICE {
@@ -456,9 +456,9 @@ class WEBUI_Request_VBS extends WEBUI_Request_DEVICE {
 }
 
 /**
- * Class WEBUI_Request_ACCOUNT extends WEBUI_Request to the ACCOUNT specific 
+ * Class WEBUI_Request_ACCOUNT extends WEBUI_Request to the ACCOUNT specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_ACCOUNT extends WEBUI_Request {
@@ -480,9 +480,9 @@ class WEBUI_Request_ACCOUNT extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_PROJECT extends WEBUI_Request to the PROJECT specific 
+ * Class WEBUI_Request_PROJECT extends WEBUI_Request to the PROJECT specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_PROJECT extends WEBUI_Request {
@@ -504,9 +504,9 @@ class WEBUI_Request_PROJECT extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_WORKER extends WEBUI_Request to the WORKER specific 
+ * Class WEBUI_Request_WORKER extends WEBUI_Request to the WORKER specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_WORKER extends WEBUI_Request {
@@ -528,10 +528,10 @@ class WEBUI_Request_WORKER extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request to the 
- * WORKER_CATALOG specific case. 
+ * Class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request to the
+ * WORKER_CATALOG specific case.
  * It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request {
@@ -554,9 +554,9 @@ class WEBUI_Request_WORKER_CATALOG extends WEBUI_Request {
 
 
 /**
- * Class WEBUI_Request_APPLICATION extends WEBUI_Request to the APPLICATION 
+ * Class WEBUI_Request_APPLICATION extends WEBUI_Request to the APPLICATION
  * specific case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_APPLICATION extends WEBUI_Request {
@@ -580,10 +580,10 @@ class WEBUI_Request_APPLICATION extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request to the 
- * APPLICATION_CATALOG specific case. 
+ * Class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request to the
+ * APPLICATION_CATALOG specific case.
  * It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request {
@@ -605,9 +605,9 @@ class WEBUI_Request_APPLICATION_CATALOG extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_ACL extends WEBUI_Request to the ACL specific case. 
+ * Class WEBUI_Request_ACL extends WEBUI_Request to the ACL specific case.
  * It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_ACL extends WEBUI_Request {
@@ -631,9 +631,9 @@ class WEBUI_Request_ACL extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_WIFI_SLICE extends WEBUI_Request to the WIFI slice specific case. 
+ * Class WEBUI_Request_WIFI_SLICE extends WEBUI_Request to the WIFI slice specific case.
  * It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_WIFI_SLICE extends WEBUI_Request {
@@ -657,9 +657,9 @@ class WEBUI_Request_WIFI_SLICE extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_LTE_SLICE extends WEBUI_Request to the LTE slice specific case. 
+ * Class WEBUI_Request_LTE_SLICE extends WEBUI_Request to the LTE slice specific case.
  * It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request}
  */
 class WEBUI_Request_LTE_SLICE extends WEBUI_Request {
@@ -683,9 +683,9 @@ class WEBUI_Request_LTE_SLICE extends WEBUI_Request {
 }
 
 /**
- * Class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT to the LVAP specific 
+ * Class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT to the LVAP specific
  * case. It is actually just an alias of the extended class
- * 
+ *
  * @extends {WEBUI_Request_CLIENT}
  */
 class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT {
@@ -715,11 +715,43 @@ class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT {
 }
 
 /**
- * Support factory for providing the proper WEBUI_Request_XXX class for the 
+ * Class WEBUI_Request_UE extends WEBUI_Request_CLIENT to the UE specific
+ * case. It is actually just an alias of the extended class
+ *
+ * @extends {WEBUI_Request_CLIENT}
+ */
+class WEBUI_Request_UE extends WEBUI_Request_CLIENT {
+
+  /**
+   * @override
+   */
+  get_URL(method = "GET", key = null) {
+
+    let project_id = __EMPOWER_WEBUI.PROJECT.ID
+
+    if (this._is_there(key)) {
+      if ((method === "GET") ||
+        (method === "PUT") ||
+        (method === "DELETE")) {
+        if (project_id !== ""){
+          return this._ENTRY_POINT + "projects/"+project_id+"/users/" + key
+        }
+        else{
+          return this._ENTRY_POINT + "users/"+key
+        }
+      }
+    }
+    return this._ENTRY_POINT + "users"
+  }
+
+}
+
+/**
+ * Support factory for providing the proper WEBUI_Request_XXX class for the
  * specified entity
- * 
+ *
  * @param {string} entity - identifier of the entity
- * 
+ *
  * @return {Object} An instance of the WEBUI_Request class (WEBUI_Request_XXX)
  *                  specific for the specified entity
  */
@@ -749,9 +781,11 @@ function REST_REQ(entity){
       return new WEBUI_Request_LTE_SLICE()
     case __EMPOWER_WEBUI.ENTITY.CLIENT.LVAP:
       return new WEBUI_Request_LVAP()
+    case __EMPOWER_WEBUI.ENTITY.CLIENT.UE:
+      return new WEBUI_Request_UE()
     default:
-      console.warn("Entity", 
-        entity, 
+      console.warn("Entity",
+        entity,
         "unknown, default WEBUI_Request instance returned")
       return new WEBUI_Request()
   }
