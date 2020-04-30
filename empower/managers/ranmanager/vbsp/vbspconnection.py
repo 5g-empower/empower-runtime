@@ -342,7 +342,7 @@ class VBSPConnection(RANConnection):
                 if option.status == USER_STATUS_DISCONNECTED:
 
                     if option.imsi not in self.manager.users:
-                        self.log.warning("IMSI not found%s", option.imsi)
+                        self.log.warning("IMSI not found: %s", option.imsi)
                         continue
 
                     user = self.manager.users[option.imsi]
@@ -354,7 +354,12 @@ class VBSPConnection(RANConnection):
                     continue
 
                 if option.imsi in self.manager.users:
-                    self.log.warning("IMSI found%s", option.imsi)
+
+                    self.log.info("IMSI found: %s", option.imsi)
+
+                    user = self.manager.users[option.imsi]
+                    user.rnti = option.rnti
+
                     continue
 
                 user = User(imsi=option.imsi,
