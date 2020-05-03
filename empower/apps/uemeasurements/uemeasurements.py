@@ -25,6 +25,7 @@ import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.apps.uemeasurements import RRCReportAmount, RRCReportInterval
 from empower.managers.ranmanager.vbsp.lteapp import ELTEApp
+from empower.core.imsi import IMSI
 from empower.core.app import EVERY
 
 PT_UE_MEASUREMENTS_SERVICE = 0x03
@@ -60,7 +61,8 @@ class UEMeasurements(ELTEApp):
 
     Parameters:
         imsi: the UE IMSI (mandatory)
-        every: the loop period in ms (optional, default 2000ms)
+        interval: the reporting interval (mandatory)
+        amount: the number of reports (mandatory)
 
     Example:
         POST /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps
@@ -68,7 +70,8 @@ class UEMeasurements(ELTEApp):
             "name": "empower.apps.uemeasurements.uemeasurements",
             "params": {
                 "imsi": "429011234567890",
-                "every": 2000
+                "interval": "MS480",
+                "amount": "INFINITY"
             }
         }
     """
@@ -131,7 +134,7 @@ class UEMeasurements(ELTEApp):
     def imsi(self, imsi):
         """ Set the UE IMSI. """
 
-        self.params['imsi'] = int(imsi)
+        self.params['imsi'] = IMSI(imsi)
 
     @property
     def interval(self):

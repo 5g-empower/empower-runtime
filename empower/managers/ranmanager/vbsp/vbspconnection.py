@@ -22,6 +22,7 @@ import time
 from construct import Container
 from tornado.iostream import StreamClosedError
 
+from empower.core.imsi import IMSI
 from empower.managers.ranmanager.vbsp.cellpool import Cell
 from empower.managers.ranmanager.vbsp.user import User, \
     USER_STATUS_DISCONNECTED
@@ -338,36 +339,39 @@ class VBSPConnection(RANConnection):
                     self.log.warning("Unable to find pci %u", option.pcis)
 
                 cell = self.device.cells[option.pci]
+                imsi = IMSI(option.imsi)
 
                 if option.status == USER_STATUS_DISCONNECTED:
 
-                    if option.imsi not in self.manager.users:
-                        self.log.warning("IMSI not found: %s", option.imsi)
+                    if imsi not in self.manager.users:
+                        self.log.warning("IMSI not found: %s", imsi)
                         continue
 
-                    user = self.manager.users[option.imsi]
+                    user = self.manager.users[imsi]
 
                     self.send_client_leave_message_to_self(user)
-                    del self.manager.users[option.imsi]
+                    del self.manager.users[imsi]
+
                     self.log.info("Removing %s", user)
 
                     continue
 
-                if option.imsi in self.manager.users:
+                if imsi in self.manager.users:
 
-                    self.log.info("IMSI found: %s", option.imsi)
-
-                    user = self.manager.users[option.imsi]
+                    user = self.manager.users[imsi]
                     user.rnti = option.rnti
 
-                    continue
+                    self.log.info("Updating RNTI %s", user)
 
-                user = User(imsi=option.imsi,
-                            tmsi=option.tmsi,
-                            rnti=option.rnti,
-                            status=option.status,
-                            cell=cell)
+                else:
 
-                self.manager.users[option.imsi] = user
-                self.send_client_join_message_to_self(user)
-                self.log.info("Adding %s", user)
+                    user = User(imsi=imsi,
+                                tmsi=option.tmsi,
+                                rnti=option.rnti,
+                                status=option.status,
+                                cell=cell)
+
+                    self.manager.users[imsi] = user
+                    self.send_client_join_message_to_self(user)
+
+                    self.log.info("Adding %s", user)

@@ -48,9 +48,12 @@ class User():
         self.rnti = rnti
         self.status = status
         self.cell = cell
-        tmp = numdb.get('imsi').split(str(imsi))
-        self.plmnid = PLMNID(mcc=tmp[0], mnc=tmp[1])
-        self.msin = tmp[2]
+
+    @property
+    def plmnid(self):
+        """Return the vbs."""
+
+        return self.imsi.plmnid
 
     @property
     def vbs(self):
@@ -67,7 +70,6 @@ class User():
         out['rnti'] = self.rnti
         out['cell'] = self.cell
         out['plmnid'] = self.plmnid
-        out['msin'] = self.msin
         out['status'] = USER_STATUS[self.status]
         return out
 

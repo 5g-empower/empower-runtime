@@ -35,10 +35,7 @@ class TestLTESlices(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": {
-                    "mcc": "001",
-                    "mnc": "01"
-                }
+                "plmnid": "00101"
             },
             "lte_slices": [
                 {
@@ -127,10 +124,7 @@ class TestLTESlices(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": {
-                    "mcc": "001",
-                    "mnc": "01"
-                }
+                "plmnid": "00101"
             }
         }
 
@@ -232,10 +226,7 @@ class TestLTESlices(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": {
-                    "mcc": "001",
-                    "mnc": "01"
-                }
+                "plmnid": "00101"
             },
             "lte_slices": [
                 {
@@ -334,10 +325,7 @@ class TestLTESlices(BaseTest):
             "owner": "foo",
             "desc": "Test project",
             "lte_props": {
-                "plmnid": {
-                    "mcc": "001",
-                    "mnc": "01"
-                }
+                "plmnid": "00101"
             }
         }
 

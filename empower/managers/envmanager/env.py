@@ -195,6 +195,13 @@ class Env(MongoModel):
 
                 self.remove_service_state(service_id)
 
+            except ValueError as ex:
+
+                self.manager.log.error("Unable to start service %s: %s",
+                                       name, ex)
+
+                self.remove_service_state(service_id)
+
     def stop_services(self):
         """Stop registered services."""
 

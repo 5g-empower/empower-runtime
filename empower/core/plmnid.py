@@ -17,10 +17,12 @@
 
 """Public land mobile network identifier (PLMNID)."""
 
-import re
+from stdnum import numdb
+from stdnum.util import clean, isdigits
 
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
+
 from empower.core.serialize import serializable_dict
 
 
@@ -28,17 +30,39 @@ from empower.core.serialize import serializable_dict
 class PLMNID:
     """Public land mobile network  identifier (PLMNID)."""
 
-    def __init__(self, mcc="001", mnc="01"):
+    def __init__(self, plmnid):
 
-        if not re.findall(r'\b\d{3}\b', mcc):
-            raise ValueError("Invalid MCC %s" % mcc)
+        plmnid = clean(plmnid, ' -').strip().upper()
 
-        self.mcc = re.findall(r'\b\d{3}\b', mcc)[0]
+        if not isdigits(plmnid):
+            raise ValueError("Invalid PLMNID %s" % plmnid)
 
-        if not re.findall(r'\b\d{2,3}\b', mnc):
-            raise ValueError("Invalid MCC %s" % mnc)
+        if len(plmnid) not in (4, 5):
+            raise ValueError("Invalid PLMNID length %s" % plmnid)
 
-        self.mnc = re.findall(r'\b\d{2,3}\b', mnc)[0]
+        if len(tuple(numdb.get('imsi').split(plmnid))) < 2:
+            raise ValueError("Invalid PLMNID format %s" % plmnid)
+
+        self.info = dict(plmnid=plmnid)
+
+        mcc_info, mnc_info = numdb.get('imsi').info(plmnid)
+
+        self.info['mcc'] = mcc_info[0]
+        self.info.update(mcc_info[1])
+        self.info['mnc'] = mnc_info[0]
+        self.info.update(mnc_info[1])
+
+    @property
+    def mcc(self):
+        """Get mcc."""
+
+        return self.info['mcc']
+
+    @property
+    def mnc(self):
+        """Get mnc."""
+
+        return self.info['mnc']
 
     def to_str(self):
         """Return an ASCII representation of the object."""
@@ -48,18 +72,12 @@ class PLMNID:
     def to_tuple(self):
         """Return a tuple representation of the object."""
 
-        return (self.mcc, self.mnc)
+        return tuple(self.info.values())
 
     def to_dict(self):
         """Return a dict representation of the object."""
 
-        return {
-            "mcc": self.mcc,
-            "mnc": self.mnc
-        }
-
-    def __bool__(self):
-        return bool(self.mcc) and bool(self.mnc)
+        return self.info
 
     def __str__(self):
         return self.to_str()
@@ -68,11 +86,11 @@ class PLMNID:
         return len(self.to_str())
 
     def __hash__(self):
-        return hash(self.to_str)
+        return hash(self.to_str())
 
     def __eq__(self, other):
         if isinstance(other, PLMNID):
-            return self.mcc == other.mcc and self.mnc == other.mnc
+            return self.to_str() == other.to_str()
         return False
 
     def __ne__(self, other):
@@ -96,12 +114,12 @@ class PLMNIDField(MongoBaseField):
             try:
 
                 if isinstance(value, PLMNID):
-                    value = value.to_dict()
+                    value = value.to_str()
 
-                return PLMNID(**value)
+                return PLMNID(value)
 
             except ValueError:
-                msg = '%r is not a valid PLMN id.' % value
+                msg = '%r is not a valid PLMNID.' % value
                 raise ValidationError(msg)
 
         self.validators.append(validate_plmnid)
@@ -111,9 +129,9 @@ class PLMNIDField(MongoBaseField):
         """Convert value for storage."""
 
         try:
-            return value.to_dict()
+            return value.to_str()
         except ValueError:
-            msg = '%r is not a valid PLMN id.' % value
+            msg = '%r is not a valid PLMNID.' % value
             raise ValidationError(msg)
 
     @classmethod
@@ -123,10 +141,10 @@ class PLMNIDField(MongoBaseField):
         try:
 
             if isinstance(value, PLMNID):
-                value = value.to_dict()
+                value = value.to_str()
 
-            return PLMNID(**value)
+            return PLMNID(value)
 
         except ValueError:
-            msg = '%r is not a valid PLMN id.' % value
+            msg = '%r is not a valid PLMNID.' % value
             raise ValidationError(msg)
