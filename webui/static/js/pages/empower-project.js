@@ -77,7 +77,7 @@ DCSP_ALLOWED_VALUES = [
 $(document).ready(function() {
 
   console.log("__EMPOWER_WEBUI: ", __EMPOWER_WEBUI)
-  
+
   let fields = {
     address: {
       type: "TEXT"
@@ -164,7 +164,7 @@ $(document).ready(function() {
   MNG_SLICE_MODAL = $('#MNG_SLICE_Modal')
 
   // ENTITY = __EMPOWER_WEBUI.ENTITY.PROJECT
-  
+
   // REST_REQ(ENTITY).configure_GET({
   //   key: project_id,
   //   success: [ empower_log_response, build_and_set_properties_body, refresh_datatable_acls ],
@@ -237,7 +237,7 @@ function build_properties_body(data){
   }
   if (CF._is_there(data.lte_props)){
     html += "<p class='py-2 my-0'><i class='fas fa-wifi fa-fw fa-1x mr-1'></i><b class='text-lg'>LTE</b></p>"
-    html += "<p class='py-1 my-0'>"+spacing+"<b class='pr-1'>PLMNID (MCC/MNC):</b>"+ data.lte_props.plmnid.mcc + "/"+ data.lte_props.plmnid.mnc+"</p>"
+    html += "<p class='py-1 my-0'>"+spacing+"<b class='pr-1'>PLMNID:</b>"+ data.lte_props.plmnid +"</p>"
   }
   else{
     // html += "<p class='py-2 my-0 text-danger'>"
@@ -272,7 +272,7 @@ function set_what_is_visible(project_data){
     $( "#" + BOX__LTE_SLICES).removeClass("d-none")
   }
   else{
-    
+
   }
 }
 
@@ -351,14 +351,14 @@ function add_ACL() {
   let rda = function(){
     refresh_datatable_acls()
   }
-  
+
   add_reset = ADD_ACL_MODAL.reset.bind(ADD_ACL_MODAL)
 
   ENTITY = __EMPOWER_WEBUI.ENTITY.ACL
 
   REST_REQ(ENTITY).configure_POST({
     data: data,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       add_reset, rda ],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -393,7 +393,7 @@ function edit_ACL(){
     "addr": EDIT_ACL_MODAL.address.get(),
     "desc": EDIT_ACL_MODAL.desc.get()
   }
-  
+
   edit_reset = EDIT_ACL_MODAL.reset.bind(EDIT_ACL_MODAL)
 
   let rda = function(){
@@ -405,7 +405,7 @@ function edit_ACL(){
   REST_REQ(ENTITY).configure_PUT({
     data: data,
     key: data.addr,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       edit_reset, rda ],
     error: [ empower_log_response,  empower_alert_generate_error ]
   })
@@ -435,7 +435,7 @@ function trigger_remove_acl_modal( acl_key ) {
 function remove_ACL(){
 
   let key = REMOVE_ACL_MODAL.address.get()
-  
+
   REMOVE_ACL_MODAL.reset()
 
   let rda = function(){
@@ -475,7 +475,7 @@ function format_datatable_wifi_slices_data( data ) {
   if (CF._is_there(data.wifi_slices)){
 
     wifi_slices = data.wifi_slices
-    
+
   }
 
   $.each( wifi_slices, function( key, val ) {
@@ -494,7 +494,7 @@ function format_datatable_wifi_slices_data( data ) {
         }
       })
     }
-    
+
     // let properties = "-"
     // if (CF._is_there(val.properties)){
     //   properties = ""
@@ -623,12 +623,12 @@ function format_datatable_lte_slices_data( data ) {
   if (CF._is_there(data.lte_slices)){
 
     lte_slices = data.lte_slices
-    
+
   }
 
   $.each( lte_slices, function( key, val ) {
 
-    
+
 
     let rbgs = "-"
     let ue_scheduler = "-"
@@ -753,15 +753,15 @@ function trigger_remove_lte_slice_modal( ls_key ) {
 function refresh_all(){
 
   let project_id = __EMPOWER_WEBUI.PROJECT.ID
-  
+
   ENTITY = __EMPOWER_WEBUI.ENTITY.PROJECT
-  
+
   REST_REQ(ENTITY).configure_GET({
     key: project_id,
     success: [ empower_log_response, build_and_set_properties_body,
-      set_what_is_visible, 
-      refresh_datatable_acls, 
-      refresh_datatable_wifi_slices, 
+      set_what_is_visible,
+      refresh_datatable_acls,
+      refresh_datatable_wifi_slices,
       refresh_datatable_lte_slices ],
     error: [ empower_log_response,  empower_alert_generate_error ]
   })
@@ -769,7 +769,7 @@ function refresh_all(){
 }
 
 function not_yet_implemented(what=null){
-  let message = "NOT IMPLEMENTED, yet" 
+  let message = "NOT IMPLEMENTED, yet"
   if (CF._is_there(what)){
     message = "'" + what + "' "+ message
   }
@@ -808,7 +808,7 @@ function fill_with_scheduler_options(select, tech){
 }
 
 function adjust_mng_slice_modal_buttons_and_tables(tech, op){
-  
+
   CF._hide($("#mng_wifi_slc_create_btn"))
   CF._hide($("#mng_wifi_slc_edit_btn"))
   CF._hide($("#mng_wifi_slc_delete_btn"))
@@ -864,7 +864,7 @@ function refresh_mng_slice_modal_datatable(tech, op="CREATE", reference_device=n
       ENTITY = __EMPOWER_WEBUI.ENTITY.DEVICE.VBS
       break;
     case "WIFI":
-      ENTITY = __EMPOWER_WEBUI.ENTITY.DEVICE.WTP    
+      ENTITY = __EMPOWER_WEBUI.ENTITY.DEVICE.WTP
       break;
       default:
         console.log("Unknown tech: ", tech)
@@ -874,7 +874,7 @@ function refresh_mng_slice_modal_datatable(tech, op="CREATE", reference_device=n
     format_mng_slice_modal_datatable(tech, data, op, reference_device)
     MNG_SLICE_MODAL.modal({show:true})
   }
- 
+
 
   REST_REQ(ENTITY).configure_GET({
     success: [ empower_log_response, show_mng_slice_modal],
@@ -892,7 +892,7 @@ function format_mng_slice_modal_datatable( tech, data, op, reference_device) {
   if (CF._is_there(data)){
 
     device_list = data
-    
+
   }
 
   let dt = null
@@ -912,14 +912,14 @@ function format_mng_slice_modal_datatable( tech, data, op, reference_device) {
   $.each( device_list, function( key, val ) {
 
     let add_row = true
-    
+
     let checkbox = null
     if (tech === "WIFI"){
-      checkbox = '<input type="checkbox" class="form-check-input position-static" id="checkbox_' + index + 
+      checkbox = '<input type="checkbox" class="form-check-input position-static" id="checkbox_' + index +
                     '" onclick="toggle_properties(\'WIFI\',\''+index+'\')"></input>'
     }
     else if  (tech === "LTE"){
-      checkbox = '<input type="checkbox" class="form-check-input position-static" id="checkbox_' + index + 
+      checkbox = '<input type="checkbox" class="form-check-input position-static" id="checkbox_' + index +
                     '" onclick="toggle_properties(\'LTE\',\''+index+'\')"></input>'
     }
 
@@ -929,7 +929,7 @@ function format_mng_slice_modal_datatable( tech, data, op, reference_device) {
 
     if (tech === "WIFI"){
       properties = '<div class="form-group pr-2 d-none" id="properties_device_'+index+'">' +
-            
+
         '<div class="form-group row pr-2">'+
           '<label class="col-5 my-auto pl-4 font-italic text-right pr-4">'+
             '<i class="fas fa-hourglass fa-1x fa-fw d-none"></i>'+
@@ -959,7 +959,7 @@ function format_mng_slice_modal_datatable( tech, data, op, reference_device) {
     }
     else if  (tech === "LTE"){
       properties = '<div class="form-group pr-2 d-none" id="properties_device_'+index+'">' +
-            
+
         '<div class="form-group row pr-2">'+
           '<label class="col-5 my-auto pl-4 font-italic text-right pr-4">'+
             '<i class="fas fa-hourglass fa-1x fa-fw d-none"></i>'+
@@ -1073,16 +1073,16 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
           select = $('#mng_ue_scheduler')
           fill_with_scheduler_options(select, "LTE")
-    
+
           $('#mng_slice_id').val("")
           CF._enable($('#mng_slice_id'))
           $('#mng_rbgs').val(DEFAULT_RBGS_VALUE)
           CF._enable($('#mng_rbgs'))
           $('#mng_ue_scheduler').val(DEFAULT_UE_SCHEDULER_VALUE)
           CF._enable($('#mng_ue_scheduler'))
-          
+
           refresh_mng_slice_modal_datatable(tech)
-          
+
           break
         case "EDIT":
 
@@ -1096,7 +1096,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             select = $('#mng_ue_scheduler')
             fill_with_scheduler_options(select, "LTE")
-      
+
             $('#mng_slice_id').val(key)
             CF._disable($('#mng_slice_id'))
             $('#mng_rbgs').val(data.properties.rbgs)
@@ -1106,14 +1106,14 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             refresh_mng_slice_modal_datatable(tech, op, data)
           }
-    
+
           REST_REQ(ENTITY).configure_GET({
             key: key,
             success: [ empower_log_response, configure_modal ],
             error: [ empower_log_response,  empower_alert_generate_error ]
           })
           .perform()
-          
+
           break
         case "DELETE":
 
@@ -1127,7 +1127,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             select = $('#mng_ue_scheduler')
             fill_with_scheduler_options(select, "LTE")
-      
+
             $('#mng_slice_id').val(key)
             CF._disable($('#mng_slice_id'))
             $('#mng_rbgs').val(data.properties.rbgs)
@@ -1137,14 +1137,14 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             refresh_mng_slice_modal_datatable(tech, op, data)
           }
-    
+
           REST_REQ(ENTITY).configure_GET({
             key: key,
             success: [ empower_log_response, configure_modal ],
             error: [ empower_log_response,  empower_alert_generate_error ]
           })
           .perform()
-          
+
           break
         default:
           console.log("Unknown op", op)
@@ -1152,7 +1152,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
       break
     case "WIFI":
       switch(op){
-        
+
         case "CREATE":
 
           console.log("trigger_mng_slice_modal: ", tech, op)
@@ -1162,7 +1162,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
           select = $('#mng_sta_scheduler')
           fill_with_scheduler_options(select, "WIFI")
-    
+
           $('#mng_slice_id').val("")
           CF._enable($('#mng_slice_id'))
           $('#mng_quantum').val(DEFAULT_QUANTUM_VALUE)
@@ -1171,9 +1171,9 @@ function trigger_mng_slice_modal(op, tech, key=null){
           CF._enable($('#mng_sta_scheduler'))
           $('#mng_amsdu_aggregation').val(DEFAULT_AMSDU_AGGREGATION_VALUE)
           CF._enable($('#mng_amsdu_aggregation'))
-          
+
           refresh_mng_slice_modal_datatable(tech)
-    
+
           break
         case "EDIT":
 
@@ -1187,7 +1187,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             select = $('#mng_sta_scheduler')
             fill_with_scheduler_options(select, "WIFI")
-      
+
             $('#mng_slice_id').val(key)
             CF._disable($('#mng_slice_id'))
             $('#mng_quantum').val(data.properties.quantum)
@@ -1199,7 +1199,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             refresh_mng_slice_modal_datatable(tech, op, data)
           }
-    
+
           REST_REQ(ENTITY).configure_GET({
             key: key,
             success: [ empower_log_response, configure_modal ],
@@ -1220,7 +1220,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             select = $('#mng_sta_scheduler')
             fill_with_scheduler_options(select, "WIFI")
-      
+
             $('#mng_slice_id').val(key)
             CF._disable($('#mng_slice_id'))
             $('#mng_quantum').val(data.properties.quantum)
@@ -1232,7 +1232,7 @@ function trigger_mng_slice_modal(op, tech, key=null){
 
             refresh_mng_slice_modal_datatable(tech, op, data)
           }
-    
+
           REST_REQ(ENTITY).configure_GET({
             key: key,
             success: [ empower_log_response, configure_modal ],
@@ -1260,7 +1260,7 @@ function mng_WIFI_SLICE(op){
   switch(op){
     case "CREATE":
       data = {}
-  
+
       data.version = "1.0"
 
       data.slice_id = parseInt($("#mng_slice_id").val())
@@ -1313,7 +1313,7 @@ function mng_WIFI_SLICE(op){
     case "EDIT":
 
       data = {}
-  
+
       data.version = "1.0"
 
       data.slice_id = parseInt($("#mng_slice_id").val())
@@ -1392,7 +1392,7 @@ function mng_LTE_SLICE(op){
   switch(op){
     case "CREATE":
       data = {}
-  
+
       data.version = "1.0"
 
       data.slice_id = parseInt($("#mng_slice_id").val())

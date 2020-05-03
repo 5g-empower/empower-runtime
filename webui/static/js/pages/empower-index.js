@@ -20,10 +20,7 @@ $(document).ready(function() {
     ssidtype: {
       type: __EMPOWER_WEBUI.MODAL.FIELD.TYPE.CHECKBOX
     },
-    mcc: {
-      type: __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
-    },
-    mnc: {
+    plmnid: {
       type: __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
     },
   }
@@ -83,14 +80,10 @@ function add() {
       }
     }
   }
-  if (ADD_MODAL.mcc.get() && ADD_MODAL.mnc.get()){
-    if ((ADD_MODAL.mcc.get() != "") &&
-        (ADD_MODAL.mnc.get() != "")){
+  if (ADD_MODAL.plmnid.get() ){
+    if (ADD_MODAL.plmnid.get() != ""){
       data.lte_props= {
-        plmnid:{
-          "mcc": ADD_MODAL.mcc.get(),
-          "mnc": ADD_MODAL.mnc.get()
-        }
+        plmnid: ADD_MODAL.plmnid.get()
       }
     }
   }

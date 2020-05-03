@@ -23,10 +23,10 @@ from stdnum.util import clean, isdigits
 from pymodm.errors import ValidationError
 from pymodm.base.fields import MongoBaseField
 
-from empower.core.serialize import serializable_dict
+from empower.core.serialize import serializable_string
 
 
-@serializable_dict
+@serializable_string
 class PLMNID:
     """Public land mobile network  identifier (PLMNID)."""
 

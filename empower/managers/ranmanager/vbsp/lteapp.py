@@ -54,28 +54,28 @@ class ELTEApp(EApp):
 
         return self.context.users
 
-    def handle_client_leave(self, ueq):
+    def handle_client_leave(self, user):
         """Called when a client leaves a network."""
 
         if not self.context.lte_props:
             return
 
-        if ueq.plmnid == self.context.lte_props.plmnid:
-            self.handle_ue_leave(ueq)
+        if user.plmnid == self.context.lte_props.plmnid:
+            self.handle_ue_leave(user)
 
-    def handle_ue_leave(self, ueq):
+    def handle_ue_leave(self, user):
         """Called when a UE leaves a network."""
 
-    def handle_client_join(self, ueq):
+    def handle_client_join(self, user):
         """Called when a client joins a network."""
 
         if not self.context.lte_props:
             return
 
-        if ueq.plmnid == self.context.lte_props.plmnid:
-            self.handle_ue_join(ueq)
+        if user.plmnid == self.context.lte_props.plmnid:
+            self.handle_ue_join(user)
 
-    def handle_ue_join(self, ueq):
+    def handle_ue_join(self, user):
         """Called when a UE joins a network."""
 
     def handle_device_down(self, vbs):

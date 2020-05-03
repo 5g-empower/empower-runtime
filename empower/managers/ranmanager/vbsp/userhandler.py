@@ -53,11 +53,7 @@ class UserHandler(apimanager.EmpowerAPIHandler):
                         "cell_measurements": {},
                         "ue_measurements": {}
                     },
-                    "plmnid": {
-                        "mcc": "222",
-                        "mnc": "93"
-                    },
-                    "msin": "0100001114",
+                    "plmnid": "22293",
                     "status": "connected"
                 }
             }
@@ -77,10 +73,7 @@ class UserHandler(apimanager.EmpowerAPIHandler):
                     "cell_measurements": {},
                     "ue_measurements": {}
                 },
-                "plmnid": {
-                    "mcc": "222",
-                    "mnc": "93"
-                },
+                "plmnid": "22293",
                 "msin": "0100001114",
                 "status": "connected"
             }

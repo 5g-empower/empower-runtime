@@ -44,8 +44,7 @@ function format_datatable_data( data ) {
     let tmsi = val.tmsi
     let rnti = val.rnti
     let msin = val.msin
-    let mcc = val.plmnid.mcc
-    let mnc = val.plmnid.mnc
+    let plmnid = val.plmnid
     let vbs = null
     let pci = null
 
@@ -59,7 +58,7 @@ function format_datatable_data( data ) {
         tmsi,
         rnti,
         msin,
-        mcc + "/" + mnc,
+        plmnid,
         pci,
         vbs
     ] )

@@ -230,10 +230,7 @@ class Project(Env):
     The LTE properties are defined starting from a JSON document like the
     following:
     {
-        "plmnid": {
-            "mcc": "001",
-            "mnc": "01"
-        }
+        "plmnid": "00101"
     }
 
     The Lora properties are defined starting from a JSON document like the
