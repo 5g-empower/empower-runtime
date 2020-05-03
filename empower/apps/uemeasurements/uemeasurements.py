@@ -17,6 +17,7 @@
 
 """UE measurements module."""
 
+import time
 import enum
 
 from construct import Struct, Int16ub, Int8ub, Container
@@ -25,6 +26,8 @@ import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.apps.uemeasurements import RRCReportAmount, RRCReportInterval
 from empower.managers.ranmanager.vbsp.lteapp import ELTEApp
+from empower.managers.ranmanager.vbsp import MSG_TYPE_RESPONSE, \
+    RESULT_SUCCESS, RESULT_FAIL
 from empower.core.imsi import IMSI
 from empower.core.app import EVERY
 
@@ -32,6 +35,7 @@ PT_UE_MEASUREMENTS_SERVICE = 0x03
 
 TLV_MEASUREMENTS_SERVICE_CONFIG = 0x08
 TLV_MEASUREMENTS_SERVICE_REPORT = 0x09
+TLV_MEASUREMENTS_SERVICE_MEAS_ID = 0x0B
 
 UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
     "rnti" / Int16ub,
@@ -40,10 +44,11 @@ UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
 )
 UE_MEASUREMENTS_SERVICE_CONFIG.name = "ue_measurements_service_request"
 
-UE_MEASUREMENTS_RECONF_COMPLETE = Struct(
-    "meas_id" / Int16ub,
+UE_MEASUREMENTS_SERVICE_MEAS_ID = Struct(
+    "rnti" / Int16ub,
+    "meas_id" / Int8ub,
 )
-UE_MEASUREMENTS_RECONF_COMPLETE.name = "ue_measurements_reconf_complete"
+UE_MEASUREMENTS_SERVICE_MEAS_ID.name = "ue_measurements_service_meas_id"
 
 UE_MEASUREMENTS_SERVICE_REPORT = Struct(
     "meas_id" / Int16ub,
@@ -88,6 +93,8 @@ class UEMeasurements(ELTEApp):
         # Register messages
         parser = (vbsp.PACKET, "ue_measurements_service")
         vbsp.register_message(PT_UE_MEASUREMENTS_SERVICE, parser)
+        vbsp.register_callback(PT_UE_MEASUREMENTS_SERVICE,
+                               self.handle_response)
 
         # Data structures
         self.meas_id = None
@@ -111,7 +118,7 @@ class UEMeasurements(ELTEApp):
             return
 
         user = self.context.users[self.imsi]
-        self.config_ue_measurement(user, vbsp.OP_CREATE)
+        self.handle_ue_join(user)
 
     def stop(self):
         """Stop app."""
@@ -120,7 +127,7 @@ class UEMeasurements(ELTEApp):
             return
 
         user = self.context.users[self.imsi]
-        self.config_ue_measurement(user, vbsp.OP_DELETE)
+        self.handle_ue_leave(user)
 
         super().stop()
 
@@ -175,8 +182,8 @@ class UEMeasurements(ELTEApp):
 
         return out
 
-    def config_ue_measurement(self, user, crud):
-        """Send UE measurement config."""
+    def handle_ue_join(self, user):
+        """Called when a UE joins the network."""
 
         interval = RRCReportInterval[self.interval].value
         amount = RRCReportAmount[self.amount].value
@@ -193,25 +200,106 @@ class UEMeasurements(ELTEApp):
 
         user.vbs.connection.send_message(action=PT_UE_MEASUREMENTS_SERVICE,
                                          msg_type=vbsp.MSG_TYPE_REQUEST,
-                                         crud_result=crud,
+                                         crud_result=vbsp.OP_CREATE,
                                          tlvs=[tlv],
-                                         callback=self.handle_response)
-
-    def handle_ue_join(self, user):
-        """Called when a UE joins the network."""
-
-        self.config_ue_measurement(user, vbsp.OP_CREATE)
+                                         callback=self.handle_add_response)
 
     def handle_ue_leave(self, user):
         """Called when a UE leaves the network."""
 
-        self.config_ue_measurement(user, vbsp.OP_DELETE)
+        if not self.meas_id:
+            return
 
-    def handle_response(self, *args, **kwargs):
-        """Handle an incoming UE_MEASUREMENTS message."""
+        interval = RRCReportInterval[self.interval].value
+        amount = RRCReportAmount[self.amount].value
 
-        print(args)
-        print(kwargs)
+        rrc_measurement_tlv = \
+            Container(rnti=user.rnti, meas_id=self.meas_id)
+
+        value = UE_MEASUREMENTS_SERVICE_MEAS_ID.build(rrc_measurement_tlv)
+
+        tlv = Container()
+        tlv.type = TLV_MEASUREMENTS_SERVICE_MEAS_ID
+        tlv.length = 4 + len(value)
+        tlv.value = value
+
+        user.vbs.connection.send_message(action=PT_UE_MEASUREMENTS_SERVICE,
+                                         msg_type=vbsp.MSG_TYPE_REQUEST,
+                                         crud_result=vbsp.OP_DELETE,
+                                         tlvs=[tlv],
+                                         callback=self.handle_del_response)
+
+    def handle_add_response(self, msg, vbs, _):
+        """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
+
+        # if not a response then ignore
+        if msg.flags.msg_type != MSG_TYPE_RESPONSE:
+            self.log.warning("Not a response, ignoring.")
+            return
+
+        # if result is fail then ignore
+        if msg.tsrc.crud_result == RESULT_FAIL:
+            self.log.warning("Error creating UE measurement, ignoring.")
+            return
+
+        # must be a success, parse TLVs
+        for tlv in msg.tlvs:
+
+            if tlv.type == TLV_MEASUREMENTS_SERVICE_MEAS_ID:
+
+                parser = UE_MEASUREMENTS_SERVICE_MEAS_ID
+                option = parser.parse(tlv.value)
+
+                self.log.debug("Processing options %s", parser.name)
+
+                self.meas_id = option.meas_id
+
+    def handle_del_response(self, msg, vbs, _):
+        """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
+
+        # if not a response then ignore
+        if msg.flags.msg_type != MSG_TYPE_RESPONSE:
+            self.log.warning("Not a response, ignoring.")
+            return
+
+        # if result is fail then ignore
+        if msg.tsrc.crud_result == RESULT_FAIL:
+            self.log.warning("Error deleting UE measurement, ignoring.")
+            return
+
+        # must be a success, just set meas_id to none
+        self.meas_id = None
+
+    def handle_response(self, msg, vbs):
+        """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
+
+        # if not a response then ignore
+        if msg.flags.msg_type != MSG_TYPE_RESPONSE:
+            self.log.warning("Not a response, ignoring.")
+            return
+
+        # if result is fail then ignore
+        if msg.tsrc.crud_result == RESULT_FAIL:
+            self.log.warning("Error creating UE measurement, ignoring.")
+            return
+
+        # must be a success, parse TLVs
+        for tlv in msg.tlvs:
+
+            if tlv.type == TLV_MEASUREMENTS_SERVICE_REPORT:
+
+                # set last iteration time
+                self.last = time.time()
+
+                parser = UE_MEASUREMENTS_SERVICE_REPORT
+                option = parser.parse(tlv.value)
+
+                self.log.debug("Processing options %s", parser.name)
+
+                print(option)
+
+        # handle callbacks
+        self.handle_callbacks()
 
 
 def launch(context, service_id, imsi, interval, amount, every=EVERY):
