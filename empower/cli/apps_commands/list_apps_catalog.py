@@ -22,8 +22,7 @@ from empower.cli import command
 def do_cmd(gargs, *_):
     """List application that can be loaded. """
 
-    url = '/api/v1/projects/catalog'
-    _, data = command.connect(gargs, ('GET', url), 200)
+    _, data = command.connect(gargs, ('GET', '/api/v1/projects/catalog'), 200)
 
     for entry in data.values():
 

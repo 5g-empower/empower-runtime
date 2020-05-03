@@ -17,10 +17,13 @@
 
 """UE measurements module."""
 
+import enum
+
 from construct import Struct, Int16ub, Container
 
 import empower.managers.ranmanager.vbsp as vbsp
 
+from empower.apps.uemeasurements import RRCReportAmount, RRCReportInterval
 from empower.managers.ranmanager.vbsp.lteapp import ELTEApp
 from empower.core.app import EVERY
 
@@ -30,17 +33,19 @@ TLV_MEASUREMENTS_SERVICE_CONFIG = 0x08
 TLV_MEASUREMENTS_SERVICE_REPORT = 0x09
 
 UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
-    "measure_id" / Int16ub,
     "rnti" / Int16ub,
-    "earfcn" / Int16ub,
-    "interval" / Int16ub,
-    "max_cells" / Int16ub,
-    "max_measure" / Int16ub,
+    "report_interval" / Int16ub,
+    "report_amount" / Int16ub,
 )
 UE_MEASUREMENTS_SERVICE_CONFIG.name = "ue_measurements_service_request"
 
+UE_MEASUREMENTS_RECONF_COMPLETE = Struct(
+    "meas_id" / Int16ub,
+)
+UE_MEASUREMENTS_RECONF_COMPLETE.name = "ue_measurements_reconf_complete"
+
 UE_MEASUREMENTS_SERVICE_REPORT = Struct(
-    "measure_id" / Int16ub,
+    "meas_id" / Int16ub,
     "pci" / Int16ub,
     "rsrp" / Int16ub,
     "rsrq" / Int16ub,
@@ -51,7 +56,7 @@ UE_MEASUREMENTS_SERVICE_REPORT.name = "ue_measurements_service_report"
 class UEMeasurements(ELTEApp):
     """UE Measurements Primitive.
 
-    Perform UE Measurements.
+    Perform UE Measurements for the current cell (Serving Cell).
 
     Parameters:
         imsi: the UE IMSI (mandatory)
@@ -68,34 +73,31 @@ class UEMeasurements(ELTEApp):
         }
     """
 
-    def __init__(self, context, service_id, imsi, every=EVERY):
+    def __init__(self, context, service_id, imsi, interval, amount, every):
 
         super().__init__(context=context,
                          service_id=service_id,
                          imsi=imsi,
+                         interval=interval,
+                         amount=amount,
                          every=every)
 
         # Register messages
         parser = (vbsp.PACKET, "ue_measurements_service")
         vbsp.register_message(PT_UE_MEASUREMENTS_SERVICE, parser)
 
-        # Hard coded ue measurements
-        self.rrc_measurements_params = [
-            {"earfcn": 3400,
-             "interval": 2000,
-             "max_cells": 2,
-             "max_measure": 2},
-            {"earfcn": 3400,
-             "interval": 2000,
-             "max_cells": 2,
-             "max_measure": 2}
-        ]
+        # Data structures
+        self.meas_id = None
+        self.pci = None
+        self.rsrp = None
+        self.rsrq = None
 
         # Last seen time
         self.last = None
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.imsi == other.imsi
+        return super().__eq__(other) and self.imsi == other.imsi and \
+            self.interval == other.interval and self.amount == other.amount
 
     def start(self):
         """Start app."""
@@ -131,6 +133,30 @@ class UEMeasurements(ELTEApp):
 
         self.params['imsi'] = int(imsi)
 
+    @property
+    def interval(self):
+        """ Return the interval. """
+
+        return self.params['interval'].name
+
+    @interval.setter
+    def interval(self, interval):
+        """Set the interval. """
+
+        self.params['interval'] = RRCReportInterval[interval].name
+
+    @property
+    def amount(self):
+        """ Return the amount. """
+
+        return self.params['amount'].name
+
+    @amount.setter
+    def amount(self, amount):
+        """ Set the amount. """
+
+        self.params['amount'] = RRCReportAmount[amount].name
+
     def loop(self):
         """Periodic loop."""
 
@@ -139,34 +165,32 @@ class UEMeasurements(ELTEApp):
 
         out = super().to_dict()
 
-        out['imsi'] = self.imsi
+        out['meas_id'] = self.meas_id
+        out['pci'] = self.pci
+        out['rsrp'] = self.rsrp
+        out['rsrq'] = self.rsrq
 
         return out
 
     def config_ue_measurement(self, user, crud):
         """Send UE measurement config."""
 
-        tlvs = []
+        report_interval = RRCReportInterval[self.interval].value
+        report_amount = RRCReportAmount[self.amount].value
 
-        for i, measure in enumerate(self.rrc_measurements_params):
+        rrc_measurement_tlv = \
+            Container(rnti=user.rnti,
+                      report_interval=report_interval,
+                      report_amount=report_amount)
 
-            # RRC measurements
-            rrc_measurement_tlv = \
-                Container(measure_id=i,
-                          rnti=user.rnti,
-                          earfcn=measure["earfcn"],
-                          interval=measure["interval"],
-                          max_cells=measure["max_cells"],
-                          max_measure=measure["max_measure"])
+        value = UE_MEASUREMENTS_SERVICE_CONFIG.build(rrc_measurement_tlv)
 
-            value = UE_MEASUREMENTS_SERVICE_CONFIG.build(rrc_measurement_tlv)
+        tlv = Container()
+        tlv.type = TLV_MEASUREMENTS_SERVICE_CONFIG
+        tlv.length = 4 + len(value)
+        tlv.value = value
 
-            tlv = Container()
-            tlv.type = TLV_MEASUREMENTS_SERVICE_CONFIG
-            tlv.length = 4 + len(value)
-            tlv.value = value
-
-            tlvs.append(tlv)
+        tlvs.append(tlv)
 
         user.vbs.connection.send_message(action=PT_UE_MEASUREMENTS_SERVICE,
                                          msg_type=vbsp.MSG_TYPE_REQUEST,
@@ -191,8 +215,9 @@ class UEMeasurements(ELTEApp):
         print(kwargs)
 
 
-def launch(context, service_id, imsi, every=EVERY):
+def launch(context, service_id, imsi, interval, amount, every=EVERY):
     """ Initialize the module. """
 
     return UEMeasurements(context=context, service_id=service_id,
-                          imsi=imsi, every=every)
+                          imsi=imsi, interval=interval, amount=amount,
+                          every=EVERY)

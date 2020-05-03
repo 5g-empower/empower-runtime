@@ -24,6 +24,7 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
+from empower.core.app import EVERY
 from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
 from empower.core.etheraddress import EtherAddress
 
@@ -184,7 +185,7 @@ class ChannelQualityMap(EWiFiWorker):
         self.handle_callbacks()
 
 
-def launch(context, service_id, every=2000):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
     return ChannelQualityMap(context=context, service_id=service_id,

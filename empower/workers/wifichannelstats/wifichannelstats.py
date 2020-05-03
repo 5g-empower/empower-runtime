@@ -27,6 +27,7 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
+from empower.core.app import EVERY
 from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
 
 PT_WCS_REQUEST = 0x4A
@@ -192,7 +193,7 @@ class ChannelStats(EWiFiWorker):
         self.handle_callbacks()
 
 
-def launch(context, service_id, every=2000):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
     return ChannelStats(context=context, service_id=service_id, every=every)

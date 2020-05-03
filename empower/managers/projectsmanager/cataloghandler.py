@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2019 Roberto Riggio
+# Copyright (c) 2020 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import empower.managers.apimanager.apimanager as apimanager
 class CatalogHandler(apimanager.EmpowerAPIHandler):
     """Access the applications catalog."""
 
-    URLS = [r"/api/v1/projects/catalog/?"]
+    URLS = [r"/api/v1/projects/catalog/?",
+            r"/api/v1/projects/catalog/(.*)/?"]
 
-    @apimanager.validate(min_args=0, max_args=0)
+    @apimanager.validate(min_args=0, max_args=1)
     def get(self, *args, **kwargs):
         """List of available applications
 
@@ -62,4 +63,5 @@ class CatalogHandler(apimanager.EmpowerAPIHandler):
             }
         """
 
-        return self.service.catalog
+        return self.service.catalog if not len(args) else \
+            self.service.catalog[args[0]]

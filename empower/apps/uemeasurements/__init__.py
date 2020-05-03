@@ -17,7 +17,37 @@
 
 """UE Measurements."""
 
+import enum
+
 from empower.core.app import EVERY
+
+
+class RRCReportInterval(enum.Enum):
+    MS120 = 0
+    MS240 = 1
+    MS480 = 2
+    MS640 = 3
+    MS1024 = 4
+    MS2048 = 5
+    MS5120 = 6
+    MS10240 = 7
+    MIN1 = 8
+    MIN6 = 9
+    MIN12 = 10
+    MIN30 = 11
+    MIN60 = 12
+
+
+class RRCReportAmount(enum.Enum):
+    R1 = 0
+    R2 = 1
+    R4 = 2
+    R8 = 3
+    R16 = 4
+    R32 = 5
+    R64 = 6
+    INFINITY = 7
+
 
 MANIFEST = {
     "label": "UE Measurements",
@@ -31,6 +61,18 @@ MANIFEST = {
             "desc": "The UE to monitor.",
             "mandatory": True,
             "type": "int"
+        },
+        "interval": {
+            "desc": "The control UE reporting interval.",
+            "mandatory": True,
+            "default": RRCReportInterval.MS240.name,
+            "type": [e.name for e in RRCReportInterval]
+        },
+        "amount": {
+            "desc": "The control UE reporting interval.",
+            "mandatory": True,
+            "default": RRCReportAmount.INFINITY.name,
+            "type": [e.name for e in RRCReportAmount]
         },
         "every": {
             "desc": "The control loop period (in ms).",
