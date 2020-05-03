@@ -19,7 +19,7 @@
 
 import enum
 
-from construct import Struct, Int16ub, Container
+from construct import Struct, Int16ub, Int8ub, Container
 
 import empower.managers.ranmanager.vbsp as vbsp
 
@@ -35,8 +35,8 @@ TLV_MEASUREMENTS_SERVICE_REPORT = 0x09
 
 UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
     "rnti" / Int16ub,
-    "report_interval" / Int16ub,
-    "report_amount" / Int16ub,
+    "interval" / Int8ub,
+    "amount" / Int8ub,
 )
 UE_MEASUREMENTS_SERVICE_CONFIG.name = "ue_measurements_service_request"
 
@@ -140,7 +140,7 @@ class UEMeasurements(ELTEApp):
     def interval(self):
         """ Return the interval. """
 
-        return self.params['interval'].name
+        return self.params['interval']
 
     @interval.setter
     def interval(self, interval):
@@ -152,7 +152,7 @@ class UEMeasurements(ELTEApp):
     def amount(self):
         """ Return the amount. """
 
-        return self.params['amount'].name
+        return self.params['amount']
 
     @amount.setter
     def amount(self, amount):
@@ -178,13 +178,11 @@ class UEMeasurements(ELTEApp):
     def config_ue_measurement(self, user, crud):
         """Send UE measurement config."""
 
-        report_interval = RRCReportInterval[self.interval].value
-        report_amount = RRCReportAmount[self.amount].value
+        interval = RRCReportInterval[self.interval].value
+        amount = RRCReportAmount[self.amount].value
 
         rrc_measurement_tlv = \
-            Container(rnti=user.rnti,
-                      report_interval=report_interval,
-                      report_amount=report_amount)
+            Container(rnti=user.rnti, interval=interval, amount=amount)
 
         value = UE_MEASUREMENTS_SERVICE_CONFIG.build(rrc_measurement_tlv)
 
@@ -193,12 +191,10 @@ class UEMeasurements(ELTEApp):
         tlv.length = 4 + len(value)
         tlv.value = value
 
-        tlvs.append(tlv)
-
         user.vbs.connection.send_message(action=PT_UE_MEASUREMENTS_SERVICE,
                                          msg_type=vbsp.MSG_TYPE_REQUEST,
                                          crud_result=crud,
-                                         tlvs=tlvs,
+                                         tlvs=[tlv],
                                          callback=self.handle_response)
 
     def handle_ue_join(self, user):

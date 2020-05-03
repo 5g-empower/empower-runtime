@@ -106,7 +106,7 @@ class TestTestbed(BaseTest):
             "owner": "foo",
             "desc": "EmPOWER 4G",
             "lte_props": {
-                "plmnid": "00101"
+                "plmnid": "22293"
             }
         }
 

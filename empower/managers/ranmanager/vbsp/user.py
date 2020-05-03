@@ -76,7 +76,7 @@ class User():
     def to_str(self):
         """Return an ASCII representation of the object."""
 
-        return "imsi=%u, tmsi=%u, rnti=%u" % (self.imsi, self.tmsi, self.rnti)
+        return "imsi=%s, tmsi=%u, rnti=%u" % (self.imsi, self.tmsi, self.rnti)
 
     def __str__(self):
         return self.to_str()

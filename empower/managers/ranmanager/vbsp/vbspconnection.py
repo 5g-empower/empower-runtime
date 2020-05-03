@@ -339,7 +339,7 @@ class VBSPConnection(RANConnection):
                     self.log.warning("Unable to find pci %u", option.pcis)
 
                 cell = self.device.cells[option.pci]
-                imsi = IMSI(option.imsi)
+                imsi = IMSI(str(option.imsi))
 
                 if option.status == USER_STATUS_DISCONNECTED:
 
