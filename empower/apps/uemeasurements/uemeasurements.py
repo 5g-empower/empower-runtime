@@ -51,7 +51,7 @@ UE_MEASUREMENTS_SERVICE_MEAS_ID = Struct(
 UE_MEASUREMENTS_SERVICE_MEAS_ID.name = "ue_measurements_service_meas_id"
 
 UE_MEASUREMENTS_SERVICE_REPORT = Struct(
-    "meas_id" / Int16ub,
+    "meas_id" / Int8ub,
     "pci" / Int16ub,
     "rsrp" / Int16ub,
     "rsrq" / Int16ub,
