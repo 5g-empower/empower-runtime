@@ -174,7 +174,7 @@ class VBSPConnection(RANConnection):
         self.device.set_disconnected()
         self.device.last_seen = 0
         self.device.connection = None
-        self.device.blocks = {}
+        self.device.cells = {}
         self.device = None
 
         # Stop hb worker

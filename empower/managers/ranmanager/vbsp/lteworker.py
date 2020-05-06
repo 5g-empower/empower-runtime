@@ -55,34 +55,34 @@ class ELTEWorker(EWorker):
 
         return self.context.users
 
-    def handle_client_leave(self, lvap):
-        """Called when a client leaves a network (no check on project)."""
+    def handle_client_leave(self, user):
+        """Called when a client leaves a network."""
 
-        self.handle_lvap_leave(lvap)
+        self.handle_ue_leave(user)
 
-    def handle_lvap_leave(self, lvap):
-        """Called when an LVAP leaves a network."""
+    def handle_ue_leave(self, user):
+        """Called when a UE leaves a network."""
 
-    def handle_client_join(self, lvap):
-        """Called when a client joins a network (no check on project)."""
+    def handle_client_join(self, user):
+        """Called when a client joins a network."""
 
-        self.handle_lvap_join(lvap)
+        self.handle_ue_join(user)
 
-    def handle_lvap_join(self, lvap):
-        """Called when an LVAP joins a network."""
+    def handle_ue_join(self, user):
+        """Called when a UE joins a network."""
 
-    def handle_device_down(self, wtp):
+    def handle_device_down(self, vbs):
         """Called when a device disconnects from the controller."""
 
-        self.handle_wtp_down(wtp)
+        self.handle_vbs_down(vbs)
 
-    def handle_wtp_down(self, wtp):
-        """Called when a wtp disconnects to the controller."""
+    def handle_vbs_down(self, vbs):
+        """Called when a vbs disconnects to the controller."""
 
-    def handle_device_up(self, wtp):
+    def handle_device_up(self, vbs):
         """Called when a device connects to the controller."""
 
-        self.handle_wtp_up(wtp)
+        self.handle_vbs_up(vbs)
 
-    def handle_wtp_up(self, wtp):
-        """Called when a wtp connects to the controller."""
+    def handle_vbs_up(self, vbs):
+        """Called when a vbs connects to the controller."""
