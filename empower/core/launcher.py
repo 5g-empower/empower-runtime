@@ -35,6 +35,15 @@ from pymodm.connection import connect
 SERVICES = dict()
 
 
+def srv(name):
+    """Get a service instance or return None"""
+
+    if name in SERVICES:
+        return SERVICES[name]
+
+    return None
+
+
 def srv_or_die(name):
     """Get a service instance or return None"""
 

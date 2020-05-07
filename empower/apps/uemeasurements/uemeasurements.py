@@ -93,8 +93,6 @@ class UEMeasurements(ELTEApp):
         # Register messages
         parser = (vbsp.PACKET, "ue_measurements_service")
         vbsp.register_message(PT_UE_MEASUREMENTS_SERVICE, parser)
-        vbsp.register_callback(PT_UE_MEASUREMENTS_SERVICE,
-                               self.handle_response)
 
         # Data structures
         self.meas_id = None
@@ -111,6 +109,9 @@ class UEMeasurements(ELTEApp):
 
     def start(self):
         """Start app."""
+
+        vbsp.register_callback(PT_UE_MEASUREMENTS_SERVICE,
+                               self.handle_response)
 
         super().start()
 
@@ -130,6 +131,9 @@ class UEMeasurements(ELTEApp):
         self.handle_ue_leave(user)
 
         super().stop()
+
+        vbsp.unregister_callback(PT_UE_MEASUREMENTS_SERVICE,
+                                 self.handle_response)
 
     @property
     def imsi(self):
@@ -228,6 +232,8 @@ class UEMeasurements(ELTEApp):
                                          crud_result=vbsp.OP_DELETE,
                                          tlvs=[tlv],
                                          callback=self.handle_del_response)
+
+        self.meas_id=None
 
     def handle_add_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
