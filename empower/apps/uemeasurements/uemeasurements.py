@@ -51,10 +51,10 @@ UE_MEASUREMENTS_SERVICE_MEAS_ID = Struct(
 UE_MEASUREMENTS_SERVICE_MEAS_ID.name = "ue_measurements_service_meas_id"
 
 UE_MEASUREMENTS_SERVICE_REPORT = Struct(
+    "rnti" / Int16ub,
     "meas_id" / Int8ub,
-    "pci" / Int16ub,
-    "rsrp" / Int16ub,
-    "rsrq" / Int16ub,
+    "rsrp" / Int8ub,
+    "rsrq" / Int8ub,
 )
 UE_MEASUREMENTS_SERVICE_REPORT.name = "ue_measurements_service_report"
 
@@ -96,7 +96,6 @@ class UEMeasurements(ELTEApp):
 
         # Data structures
         self.meas_id = None
-        self.pci = None
         self.rsrp = None
         self.rsrq = None
 
@@ -115,20 +114,16 @@ class UEMeasurements(ELTEApp):
 
         super().start()
 
-        if self.imsi not in self.context.users:
-            return
-
-        user = self.context.users[self.imsi]
-        self.handle_ue_join(user)
+        if self.imsi in self.context.users:
+            user = self.context.users[self.imsi]
+            self.handle_ue_join(user)
 
     def stop(self):
         """Stop app."""
 
-        if self.imsi not in self.context.users:
-            return
-
-        user = self.context.users[self.imsi]
-        self.handle_ue_leave(user)
+        if self.imsi in self.context.users:
+            user = self.context.users[self.imsi]
+            self.handle_ue_leave(user)
 
         super().stop()
 
@@ -180,7 +175,6 @@ class UEMeasurements(ELTEApp):
         out = super().to_dict()
 
         out['meas_id'] = self.meas_id
-        out['pci'] = self.pci
         out['rsrp'] = self.rsrp
         out['rsrq'] = self.rsrq
 
@@ -292,17 +286,27 @@ class UEMeasurements(ELTEApp):
         # must be a success, parse TLVs
         for tlv in msg.tlvs:
 
-            if tlv.type == TLV_MEASUREMENTS_SERVICE_REPORT:
+            if tlv.type != TLV_MEASUREMENTS_SERVICE_REPORT:
+                continue
 
-                # set last iteration time
-                self.last = time.time()
+            # set last iteration time
+            self.last = time.time()
 
-                parser = UE_MEASUREMENTS_SERVICE_REPORT
-                option = parser.parse(tlv.value)
+            parser = UE_MEASUREMENTS_SERVICE_REPORT
+            option = parser.parse(tlv.value)
 
-                self.log.debug("Processing options %s", parser.name)
+            self.log.debug("Processing options %s", parser.name)
 
-                print(option)
+            user = self.context.users[self.imsi]
+
+            if option.rnti != user.rnti:
+                continue
+
+            if option.meas_id != self.meas_id:
+                continue
+
+            self.rsrp = option.rsrp
+            self.rsrq = option.rsrq
 
         # handle callbacks
         self.handle_callbacks()
