@@ -17,7 +17,7 @@
 
 """TXP Bin Counter Primitive."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "TXP Bin Counter",

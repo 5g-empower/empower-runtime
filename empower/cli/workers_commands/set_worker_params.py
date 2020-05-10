@@ -19,7 +19,7 @@
 import uuid
 import argparse
 
-from empower.cli import command
+import empower_core.command as command
 
 
 def pa_cmd(args, cmd):

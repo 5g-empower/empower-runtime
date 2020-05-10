@@ -17,40 +17,18 @@
 
 """Conf manager."""
 
-import uuid
+from empower_core.envmanager.envmanager import EnvManager
+from empower_core.walkmodule import walk_module
 
 import empower.workers
 
-from empower.core.walkmodule import walk_module
-
-from empower.core.service import EService
-
-from empower.managers.envmanager.workercallbackshandler import \
-    WorkerCallbacksHandler
-from empower.managers.envmanager.workershandler import WorkersHandler
-from empower.managers.envmanager.cataloghandler import CatalogHandler
-from empower.managers.envmanager.envhandler import EnvHandler
-from empower.managers.envmanager.env import Env
+from empower.managers.envmanager.env import EmpowerEnv
 
 
-class EnvManager(EService):
-    """Projects manager."""
+class EmpowerEnvManager(EnvManager):
+    """Environment manager."""
 
-    HANDLERS = [WorkersHandler, WorkerCallbacksHandler, CatalogHandler,
-                EnvHandler]
-
-    env = None
-
-    def start(self):
-        """Start configuration manager."""
-
-        super().start()
-
-        if not Env.objects.all().count():
-            Env(project_id=uuid.uuid4()).save()
-
-        self.env = Env.objects.first()
-        self.env.start_services()
+    ENV_IMPL = EmpowerEnv
 
     @property
     def catalog(self):
@@ -62,4 +40,4 @@ class EnvManager(EService):
 def launch(context, service_id):
     """ Initialize the module. """
 
-    return EnvManager(context=context, service_id=service_id)
+    return EmpowerEnvManager(context=context, service_id=service_id)

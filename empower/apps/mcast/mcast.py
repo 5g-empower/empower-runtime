@@ -19,11 +19,11 @@
 
 import sys
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
-from empower.core.etheraddress import EtherAddress
+from empower_core.app import EVERY
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_DMS
@@ -37,7 +37,7 @@ TX_MCAST_SDNPLAY_H = "sdn@play"
 
 
 # pylint: disable=W0223
-class McastServicesHandler(apimanager.EmpowerAPIHandler):
+class McastServicesHandler(apimanager.APIHandler):
     """Access applications' attributes."""
 
     URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"

@@ -17,7 +17,7 @@
 
 """MAC PRB Utilization Reports."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "MAC PRB Utilization Reports",

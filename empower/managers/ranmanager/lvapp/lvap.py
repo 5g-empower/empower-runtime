@@ -22,14 +22,14 @@ import logging
 
 import empower.managers.projectsmanager.project as prj
 
-from empower.core.launcher import srv_or_die
+from empower_core.launcher import srv_or_die
 from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
 from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.managers.ranmanager.lvapp.txpolicy import TX_AMSDU_LEN_8K
-from empower.core.etheraddress import EtherAddress
-from empower.core.ssid import SSID
-from empower.core.serialize import serializable_dict
+from empower_core.etheraddress import EtherAddress
+from empower_core.ssid import SSID
+from empower_core.serialize import serializable_dict
 
 
 # add lvap message sent, status not received

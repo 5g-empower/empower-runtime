@@ -17,7 +17,7 @@
 
 """Simple app to test Wi-Fi events."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Wi-Fi Events Test App",

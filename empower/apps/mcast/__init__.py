@@ -17,7 +17,7 @@
 
 """SDN@Play Multicast Manager."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "SDN@Play",

@@ -24,9 +24,9 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 
 PT_UCQM_REQUEST = 0x40
 PT_UCQM_RESPONSE = 0x41

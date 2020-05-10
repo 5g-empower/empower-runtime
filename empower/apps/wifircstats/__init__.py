@@ -17,7 +17,7 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Wi-Fi RC Stats",

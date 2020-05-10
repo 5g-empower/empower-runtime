@@ -20,7 +20,7 @@ import json
 import logging
 import tornado.websocket
 
-from empower.core.eui64 import EUI64
+from empower_core.eui64 import EUI64
 
 LOG = logging.getLogger("LoRaNSDPMainHandler")
 

@@ -16,7 +16,7 @@
 
 """List currently running applications. """
 
-from empower.cli import command
+import empower_core.command as command
 
 
 def do_cmd(gargs, *_):

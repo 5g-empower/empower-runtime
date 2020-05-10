@@ -22,17 +22,18 @@ from importlib import import_module
 from pymodm import fields, EmbeddedMongoModel
 from pymodm.errors import ValidationError
 
-import empower.core.serialize as serialize
-from empower.managers.envmanager.env import Env
+import empower_core.serialize as serialize
+
+from empower.managers.envmanager.env import EmpowerEnv
 from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
 from empower.managers.ranmanager.vbsp.lteslice import LTESlice
-from empower.core.etheraddress import EtherAddress
-from empower.core.acl import ACL
-from empower.core.plmnid import PLMNIDField
-from empower.core.ssid import SSIDField
-from empower.core.launcher import srv_or_die
-from empower.core.serialize import serializable_dict
-from empower.core.app import EApp
+from empower_core.etheraddress import EtherAddress
+from empower_core.acl import ACL
+from empower_core.plmnid import PLMNIDField
+from empower_core.ssid import SSIDField
+from empower_core.launcher import srv_or_die
+from empower_core.serialize import serializable_dict
+from empower_core.app import EApp
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -194,8 +195,8 @@ class EmbeddedLoraProps(EmbeddedMongoModel):
 
 
 @serializable_dict
-class Project(Env):
-    """Project class.
+class EmpowerProject(EmpowerEnv):
+    """Empower Project class.
 
     Attributes:
         owner: The username of the user that requested this pool

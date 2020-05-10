@@ -18,9 +18,10 @@
 
 import argparse
 
-from empower.cli import command
-from empower.core.plmnid import PLMNID
-from empower.core.ssid import SSID
+import empower_core.command as command
+
+from empower_core.plmnid import PLMNID
+from empower_core.ssid import SSID
 
 
 def pa_cmd(args, cmd):

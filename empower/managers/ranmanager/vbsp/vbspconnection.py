@@ -22,12 +22,12 @@ import time
 from construct import Container
 from tornado.iostream import StreamClosedError
 
-from empower.core.imsi import IMSI
+from empower_core.imsi import IMSI
 from empower.managers.ranmanager.vbsp.cellpool import Cell
 from empower.managers.ranmanager.vbsp.user import User, \
     USER_STATUS_DISCONNECTED
 from empower.managers.ranmanager.ranconnection import RANConnection
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.vbsp import HELLO_SERVICE_PERIOD, \
     PT_HELLO_SERVICE_PERIOD
 

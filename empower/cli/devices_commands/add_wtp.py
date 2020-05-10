@@ -18,9 +18,9 @@
 
 import argparse
 
-from empower.cli import command
+import empower_core.command as command
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 
 
 def pa_cmd(args, cmd):

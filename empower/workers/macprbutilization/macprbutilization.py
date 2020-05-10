@@ -24,7 +24,7 @@ from construct import Struct, Int16ub, Int32ub
 import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.managers.ranmanager.vbsp.lteworker import ELTEWorker
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 PT_MAC_PRB_UTILIZATION_SERVICE = 0x04
 

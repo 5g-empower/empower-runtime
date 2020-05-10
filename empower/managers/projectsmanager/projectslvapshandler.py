@@ -15,7 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""LVAPP Handlers."""
+"""Exposes a RESTful interface ."""
+
+import uuid
 
 import empower_core.apimanager.apimanager as apimanager
 
@@ -24,34 +26,35 @@ from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 
 
 # pylint: disable=W0223
-class LVAPHandler(apimanager.APIHandler):
-    """Handler for accessing LVAPs."""
+class ProjectsLVAPsHandler(apimanager.APIHandler):
+    """Handler for accessing LVAPs. in a project"""
 
-    URLS = [r"/api/v1/lvaps/?",
-            r"/api/v1/lvaps/([a-zA-Z0-9:]*)/?"]
+    URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/lvaps/?",
+            r"/api/v1/projects/([a-zA-Z0-9-]*)/lvaps/([a-zA-Z0-9:]*)/?"]
 
-    @apimanager.validate(max_args=1)
+    @apimanager.validate(min_args=1, max_args=2)
     def get(self, *args, **kwargs):
         """List the LVAPs.
 
         Args:
 
-            [0]: the lvap address (optional)
+            [0], the project id (mandatory)
+            [1]: the lvap address (optional)
 
         Example URLs:
 
-            GET /api/v1/lvaps
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps
 
             [
                 {
                     "addr": "60:F4:45:D0:3B:FC",
                     "assoc_id": 732,
-                    "association_state": false,
-                    "authentication_state": false,
+                    "association_state": true,
+                    "authentication_state": true,
                     "blocks": [
                         ...
                     ],
-                    "bssid": null,
+                    "bssid": "52:31:3E:D0:3B:FC",
                     "encap": "00:00:00:00:00:00",
                     "ht_caps": true,
                     "ht_caps_info": {
@@ -77,7 +80,7 @@ class LVAPHandler(apimanager.APIHandler):
                         ]
                     ],
                     "pending": [],
-                    "ssid": null,
+                    "ssid": "EmPOWER",
                     "state": "running",
                     "wtp": {
                         ...
@@ -85,17 +88,18 @@ class LVAPHandler(apimanager.APIHandler):
                 }
             ]
 
-            GET /api/v1/lvaps/60:F4:45:D0:3B:FC
+            GET /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps/
+                60:F4:45:D0:3B:FC
 
             {
                 "addr": "60:F4:45:D0:3B:FC",
                 "assoc_id": 732,
-                "association_state": false,
-                "authentication_state": false,
+                "association_state": true,
+                "authentication_state": true,
                 "blocks": [
                     ...
                 ],
-                "bssid": null,
+                "bssid": "52:31:3E:D0:3B:FC",
                 "encap": "00:00:00:00:00:00",
                 "ht_caps": true,
                 "ht_caps_info": {
@@ -121,28 +125,34 @@ class LVAPHandler(apimanager.APIHandler):
                     ]
                 ],
                 "pending": [],
-                "ssid": null,
+                "ssid": "EmPOWER",
                 "state": "running",
                 "wtp": {
                     ...
                 }
             }
+
         """
 
-        return self.service.lvaps \
-            if not args else self.service.lvaps[EtherAddress(args[0])]
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
 
-    @apimanager.validate(returncode=204, min_args=1, max_args=1)
+        return project.lvaps \
+            if len(args) == 1 else project.lvaps[EtherAddress(args[1])]
+
+    @apimanager.validate(returncode=204, min_args=2, max_args=2)
     def put(self, *args, **kwargs):
         """Modify the LVAP
 
         Args:
 
-            [0]: the lvap address (mandatory)
+            [0], the project id (mandatory)
+            [1]: the lvap address (mandatory)
 
         Example URLs:
 
-            PUT /api/v1/lvaps/60:F4:45:D0:3B:FC
+            PUT /api/v1/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/lvaps/
+                60:F4:45:D0:3B:FC
 
             {
                 "version": "1.0",
@@ -150,12 +160,15 @@ class LVAPHandler(apimanager.APIHandler):
             }
         """
 
-        lvap = self.service.lvaps[EtherAddress(args[0])]
+        project_id = uuid.UUID(args[0])
+        project = self.service.projects[project_id]
+
+        lvap = project.lvaps[EtherAddress(args[1])]
 
         if "blocks" in kwargs:
 
-            addr = EtherAddress(kwargs['wtp'])
-            wtp = self.service.devices[addr]
+            wtp = project.wtps[EtherAddress(kwargs['wtp'])]
+
             pool = ResourcePool()
 
             for block_id in kwargs["blocks"]:
@@ -165,8 +178,7 @@ class LVAPHandler(apimanager.APIHandler):
 
         elif "wtp" in kwargs:
 
-            wtp = self.service.devices[EtherAddress(kwargs['wtp'])]
-            lvap.wtp = wtp
+            lvap.wtp = project.wtps[EtherAddress(kwargs['wtp'])]
 
         if "encap" in kwargs:
 

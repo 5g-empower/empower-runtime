@@ -17,8 +17,8 @@
 
 """Hello world app"""
 
-from empower.core.app import EApp
-from empower.core.app import EVERY
+from empower_core.app import EApp
+from empower_core.app import EVERY
 
 
 class HelloWorld(EApp):

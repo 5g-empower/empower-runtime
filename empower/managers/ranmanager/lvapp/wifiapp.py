@@ -17,7 +17,7 @@
 
 """Base Wi-Fi App class."""
 
-from empower.core.app import EApp
+from empower_core.app import EApp
 
 import empower.managers.ranmanager.lvapp as lvapp
 

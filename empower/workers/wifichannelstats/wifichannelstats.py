@@ -27,7 +27,7 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
 
 PT_WCS_REQUEST = 0x4A

@@ -30,7 +30,7 @@ import tornado.websocket
 import empower.managers.lommmanager.lnsp as lnsp
 
 from empower.managers.lommmanager.lnsp.lorawangtw import LGtwState
-from empower.core.eui64 import EUI64
+from empower_core.eui64 import EUI64
 
 LOG = logging.getLogger("LoRafNSPMainHandler")
 

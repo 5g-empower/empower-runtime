@@ -17,11 +17,11 @@
 
 """Users Handlers."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
 
 # pylint: disable=W0223
-class UserHandler(apimanager.EmpowerAPIHandler):
+class UserHandler(apimanager.APIHandler):
     """Handler for accessing Users."""
 
     URLS = [r"/api/v1/users/?",

@@ -17,7 +17,7 @@
 
 """EmPOWER resouce pool and resource block classes."""
 
-from empower.core.serialize import serializable_dict
+from empower_core.serialize import serializable_dict
 
 BT_L20 = 0
 BT_HT20 = 1

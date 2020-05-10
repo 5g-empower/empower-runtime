@@ -16,7 +16,7 @@
 
 """List workers that can be loaded."""
 
-from empower.cli import command
+import empower_core.command as command
 
 
 def do_cmd(gargs, *_):

@@ -20,7 +20,7 @@
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array, \
     BitStruct, Padding, Flag, GreedyRange, BitsInteger
 
-from empower.core.ssid import WIFI_NWID_MAXSIZE
+from empower_core.ssid import WIFI_NWID_MAXSIZE
 
 
 PT_VERSION = 0x00

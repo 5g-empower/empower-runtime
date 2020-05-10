@@ -19,7 +19,7 @@
 
 import tornado.web
 
-from empower.core.service import EService
+from empower_core.service import EService
 
 
 class WSManager(EService):

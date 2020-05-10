@@ -17,11 +17,11 @@
 
 """Base Wi-Fi Worker class."""
 
-from empower.core.worker import EWorker
+from empower_core.worker import EWorker
 
 import empower.managers.ranmanager.vbsp as vbsp
 
-from empower.core.launcher import srv_or_die
+from empower_core.launcher import srv_or_die
 from empower.managers.ranmanager.vbsp.cellpool import CellPool
 
 

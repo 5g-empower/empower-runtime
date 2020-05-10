@@ -19,8 +19,9 @@
 import uuid
 import argparse
 
-from empower.cli import command
-from empower.core.service import CALLBACK_REST
+import empower_core.command as command
+
+from empower_core.service import CALLBACK_REST
 
 
 def pa_cmd(args, cmd):

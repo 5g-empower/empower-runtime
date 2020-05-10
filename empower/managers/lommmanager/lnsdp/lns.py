@@ -27,8 +27,8 @@ from datetime import datetime
 from pymodm import MongoModel, fields
 from pymodm.errors import ValidationError
 
-from empower.core.eui64 import EUI64Field
-from empower.core.serialize import serializable_dict
+from empower_core.eui64 import EUI64Field
+from empower_core.serialize import serializable_dict
 
 
 def validator_ws_uri(value):

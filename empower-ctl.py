@@ -17,8 +17,10 @@
 
 """5G-EmPOWER Command Line Interface."""
 
-from empower.cli.command import main
+import empower.cli as commands
+
+from empower_core.command import main
 
 
 if __name__ == '__main__':
-    main()
+    main(commands)

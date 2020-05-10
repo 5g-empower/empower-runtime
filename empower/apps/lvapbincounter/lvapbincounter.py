@@ -26,9 +26,9 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 PT_BIN_COUNTERS_REQUEST = 0x82
 PT_BIN_COUNTERS_RESPONSE = 0x83

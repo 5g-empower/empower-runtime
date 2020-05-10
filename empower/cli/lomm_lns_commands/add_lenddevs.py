@@ -19,7 +19,7 @@
 import argparse
 import json
 
-from empower.cli import command
+import empower_core.command as command
 
 
 KEYS = dict(dev_addr="devAddr",

@@ -17,11 +17,11 @@
 # under the License.
 """LoMM Test App."""
 
-from empower.core.app import EApp
+from empower_core.app import EApp
 
 import empower.managers.lommmanager.lnsp as lnsp
 
-from empower.core.launcher import srv_or_die
+from empower_core.launcher import srv_or_die
 
 EVERY = 2000
 

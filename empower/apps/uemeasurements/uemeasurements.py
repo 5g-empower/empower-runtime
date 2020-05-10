@@ -28,8 +28,8 @@ from empower.apps.uemeasurements import RRCReportAmount, RRCReportInterval
 from empower.managers.ranmanager.vbsp.lteapp import ELTEApp
 from empower.managers.ranmanager.vbsp import MSG_TYPE_RESPONSE, \
     RESULT_SUCCESS, RESULT_FAIL
-from empower.core.imsi import IMSI
-from empower.core.app import EVERY
+from empower_core.imsi import IMSI
+from empower_core.app import EVERY
 
 PT_UE_MEASUREMENTS_SERVICE = 0x03
 

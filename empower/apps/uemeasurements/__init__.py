@@ -19,7 +19,7 @@
 
 import enum
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 
 class RRCReportInterval(enum.Enum):

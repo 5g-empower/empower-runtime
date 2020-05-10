@@ -17,7 +17,7 @@
 
 """Base Wi-Fi Worker class."""
 
-from empower.core.worker import EWorker
+from empower_core.worker import EWorker
 
 import empower.managers.ranmanager.lvapp as lvapp
 

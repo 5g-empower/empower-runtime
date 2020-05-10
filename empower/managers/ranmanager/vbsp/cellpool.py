@@ -17,7 +17,7 @@
 
 """EmPOWER cell pool and cell classes."""
 
-from empower.core.serialize import serializable_dict
+from empower_core.serialize import serializable_dict
 
 
 class CellPool(list):

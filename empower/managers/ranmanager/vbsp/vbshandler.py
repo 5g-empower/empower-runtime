@@ -17,13 +17,13 @@
 
 """VBSP Handlers."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 
 
 # pylint: disable=W0223
-class VBSHandler(apimanager.EmpowerAPIHandler):
+class VBSHandler(apimanager.APIHandler):
     """Handler for accessing VBSes."""
 
     URLS = [r"/api/v1/vbses/?",

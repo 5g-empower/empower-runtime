@@ -17,12 +17,12 @@
 # under the License.
 """LoRaWAN GTWs Handlers."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
-from empower.core.eui64 import EUI64
+from empower_core.eui64 import EUI64
 
 
-class LGTWsHandler(apimanager.EmpowerAPIHandler):
+class LGTWsHandler(apimanager.APIHandler):
     """REST API handler for managing LoRaWAN GTWs."""
 
     URLS = [r"/api/v1/lns/lgtws/?",

@@ -18,12 +18,12 @@
 
 """LNS Handlers for the LNS Discovery Server."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
-from empower.core.eui64 import EUI64
+from empower_core.eui64 import EUI64
 
 
-class LNSsHandler(apimanager.EmpowerAPIHandler):
+class LNSsHandler(apimanager.APIHandler):
     """REST API handler for managing LNSs."""
 
     URLS = [r"/api/v1/lnsd/lnss/?",

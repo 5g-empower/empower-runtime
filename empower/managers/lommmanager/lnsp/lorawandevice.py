@@ -51,7 +51,7 @@ from pymodm import MongoModel, fields
 from pymodm.errors import ValidationError
 from pymodm import validators
 
-from empower.core.eui64 import EUI64Field, EUI64
+from empower_core.eui64 import EUI64Field, EUI64
 from empower.managers.lommmanager.lnsp import DEFAULT_OWNER
 
 
