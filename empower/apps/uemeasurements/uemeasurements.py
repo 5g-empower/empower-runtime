@@ -18,18 +18,15 @@
 """UE measurements module."""
 
 import time
-import enum
 
 from construct import Struct, Int16ub, Int8ub, Container
+from empower_core.imsi import IMSI
 
 import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.apps.uemeasurements import RRCReportAmount, RRCReportInterval
 from empower.managers.ranmanager.vbsp.lteapp import ELTEApp
-from empower.managers.ranmanager.vbsp import MSG_TYPE_RESPONSE, \
-    RESULT_SUCCESS, RESULT_FAIL
-from empower_core.imsi import IMSI
-from empower_core.app import EVERY
+from empower.managers.ranmanager.vbsp import MSG_TYPE_RESPONSE, RESULT_FAIL
 
 PT_UE_MEASUREMENTS_SERVICE = 0x03
 
@@ -208,9 +205,6 @@ class UEMeasurements(ELTEApp):
         if not self.meas_id:
             return
 
-        interval = RRCReportInterval[self.interval].value
-        amount = RRCReportAmount[self.amount].value
-
         rrc_measurement_tlv = \
             Container(rnti=user.rnti, meas_id=self.meas_id)
 
@@ -227,7 +221,7 @@ class UEMeasurements(ELTEApp):
                                          tlvs=[tlv],
                                          callback=self.handle_del_response)
 
-        self.meas_id=None
+        self.meas_id = None
 
     def handle_add_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
@@ -312,9 +306,9 @@ class UEMeasurements(ELTEApp):
         self.handle_callbacks()
 
 
-def launch(context, service_id, imsi, interval, amount, every=EVERY):
+def launch(context, service_id, imsi, interval, amount, every=-1):
     """ Initialize the module. """
 
     return UEMeasurements(context=context, service_id=service_id,
                           imsi=imsi, interval=interval, amount=amount,
-                          every=EVERY)
+                          every=every)

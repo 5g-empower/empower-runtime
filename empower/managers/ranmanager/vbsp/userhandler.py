@@ -74,7 +74,6 @@ class UserHandler(apimanager.APIHandler):
                     "ue_measurements": {}
                 },
                 "plmnid": "22293",
-                "msin": "0100001114",
                 "status": "connected"
             }
         """

@@ -74,11 +74,5 @@ MANIFEST = {
             "default": RRCReportAmount.INFINITY.name,
             "type": [e.name for e in RRCReportAmount]
         },
-        "every": {
-            "desc": "The control loop period (in ms).",
-            "mandatory": False,
-            "default": EVERY,
-            "type": "int"
-        }
     }
 }

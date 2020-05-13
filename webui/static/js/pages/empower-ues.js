@@ -10,7 +10,6 @@ $(document).ready(function() {
     { "sTitle": "IMSI" },
     { "sTitle": "TMSI" },
     { "sTitle": "RNTI" },
-    { "sTitle": "MSIN" },
     { "sTitle": "PLMNID" },
     { "sTitle": "PCI" },
     { "sTitle": "VBS" },
@@ -43,7 +42,6 @@ function format_datatable_data( data ) {
     let imsi = val.imsi
     let tmsi = val.tmsi
     let rnti = val.rnti
-    let msin = val.msin
     let plmnid = val.plmnid
     let vbs = null
     let pci = null
@@ -57,7 +55,6 @@ function format_datatable_data( data ) {
         imsi,
         tmsi,
         rnti,
-        msin,
         plmnid,
         pci,
         vbs
