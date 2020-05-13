@@ -24,9 +24,7 @@ from pymodm.errors import ValidationError
 
 import empower_core.serialize as serialize
 
-from empower.managers.envmanager.env import EmpowerEnv
-from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
-from empower.managers.ranmanager.vbsp.lteslice import LTESlice
+from empower_core.envmanager.env import Env
 from empower_core.etheraddress import EtherAddress
 from empower_core.acl import ACL
 from empower_core.plmnid import PLMNIDField
@@ -34,6 +32,9 @@ from empower_core.ssid import SSIDField
 from empower_core.launcher import srv_or_die
 from empower_core.serialize import serializable_dict
 from empower_core.app import EApp
+
+from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
+from empower.managers.ranmanager.vbsp.lteslice import LTESlice
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -195,7 +196,7 @@ class EmbeddedLoraProps(EmbeddedMongoModel):
 
 
 @serializable_dict
-class EmpowerProject(EmpowerEnv):
+class EmpowerProject(Env):
     """Empower Project class.
 
     Attributes:

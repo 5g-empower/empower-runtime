@@ -18,14 +18,11 @@
 """Projects manager."""
 
 from empower_core.projectsmanager.projectsmanager import ProjectsManager
-from empower_core.walkmodule import walk_module
 
 from empower_core.projectsmanager.appcallbackhandler import \
     AppCallbacksHandler
 from empower_core.projectsmanager.cataloghandler import CatalogHandler
 from empower_core.projectsmanager.appshandler import AppsHandler
-
-import empower.apps
 
 from empower.managers.projectsmanager.projectshandler import ProjectsHandler
 from empower.managers.projectsmanager.project import EmpowerProject
@@ -55,12 +52,6 @@ class EmpowerProjectsManager(ProjectsManager):
                 AppCallbacksHandler, ProjectsUsersHandler]
 
     PROJECT_IMPL = EmpowerProject
-
-    @property
-    def catalog(self):
-        """Return available apps."""
-
-        return walk_module(empower.apps)
 
     def load_project_by_ssid(self, ssid):
         """Find a project by SSID."""
@@ -190,7 +181,8 @@ class EmpowerProjectsManager(ProjectsManager):
         super().remove(project_id)
 
 
-def launch(context, service_id):
+def launch(context, service_id, catalog_packages):
     """ Initialize the module. """
 
-    return EmpowerProjectsManager(context=context, service_id=service_id)
+    return EmpowerProjectsManager(context=context, service_id=service_id,
+                                  catalog_packages=catalog_packages)
