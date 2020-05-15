@@ -46,15 +46,21 @@ class EWiFiApp(EApp):
 
     @property
     def wtps(self):
-        """Return the WTPs available to this app."""
+        """Return the WTPs."""
 
         return self.context.wtps
 
     @property
     def lvaps(self):
-        """Return the LVAPs available to this app."""
+        """Return the LVAPs."""
 
         return self.context.lvaps
+
+    @property
+    def vaps(self):
+        """Return the VAPs."""
+
+        return self.context.vaps
 
     def handle_client_leave(self, lvap):
         """Called when a client leaves a network (no check on project)."""

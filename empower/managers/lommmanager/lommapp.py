@@ -18,10 +18,9 @@
 """LoMM Test App."""
 
 from empower_core.app import EApp
+from empower_core.launcher import srv_or_die
 
 import empower.managers.lommmanager.lnsp as lnsp
-
-from empower_core.launcher import srv_or_die
 
 EVERY = 2000
 

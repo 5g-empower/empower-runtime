@@ -18,10 +18,10 @@
 """Base Wi-Fi Worker class."""
 
 from empower_core.worker import EWorker
+from empower_core.launcher import srv_or_die
 
 import empower.managers.ranmanager.vbsp as vbsp
 
-from empower_core.launcher import srv_or_die
 from empower.managers.ranmanager.vbsp.cellpool import CellPool
 
 
@@ -47,13 +47,13 @@ class ELTEWorker(EWorker):
     def vbses(self):
         """Return the VBSes available to this app."""
 
-        return self.context.vbses
+        return srv_or_die("vbspmanager").vbses
 
     @property
     def users(self):
         """Return the UEs available to this app."""
 
-        return self.context.users
+        return srv_or_die("vbspmanager").users
 
     def handle_client_leave(self, user):
         """Called when a client leaves a network."""

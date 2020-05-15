@@ -106,7 +106,7 @@ class SliceStats(EWiFiApp):
         self.stats = {}
 
     def __eq__(self, other):
-        if isinstance(other, HelloWorld):
+        if isinstance(other, SliceStats):
             return self.slice_id == other.slice_id and \
                    self.every == other.every
         return False

@@ -18,6 +18,7 @@
 """Base Wi-Fi Worker class."""
 
 from empower_core.worker import EWorker
+from empower_core.launcher import srv_or_die
 
 import empower.managers.ranmanager.lvapp as lvapp
 
@@ -46,21 +47,21 @@ class EWiFiWorker(EWorker):
 
     @property
     def wtps(self):
-        """Return the WTPs available to this app."""
+        """Return the WTPs."""
 
-        return self.context.wtps
+        return srv_or_die("lvappmanager").devices
 
     @property
     def lvaps(self):
         """Return the LVAPs available to this app."""
 
-        return self.context.lvaps
+        return srv_or_die("lvappmanager").lvaps
 
     @property
     def vaps(self):
         """Return the VAPs."""
 
-        return self.context.vaps
+        return srv_or_die("lvappmanager").vaps
 
     def handle_client_leave(self, lvap):
         """Called when a client leaves a network (no check on project)."""

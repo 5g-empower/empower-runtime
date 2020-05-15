@@ -307,6 +307,54 @@ class EmpowerProject(Env):
         # Save pointer to ProjectManager
         self.manager = srv_or_die("projectsmanager")
 
+    @property
+    def vbses(self):
+        """Return the VBSes."""
+
+        return srv_or_die("vbspmanager").devices
+
+    @property
+    def wtps(self):
+        """Return the WTPs."""
+
+        return srv_or_die("lvappmanager").devices
+
+    @property
+    def users(self):
+        """Return the UEs."""
+
+        if not self.lte_props:
+            return {}
+
+        users = {k: v for k, v in srv_or_die("vbspmanager").users.items()
+                 if v.plmnid == self.lte_props.plmnid}
+
+        return users
+
+    @property
+    def lvaps(self):
+        """Return the LVAPs."""
+
+        if not self.wifi_props:
+            return {}
+
+        lvaps = {k: v for k, v in srv_or_die("lvappmanager").lvaps.items()
+                 if v.ssid == self.wifi_props.ssid}
+
+        return lvaps
+
+    @property
+    def vaps(self):
+        """Return the VAPs."""
+
+        if not self.wifi_props:
+            return {}
+
+        vaps = {k: v for k, v in srv_or_die("lvappmanager").vaps.items()
+                if v.ssid == self.wifi_props.ssid}
+
+        return vaps
+
     def load_service(self, service_id, name, params):
         """Load a service instance."""
 
