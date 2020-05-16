@@ -709,7 +709,12 @@ class WEBUI_Request_LVAP extends WEBUI_Request_CLIENT {
         }
       }
     }
-    return this._ENTRY_POINT + "lvaps"
+    if (project_id !== ""){
+      return this._ENTRY_POINT + "projects/"+project_id+"/lvaps"
+    }
+    else{
+      return this._ENTRY_POINT + "lvaps"
+    }
   }
 
 }
@@ -741,7 +746,12 @@ class WEBUI_Request_UE extends WEBUI_Request_CLIENT {
         }
       }
     }
-    return this._ENTRY_POINT + "users"
+    if (project_id !== ""){
+      return this._ENTRY_POINT + "projects/"+project_id+"/users"
+    }
+    else{
+      return this._ENTRY_POINT + "users"
+    }
   }
 
 }
