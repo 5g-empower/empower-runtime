@@ -20,7 +20,6 @@
 import time
 
 from construct import Struct, Int16ub, Int8ub, Container
-from empower_core.imsi import IMSI
 
 import empower.managers.ranmanager.vbsp as vbsp
 
