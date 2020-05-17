@@ -130,67 +130,6 @@ class UEMeasurements(ELTEApp):
         vbsp.unregister_callback(PT_UE_MEASUREMENTS_SERVICE,
                                  self.handle_response)
 
-    def validate_param(self, param, value):
-        """Validate the parameter using the manifest."""
-
-        if param not in self.manifest['params']:
-            raise ValueError("Invalid paramer: %s" % param)
-
-        manifest = self.manifest['params'][param]
-
-        static = False
-
-        if 'static' in manifest:
-            static = manifest['static']
-
-        if param in self.params and static:
-            raise ValueError("Parameter cannot be modified: %s" % param)
-
-        if not value and not manifest['mandatory']:
-            return manifest['default']
-
-        if not value and manifest['mandatory']:
-            raise ValueError("Parameter %s cannot be null" % param)
-
-        param_type = manifest['type']
-
-        # try to cast value to specified type
-        if isinstance(param_type, str):
-
-            if param_type == "str":
-                return str(value)
-
-            if param_type == "int":
-                return int(value)
-
-            if param_type == "IMSI":
-                return IMSI(value)
-
-            if param_type == "PLMNID":
-                return PLMNID(value)
-
-            if param_type == "SSID":
-                return SSID(value)
-
-            if param_type == "EtherAddress":
-                return EtherAddress(value)
-
-            raise ValueError("Invalid value for '%s' expected '%s'" %
-                             (param, param_type))
-
-        # check if in the list
-        if isinstance(param_type, list):
-
-            if value in param_type:
-                return value
-
-            raise ValueError("Invalid value for '%s' valid '%s' got '%s'" %
-                             (param, ','.join(str(x) for x in param_type),
-                              value))
-
-        # value is invalid
-        raise ValueError("Invalid value for '%s': %s" % (param, value))
-
     @property
     def meas_id(self):
         """ Return the meas id. """
