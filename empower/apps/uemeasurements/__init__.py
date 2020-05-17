@@ -51,7 +51,7 @@ class RRCReportAmount(enum.Enum):
 
 MANIFEST = {
     "label": "UE Measurements",
-    "desc": "Start UE Measurements",
+    "desc": "Start UE Measurements for serving cell",
     "modules": ['vbsp'],
     "callbacks": {
         "default": "Called when new measurements are available"
@@ -60,7 +60,15 @@ MANIFEST = {
         "imsi": {
             "desc": "The UE to monitor.",
             "mandatory": True,
-            "type": "int"
+            "type": "IMSI",
+            "static": True
+        },
+        "meas_id": {
+            "desc": "The id of the measurement to be created.",
+            "mandatory": True,
+            "default": 1,
+            "type": list(range(1, 33)),
+            "static": True
         },
         "interval": {
             "desc": "The control UE reporting interval.",

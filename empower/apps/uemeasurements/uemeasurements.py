@@ -36,6 +36,7 @@ TLV_MEASUREMENTS_SERVICE_MEAS_ID = 0x0B
 
 UE_MEASUREMENTS_SERVICE_CONFIG = Struct(
     "rnti" / Int16ub,
+    "meas_id" / Int8ub,
     "interval" / Int8ub,
     "amount" / Int8ub,
 )
@@ -78,10 +79,12 @@ class UEMeasurements(ELTEApp):
         }
     """
 
-    def __init__(self, context, service_id, imsi, interval, amount, every):
+    def __init__(self, context, service_id, meas_id, imsi, interval, amount,
+                 every):
 
         super().__init__(context=context,
                          service_id=service_id,
+                         meas_id=meas_id,
                          imsi=imsi,
                          interval=interval,
                          amount=amount,
@@ -92,7 +95,6 @@ class UEMeasurements(ELTEApp):
         vbsp.register_message(PT_UE_MEASUREMENTS_SERVICE, parser)
 
         # Data structures
-        self.meas_id = None
         self.rsrp = None
         self.rsrq = None
 
@@ -100,8 +102,9 @@ class UEMeasurements(ELTEApp):
         self.last = None
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.imsi == other.imsi and \
-            self.interval == other.interval and self.amount == other.amount
+        return super().__eq__(other) and self.meas_id == other.meas_id \
+            and self.imsi == other.imsi and self.interval == other.interval \
+            and self.amount == other.amount
 
     def start(self):
         """Start app."""
@@ -127,6 +130,79 @@ class UEMeasurements(ELTEApp):
         vbsp.unregister_callback(PT_UE_MEASUREMENTS_SERVICE,
                                  self.handle_response)
 
+    def validate_param(self, param, value):
+        """Validate the parameter using the manifest."""
+
+        if param not in self.manifest['params']:
+            raise ValueError("Invalid paramer: %s" % param)
+
+        manifest = self.manifest['params'][param]
+
+        static = False
+
+        if 'static' in manifest:
+            static = manifest['static']
+
+        if param in self.params and static:
+            raise ValueError("Parameter cannot be modified: %s" % param)
+
+        if not value and not manifest['mandatory']:
+            return manifest['default']
+
+        if not value and manifest['mandatory']:
+            raise ValueError("Parameter %s cannot be null" % param)
+
+        param_type = manifest['type']
+
+        # try to cast value to specified type
+        if isinstance(param_type, str):
+
+            if param_type == "str":
+                return str(value)
+
+            if param_type == "int":
+                return int(value)
+
+            if param_type == "IMSI":
+                return IMSI(value)
+
+            if param_type == "PLMNID":
+                return PLMNID(value)
+
+            if param_type == "SSID":
+                return SSID(value)
+
+            if param_type == "EtherAddress":
+                return EtherAddress(value)
+
+            raise ValueError("Invalid value for '%s' expected '%s'" %
+                             (param, param_type))
+
+        # check if in the list
+        if isinstance(param_type, list):
+
+            if value in param_type:
+                return value
+
+            raise ValueError("Invalid value for '%s' valid '%s' got '%s'" %
+                             (param, ','.join(str(x) for x in param_type),
+                              value))
+
+        # value is invalid
+        raise ValueError("Invalid value for '%s': %s" % (param, value))
+
+    @property
+    def meas_id(self):
+        """ Return the meas id. """
+
+        return self.params['meas_id']
+
+    @meas_id.setter
+    def meas_id(self, value):
+        """Set the meas id. """
+
+        self.params['meas_id'] = self.validate_param('meas_id', int(value))
+
     @property
     def imsi(self):
         """ Return the UE IMSI. """
@@ -137,7 +213,7 @@ class UEMeasurements(ELTEApp):
     def imsi(self, imsi):
         """ Set the UE IMSI. """
 
-        self.params['imsi'] = IMSI(imsi)
+        self.params['imsi'] = self.validate_param('imsi', imsi)
 
     @property
     def interval(self):
@@ -146,10 +222,11 @@ class UEMeasurements(ELTEApp):
         return self.params['interval']
 
     @interval.setter
-    def interval(self, interval):
+    def interval(self, value):
         """Set the interval. """
 
-        self.params['interval'] = RRCReportInterval[interval].name
+        self.params['interval'] = \
+            self.validate_param('interval', value)
 
     @property
     def amount(self):
@@ -158,10 +235,11 @@ class UEMeasurements(ELTEApp):
         return self.params['amount']
 
     @amount.setter
-    def amount(self, amount):
+    def amount(self, value):
         """ Set the amount. """
 
-        self.params['amount'] = RRCReportAmount[amount].name
+        self.params['amount'] = \
+            self.validate_param('amount', value)
 
     def loop(self):
         """Periodic loop."""
@@ -171,7 +249,6 @@ class UEMeasurements(ELTEApp):
 
         out = super().to_dict()
 
-        out['meas_id'] = self.meas_id
         out['rsrp'] = self.rsrp
         out['rsrq'] = self.rsrq
 
@@ -184,7 +261,10 @@ class UEMeasurements(ELTEApp):
         amount = RRCReportAmount[self.amount].value
 
         rrc_measurement_tlv = \
-            Container(rnti=user.rnti, interval=interval, amount=amount)
+            Container(rnti=user.rnti,
+                      meas_id=self.meas_id,
+                      interval=interval,
+                      amount=amount)
 
         value = UE_MEASUREMENTS_SERVICE_CONFIG.build(rrc_measurement_tlv)
 
@@ -202,9 +282,6 @@ class UEMeasurements(ELTEApp):
     def handle_ue_leave(self, user):
         """Called when a UE leaves the network."""
 
-        if not self.meas_id:
-            return
-
         rrc_measurement_tlv = \
             Container(rnti=user.rnti, meas_id=self.meas_id)
 
@@ -221,8 +298,6 @@ class UEMeasurements(ELTEApp):
                                          tlvs=[tlv],
                                          callback=self.handle_del_response)
 
-        self.meas_id = None
-
     def handle_add_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
 
@@ -231,12 +306,7 @@ class UEMeasurements(ELTEApp):
             self.log.warning("Not a response, ignoring.")
             return
 
-        # if result is fail then ignore
-        if msg.tsrc.crud_result == RESULT_FAIL:
-            self.log.warning("Error creating UE measurement, ignoring.")
-            return
-
-        # must be a success, parse TLVs
+        # there should be only one tlv
         for tlv in msg.tlvs:
 
             if tlv.type == TLV_MEASUREMENTS_SERVICE_MEAS_ID:
@@ -244,9 +314,13 @@ class UEMeasurements(ELTEApp):
                 parser = UE_MEASUREMENTS_SERVICE_MEAS_ID
                 option = parser.parse(tlv.value)
 
-                self.log.debug("Processing options %s", parser.name)
+                # if result is fail then ignore
+                if msg.tsrc.crud_result == RESULT_FAIL:
+                    msg = "Error creating UE meas: %u" % option.meas_id
+                else:
+                    msg = "Success creating UE meas: %u" % option.meas_id
 
-                self.meas_id = option.meas_id
+                self.log.warning(msg)
 
     def handle_del_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
@@ -256,15 +330,23 @@ class UEMeasurements(ELTEApp):
             self.log.warning("Not a response, ignoring.")
             return
 
-        # if result is fail then ignore
-        if msg.tsrc.crud_result == RESULT_FAIL:
-            self.log.warning("Error deleting UE measurement, ignoring.")
-            return
+        # there should be only one tlv
+        for tlv in msg.tlvs:
 
-        # must be a success, just set meas_id to none
-        self.meas_id = None
+            if tlv.type == TLV_MEASUREMENTS_SERVICE_MEAS_ID:
 
-    def handle_response(self, msg, vbs):
+                parser = UE_MEASUREMENTS_SERVICE_MEAS_ID
+                option = parser.parse(tlv.value)
+
+                # if result is fail then ignore
+                if msg.tsrc.crud_result == RESULT_FAIL:
+                    msg = "Error removing UE meas: %u" % option.meas_id
+                else:
+                    msg = "Success removing UE meas: %u" % option.meas_id
+
+                self.log.warning(msg)
+
+    def handle_response(self, msg, _):
         """Handle an incoming UE_MEASUREMENTS_SERVICE message."""
 
         # if not a response then ignore
@@ -306,9 +388,9 @@ class UEMeasurements(ELTEApp):
         self.handle_callbacks()
 
 
-def launch(context, service_id, imsi, interval, amount, every=-1):
+def launch(context, service_id, meas_id, imsi, interval, amount, every=-1):
     """ Initialize the module. """
 
     return UEMeasurements(context=context, service_id=service_id,
-                          imsi=imsi, interval=interval, amount=amount,
-                          every=every)
+                          meas_id=meas_id, imsi=imsi, interval=interval,
+                          amount=amount, every=every)

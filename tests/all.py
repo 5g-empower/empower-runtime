@@ -102,6 +102,7 @@ def full_suite():
     suite.addTest(TestApplications('test_modify_app_invalid_param_name'))
     suite.addTest(TestApplications('test_modify_app_param'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_value'))
+    suite.addTest(TestApplications('test_register_new_app_parameters'))
 
     suite.addTest(TestLOMM('test_create_new_lns_missing_euid'))
     suite.addTest(TestLOMM('test_create_new_lns'))

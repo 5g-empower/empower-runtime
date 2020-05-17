@@ -523,6 +523,90 @@ class TestApplications(BaseTest):
              "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
         self.delete(params, 204)
 
+    def test_register_new_app_parameters(self):
+        """test_register_new_app."""
+
+        data = {
+            "owner": "foo",
+            "desc": "Test project",
+            "wifi_props": {
+                "ssid": "EmPOWER"
+            }
+        }
+
+        params = \
+            ("root", "root", "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26"), 200)
+
+        self.get(("root", "root",
+                  "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps"), 200)
+
+        data = {
+            "name": "empower.apps.uemeasurements.uemeasurements",
+            "params": {
+                "imsi": "310120265624299",
+                "meas_id": "1",
+                "interval": "MS120",
+                "amount": "INFINITY"
+            }
+        }
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26/apps")
+        resp = self.post(params, data, 201)
+        loc = resp.headers['Location'].replace("/api/v1", "")
+
+        params = ("root", "root", loc)
+        self.get(params, 200)
+
+        data = {
+            "params": {
+                "imsi": "310120265624299",
+                "meas_id": "1",
+                "interval": "MS120",
+                "amount": "INFINITY"
+            }
+        }
+
+        params = ("root", "root", loc)
+        self.put(params, data, 400)
+
+        data = {
+            "params": {
+                "meas_id": "1",
+                "interval": "MS120",
+                "amount": "INFINITY"
+            }
+        }
+
+        params = ("root", "root", loc)
+        self.put(params, data, 400)
+
+        data = {
+            "params": {
+                "interval": "MS120",
+                "amount": "INFINITY"
+            }
+        }
+
+        params = ("root", "root", loc)
+        self.put(params, data, 204)
+
+        params = ("root", "root", loc)
+        self.delete(params, 204)
+
+        params = ("root", "root", loc)
+        self.get(params, 404)
+
+        params = \
+            ("root", "root",
+             "/projects/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.delete(params, 204)
+
 
 if __name__ == '__main__':
     unittest.main()
