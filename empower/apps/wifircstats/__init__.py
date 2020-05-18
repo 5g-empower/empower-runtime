@@ -17,11 +17,15 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Wi-Fi RC Stats",
     "desc": "Tracks Wi-Fi rate control statistics for a given LVAP",
+    "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "sta": {
             "desc": "The LVAP to monitor.",

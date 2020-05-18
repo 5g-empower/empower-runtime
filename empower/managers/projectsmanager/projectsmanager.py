@@ -17,48 +17,41 @@
 
 """Projects manager."""
 
-import empower.apps
+from empower_core.projectsmanager.projectsmanager import ProjectsManager
 
-from empower.core.launcher import srv_or_die
-from empower.core.service import EService
+from empower_core.projectsmanager.appcallbackhandler import \
+    AppCallbacksHandler
+from empower_core.projectsmanager.cataloghandler import CatalogHandler
+from empower_core.projectsmanager.appshandler import AppsHandler
 
-from empower.managers.projectsmanager.project import Project
+from empower.managers.projectsmanager.projectshandler import ProjectsHandler
+from empower.managers.projectsmanager.project import EmpowerProject
 from empower.managers.projectsmanager.project import EmbeddedWiFiProps
 from empower.managers.projectsmanager.project import EmbeddedLTEProps
+from empower.managers.projectsmanager.project import EmbeddedLoraProps
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
+from empower.managers.projectsmanager.projectswifiaclhandler import \
+    ProjectsWiFiACLHandler
+from empower.managers.projectsmanager.projectswifisliceshandler import \
+    ProjectsWiFiSlicesHandler
+from empower.managers.projectsmanager.projectsltesliceshandler import \
+    ProjectsLTESlicesHandler
+from empower.managers.projectsmanager.projectslvapshandler import \
+    ProjectsLVAPsHandler
+from empower.managers.projectsmanager.projectsusershandler import \
+    ProjectsUsersHandler
 
-from empower.managers.projectsmanager.cataloghandler import CatalogHandler
-from empower.managers.projectsmanager.appshandler import AppsHandler
 
-from empower.managers.projectsmanager.projectshandler import ProjectsHandler, \
-    ProjectsWiFiACLHandler, ProjectsWiFiSlicesHandler, \
-    ProjectsLTESlicesHandler, ProjectLVAPsHandler
-
-
-class ProjectsManager(EService):
+class EmpowerProjectsManager(ProjectsManager):
     """Projects manager."""
 
-    HANDLERS = [CatalogHandler, AppsHandler, ProjectLVAPsHandler,
+    HANDLERS = [CatalogHandler, AppsHandler, ProjectsLVAPsHandler,
                 ProjectsHandler, ProjectsWiFiACLHandler,
-                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler]
+                ProjectsWiFiSlicesHandler, ProjectsLTESlicesHandler,
+                AppCallbacksHandler, ProjectsUsersHandler]
 
-    projects = {}
-
-    def start(self):
-        """Start projects manager."""
-
-        super().start()
-
-        for project in Project.objects.all():
-            self.projects[project.project_id] = project
-            self.projects[project.project_id].start_services()
-
-    @property
-    def catalog(self):
-        """Return available apps."""
-
-        return self.walk_module(empower.apps)
+    PROJECT_IMPL = EmpowerProject
 
     def load_project_by_ssid(self, ssid):
         """Find a project by SSID."""
@@ -118,58 +111,33 @@ class ProjectsManager(EService):
 
         return networks
 
-    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None):
+    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None,
+               lora_props=None):
         """Create new project."""
 
-        if project_id in self.projects:
-            raise ValueError("Project %s already defined" % project_id)
-
-        accounts_manager = srv_or_die("accountsmanager")
-
-        if owner not in accounts_manager.accounts:
-            raise KeyError("Username %s not found" % owner)
-
-        project = Project(project_id=project_id, desc=desc, owner=owner)
-
-        if wifi_props:
-            project.wifi_props = EmbeddedWiFiProps(**wifi_props)
-
-        if lte_props:
-            project.lte_props = EmbeddedLTEProps(**lte_props)
-
-        project.save()
-
-        self.projects[project_id] = project
-
-        project.upsert_wifi_slice(slice_id=0)
-
-        project.upsert_lte_slice(slice_id=0)
-
-        self.projects[project_id].start_services()
-
-        return self.projects[project_id]
-
-    def update(self, project_id, desc):
-        """Update project."""
-
-        if project_id not in self.projects:
-            raise KeyError("Project %s not found" % project_id)
-
-        project = self.projects[project_id]
+        project = super().create(desc=desc, project_id=project_id, owner=owner)
 
         try:
-            project.desc = desc
+
+            if wifi_props:
+                project.wifi_props = EmbeddedWiFiProps(**wifi_props)
+
+            if lte_props:
+                project.lte_props = EmbeddedLTEProps(**lte_props)
+
+            if lora_props:
+                project.lora_props = EmbeddedLoraProps(**lora_props)
+
             project.save()
-        finally:
-            project.refresh_from_db()
+
+            project.upsert_wifi_slice(slice_id=0)
+            project.upsert_lte_slice(slice_id=0)
+
+        except ValueError as ex:
+            self.remove(project.project_id)
+            raise ValueError(ex)
 
         return self.projects[project_id]
-
-    def remove_all(self):
-        """Remove all projects."""
-
-        for project_id in list(self.projects):
-            self.remove(project_id)
 
     def remove(self, project_id):
         """Remove project."""
@@ -192,6 +160,16 @@ class ProjectsManager(EService):
             del lvap.wtp.connection.manager.lvaps[lvap.addr]
             lvap.clear_blocks()
 
+        # Remove hosted UEs
+        for user in list(project.users.values()):
+
+            # The UEs is associated
+            if user.plmnid and user.vbs.connection:
+                user.vbs.connection.send_client_leave_message_to_self(user)
+
+            # Reset the LVAP
+            del user.vbs.connection.manager.users[user.imsi]
+
         # Remove hosted VAPs
         for vap in list(project.vaps.values()):
 
@@ -199,15 +177,12 @@ class ProjectsManager(EService):
             del vap.wtp.connection.manager.vaps[vap.bssid]
             vap.clear_block()
 
-        # Stop running services
-        self.projects[project_id].stop_services()
-
-        # Delete project from datase and manager
-        project.delete()
-        del self.projects[project_id]
+        # Remove project
+        super().remove(project_id)
 
 
-def launch(context, service_id):
+def launch(context, service_id, catalog_packages):
     """ Initialize the module. """
 
-    return ProjectsManager(context=context, service_id=service_id)
+    return EmpowerProjectsManager(context=context, service_id=service_id,
+                                  catalog_packages=catalog_packages)

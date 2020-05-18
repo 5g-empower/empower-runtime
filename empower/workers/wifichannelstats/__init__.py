@@ -20,6 +20,10 @@
 MANIFEST = {
     "label": "Wi-Fi Channel Stats",
     "desc": "Tracks Wi-Fi Channel Utilization (TX/RX/ED)",
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
+    "modules": ['lvapp'],
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

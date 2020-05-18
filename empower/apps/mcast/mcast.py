@@ -19,11 +19,11 @@
 
 import sys
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
-from empower.core.etheraddress import EtherAddress
+from empower_core.app import EVERY
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST
 from empower.managers.ranmanager.lvapp.txpolicy import TX_MCAST_DMS
@@ -37,7 +37,7 @@ TX_MCAST_SDNPLAY_H = "sdn@play"
 
 
 # pylint: disable=W0223
-class McastServicesHandler(apimanager.EmpowerAPIHandler):
+class McastServicesHandler(apimanager.APIHandler):
     """Access applications' attributes."""
 
     URLS = [r"/api/v1/projects/([a-zA-Z0-9-]*)/apps/([a-zA-Z0-9-]*)/"
@@ -199,7 +199,7 @@ class Mcast(EWiFiApp):
             [TX_MCAST_DMS] * self.dms + \
             [TX_MCAST_LEGACY] * self.legacy  # --> [DMS, LEGACY, LEGACY...]
         self._services_registered = 0
-        self.storage['mcast_services'] = {}
+        self.configuration['mcast_services'] = {}
 
     def upsert_mcast_service(self, ipaddress, receivers, status, service_type):
         """Update/insert new mcast services.
@@ -252,7 +252,7 @@ class Mcast(EWiFiApp):
     def mcast_services(self):
         """Get the list of active mcast services."""
 
-        return self.storage['mcast_services']
+        return self.configuration['mcast_services']
 
     @mcast_services.setter
     def mcast_services(self, services):
@@ -273,7 +273,7 @@ class Mcast(EWiFiApp):
         }
         """
 
-        self.storage['mcast_services'] = {}
+        self.configuration['mcast_services'] = {}
 
         for service in services.values():
             self.upsert_mcast_service(service['ipaddress'],
@@ -296,14 +296,14 @@ class Mcast(EWiFiApp):
 
         self.params['mcast_policy'] = mode
 
-    def lvap_join(self, lvap):
+    def handle_lvap_join(self, lvap):
         """Called when an LVAP joins a tenant."""
 
         service = "empower.apps.wifircstats.wifircstats"
         self.receptors[lvap.addr] = \
             self.register_service(service, sta=lvap.addr)
 
-    def lvap_leave(self, lvap):
+    def handle_lvap_leave(self, lvap):
         """Called when an LVAP leaves the network."""
 
         if lvap.addr in self.receptors:
@@ -481,5 +481,5 @@ class Mcast(EWiFiApp):
 def launch(context, service_id, mcast_policy, every=EVERY):
     """ Initialize the module. """
 
-    return Mcast(context=context, service_id=service_id, mcast_policy=mcast_policy,
-                 every=every)
+    return Mcast(context=context, service_id=service_id,
+                 mcast_policy=mcast_policy, every=every)

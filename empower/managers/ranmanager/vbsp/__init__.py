@@ -18,7 +18,7 @@
 """VBSP RAN Manager."""
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Flag, Bytes, Bit, \
-    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this
+    BitStruct, Padding, BitsInteger, Array, GreedyRange, Byte, this, Int64ub
 
 PT_VERSION = 0x02
 
@@ -28,10 +28,11 @@ MSG_TYPE_RESPONSE = 1
 RESULT_SUCCESS = 0
 RESULT_FAIL = 1
 
-OP_SET = 0
-OP_ADD = 1
-OP_DEL = 2
-OP_GET = 3
+OP_UNDEFINED = 0
+OP_UPDATE = 1
+OP_CREATE = 2
+OP_DELETE = 3
+OP_RETRIEVE = 4
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
@@ -40,6 +41,7 @@ PT_CLIENT_LEAVE = "client_leave"
 
 PT_HELLO_SERVICE = 0x00
 PT_CAPABILITIES_SERVICE = 0x01
+PT_UE_REPORTS_SERVICE = 0x02
 
 TLVS = Struct(
     "type" / Int16ub,
@@ -50,15 +52,15 @@ TLVS = Struct(
 HEADER = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
-        "padding" / Padding(7),
-        "msg_type" / Flag
+        "msg_type" / Flag,
+        "padding" / Padding(7)
     ),
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
         "action" / BitsInteger(14),
     ),
     "length" / Int32ub,
-    "padding"  / Bytes(2),
+    "padding" / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
@@ -67,15 +69,15 @@ HEADER = Struct(
 PACKET = Struct(
     "version" / Int8ub,
     "flags" / BitStruct(
-        "padding" / Padding(7),
-        "msg_type" / Flag
+        "msg_type" / Flag,
+        "padding" / Padding(7)
     ),
     "tsrc" / BitStruct(
         "crud_result" / BitsInteger(2),
         "action" / BitsInteger(14),
     ),
     "length" / Int32ub,
-    "padding"  / Bytes(2),
+    "padding" / Bytes(2),
     "device" / Bytes(6),
     "seq" / Int32ub,
     "xid" / Int32ub,
@@ -84,8 +86,9 @@ PACKET = Struct(
 
 # TLV dicts
 
-PT_HELLO_SERVICE_PERIOD = 0x04
+PT_HELLO_SERVICE_PERIOD = 0x05
 PT_CAPABILITIES_SERVICE_CELL = 0x06
+PT_UE_REPORTS_SERVICE_IDENTITY = 0x07
 
 HELLO_SERVICE_PERIOD = Struct(
     "period" / Int32ub
@@ -100,9 +103,20 @@ CAPABILITIES_SERVICE_CELL = Struct(
 )
 CAPABILITIES_SERVICE_CELL.name = "capabilities_service_cell"
 
+UE_REPORTS_SERVICE_IDENTITY = Struct(
+    "imsi" / Int64ub,
+    "tmsi" / Int32ub,
+    "rnti" / Int16ub,
+    "status" / Int8ub,
+    "pci" / Int16ub,
+)
+UE_REPORTS_SERVICE_IDENTITY.name = "ue_reports_service_identity"
+
+
 TLVS = {
     PT_HELLO_SERVICE_PERIOD: HELLO_SERVICE_PERIOD,
     PT_CAPABILITIES_SERVICE_CELL: CAPABILITIES_SERVICE_CELL,
+    PT_UE_REPORTS_SERVICE_IDENTITY: UE_REPORTS_SERVICE_IDENTITY,
 }
 
 # Packet types
@@ -116,6 +130,7 @@ PT_TYPES = {
 
     PT_HELLO_SERVICE: (PACKET, "hello_service"),
     PT_CAPABILITIES_SERVICE: (PACKET, "capabilities_service"),
+    PT_UE_REPORTS_SERVICE: (PACKET, "ue_reports_service"),
 
 }
 
@@ -133,6 +148,36 @@ def register_message(pt_type, parser):
 
     if pt_type not in PT_TYPES_HANDLERS:
         PT_TYPES_HANDLERS[pt_type] = []
+
+
+def register_callbacks(app, callback_str='handle_'):
+    """Register callbacks."""
+
+    for pt_type in PT_TYPES_HANDLERS:
+
+        if not PT_TYPES[pt_type]:
+            handler_name = callback_str + pt_type
+        else:
+            handler_name = callback_str + PT_TYPES[pt_type][1]
+
+        if hasattr(app, handler_name):
+            handler = getattr(app, handler_name)
+            PT_TYPES_HANDLERS[pt_type].append(handler)
+
+
+def unregister_callbacks(app, callback_str='handle_'):
+    """Unregister callbacks."""
+
+    for pt_type in PT_TYPES_HANDLERS:
+
+        if not PT_TYPES[pt_type]:
+            handler_name = callback_str + pt_type
+        else:
+            handler_name = callback_str + PT_TYPES[pt_type][1]
+
+        if hasattr(app, handler_name):
+            handler = getattr(app, handler_name)
+            PT_TYPES_HANDLERS[pt_type].remove(handler)
 
 
 def register_callback(pt_type, handler):
@@ -157,3 +202,37 @@ def unregister_callback(pt_type, handler):
         return
 
     PT_TYPES_HANDLERS[pt_type].remove(handler)
+
+
+def decode_msg(msg_type, crud_result):
+    """Return the tuple (msg_type, crud_result)."""
+
+    if int(msg_type) == MSG_TYPE_REQUEST:
+
+        msg_type_str = "request"
+
+        if crud_result == OP_UNDEFINED:
+            crud_result_str = "undefined"
+        elif crud_result == OP_CREATE:
+            crud_result_str = "create"
+        elif crud_result == OP_UPDATE:
+            crud_result_str = "update"
+        elif crud_result == OP_DELETE:
+            crud_result_str = "delete"
+        elif crud_result == OP_RETRIEVE:
+            crud_result_str = "retrieve"
+        else:
+            crud_result_str = "unknown"
+
+        return (msg_type_str, crud_result_str)
+
+    msg_type_str = "response"
+
+    if crud_result == RESULT_SUCCESS:
+        crud_result_str = "success"
+    elif crud_result == RESULT_FAIL:
+        crud_result_str = "fail"
+    else:
+        crud_result_str = "unknown"
+
+    return (msg_type_str, crud_result_str)

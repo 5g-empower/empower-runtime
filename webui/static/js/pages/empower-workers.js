@@ -41,7 +41,7 @@ function show_active_workers(){
         val.name,
         {
           info:{
-            "data-toggle": "tooltip", 
+            "data-toggle": "tooltip",
             "data-placement":"left",
             "title": ""+generate_tooltip_params(val)
           }
@@ -61,7 +61,7 @@ function show_active_workers(){
       worker.retrieve_$stop_button().click(f_stop)
 
       $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip({html:true});   
+        $('[data-toggle="tooltip"]').tooltip({html:true});
       });
 
     })
@@ -113,14 +113,21 @@ function alter_modal(type, key, descriptor){
   )
 
   let fields = {}
-    $.each(descriptor.params, function(key, val){
-      fields[key] = {
-        type: "TEXT"
-      }
-    })
 
-  let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"worker_modal")
-    .add_fields(fields)
+  $.each(descriptor.manifest.params, function(key, val){
+    let type = null
+    console.log("val.type:",val.type)
+    if (cf._is_array(val.type)){
+      type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
+    } else {
+      type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
+    }
+    fields[key] = {
+      type: type
+    }
+  })
+
+  let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"worker_modal").add_fields(fields)
 
   $.each(modal._FIELDS, function(k, field){
     console.log("Setting field ", k, " to ", descriptor.params[k])
@@ -131,7 +138,7 @@ function alter_modal(type, key, descriptor){
   })
 
   let f= function(){
-    
+
     worker_function(key, modal)
   }
 
@@ -169,7 +176,7 @@ function edit_worker(uuid, modal){
   REST_REQ(__EMPOWER_WEBUI.ENTITY.WORKER.WORKER).configure_PUT({
     key: uuid,
     data: data,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       show_active_workers ],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -182,10 +189,10 @@ function stop_worker(uuid, modal){
 
   // console.log('STOP -> uuid', uuid)
   // console.log('STOP -> modal', modal)
-  
+
   REST_REQ(__EMPOWER_WEBUI.ENTITY.WORKER.WORKER).configure_DELETE({
     key: uuid,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       show_active_workers ],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -247,7 +254,7 @@ function generate_tooltip_params(service={}){
         $tr =cf._convert_html_to_jquery(cf._wrap_in_html(
           "", "DIV", {class:"text-left rounded bg-info text-gray-900 mb-1"}
         ))
-        
+
 
         let $icon = cf._convert_html_to_jquery(cf._wrap_in_html(
           "", "I", {class:"fas fa-arrow-right fa-xs fa-fw mr-1 ml-1"}
@@ -269,7 +276,7 @@ function generate_tooltip_params(service={}){
         // $tr =cf._convert_html_to_jquery(cf._wrap_in_html(
         //   "", "TR", {class:"small"}
         // ))
-        
+
         // let $td1 = cf._convert_html_to_jquery(cf._wrap_in_html(
         //   "", "TD", {}
         // ))
@@ -305,6 +312,6 @@ function generate_tooltip_params(service={}){
     }
   }
   return {}
-  
+
 }
 

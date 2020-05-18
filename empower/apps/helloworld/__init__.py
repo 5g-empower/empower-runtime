@@ -17,7 +17,7 @@
 
 """Hello world app."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Hello World",

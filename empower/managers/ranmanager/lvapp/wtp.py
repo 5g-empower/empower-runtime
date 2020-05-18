@@ -18,7 +18,7 @@
 """Wireless Termination Point."""
 
 from empower.managers.ranmanager.device import Device
-from empower.core.serialize import serializable_dict
+from empower_core.serialize import serializable_dict
 
 
 @serializable_dict

@@ -19,8 +19,8 @@
 
 import logging
 
-from empower.core.etheraddress import EtherAddress
-from empower.core.serialize import serializable_dict
+from empower_core.etheraddress import EtherAddress
+from empower_core.serialize import serializable_dict
 
 
 @serializable_dict

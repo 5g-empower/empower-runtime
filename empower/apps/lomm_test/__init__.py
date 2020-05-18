@@ -17,8 +17,6 @@
 # under the License.
 """LoMM Test app."""
 
-from empower.core.app import EVERY
-
 MANIFEST = {
     "label": "LoMMTest",
     "desc":  "The LoMM Test App, prints LoMM events data on screen",

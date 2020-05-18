@@ -17,11 +17,12 @@
 
 """A simple Wi-Fi mobility manager."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Wi-Fi Mobility Manager",
     "desc": "A simple Wi-Fi mobility manager",
+    "modules": ['lvapp'],
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

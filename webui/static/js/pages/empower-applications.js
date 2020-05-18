@@ -17,7 +17,7 @@ function show_active_applications(){
 
   show_applications = function(data){
     clear_active_application_list()
-    
+
     if (Object.keys(data).length === 0){
       $("#application_box").html(
         '<div class="col-12 my-3 d-flex justify-content-center ">'+
@@ -41,7 +41,7 @@ function show_active_applications(){
         val.name,
         {
           info:{
-            "data-toggle": "tooltip", 
+            "data-toggle": "tooltip",
             "data-placement":"left",
             "title": ""+generate_tooltip_params(val)
           }
@@ -61,7 +61,7 @@ function show_active_applications(){
       application.retrieve_$stop_button().click(f_stop)
 
       $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip({html:true});   
+        $('[data-toggle="tooltip"]').tooltip({html:true});
       });
 
     })
@@ -116,29 +116,21 @@ function alter_modal(type, key, descriptor){
   )
 
   let fields = {}
+
   $.each(descriptor.manifest.params, function(key, val){
     let type = null
     console.log("val.type:",val.type)
-    switch(val.type){
-      case "str":
-      case "int":
-      case "EtherAddress":
-        type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
-        console.log("found type, type is now: ", type)
-        break
-      default:
-        if (cf._is_array(val.type)){
-          type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
-        }
-        console.log("found type, type is now: ", type)
+    if (cf._is_array(val.type)){
+      type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
+    } else {
+      type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
     }
     fields[key] = {
       type: type
     }
   })
 
-  let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"application_modal")
-    .add_fields(fields)
+  let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"application_modal").add_fields(fields)
 
   $.each(modal._FIELDS, function(k, field){
     console.log("Setting field ", k, " to ", descriptor.params[k])
@@ -149,7 +141,6 @@ function alter_modal(type, key, descriptor){
   })
 
   let f= function(){
-    
     application_function(key, modal_hacker)
   }
 
@@ -188,7 +179,7 @@ function edit_application(uuid, modal){
   REST_REQ(__EMPOWER_WEBUI.ENTITY.APPLICATION.APPLICATION).configure_PUT({
     key: uuid,
     data: data,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       show_active_applications ],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -201,10 +192,10 @@ function stop_application(uuid, modal){
 
   // console.log('STOP -> uuid', uuid)
   // console.log('STOP -> modal', modal)
-  
+
   REST_REQ(__EMPOWER_WEBUI.ENTITY.APPLICATION.APPLICATION).configure_DELETE({
     key: uuid,
-    success: [ empower_log_response, empower_alert_generate_success, 
+    success: [ empower_log_response, empower_alert_generate_success,
       show_active_applications ],
     error: [ empower_log_response, empower_alert_generate_error ]
   })
@@ -266,7 +257,7 @@ function generate_tooltip_params(service={}){
         $tr =cf._convert_html_to_jquery(cf._wrap_in_html(
           "", "DIV", {class:"text-left rounded bg-info text-gray-900 mb-1"}
         ))
-        
+
 
         let $icon = cf._convert_html_to_jquery(cf._wrap_in_html(
           "", "I", {class:"fas fa-arrow-right fa-xs fa-fw mr-1 ml-1"}
@@ -288,7 +279,7 @@ function generate_tooltip_params(service={}){
         // $tr =cf._convert_html_to_jquery(cf._wrap_in_html(
         //   "", "TR", {class:"small"}
         // ))
-        
+
         // let $td1 = cf._convert_html_to_jquery(cf._wrap_in_html(
         //   "", "TD", {}
         // ))
@@ -324,6 +315,6 @@ function generate_tooltip_params(service={}){
     }
   }
   return {}
-  
+
 }
 

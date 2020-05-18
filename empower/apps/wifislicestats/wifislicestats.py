@@ -24,10 +24,10 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.ssid import WIFI_NWID_MAXSIZE
-from empower.core.etheraddress import EtherAddress
+from empower_core.ssid import WIFI_NWID_MAXSIZE
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 
 PT_WIFI_SLICE_STATS_REQUEST = 0x4C
@@ -104,6 +104,12 @@ class SliceStats(EWiFiApp):
 
         # Data structures
         self.stats = {}
+
+    def __eq__(self, other):
+        if isinstance(other, SliceStats):
+            return self.slice_id == other.slice_id and \
+                   self.every == other.every
+        return False
 
     @property
     def slice_id(self):

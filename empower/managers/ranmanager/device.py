@@ -22,7 +22,7 @@ import logging
 from datetime import datetime
 from pymodm import MongoModel, fields
 
-from empower.core.etheraddress import EtherAddressField
+from empower_core.etheraddress import EtherAddressField
 
 P_STATE_DISCONNECTED = "disconnected"
 P_STATE_CONNECTED = "connected"

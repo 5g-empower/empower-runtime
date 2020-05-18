@@ -1,0 +1,31 @@
+[
+    {
+        "devEUI": "00:28:a1:54:b8:91:72:d2",
+        "label": "micro-node",
+        "joinEUI": "70B3D57ED0010747",
+        "activation": "ABP",
+        "devAddr": "2601164F",
+        "nwkSEncKey": "54B284286378A1A9F174E6A27946E9D0",
+        "appSKey": "50E5598611EA7992680ECD92C1A9943E",
+        "fCntSize": "16bit",
+        "fCntChecks": true,
+        "location": [46.06935817, 11.15086417, 400],
+        "payloadFormat": "CayenneLPP"
+    },
+    {
+        "devEUI": "00:04:a3:0b:00:1b:ae:6b",
+        "label": "my_ttu",
+        "activation": "OTA",
+        "joinEUI": "70B3D57ED0010747",
+        "nwkKey": "D8823E63C25FCF11E33C38B5DF2900D9",
+        "devAddr": null,
+        "nwkSEncKey": "A4A7777BF7E9B95251EC4273F27888C0",
+        "appSKey": "4097AEB4ABEE78011A508C55F54700AE",
+        "joinNonce": null,
+        "netID": "000001",
+        "fCntSize": "16bit",
+        "fCntChecks": true,
+        "location": [50.08045020, 11.26008817, 678],
+        "payloadFormat": "Proprietary"
+    }
+]

@@ -21,11 +21,12 @@ from datetime import datetime
 
 from construct import Struct, Int8ub, Int16ub, Int32ub, Bytes, Array
 from construct import Container
+from empower_core.app import EVERY
+from empower_core.etheraddress import EtherAddress
 
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.managers.ranmanager.lvapp.wifiworker import EWiFiWorker
-from empower.core.etheraddress import EtherAddress
 
 PT_UCQM_REQUEST = 0x40
 PT_UCQM_RESPONSE = 0x41
@@ -100,7 +101,7 @@ class ChannelQualityMap(EWiFiWorker):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.wtps.values():
+        for wtp in self.wtps.values():
 
             if not wtp.connection:
                 continue
@@ -184,7 +185,7 @@ class ChannelQualityMap(EWiFiWorker):
         self.handle_callbacks()
 
 
-def launch(context, service_id, every=2000):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
     return ChannelQualityMap(context=context, service_id=service_id,

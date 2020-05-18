@@ -24,9 +24,9 @@ from construct import Container
 
 import empower.managers.ranmanager.lvapp as lvapp
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 
 PT_WIFI_RC_STATS_REQUEST = 0x80
@@ -107,6 +107,11 @@ class RCStats(EWiFiApp):
         self.rates = {}
         self.best_prob = None
         self.best_tp = None
+
+    def __eq__(self, other):
+        if isinstance(other, RCStats):
+            return self.sta == other.sta and self.every == other.every
+        return False
 
     @property
     def sta(self):

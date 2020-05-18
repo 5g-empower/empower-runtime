@@ -17,14 +17,14 @@
 
 """LVAPP Handlers."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.lvapp.resourcepool import ResourcePool
 
 
 # pylint: disable=W0223
-class LVAPHandler(apimanager.EmpowerAPIHandler):
+class LVAPHandler(apimanager.APIHandler):
     """Handler for accessing LVAPs."""
 
     URLS = [r"/api/v1/lvaps/?",

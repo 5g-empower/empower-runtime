@@ -16,28 +16,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# TODO ADD REFERENCE TO ALLOWED DEVICES
-
 """LNS Handlers for the LNS Discovery Server."""
 
-import json, traceback
+import empower_core.apimanager.apimanager as apimanager
 
-import empower.managers.apimanager.apimanager as apimanager
+from empower_core.eui64 import EUI64
 
-from empower.managers.lommmanager.datatypes.eui64 import EUI64
 
-class LNSsHandler(apimanager.EmpowerAPIHandler):
-    """Handler for accessing LNS."""
+class LNSsHandler(apimanager.APIHandler):
+    """REST API handler for managing LNSs."""
 
     URLS = [r"/api/v1/lnsd/lnss/?",
-            r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/?"] # TODO CHECK EUI64 FORMAT
-            
+            r"/api/v1/lnsd/lnss/([a-zA-Z0-9:]*)/?"]
+
     @apimanager.validate(max_args=1)
     def get(self, *args, **kwargs):
         """List devices.
 
         Args:
-
             [0]: the lns euid (optional)
 
         Example URLs:
@@ -46,60 +42,48 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
 
             [
                 {
-                "euid":"::1",
-                "uri":"ws://0.0.0.0:6038/router-",
-                "desc": "LNS XXX"
+                    "euid": "0000:0000:0000:0001",
+                    "desc": "Generic LNS",
+                    "uri": "ws://0.0.0.0:6038/router-",
+                    "lgtws": [
+                        "b827:ebff:fee7:7681"
+                    ],
+                    "last_seen": 0,
+                    "last_seen_ts": "1970-01-01T01:00:00.000000Z",
+                    "period": 0
                 }
             ]
 
             GET /api/v1/lnsd/lnss/::1
 
             {
-            "euid":"::1",
-            "uri":"ws://0.0.0.0:6038/router-",
-            "desc": "LNS XXX"
+                "euid": "0000:0000:0000:0001",
+                "desc": "Generic LNS",
+                "uri": "ws://0.0.0.0:6038/router-",
+                "lgtws": [
+                    "b827:ebff:fee7:7681"
+                ],
+                "last_seen": 0,
+                "last_seen_ts": "1970-01-01T01:00:00.000000Z",
+                "period": 0
             }
 
-
-           
         """
-        if not args:
-            out = []
-            desc      = self.get_argument("desc",None)
-            state     = self.get_argument("state",None)
-            lgtw_euid = self.get_argument("lgtw_euid",None)
-            for key in self.service.lnss:
-                """ only if string in description """
-                if desc and desc not in self.service.lnss[key].to_dict()["desc"]:
-                    continue
-                """ only if state matches """
-                if state and state != self.service.lnss[key].to_dict()["state"]:
-                    continue
-                """ only if manages lgtw_id """
-                if lgtw_euid and lgtw_euid not in self.service.lnss[key].to_dict()["lgtws"]:
-                    continue
-                """ all """
-                out.append(self.service.lnss[key].to_dict())
-            return out
-        else:
-            try:
-                lnss = self.service.lnss[EUI64(args[0]).id6].to_dict()
-            except KeyError as err:
-                self.set_status(400)
-                self.finish({"status_code":400,"title":"LNS not found","detail":str(err)})
-            else:
-                return lnss
 
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+        return self.service.lnss \
+            if not args else self.service.lnss[EUI64(args[0])]
+
+    @apimanager.validate(returncode=201, min_args=0, max_args=0)
     def post(self, *args, **kwargs):
         """Add a new LNS to the LNS Discovery Server Database.
 
         Request:
 
             version: protocol version (1.0)
-            euid: the lns id in eui64 or id6 format (mandatory)
+            euid: the lns id in eui64 or euid format (mandatory)
             uri: the lns uri template (mandatory)
             desc: a human readable description of the device (optional)
+            lgtws: the of lGTWS (optional)
 
         Example URLs:
 
@@ -107,33 +91,33 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
 
             {
                 "version":"1.0",
+                "euid": "0000:0000:0000:0001",
                 "lgtws":["b827:ebff:fee7:7681"],
                 "uri":"ws://0.0.0.0:6038/router-",
-                "desc": "LNS XXX"
+                "desc": "Generic LNS"
             }
         """
-        try:
-            lnss = self.service.add_lns(args[0], **kwargs)
-        except ValueError as err:
-            self.set_status(400)
-            self.finish({"status_code":400,"title":"Value error","detail":str(err)})
-        else:
-            self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
-        
-        
-    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+
+        kwargs['euid'] = EUI64(kwargs['euid'])
+
+        lnss = self.service.add_lns(**kwargs)
+
+        self.set_header("Location", "/api/v1/lnsd/lnss/%s" % lnss.euid)
+
+    @apimanager.validate(returncode=204, min_args=1, max_args=1)
     def put(self, *args, **kwargs):
         """Add a new LNS to the LNS Discovery Server Database.
 
         Args:
 
-            [0]: the lns euid (mandatory)
-            
+            [0]: the lns id in eui64 or euid format (mandatory)
+
         Request:
 
             version: protocol version (1.0)
             uri: the lns uri template (mandatory)
             desc: a human readable description of the device (optional)
+            lgtws: the of lGTWS (optional)
 
         Example URLs:
 
@@ -143,41 +127,26 @@ class LNSsHandler(apimanager.EmpowerAPIHandler):
                 "version":"1.0",
                 "lgtws":["b827:ebff:fee7:7681"],
                 "uri":"ws://0.0.0.0:6038/router-",
-                "desc": "LNS XXX"
+                "desc": "Generic LNS"
             }
         """
-        try:
-            self.service.update_lns(args[0], **kwargs)
-        except ValueError as err:
-            self.set_status(400)
-            self.finish({"status_code":400,"title":"Value error","detail":str(err)})
-        else:
-            self.set_header("Location", "/api/v1/lnsd/lnss/%s" % args[0])
-        
+
+        self.service.update_lns(euid=EUI64(args[0]), **kwargs)
+
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):
         """Delete one or all devices.
 
         Args:
-
-            [0]: the lnss euid
+            [0]: the lns id in eui64 or euid format (optional)
 
         Example URLs:
 
             DELETE /api/v1/lnsd/lnss
-            DELETE /api/v1/lnsd/lnss/00-0D-B9-2F-56-64
+            DELETE /api/v1/lnsd/lnss/::1
         """
 
         if args:
-            try:
-                self.service.remove_lns(EUI64(args[0]).id6)
-            except ValueError as err:
-                self.set_status(400)
-                self.finish({"status_code":400,"title":"Value error",
-                            "detail":str(err)})
-            except:
-                self.set_status(500)
-                self.finish({"status_code":500,"title":"Server error",
-                            "detail":"unknown internal error"})
+            self.service.remove_lns(EUI64(args[0]))
         else:
             self.service.remove_all_lnss()

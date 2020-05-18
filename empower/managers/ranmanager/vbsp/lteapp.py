@@ -17,7 +17,7 @@
 
 """Base Wi-Fi App class."""
 
-from empower.core.app import EApp
+from empower_core.app import EApp
 
 import empower.managers.ranmanager.vbsp as vbsp
 
@@ -25,31 +25,9 @@ from empower.managers.ranmanager.vbsp.cellpool import CellPool
 
 
 class ELTEApp(EApp):
-    """Base Wi-Fi App class."""
+    """Base LTE App class."""
 
-    def start(self):
-        """Start app."""
-
-        # register callbacks
-        vbsp.register_callback(vbsp.PT_CLIENT_LEAVE, self._ue_leave)
-        vbsp.register_callback(vbsp.PT_CLIENT_JOIN, self._ue_join)
-        vbsp.register_callback(vbsp.PT_DEVICE_UP, self._vbs_up)
-        vbsp.register_callback(vbsp.PT_DEVICE_DOWN, self._vbs_down)
-
-        # start the app
-        super().start()
-
-    def stop(self):
-        """Stop app."""
-
-        # unregister callbacks
-        vbsp.unregister_callback(vbsp.PT_CLIENT_LEAVE, self._ue_leave)
-        vbsp.unregister_callback(vbsp.PT_CLIENT_JOIN, self._ue_join)
-        vbsp.unregister_callback(vbsp.PT_DEVICE_UP, self._vbs_up)
-        vbsp.unregister_callback(vbsp.PT_DEVICE_DOWN, self._vbs_down)
-
-        # stop the app
-        super().stop()
+    MODULES = [vbsp]
 
     def cells(self):
         """Return the Cells available to this app."""
@@ -71,49 +49,47 @@ class ELTEApp(EApp):
         return self.context.vbses
 
     @property
-    def ues(self):
+    def users(self):
         """Return the UEs available to this app."""
 
-        return self.context.ueqs
+        return self.context.users
 
-    def _ue_leave(self, ueq):
-        """Called when a UE leave a network."""
+    def handle_client_leave(self, user):
+        """Called when a client leaves a network."""
 
         if not self.context.lte_props:
             return
 
-        if ueq.plmnid == self.context.lte_props.plmnid:
-            self.ue_leave(ueq)
+        if user.plmnid == self.context.lte_props.plmnid:
+            self.handle_ue_leave(user)
 
-    def ue_leave(self, ueq):
-        """Called when a UE leavess a network."""
+    def handle_ue_leave(self, user):
+        """Called when a UE leaves a network."""
 
-    def _ue_join(self, ueq):
+    def handle_client_join(self, user):
+        """Called when a client joins a network."""
+
+        if not self.context.lte_props:
+            return
+
+        if user.plmnid == self.context.lte_props.plmnid:
+            self.handle_ue_join(user)
+
+    def handle_ue_join(self, user):
         """Called when a UE joins a network."""
 
-        if not self.context.lte_props:
-            return
+    def handle_device_down(self, vbs):
+        """Called when a device disconnects from the controller."""
 
-        if ueq.plmnid == self.context.lte_props.plmnid:
-            self.ue_join(ueq)
+        self.handle_vbs_down(vbs)
 
-    def ue_join(self, ueq):
-        """Called when an LVAP joins a network."""
+    def handle_vbs_down(self, vbs):
+        """Called when a vbs disconnects to the controller."""
 
-    def _vbs_down(self, vbs):
-        """Called when a VBS disconnects from the controller."""
+    def handle_device_up(self, vbs):
+        """Called when a device connects to the controller."""
 
-        if vbs.addr in self.context.vbses:
-            self.vbs_down(vbs)
+        self.handle_vbs_up(vbs)
 
-    def vbs_down(self, vbs):
-        """Called when a VBS disconnects from the controller."""
-
-    def _vbs_up(self, vbs):
-        """Called when a VBS connects to the controller."""
-
-        if vbs.addr in self.context.vbses:
-            self.vbs_up(vbs)
-
-    def vbs_up(self, vbs):
+    def handle_vbs_up(self, vbs):
         """Called when a vbs connects to the controller."""

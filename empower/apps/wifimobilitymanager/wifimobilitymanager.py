@@ -18,7 +18,7 @@
 """A simple Wi-Fi mobility manager."""
 
 from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 
 class WiFiMobilityManager(EWiFiApp):

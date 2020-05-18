@@ -17,11 +17,15 @@
 
 """WiFi Rate Control Statistics Primitive."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "Wi-Fi Slice Stats",
     "desc": "Tracks Wi-Fi slice statistics",
+    "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "slice_id": {
             "desc": "The slice to monitor.",

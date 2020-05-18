@@ -22,17 +22,19 @@ from importlib import import_module
 from pymodm import fields, EmbeddedMongoModel
 from pymodm.errors import ValidationError
 
-import empower.core.serialize as serialize
-from empower.managers.envmanager.env import Env
+import empower_core.serialize as serialize
+
+from empower_core.envmanager.env import Env
+from empower_core.etheraddress import EtherAddress
+from empower_core.acl import ACL
+from empower_core.plmnid import PLMNIDField
+from empower_core.ssid import SSIDField
+from empower_core.launcher import srv_or_die
+from empower_core.serialize import serializable_dict
+from empower_core.app import EApp
+
 from empower.managers.ranmanager.lvapp.wifislice import WiFiSlice
 from empower.managers.ranmanager.vbsp.lteslice import LTESlice
-from empower.core.etheraddress import EtherAddress
-from empower.core.acl import ACL
-from empower.core.plmnid import PLMNIDField
-from empower.core.ssid import SSIDField
-from empower.core.launcher import srv_or_die
-from empower.core.serialize import serializable_dict
-from empower.core.app import EApp
 
 T_BSSID_TYPE_SHARED = "shared"
 T_BSSID_TYPE_UNIQUE = "unique"
@@ -178,14 +180,30 @@ class EmbeddedLTEProps(EmbeddedMongoModel):
         return output
 
 
+class EmbeddedLoraProps(EmbeddedMongoModel):
+    """Embedded Lora Properties."""
+
+    netid = fields.IntegerField(required=True)
+
+    def to_dict(self):
+        """ Return a JSON-serializable dictionary """
+
+        output = {}
+
+        output['netid'] = self.netid
+
+        return output
+
+
 @serializable_dict
-class Project(Env):
-    """Project class.
+class EmpowerProject(Env):
+    """Empower Project class.
 
     Attributes:
         owner: The username of the user that requested this pool
         wifi_props: The Wi-Fi properties
         lte_props: The LTE properties
+        lora_props: The LTE properties
         wifi_slices: The definition of the Wi-Fi slices
         lte_slices: The definition of the Wi-Fi slices
 
@@ -214,10 +232,13 @@ class Project(Env):
     The LTE properties are defined starting from a JSON document like the
     following:
     {
-        "plmnid": {
-            "mcc": "001",
-            "mnc": "01"
-        }
+        "plmnid": "00101"
+    }
+
+    The Lora properties are defined starting from a JSON document like the
+    following:
+    {
+        "netid": 0x1
     }
 
     A Wi-Fi slice is defined starting from a JSON document like the
@@ -275,6 +296,7 @@ class Project(Env):
     desc = fields.CharField(required=True)
     wifi_props = fields.EmbeddedDocumentField(EmbeddedWiFiProps)
     lte_props = fields.EmbeddedDocumentField(EmbeddedLTEProps)
+    lora_props = fields.EmbeddedDocumentField(EmbeddedLoraProps)
     wifi_slices = WiFiSlicesDictField(required=False, blank=True)
     lte_slices = LTESlicesDictField(required=False, blank=True)
 
@@ -284,6 +306,54 @@ class Project(Env):
 
         # Save pointer to ProjectManager
         self.manager = srv_or_die("projectsmanager")
+
+    @property
+    def vbses(self):
+        """Return the VBSes."""
+
+        return srv_or_die("vbspmanager").devices
+
+    @property
+    def wtps(self):
+        """Return the WTPs."""
+
+        return srv_or_die("lvappmanager").devices
+
+    @property
+    def users(self):
+        """Return the UEs."""
+
+        if not self.lte_props:
+            return {}
+
+        users = {k: v for k, v in srv_or_die("vbspmanager").users.items()
+                 if v.plmnid == self.lte_props.plmnid}
+
+        return users
+
+    @property
+    def lvaps(self):
+        """Return the LVAPs."""
+
+        if not self.wifi_props:
+            return {}
+
+        lvaps = {k: v for k, v in srv_or_die("lvappmanager").lvaps.items()
+                 if v.ssid == self.wifi_props.ssid}
+
+        return lvaps
+
+    @property
+    def vaps(self):
+        """Return the VAPs."""
+
+        if not self.wifi_props:
+            return {}
+
+        vaps = {k: v for k, v in srv_or_die("lvappmanager").vaps.items()
+                if v.ssid == self.wifi_props.ssid}
+
+        return vaps
 
     def load_service(self, service_id, name, params):
         """Load a service instance."""
@@ -385,16 +455,16 @@ class Project(Env):
         self.refresh_from_db()
 
     @property
-    def ueqs(self):
+    def users(self):
         """Return the UEs."""
 
         if not self.lte_props:
             return {}
 
-        ueqs = {k: v for k, v in srv_or_die("vbspmanager").ueqs.items()
-                if v.plmnid == self.lte_props.plmnid}
+        users = {k: v for k, v in srv_or_die("vbspmanager").users.items()
+                 if v.plmnid == self.lte_props.plmnid}
 
-        return ueqs
+        return users
 
     @property
     def lvaps(self):
@@ -434,6 +504,9 @@ class Project(Env):
 
         output['lte_props'] = \
             self.lte_props.to_dict() if self.lte_props else None
+
+        output['lora_props'] = \
+            self.lora_props.to_dict() if self.lora_props else None
 
         output['wifi_slices'] = \
             self.wifi_slices if self.wifi_slices else None

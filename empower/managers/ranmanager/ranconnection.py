@@ -22,7 +22,7 @@ import logging
 
 import tornado.ioloop
 
-from empower.core.serialize import serializable_dict
+from empower_core.serialize import serializable_dict
 
 HELLO_PERIOD = 2000
 HB_PERIOD = 500

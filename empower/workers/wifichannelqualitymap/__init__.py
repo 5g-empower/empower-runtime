@@ -20,6 +20,10 @@
 MANIFEST = {
     "label": "Wi-Fi Channel Quality Map",
     "desc": "Builds and maintain a network-wide RSSI Map",
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
+    "modules": ['lvapp'],
     "params": {
         "every": {
             "desc": "The control loop period (in ms).",

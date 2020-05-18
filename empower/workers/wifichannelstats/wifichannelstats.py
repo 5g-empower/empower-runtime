@@ -19,11 +19,10 @@
 
 from datetime import datetime
 from datetime import timedelta
-
 from itertools import groupby
-
 from construct import Struct, Int8ub, Int16ub, Int32ub, Int64ub, Bytes, Array
 from construct import Container
+from empower_core.app import EVERY
 
 import empower.managers.ranmanager.lvapp as lvapp
 
@@ -94,7 +93,7 @@ class ChannelStats(EWiFiWorker):
     def loop(self):
         """Send out requests"""
 
-        for wtp in self.context.wtps.values():
+        for wtp in self.wtps.values():
 
             if not wtp.connection:
                 continue
@@ -192,7 +191,7 @@ class ChannelStats(EWiFiWorker):
         self.handle_callbacks()
 
 
-def launch(context, service_id, every=2000):
+def launch(context, service_id, every=EVERY):
     """ Initialize the module. """
 
     return ChannelStats(context=context, service_id=service_id, every=every)

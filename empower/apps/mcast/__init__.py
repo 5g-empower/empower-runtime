@@ -17,12 +17,13 @@
 
 """SDN@Play Multicast Manager."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "SDN@Play",
     "desc": "This application makes white bunnies happy even if watched by "
             "many people.",
+    "modules": ['lvapp'],
     "params": {
         "mcast_policy": {
             "desc": "The multicast operation mode (legacy, dms, sdn@play).",

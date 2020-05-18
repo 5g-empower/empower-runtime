@@ -17,13 +17,13 @@
 
 """LVAPP Handlers."""
 
-import empower.managers.apimanager.apimanager as apimanager
+import empower_core.apimanager.apimanager as apimanager
 
-from empower.core.etheraddress import EtherAddress
+from empower_core.etheraddress import EtherAddress
 
 
 # pylint: disable=W0223
-class WTPHandler(apimanager.EmpowerAPIHandler):
+class WTPHandler(apimanager.APIHandler):
     """Handler for accessing WTPs."""
 
     URLS = [r"/api/v1/wtps/?",

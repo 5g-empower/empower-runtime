@@ -17,11 +17,15 @@
 
 """TXP Bin Counter Primitive."""
 
-from empower.core.app import EVERY
+from empower_core.app import EVERY
 
 MANIFEST = {
     "label": "TXP Bin Counter",
     "desc": "Tracks TX packets/bytes counters for a given destination address",
+    "modules": ['lvapp'],
+    "callbacks": {
+        "default": "Called when new measurements are available"
+    },
     "params": {
         "iface_id": {
             "desc": "The Wi-Fi interface.",
