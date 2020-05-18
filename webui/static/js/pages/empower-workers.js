@@ -79,6 +79,7 @@ function clear_active_worker_list(){
 }
 
 function alter_modal(type, key, descriptor){
+  let cf = __EMPOWER_WEBUI.CORE_FUNCTIONS
   console.log("ALTER MODAL",type, key, descriptor)
   let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal")
 
