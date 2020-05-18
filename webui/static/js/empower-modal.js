@@ -588,6 +588,7 @@ class WEBUI_Modal_Hacker_Worker extends WEBUI_Modal_Hacker{
     //$form.append(this.generate_worker_description(descriptor.desc))
 
     if (this._is_there(descriptor.params)){
+
       let $frame = this.generate_worker_params_frame()
       $.each(descriptor.params, function(key, val){
         // console.log("this",this)
