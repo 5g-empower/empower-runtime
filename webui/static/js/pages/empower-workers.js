@@ -2,7 +2,7 @@ $('#workers').removeClass('collapsed');
 $('#collapseThree').addClass('show');
 $('#workers_active').addClass('active');
 
-console.warn("THIS PAGE IS A WORK IN PROGRESS!")
+// console.warn("THIS PAGE IS A WORK IN PROGRESS!")
 
 $(document).ready(function() {
 
@@ -10,10 +10,7 @@ $(document).ready(function() {
 
 })
 
-WORKER_MODAL = {
-  EDIT: "EDIT",
-  STOP: "STOP"
-}
+WORKER_MODAL = __EMPOWER_WEBUI.MODAL.ACTION
 
 function show_active_workers(){
 
@@ -81,7 +78,7 @@ function clear_active_worker_list(){
 function alter_modal(type, key, descriptor){
   let cf = __EMPOWER_WEBUI.CORE_FUNCTIONS
   console.log("ALTER MODAL",type, key, descriptor)
-  let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal")
+  let modal_hacker = new WEBUI_Modal_Hacker_Worker("worker_modal", type)
 
   // let title = "Default title"
   let worker_button = null
@@ -117,14 +114,19 @@ function alter_modal(type, key, descriptor){
 
   $.each(descriptor.manifest.params, function(key, val){
     let type = null
-    console.log("val.type:",val.type)
+    // console.log("val.type:",val.type)
     if (cf._is_array(val.type)){
       type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.SELECT
     } else {
       type = __EMPOWER_WEBUI.MODAL.FIELD.TYPE.TEXT
     }
+    let fstatic = false
+    if (val.static){
+        fstatic = true
+    }
     fields[key] = {
-      type: type
+      type: type,
+      static: fstatic
     }
   })
 
@@ -165,11 +167,16 @@ function edit_worker(uuid, modal){
   //   data.params[k] = field.get_value()
   // })
   $.each(modal._FIELDS, function(k, field){
-    data.params[k] = field.get_value()
-    if (data.params[k] === ""){
-      data.params[k] = field.get_default()
+    if (field.is_static()){
+      console.log("key ", k, " is STATIC, is NOT sent with EDIT data")
     }
-    console.log(k, ":", data.params[k])
+    else{
+      data.params[k] = field.get_value()
+      if (data.params[k] === ""){
+        data.params[k] = field.get_default()
+      }
+      console.log("key ", k, ":", data.params[k],"is sent with EDIT data")
+    }
   })
 
   // console.log("data:", data)
