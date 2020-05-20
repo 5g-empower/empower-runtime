@@ -111,7 +111,6 @@ function trigger_ho_modal(lvap_key, inspect_mode=false){
   $("#ho_modal_title").text("LVAP Handover")
 
   show_ho_modal_step_one = function(lvap){
-
     if (OFFLINE_DEBUG){
       lvap = lvap_json[lvap_key]
     }
@@ -162,7 +161,6 @@ function trigger_ho_modal(lvap_key, inspect_mode=false){
       if (OFFLINE_DEBUG){
         wtps = wtps_json
       }
-
       let wtp_select = $("#edit_wtp")
       wtp_select.empty()
       $.each(wtps, function(key, value){
@@ -202,7 +200,6 @@ function trigger_ho_modal(lvap_key, inspect_mode=false){
             else{
               opt = new Option(option_text, option_index)
             }
-
             wtp_select.append(opt)
           }
         }
@@ -247,7 +244,6 @@ function trigger_ho_modal(lvap_key, inspect_mode=false){
       error: [ empower_log_response,  empower_alert_generate_error ]
     })
     .perform()
-
 }
 
 function update_wtp_selection(){
@@ -287,7 +283,6 @@ function update_block_selection(){
   console.log("block_select.length:", block_select.length)
 
   let block_select_options_count = $("#edit_block option").length
-
   if (block_select_options_count === 0){
 
     // any block
@@ -295,7 +290,6 @@ function update_block_selection(){
     block_select.append(opt)
 
     $.each(wtp.blocks, function(key, block){
-
       let option_text = block.hwaddr+" ("+block.channel+", "+block.band+")"
 
       let opt = null
@@ -314,7 +308,6 @@ function update_block_selection(){
       else{
         opt = new Option(option_text, key)
       }
-
       block_select.append(opt)
     })
 
