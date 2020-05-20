@@ -108,6 +108,8 @@ class WEBUI_Modal extends WEBUI_CoreFunctions{
 
         this.configure_field_dedicated_methods(key, fkey)
 
+        // console.log("add_fields, field: ",this._FIELDS[fkey])
+
       }.bind(this))
     }
 
@@ -836,7 +838,7 @@ class WEBUI_Modal_Hacker_Application extends WEBUI_Modal_Hacker{
     
     if (this.is_EDIT_modal()){
         if (descriptor.static){
-          console.log(key, "is STATIC ")
+        //   console.log(key, "is STATIC ")
           $input.prop("disabled",true)
         }
       }
@@ -982,11 +984,11 @@ class WEBUI_ModalField extends WEBUI_CoreFunctions{
   }
 
   set_static(value=false){
-    self._STATIC = value
+    this._STATIC = value
   }
 
   is_static(){
-    return self._STATIC
+    return this._STATIC
   }
 
 }

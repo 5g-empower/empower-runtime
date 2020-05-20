@@ -133,7 +133,7 @@ function alter_modal(type, key, descriptor){
   let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"worker_modal").add_fields(fields)
 
   $.each(modal._FIELDS, function(k, field){
-    console.log("Setting field ", k, " to ", descriptor.params[k])
+    // console.log("Setting field ", k, " to ", descriptor.params[k])
     field.set_value(descriptor.params[k])
     if (fields_disabled){
       field.disable()
@@ -141,7 +141,6 @@ function alter_modal(type, key, descriptor){
   })
 
   let f= function(){
-
     worker_function(key, modal)
   }
 
@@ -167,15 +166,15 @@ function edit_worker(uuid, modal){
   //   data.params[k] = field.get_value()
   // })
   $.each(modal._FIELDS, function(k, field){
-    if (field.is_static()){
-      console.log("key ", k, " is STATIC, is NOT sent with EDIT data")
-    }
-    else{
+    if (!field.is_static()){
+    //   console.log("key ", k, " is STATIC, is NOT sent with EDIT data")
+    // }
+    // else{
       data.params[k] = field.get_value()
       if (data.params[k] === ""){
         data.params[k] = field.get_default()
       }
-      console.log("key ", k, ":", data.params[k],"is sent with EDIT data")
+      console.log("key ", k, ":", data.params[k],"inserted into PUT req")
     }
   })
 
