@@ -29,8 +29,6 @@ function show_active_applications(){
     APPLICATION_COUNTER = 0
     $.each(data, function(key, val){
 
-      console.log("CIAO: ", val)
-
       let application = new WEBUI_Card_Application_Active(
         "application_"+APPLICATION_COUNTER++,
         val.manifest.label,
@@ -136,7 +134,8 @@ function alter_modal(type, key, descriptor){
   let modal= new WEBUI_Modal(__EMPOWER_WEBUI.MODAL.TYPE.GENERIC,"application_modal").add_fields(fields)
 
   $.each(modal._FIELDS, function(k, field){
-    console.log("Setting field ", k, " to ", descriptor.params[k])
+    // console.log("Setting field ", k, " to ", descriptor.params[k])
+    // console.log("field ", k, " is ", field)
     field.set_value(descriptor.params[k])
     if (fields_disabled){
       field.disable()
@@ -144,7 +143,7 @@ function alter_modal(type, key, descriptor){
   })
 
   let f= function(){
-    application_function(key, modal_hacker)
+    application_function(key, modal)
   }
 
   application_button.click(f)
@@ -170,15 +169,16 @@ function edit_application(uuid, modal){
   // })
   // console.log("modal._FIELDS",modal._FIELDS)
   $.each(modal._FIELDS, function(k, field){
-    if (field.is_static()){
-      console.log("key ", k, " is STATIC, is NOT sent with EDIT data")
-    }
-    else{
+    // console.log("edit_worker, field: ",field)
+    if (!field.is_static()){
+    //   console.log("key ", k, " is STATIC, is NOT sent with EDIT data")
+    // }
+    // else{
       data.params[k] = field.get_value()
       if (data.params[k] === ""){
         data.params[k] = field.get_default()
       }
-      console.log("key ", k, ":", data.params[k],"is sent with EDIT data")
+      console.log("key ", k, ":", data.params[k],"inserted into PUT req")
     }
   })
 
