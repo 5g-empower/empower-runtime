@@ -88,7 +88,6 @@ class Cell:
         self.dl_earfcn = dl_earfcn
         self.ul_earfcn = ul_earfcn
         self.n_prbs = n_prbs
-        self.ue_measurements = {}
         self.mac_prb_utilization = {}
 
     def to_str(self):

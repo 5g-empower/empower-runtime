@@ -322,6 +322,11 @@ class UEMeasurements(ELTEApp):
             self.rsrp = option.rsrp
             self.rsrq = option.rsrq
 
+            user.ue_measurements = {
+                "rsrp": self.rsrp,
+                "rsrq": self.rsrq,
+            }
+
         # handle callbacks
         self.handle_callbacks()
 

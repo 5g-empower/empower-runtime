@@ -21,10 +21,11 @@ import time
 
 from construct import Struct, Int16ub, Int32ub
 
+from empower_core.app import EVERY
+
 import empower.managers.ranmanager.vbsp as vbsp
 
 from empower.managers.ranmanager.vbsp.lteworker import ELTEWorker
-from empower_core.app import EVERY
 
 PT_MAC_PRB_UTILIZATION_SERVICE = 0x04
 
@@ -67,6 +68,10 @@ class MACPrbUtilization(ELTEWorker):
         parser = (vbsp.PACKET, "mac_prb_utilization_service")
         vbsp.register_message(PT_MAC_PRB_UTILIZATION_SERVICE, parser)
 
+        # Data structures
+        self.dl_prb_counter = None
+        self.ul_prb_counter = None
+
         # Last seen time
         self.last = None
 
@@ -83,6 +88,16 @@ class MACPrbUtilization(ELTEWorker):
                                         crud_result=vbsp.OP_RETRIEVE,
                                         tlvs=[],
                                         callback=self.handle_response)
+
+    def to_dict(self):
+        """ Return a JSON-serializable."""
+
+        out = super().to_dict()
+
+        out['dl_prb_counter'] = self.dl_prb_counter
+        out['ul_prb_counter'] = self.ul_prb_counter
+
+        return out
 
     def handle_response(self, msg, vbs, _):
         """Handle an incoming UE_MEASUREMENTS message."""
@@ -105,11 +120,14 @@ class MACPrbUtilization(ELTEWorker):
             if option.pci not in vbs.cells:
                 self.log.warning("PCI %u not found", option.pci)
 
+            self.dl_prb_counter = option.dl_prb_counter
+            self.ul_prb_counter = option.ul_prb_counter
+
             cell = vbs.cells[option.pci]
 
             cell.mac_prb_utilization = {
-                "dl_prb_counter": option.dl_prb_counter,
-                "ul_prb_counter": option.ul_prb_counter,
+                "dl_prb_counter": self.dl_prb_counter,
+                "ul_prb_counter": self.ul_prb_counter,
             }
 
         # handle callbacks

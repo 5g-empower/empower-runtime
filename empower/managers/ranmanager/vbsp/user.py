@@ -48,6 +48,7 @@ class User():
         self.rnti = rnti
         self.status = status
         self.cell = cell
+        self.ue_measurements = {}
 
     @property
     def plmnid(self):
