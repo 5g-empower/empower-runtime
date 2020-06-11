@@ -17,10 +17,7 @@
 
 """User Equipment."""
 
-from stdnum import numdb
-
 from empower_core.serialize import serializable_dict
-from empower_core.plmnid import PLMNID
 
 USER_STATUS_CONNECTED = 1
 USER_STATUS_DISCONNECTED = 2
