@@ -125,6 +125,5 @@ class Cell:
         out['ul_earfcn'] = self.ul_earfcn
         out['n_prbs'] = self.n_prbs
         out['mac_prb_utilization'] = self.mac_prb_utilization
-        out['ue_measurements'] = self.ue_measurements
 
         return out
