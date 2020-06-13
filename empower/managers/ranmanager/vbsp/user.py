@@ -69,6 +69,7 @@ class User():
         out['cell'] = self.cell
         out['plmnid'] = self.plmnid
         out['status'] = USER_STATUS[self.status]
+        out['ue_measurements'] = self.ue_measurements
         return out
 
     def to_str(self):
