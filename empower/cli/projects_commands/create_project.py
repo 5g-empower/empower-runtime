@@ -72,7 +72,7 @@ def do_cmd(gargs, args, _):
             "ssid": args.ssid
         }
 
-    if args.mcc and args.plmnid:
+    if args.plmnid:
 
         plmnid = PLMNID(args.plmnid)
 
