@@ -47,7 +47,7 @@ class ELTEWorker(EWorker):
     def vbses(self):
         """Return the VBSes available to this app."""
 
-        return srv_or_die("vbspmanager").vbses
+        return srv_or_die("vbspmanager").devices
 
     @property
     def users(self):
