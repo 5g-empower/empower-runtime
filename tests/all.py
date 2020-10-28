@@ -27,7 +27,6 @@ from .wifislices import TestWiFiSlices
 from .lteslices import TestLTESlices
 from .applications import TestApplications
 from .workers import TestWorkers
-from .lomm import TestLOMM
 
 
 def full_suite():
@@ -63,7 +62,6 @@ def full_suite():
     suite.addTest(TestProjects('test_create_wifi_project_wrong_bssid_type'))
     suite.addTest(TestProjects('test_create_lte_project'))
     suite.addTest(TestProjects('test_create_lte_project_wrong_plmnid'))
-    suite.addTest(TestProjects('test_create_lora_project'))
 
     suite.addTest(TestACLs('test_add_acls'))
     suite.addTest(TestACLs('test_add_acls_invalid_creds'))
@@ -103,10 +101,6 @@ def full_suite():
     suite.addTest(TestApplications('test_modify_app_param'))
     suite.addTest(TestApplications('test_modify_app_invalid_param_value'))
     suite.addTest(TestApplications('test_register_new_app_parameters'))
-
-    suite.addTest(TestLOMM('test_create_new_lns_missing_euid'))
-    suite.addTest(TestLOMM('test_create_new_lns'))
-    suite.addTest(TestLOMM('test_create_new_lgtw'))
 
     return suite
 

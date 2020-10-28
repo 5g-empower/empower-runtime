@@ -1,14 +1,13 @@
-5G-EmPOWER: Mobile Networks Operating System
-============================================
+5G-EmPOWER: Artificial Inteligence-empowered Mobile Operating System
+====================================================================
 
 ### What is 5G-EmPOWER?
-5G-EmPOWER is a mobile network operating system designed for heterogeneous wireless/mobile networks.
+5G-EmPOWER is a near Real Time RAN Intelligent Controller (nRT-RIC) designed for heterogeneous wireless/mobile networks.
 
 ### Top-Level Features
-* Supports both LTE and WiFi networks
-* Northbound abstractions for a global network view, network graph, and application intents.
-* REST API and native (Python) API for accessing the Northbound abstractions
-* Flexible southbound interface supporting WiFi APs and LTE eNBs
+* 5G-EmPOWER supports both LTE and Wi-Fi networks. Support for NR and ns3 is undergoing.
+* 5G-EmPOWER provides well defined programming abstraction around mature AI/ML toolkits lowering the entrance barrier for researchers and practioners.
+* 5G-EmPOWER provides a REST API and native (Python) API
 
 Checkout out our [website](http://5g-empower.io/) and our [wiki](https://github.com/5g-empower/5g-empower.github.io/wiki)
 

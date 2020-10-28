@@ -46,7 +46,6 @@ class ProjectsHandler(apimanager.APIHandler):
                     "bootstrap": {
                     },
                     "desc": "5G-EmPOWER Wi-Fi Network",
-                    "lora_props": null,
                     "lte_props": null,
                     "lte_slices": {
                         "0": {
@@ -119,7 +118,6 @@ class ProjectsHandler(apimanager.APIHandler):
                 "bootstrap": {
                 },
                 "desc": "5G-EmPOWER Wi-Fi Network",
-                "lora_props": null,
                 "lte_props": null,
                 "lte_slices": {
                     "0": {
@@ -210,7 +208,6 @@ class ProjectsHandler(apimanager.APIHandler):
 
         wifi_props = kwargs['wifi_props'] if 'wifi_props' in kwargs else None
         lte_props = kwargs['lte_props'] if 'lte_props' in kwargs else None
-        lora_props = kwargs['lora_props'] if 'lora_props' in kwargs else None
 
         wifi_slcs = kwargs['wifi_slices'] if 'wifi_slices' in kwargs else None
         lte_slcs = kwargs['lte_slices'] if 'lte_slices' in kwargs else None
@@ -219,8 +216,7 @@ class ProjectsHandler(apimanager.APIHandler):
                                       desc=kwargs['desc'],
                                       owner=kwargs['owner'],
                                       wifi_props=wifi_props,
-                                      lte_props=lte_props,
-                                      lora_props=lora_props)
+                                      lte_props=lte_props)
 
         if wifi_slcs:
             for wifi_slice in wifi_slcs:

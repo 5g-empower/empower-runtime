@@ -17,6 +17,8 @@
 
 """Projects manager."""
 
+from pymodm.errors import ValidationError
+
 from empower_core.projectsmanager.projectsmanager import ProjectsManager
 
 from empower_core.projectsmanager.appcallbackhandler import \
@@ -28,7 +30,6 @@ from empower.managers.projectsmanager.projectshandler import ProjectsHandler
 from empower.managers.projectsmanager.project import EmpowerProject
 from empower.managers.projectsmanager.project import EmbeddedWiFiProps
 from empower.managers.projectsmanager.project import EmbeddedLTEProps
-from empower.managers.projectsmanager.project import EmbeddedLoraProps
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_UNIQUE
 from empower.managers.projectsmanager.projectswifiaclhandler import \
@@ -111,8 +112,7 @@ class EmpowerProjectsManager(ProjectsManager):
 
         return networks
 
-    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None,
-               lora_props=None):
+    def create(self, desc, project_id, owner, wifi_props=None, lte_props=None):
         """Create new project."""
 
         project = super().create(desc=desc, project_id=project_id, owner=owner)
@@ -125,15 +125,16 @@ class EmpowerProjectsManager(ProjectsManager):
             if lte_props:
                 project.lte_props = EmbeddedLTEProps(**lte_props)
 
-            if lora_props:
-                project.lora_props = EmbeddedLoraProps(**lora_props)
-
             project.save()
 
             project.upsert_wifi_slice(slice_id=0)
             project.upsert_lte_slice(slice_id=0)
 
         except ValueError as ex:
+            self.remove(project.project_id)
+            raise ValueError(ex)
+
+        except ValidationError as ex:
             self.remove(project.project_id)
             raise ValueError(ex)
 
