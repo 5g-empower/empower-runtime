@@ -23,11 +23,11 @@ from construct import Container
 from tornado.iostream import StreamClosedError
 
 from empower_core.imsi import IMSI
+from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.vbsp.cellpool import Cell
 from empower.managers.ranmanager.vbsp.user import User, \
     USER_STATUS_DISCONNECTED
 from empower.managers.ranmanager.ranconnection import RANConnection
-from empower_core.etheraddress import EtherAddress
 from empower.managers.ranmanager.vbsp import HELLO_SERVICE_PERIOD, \
     PT_HELLO_SERVICE_PERIOD
 
@@ -336,7 +336,7 @@ class VBSPConnection(RANConnection):
             if tlv.type == self.proto.PT_UE_REPORTS_SERVICE_IDENTITY:
 
                 if option.pci not in self.device.cells:
-                    self.log.warning("Unable to find pci %u", option.pcis)
+                    self.log.warning("Unable to find pci %u", option.pci)
 
                 cell = self.device.cells[option.pci]
                 imsi = IMSI(str(option.imsi))
