@@ -341,6 +341,7 @@ class VBSPConnection(RANConnection):
                 cell = self.device.cells[option.pci]
                 imsi = IMSI(str(option.imsi))
 
+                # User disconnected
                 if option.status == USER_STATUS_DISCONNECTED:
 
                     if imsi not in self.manager.users:
@@ -356,6 +357,7 @@ class VBSPConnection(RANConnection):
 
                     continue
 
+                # User connected
                 if imsi in self.manager.users:
 
                     user = self.manager.users[imsi]
