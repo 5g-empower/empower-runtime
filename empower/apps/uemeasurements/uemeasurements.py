@@ -19,7 +19,7 @@
 
 import time
 
-from construct import Struct, Int16ub, Int8ub, Container
+from construct import Struct, Int16ub, Int8ub, Int8sb, Container
 
 import empower.managers.ranmanager.vbsp as vbsp
 
@@ -50,8 +50,8 @@ UE_MEASUREMENTS_SERVICE_MEAS_ID.name = "ue_measurements_service_meas_id"
 UE_MEASUREMENTS_SERVICE_REPORT = Struct(
     "rnti" / Int16ub,
     "meas_id" / Int8ub,
-    "rsrp" / Int8ub,
-    "rsrq" / Int8ub,
+    "rsrp" / Int8sb,
+    "rsrq" / Int8sb,
 )
 UE_MEASUREMENTS_SERVICE_REPORT.name = "ue_measurements_service_report"
 
