@@ -6,4 +6,4 @@ jobs:
     - name: curl
       uses: wei/curl@v1
       with:
-        args: -X POST https://hub.docker.com/api/build/v1/source/cfce4a34-bf71-4b36-a2b8-8fd285214247/trigger/eb7baadd-2076-40df-b6e7-b78ba17c7aa1/call/
+        args: -X POST https://hub.docker.com/api/build/v1/source/8d3d725b-fd2e-4de2-8790-f316e4a82704/trigger/fb1b17c5-95ac-4f05-ae6e-a5d0a37a3cc9/call/
