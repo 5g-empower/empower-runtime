@@ -79,7 +79,10 @@ class Predictor(ELTEApp):
     def stop(self):
         """Stop app."""
 
-        self.unregister_service(self.ue_meas.service_id)
+        try:
+            self.unregister_service(self.ue_meas.service_id)
+        except KeyError as ex:
+            self.log.warning(ex)
 
         super().stop()
 
