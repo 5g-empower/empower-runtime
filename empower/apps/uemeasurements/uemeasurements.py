@@ -330,6 +330,9 @@ class UEMeasurements(ELTEApp):
         # handle callbacks
         self.handle_callbacks()
 
+        # set last iteration time
+        self.last = time.time()
+
 
 def launch(context, service_id, meas_id, imsi, interval, amount, every=-1):
     """ Initialize the module. """
