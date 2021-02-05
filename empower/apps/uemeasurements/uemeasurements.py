@@ -102,8 +102,7 @@ class UEMeasurements(ELTEApp):
 
     def __eq__(self, other):
         return super().__eq__(other) and self.meas_id == other.meas_id \
-            and self.imsi == other.imsi and self.interval == other.interval \
-            and self.amount == other.amount
+            and self.imsi == other.imsi
 
     def start(self):
         """Start app."""
