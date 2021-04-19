@@ -85,7 +85,7 @@ class MACPrbUtilization(ELTEWorker):
 
             vbs.connection.send_message(action=PT_MAC_PRB_UTILIZATION_SERVICE,
                                         msg_type=vbsp.MSG_TYPE_REQUEST,
-                                        crud_result=vbsp.OP_RETRIEVE,
+                                        crud_result=vbsp.OP_UNDEFINED,
                                         tlvs=[],
                                         callback=self.handle_response)
 

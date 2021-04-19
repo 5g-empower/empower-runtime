@@ -236,14 +236,14 @@ class VBSPConnection(RANConnection):
 
         return self.send_message(action=self.proto.PT_CAPABILITIES_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
-                                 crud_result=self.proto.OP_RETRIEVE)
+                                 crud_result=self.proto.OP_UNDEFINED)
 
     def send_ue_reports_request(self):
         """Send a UE_REPORTS message."""
 
         return self.send_message(action=self.proto.PT_UE_REPORTS_SERVICE,
                                  msg_type=self.proto.MSG_TYPE_REQUEST,
-                                 crud_result=self.proto.OP_RETRIEVE)
+                                 crud_result=self.proto.OP_UNDEFINED)
 
     def send_hello_response(self, period):
         """Send an HELLO response message."""

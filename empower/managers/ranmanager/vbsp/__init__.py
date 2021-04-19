@@ -32,7 +32,6 @@ OP_UNDEFINED = 0
 OP_UPDATE = 1
 OP_CREATE = 2
 OP_DELETE = 3
-OP_RETRIEVE = 4
 
 PT_DEVICE_DOWN = "device_down"
 PT_DEVICE_UP = "device_up"
@@ -219,8 +218,6 @@ def decode_msg(msg_type, crud_result):
             crud_result_str = "update"
         elif crud_result == OP_DELETE:
             crud_result_str = "delete"
-        elif crud_result == OP_RETRIEVE:
-            crud_result_str = "retrieve"
         else:
             crud_result_str = "unknown"
 
