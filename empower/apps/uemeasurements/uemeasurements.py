@@ -318,8 +318,10 @@ class UEMeasurements(ELTEApp):
             if option.meas_id != self.meas_id:
                 continue
 
-            self.rsrp = option.rsrp
-            self.rsrq = option.rsrq
+            self.rsrp = option.rsrp - 140
+            self.rsrq = int(option.rsrq/2 - 19.5)
+
+            self.log.debug("Received RSRP %u RSRQ %u", self.rsrp, self.rsrq)
 
             user.ue_measurements = {
                 "rsrp": self.rsrp,
