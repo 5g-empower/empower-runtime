@@ -17,9 +17,9 @@
 
 """Simple app to test Wi-Fi events."""
 
-from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
-
 from empower_core.app import EVERY
+
+from empower.managers.ranmanager.lvapp.wifiapp import EWiFiApp
 
 
 class WiFiEvents(EWiFiApp):

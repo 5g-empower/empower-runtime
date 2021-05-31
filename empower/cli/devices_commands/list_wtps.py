@@ -39,7 +39,7 @@ def do_cmd(gargs, *_):
             accum.append(" seq ")
             accum.append(str(entry['last_seen']))
             accum.append(" ip ")
-            accum.append(entry['connection']['addr'][0])
+            accum.append(entry['connection']['addr'])
             accum.append(" ifaces {")
             ifaces = ["(%s, %s)" % (v['channel'], v['band'])
                       for _, v in entry['blocks'].items()]
