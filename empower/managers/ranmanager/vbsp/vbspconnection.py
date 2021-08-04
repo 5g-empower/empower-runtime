@@ -353,7 +353,7 @@ class VBSPConnection(RANConnection):
                     self.send_client_leave_message_to_self(user)
                     del self.manager.users[imsi]
 
-                    self.log.info("Removing %s", user)
+                    self.log.info("Removing user: %s", user)
 
                     continue
 
@@ -363,7 +363,6 @@ class VBSPConnection(RANConnection):
                     user = self.manager.users[imsi]
                     user.rnti = option.rnti
 
-                    self.send_client_join_message_to_self(user)
                     self.log.info("Updating user: %s", user)
 
                 else:
