@@ -363,7 +363,8 @@ class VBSPConnection(RANConnection):
                     user = self.manager.users[imsi]
                     user.rnti = option.rnti
 
-                    self.log.info("Updating RNTI %s", user)
+                    self.send_client_join_message_to_self(user)
+                    self.log.info("Updating user: %s", user)
 
                 else:
 
@@ -376,4 +377,4 @@ class VBSPConnection(RANConnection):
                     self.manager.users[imsi] = user
                     self.send_client_join_message_to_self(user)
 
-                    self.log.info("Adding %s", user)
+                    self.log.info("Adding user: %s", user)
