@@ -123,6 +123,9 @@ class MACPrbUtilization(ELTEWorker):
             self.dl_prb_counter = option.dl_prb_counter
             self.ul_prb_counter = option.ul_prb_counter
 
+            self.log.debug("Received PRB DL %u UL %u",
+                           self.dl_prb_counter, self.ul_prb_counter)
+
             cell = vbs.cells[option.pci]
 
             cell.mac_prb_utilization = {
