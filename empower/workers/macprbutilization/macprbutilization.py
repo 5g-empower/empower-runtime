@@ -136,10 +136,12 @@ class MACPrbUtilization(ELTEWorker):
                 self.ul_prb_last = self.ul_prb_counter
 
             self.dl_prb_rate = \
-                (self.dl_prb_counter - self.dl_prb_last) / self.every
+                ((self.dl_prb_counter - self.dl_prb_last) * 1000.0) \
+                / self.every
 
             self.ul_prb_rate = \
-                (self.ul_prb_counter - self.ul_prb_last) / self.every
+                ((self.ul_prb_counter - self.ul_prb_last) * 1000.0) \
+                / self.every
 
             self.dl_prb_last = self.dl_prb_counter
             self.ul_prb_last = self.ul_prb_counter
