@@ -72,6 +72,12 @@ class MACPrbUtilization(ELTEWorker):
         self.dl_prb_counter = None
         self.ul_prb_counter = None
 
+        self.dl_prb_last = None
+        self.ul_prb_last = None
+
+        self.dl_prb_rate = None
+        self.ul_prb_rate = None
+
         # Last seen time
         self.last = None
 
@@ -123,8 +129,23 @@ class MACPrbUtilization(ELTEWorker):
             self.dl_prb_counter = option.dl_prb_counter
             self.ul_prb_counter = option.ul_prb_counter
 
+            if not self.dl_prb_last:
+                self.dl_prb_last = self.dl_prb_counter
+
+            if not self.ul_prb_last:
+                self.ul_prb_last = self.ul_prb_counter
+
+            self.dl_prb_rate = \
+                (self.dl_prb_last - self.dl_prb_counter) / self.every
+
+            self.ul_prb_rate = \
+                (self.ul_prb_last - self.ul_prb_counter) / self.every
+
             self.log.debug("Received PRBs Utilization DL %u UL %u",
                            self.dl_prb_counter, self.ul_prb_counter)
+
+            self.log.debug("Received PRBs rate DL %u UL %u",
+                           self.dl_prb_rate, self.ul_prb_rate)
 
             cell = vbs.cells[option.pci]
 
