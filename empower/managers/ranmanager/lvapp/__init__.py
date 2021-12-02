@@ -33,6 +33,8 @@ PT_CLIENT_LEAVE = "client_leave"
 PT_HELLO_REQUEST = 0x01
 PT_HELLO_RESPONSE = 0x02
 
+PT_TRIGGER_BEACON = 0x1D
+
 PT_CAPS_REQUEST = 0x03
 PT_CAPS_RESPONSE = 0x04
 
@@ -90,6 +92,20 @@ HELLO_REQUEST = Struct(
     "period" / Int32ub,
 )
 HELLO_REQUEST.name = "hello_request"
+
+TRIGGER_BEACON = Struct(
+    "version" / Int8ub,
+    "type" / Int8ub,
+    "length" / Int32ub,
+    "seq" / Int32ub,
+    "xid" / Int32ub,
+    "device" / Bytes(6),
+    "block_id" / Int32ub,
+    "dst" / Bytes(6),
+    "bssid" / Bytes(6),
+    "ssid" / Bytes(WIFI_NWID_MAXSIZE + 1)
+)
+TRIGGER_BEACON.name = "trigger_beacon"
 
 HELLO_RESPONSE = Struct(
     "version" / Int8ub,
@@ -593,6 +609,8 @@ PT_TYPES = {
 
     PT_HELLO_REQUEST: HELLO_REQUEST,
     PT_HELLO_RESPONSE: HELLO_RESPONSE,
+
+    PT_TRIGGER_BEACON: TRIGGER_BEACON,
 
     PT_CAPS_RESPONSE: CAPS_RESPONSE,
     PT_CAPS_REQUEST: CAPS_REQUEST,

@@ -872,3 +872,14 @@ class LVAPPConnection(RANConnection):
                         ssid=ssid.to_raw())
 
         return self.send_message(self.proto.PT_DEL_SLICE, msg)
+
+    def send_trigger_beacon(self, block_id, dst, bssid, ssid):
+        """Send a TRIGGER_BEACON message."""
+
+        msg = Container(length=self.proto.TRIGGER_BEACON.sizeof(),
+                        block_id=block_id,
+                        dst=dst.to_raw(),
+                        bssid=bssid.to_raw(),
+                        ssid=ssid.to_raw())
+
+        return self.send_message(self.proto.PT_TRIGGER_BEACON, msg)

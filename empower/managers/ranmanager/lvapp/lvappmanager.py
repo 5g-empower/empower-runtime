@@ -20,6 +20,7 @@
 import empower.managers.ranmanager.lvapp as lvapp
 
 from empower.managers.ranmanager.ranmanager import RANManager
+from empower.managers.ranmanager.lvapp.beaconhandler import BeaconHandler
 from empower.managers.ranmanager.lvapp.wtphandler import WTPHandler
 from empower.managers.ranmanager.lvapp.lvaphandler import LVAPHandler
 from empower.managers.ranmanager.lvapp.lvappconnection import LVAPPConnection
@@ -36,7 +37,7 @@ class LVAPPManager(RANManager):
             default: 4433)
     """
 
-    HANDLERS = [LVAPHandler, WTPHandler]
+    HANDLERS = [LVAPHandler, WTPHandler, BeaconHandler]
 
     def __init__(self, context, service_id, port):
 
