@@ -322,7 +322,22 @@ class LVAPPConnection(RANConnection):
         else:
             self.log.debug(msg, sta, incoming_ssid, iface_id, ht_caps)
 
-        # Check is station is in ACL of any networks
+        # Get beacons for this station
+        beacons = srv_or_die("alertsmanager").get_beacons(sta)
+
+        if not beacons:
+            self.log.debug("No alerts available for this station")
+            return
+
+        for beacon in beacons:
+
+            dst = beacon['dst']
+            bssid = beacon['bssid']
+            ssid = beacon['ssid']
+
+            self.send_trigger_beacon(block.block_id, dst, bssid, ssid)
+
+        # Check if station is in ACL of any networks
         networks = \
             srv_or_die("projectsmanager").get_available_ssids(sta, block)
 
@@ -880,6 +895,6 @@ class LVAPPConnection(RANConnection):
                         block_id=block_id,
                         dst=dst.to_raw(),
                         bssid=bssid.to_raw(),
-                        ssid=ssid.to_raw())
+                        ssid=ssid)
 
         return self.send_message(self.proto.PT_TRIGGER_BEACON, msg)

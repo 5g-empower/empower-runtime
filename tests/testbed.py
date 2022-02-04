@@ -137,6 +137,19 @@ class TestTestbed(BaseTest):
             params = ("root", "root", "/wtps")
             self.post(params, data, 201)
 
+        # Alerts
+        data = {
+            'alert': "Alert message"
+        }
+        params = ("root", "root",
+                  "/alerts/52313ecb-9d00-4b7d-b873-b55d3d9ada26")
+        self.post(params, data, 201)
+
+        params = ("root", "root",
+                  "/alerts/52313ecb-9d00-4b7d-b873-b55d3d9ada26/subs/"
+                  "60:83:73:03:83:A3")
+        self.post(params, data, 201)
+
 
 if __name__ == '__main__':
     unittest.main()

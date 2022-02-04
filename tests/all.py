@@ -27,12 +27,19 @@ from .wifislices import TestWiFiSlices
 from .lteslices import TestLTESlices
 from .applications import TestApplications
 from .workers import TestWorkers
+from .alerts import TestAlerts
 
 
 def full_suite():
     """Full unit test suite."""
 
     suite = unittest.TestSuite()
+
+    suite.addTest(TestAlerts('test_create_new_alert'))
+    suite.addTest(TestAlerts('test_create_new_alert_empty_body'))
+    suite.addTest(TestAlerts('test_subscriptions'))
+
+    return suite
 
     suite.addTest(TestWorkers('test_register_new_worker'))
     suite.addTest(TestWorkers('test_register_new_worker_fixed_uuid'))

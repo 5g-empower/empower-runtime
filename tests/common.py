@@ -30,6 +30,8 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         """Delete test entries."""
 
+        requests.delete(url=URL % ("root", "root", "/alerts"))
+
         requests.delete(url=URL % ("root", "root", "/projects"))
 
         requests.delete(url=URL % ("root", "root", "/accounts/dummy"))
