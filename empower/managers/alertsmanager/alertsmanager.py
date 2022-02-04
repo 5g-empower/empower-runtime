@@ -68,8 +68,7 @@ class AlertsManager(EService):
             #    continue
 
             # start processing the alert
-            message = "Questo e` un alert veramente molto lungo, deve essere" \
-                      " diviso in due"
+            message = alert.alert
 
             nb_chunks = math.ceil(len(message) / 30)
             chunks = [message[i:i+30] for i in range(0, len(message), 30)]

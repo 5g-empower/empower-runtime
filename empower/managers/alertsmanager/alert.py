@@ -50,7 +50,7 @@ class Alert(MongoModel):
         out = {
             'uuid': self.uuid,
             'alert': self.alert,
-            'subscriptions': self.subscriptions
+            'subscriptions': self.subscriptions.split(",")
         }
 
         return out
