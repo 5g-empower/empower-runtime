@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2019 Roberto Riggio
+# Copyright (c) 2022 Roberto Riggio
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,14 +57,8 @@ class AlertsManager(EService):
 
         for alert in self.alerts.values():
 
-            subs = []
-
-            if alert.subscriptions:
-                for entry in alert.subscriptions.split(","):
-                    subs.append(EtherAddress(entry))
-
             # sta not in subs, can ignore the alert
-            #if sta not in subs:
+            #if sta not in alert.get_subs():
             #    continue
 
             # start processing the alert
@@ -101,45 +95,15 @@ class AlertsManager(EService):
 
         return beacons
 
-    def get_sub(self, uuid, sub=None):
-        """Get subscription(s)."""
-
-        alert = self.alerts[uuid]
-
-        subs = []
-        if alert.subscriptions:
-            for entry in alert.subscriptions.split(","):
-                subs.append(EtherAddress(entry))
-
-        if not sub:
-            return subs
-
-        if sub in subs:
-            return sub
-
-        raise KeyError("Subscription %s not found" % sub)
-
     def add_sub(self, uuid, sub):
         """Add a new subscription."""
 
         alert = self.alerts[uuid]
 
         try:
-
-            subs = set()
-            if alert.subscriptions:
-                for entry in alert.subscriptions.split(","):
-                    subs.add(EtherAddress(entry))
-
+            subs = alert.get_subs()
             subs.add(sub)
-
-            subs_string = []
-            for entry in subs:
-                subs_string.append(str(entry))
-
-            alert.subscriptions = ",".join(subs_string)
-            alert.save()
-
+            alert.set_subs(subs)
         finally:
             alert.refresh_from_db()
 
@@ -151,21 +115,9 @@ class AlertsManager(EService):
         alert = self.alerts[uuid]
 
         try:
-
-            subs = set()
-            if alert.subscriptions:
-                for entry in alert.subscriptions.split(","):
-                    subs.add(EtherAddress(entry))
-
+            subs = alert.get_subs()
             subs.remove(sub)
-
-            subs_string = []
-            for entry in subs:
-                subs_string.append(str(entry))
-
-            alert.subscriptions = ",".join(subs_string)
-            alert.save()
-
+            alert.set_subs(subs)
         finally:
             alert.refresh_from_db()
 

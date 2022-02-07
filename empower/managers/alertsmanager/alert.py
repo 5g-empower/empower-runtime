@@ -20,7 +20,9 @@
 import logging
 
 from pymodm import MongoModel, fields
+
 from empower_core.serialize import serializable_dict
+from empower_core.etheraddress import EtherAddress
 
 
 @serializable_dict
@@ -44,13 +46,32 @@ class Alert(MongoModel):
 
         self.log = logging.getLogger("%s" % self.__class__.__module__)
 
+    def get_subs(self):
+        """Return subscriptions."""
+
+        if self.subscriptions:
+            return {EtherAddress(x) for x in self.subscriptions.split(",")}
+
+        return set()
+
+    def set_subs(self, subs):
+        """Set subscriptions."""
+
+        if not subs:
+            self.subscriptions = None
+            return
+
+        self.subscriptions = ",".join([str(x) for x in subs])
+
+        self.save()
+
     def to_dict(self):
         """Return JSON-serializable representation of the object."""
 
         out = {
             'uuid': self.uuid,
             'alert': self.alert,
-            'subscriptions': self.subscriptions.split(",")
+            'subscriptions': self.get_subs()
         }
 
         return out

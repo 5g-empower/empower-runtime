@@ -46,11 +46,15 @@ class AlertsSubscriptionsHandler(apimanager.APIHandler):
         """
 
         alert_id = uuid.UUID(args[0])
+        alerts = self.service.alerts[alert_id]
 
         if len(args) == 1:
-            return self.service.get_sub(alert_id)
-        else:
-            return self.service.get_sub(alert_id, EtherAddress(args[1]))
+            return alerts
+
+        if EtherAddress(args[1]) in alerts.get_subs():
+            return EtherAddress(args[1])
+
+        raise KeyError()
 
     @apimanager.validate(returncode=201, min_args=2, max_args=2)
     def post(self, *args, **kwargs):
@@ -61,6 +65,8 @@ class AlertsSubscriptionsHandler(apimanager.APIHandler):
             [0], the alert id (mandatory)
             [1], the sub
         """
+
+        print(args)
 
         alert_id = uuid.UUID(args[0])
         sub = EtherAddress(args[1])

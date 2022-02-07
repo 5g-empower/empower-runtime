@@ -39,8 +39,6 @@ def full_suite():
     suite.addTest(TestAlerts('test_create_new_alert_empty_body'))
     suite.addTest(TestAlerts('test_subscriptions'))
 
-    return suite
-
     suite.addTest(TestWorkers('test_register_new_worker'))
     suite.addTest(TestWorkers('test_register_new_worker_fixed_uuid'))
     suite.addTest(TestWorkers('test_register_new_worker_duplicate_no_uuid'))
