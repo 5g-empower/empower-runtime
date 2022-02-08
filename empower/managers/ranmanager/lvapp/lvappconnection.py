@@ -327,7 +327,6 @@ class LVAPPConnection(RANConnection):
 
         if not beacons:
             self.log.debug("No alerts available for this station")
-            return
 
         for beacon in beacons:
 
