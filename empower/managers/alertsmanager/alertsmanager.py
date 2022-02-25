@@ -152,20 +152,20 @@ class AlertsManager(EService):
 
         return self.alerts[alert.alert_id]
 
-    def create(self, alert_id):
+    def create(self, alert_id, message="Generic alert"):
         """Create new alert."""
 
         if alert_id in self.alerts:
             raise ValueError("Alert %s already defined" % alert_id)
 
-        alert = Alert(alert_id=alert_id, message="Generic alert")
+        alert = Alert(alert_id=alert_id, message=message)
         alert.save()
 
         self.alerts[alert.alert_id] = alert
 
         return self.alerts[alert.alert_id]
 
-    def update(self, alert_id, message=None):
+    def update(self, alert_id, message):
         """Create new alert."""
 
         alert = self.alerts[alert_id]

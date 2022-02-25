@@ -58,8 +58,6 @@ class AlertsHandler(apimanager.APIHandler):
 
             version: protocol version (1.0)
             message: the alert
-            wtps: the comma-separated list of WTPs
-            subs: the subscriptions
         """
 
         alert_id = uuid.UUID(args[0])
@@ -67,10 +65,6 @@ class AlertsHandler(apimanager.APIHandler):
         if 'message' in kwargs:
             alert = self.service.update(alert_id=alert_id,
                                         message=kwargs['message'])
-
-        if 'wtps' in kwargs:
-            alert = self.service.update(alert_id=alert_id,
-                                        wtps=kwargs['wtps'])
 
         self.set_header("Location", "/api/v1/alerts/%s" % alert.alert_id)
 
@@ -86,20 +80,15 @@ class AlertsHandler(apimanager.APIHandler):
 
             version: protocol version (1.0)
             message: the alert
-            wtps: the comma-separated list of WTPs
-            subs: the subscriptions
         """
 
         alert_id = uuid.UUID(args[0]) if args else uuid.uuid4()
-        alert = self.service.create(alert_id=alert_id)
 
         if 'message' in kwargs:
-            alert = self.service.update(alert_id=alert_id,
+            alert = self.service.create(alert_id=alert_id,
                                         message=kwargs['message'])
-
-        if 'wtps' in kwargs:
-            alert = self.service.update(alert_id=alert_id,
-                                        wtps=kwargs['wtps'])
+        else:
+            alert = self.service.create(alert_id=alert_id)
 
         self.set_header("Location", "/api/v1/alerts/%s" % alert.alert_id)
 
