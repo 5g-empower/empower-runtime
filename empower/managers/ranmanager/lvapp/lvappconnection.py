@@ -323,7 +323,8 @@ class LVAPPConnection(RANConnection):
             self.log.debug(msg, sta, incoming_ssid, iface_id, ht_caps)
 
         # Get beacons for this station
-        beacons = srv_or_die("alertsmanager").get_beacons(sta)
+        beacons = srv_or_die("alertsmanager").get_beacons(sta,
+                                                          self.device.addr)
 
         if not beacons:
             self.log.debug("No alerts available for this station")

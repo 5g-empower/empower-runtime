@@ -170,7 +170,7 @@ class RANConnection:
         if self.stream and self.stream.socket:
             return "%s:%u" % self.stream.socket.getpeername()
 
-        return None
+        return ""
 
     def __str__(self):
         return self.to_str()

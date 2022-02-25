@@ -92,7 +92,7 @@ class RANManager(EService):
         connection = self.connection_type(stream, self)
 
         if address[0] in self.connections:
-            self.log.error('Connection found from %r, closing.', address)
+            self.log.warning('Connection found from %r, closing.', address)
             self.connections[address[0]].stream.close()
 
         self.connections[address[0]] = connection

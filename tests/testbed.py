@@ -130,7 +130,8 @@ class TestTestbed(BaseTest):
             ("00:0D:B9:54:3D:20", "PC Engines APU2 (3)"),
             ("00:0D:B9:54:3C:CC", "PC Engines APU2 (4)"),
             ("00:0D:B9:54:27:F8", "PC Engines APU2 (5)"),
-            ("00:0D:B9:54:3C:F4", "PC Engines APU2 (6)")
+            ("00:0D:B9:54:3C:F4", "PC Engines APU2 (6)"),
+            ("7A:46:97:E0:99:E9", "Netgear WNDR4300")
         ]
         for wtp in wtps:
             data = {"addr": wtp[0], "desc": wtp[1]}
@@ -146,8 +147,8 @@ class TestTestbed(BaseTest):
         self.post(params, data, 201)
 
         params = ("root", "root",
-                  "/alerts/52313ecb-9d00-4b7d-b873-b55d3d9ada26/subs/"
-                  "60:83:73:03:83:A3")
+                  "/alerts/52313ecb-9d00-4b7d-b873-b55d3d9ada26/wtps/"
+                  "7A:46:97:E0:99:E9")
         self.post(params, data, 201)
 
 

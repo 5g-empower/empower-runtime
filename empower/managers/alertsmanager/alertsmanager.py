@@ -51,12 +51,16 @@ class AlertsManager(EService):
         for alert in Alert.objects:
             self.alerts[alert.alert_id] = alert
 
-    def get_beacons(self, sta):
+    def get_beacons(self, sta, wtp):
         """Get all the beacons for this station."""
 
         beacons = []
 
         for alert in self.alerts.values():
+
+            # wtp not in alert
+            if wtp not in alert.get_wtps():
+                continue
 
             # sta not in subs, can ignore the alert
             #if sta not in alert.get_subs():
