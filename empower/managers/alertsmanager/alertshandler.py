@@ -46,6 +46,34 @@ class AlertsHandler(apimanager.APIHandler):
         return self.service.alerts \
             if not args else self.service.alerts[uuid.UUID(args[0])]
 
+    @apimanager.validate(returncode=201, min_args=1, max_args=1)
+    def put(self, *args, **kwargs):
+        """Update an alert.
+
+        Args:
+
+            [0], the alert id (optional)
+
+        Request:
+
+            version: protocol version (1.0)
+            message: the alert
+            wtps: the comma-separated list of WTPs
+            subs: the subscriptions
+        """
+
+        alert_id = uuid.UUID(args[0])
+
+        if 'message' in kwargs:
+            alert = self.service.update(alert_id=alert_id,
+                                        message=kwargs['message'])
+
+        if 'wtps' in kwargs:
+            alert = self.service.update(alert_id=alert_id,
+                                        wtps=kwargs['wtps'])
+
+        self.set_header("Location", "/api/v1/alerts/%s" % alert.alert_id)
+
     @apimanager.validate(returncode=201, min_args=0, max_args=1)
     def post(self, *args, **kwargs):
         """Create a new alert.
@@ -57,17 +85,23 @@ class AlertsHandler(apimanager.APIHandler):
         Request:
 
             version: protocol version (1.0)
-            alert: the alert
+            message: the alert
+            wtps: the comma-separated list of WTPs
+            subs: the subscriptions
         """
 
         alert_id = uuid.UUID(args[0]) if args else uuid.uuid4()
+        alert = self.service.create(alert_id=alert_id)
 
-        if 'alert' in kwargs:
-            alert = self.service.create(uuid=alert_id, alert=kwargs['alert'])
-        else:
-            alert = self.service.create(uuid=alert_id)
+        if 'message' in kwargs:
+            alert = self.service.update(alert_id=alert_id,
+                                        message=kwargs['message'])
 
-        self.set_header("Location", "/api/v1/alerts/%s" % alert.uuid)
+        if 'wtps' in kwargs:
+            alert = self.service.update(alert_id=alert_id,
+                                        wtps=kwargs['wtps'])
+
+        self.set_header("Location", "/api/v1/alerts/%s" % alert.alert_id)
 
     @apimanager.validate(returncode=204, min_args=0, max_args=1)
     def delete(self, *args, **kwargs):

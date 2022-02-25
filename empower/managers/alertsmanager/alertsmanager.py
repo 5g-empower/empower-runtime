@@ -26,6 +26,7 @@ from empower.managers.alertsmanager.alert import Alert
 from empower.managers.alertsmanager.alertshandler import AlertsHandler
 from empower.managers.alertsmanager.alertssubscriptionshandler \
     import AlertsSubscriptionsHandler
+from empower.managers.alertsmanager.alertswtpshandler import AlertsWTPsHandler
 
 WIFI_NWID_MAXSIZE = 32
 
@@ -33,7 +34,7 @@ WIFI_NWID_MAXSIZE = 32
 class AlertsManager(EService):
     """Alerts manager."""
 
-    HANDLERS = [AlertsHandler, AlertsSubscriptionsHandler]
+    HANDLERS = [AlertsHandler, AlertsSubscriptionsHandler, AlertsWTPsHandler]
 
     def __init__(self, context, service_id):
 
@@ -48,7 +49,7 @@ class AlertsManager(EService):
         super().start()
 
         for alert in Alert.objects:
-            self.alerts[alert.uuid] = alert
+            self.alerts[alert.alert_id] = alert
 
     def get_beacons(self, sta):
         """Get all the beacons for this station."""
@@ -62,7 +63,7 @@ class AlertsManager(EService):
             #    continue
 
             # start processing the alert
-            message = alert.alert
+            message = alert.message
 
             nb_chunks = math.ceil(len(message) / 30)
             chunks = [message[i:i+30] for i in range(0, len(message), 30)]
@@ -95,10 +96,10 @@ class AlertsManager(EService):
 
         return beacons
 
-    def add_sub(self, uuid, sub):
+    def add_sub(self, alert_id, sub):
         """Add a new subscription."""
 
-        alert = self.alerts[uuid]
+        alert = self.alerts[alert_id]
 
         try:
             subs = alert.get_subs()
@@ -107,12 +108,12 @@ class AlertsManager(EService):
         finally:
             alert.refresh_from_db()
 
-        return self.alerts[alert.uuid]
+        return self.alerts[alert.alert_id]
 
-    def del_sub(self, uuid, sub):
+    def del_sub(self, alert_id, sub):
         """Del a subscription."""
 
-        alert = self.alerts[uuid]
+        alert = self.alerts[alert_id]
 
         try:
             subs = alert.get_subs()
@@ -121,38 +122,79 @@ class AlertsManager(EService):
         finally:
             alert.refresh_from_db()
 
-        return self.alerts[alert.uuid]
+        return self.alerts[alert.alert_id]
 
-    def create(self, uuid, alert="Generic alert"):
+    def add_wtp(self, alert_id, wtp):
+        """Add a new wtp."""
+
+        alert = self.alerts[alert_id]
+
+        try:
+            wtps = alert.get_wtps()
+            wtps.add(wtp)
+            alert.set_wtps(wtps)
+        finally:
+            alert.refresh_from_db()
+
+        return self.alerts[alert.alert_id]
+
+    def del_wtp(self, alert_id, wtp):
+        """Del a wtp."""
+
+        alert = self.alerts[alert_id]
+
+        try:
+            wtps = alert.get_wtps()
+            wtps.remove(wtp)
+            alert.set_wtps(wtps)
+        finally:
+            alert.refresh_from_db()
+
+        return self.alerts[alert.alert_id]
+
+    def create(self, alert_id):
         """Create new alert."""
 
-        if uuid in self.alerts:
-            raise ValueError("Alert %s already defined" % uuid)
+        if alert_id in self.alerts:
+            raise ValueError("Alert %s already defined" % alert_id)
 
-        alert = Alert(uuid=uuid, alert=alert)
+        alert = Alert(alert_id=alert_id, message="Generic alert")
         alert.save()
 
-        self.alerts[alert.uuid] = alert
+        self.alerts[alert.alert_id] = alert
 
-        return self.alerts[alert.uuid]
+        return self.alerts[alert.alert_id]
+
+    def update(self, alert_id, message=None):
+        """Create new alert."""
+
+        alert = self.alerts[alert_id]
+
+        try:
+            alert.message = message
+            alert.save()
+        finally:
+            alert.refresh_from_db()
+
+        return self.alerts[alert.alert_id]
 
     def remove_all(self):
         """Remove all alerts."""
 
-        for uuid in list(self.alerts):
-            self.remove(uuid)
+        for alert_id in list(self.alerts):
+            self.remove(alert_id)
 
-    def remove(self, uuid):
+    def remove(self, alert_id):
         """Remove alert."""
 
-        if uuid not in self.alerts:
-            raise KeyError("Alert %s not registered" % uuid)
+        if alert_id not in self.alerts:
+            raise KeyError("Alert %s not registered" % alert_id)
 
-        alert = self.alerts[uuid]
+        alert = self.alerts[alert_id]
 
         alert.delete()
 
-        del self.alerts[uuid]
+        del self.alerts[alert_id]
 
 
 def launch(context, service_id):
