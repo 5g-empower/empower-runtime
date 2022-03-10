@@ -25,10 +25,10 @@ from construct import Container
 from tornado.iostream import StreamClosedError
 
 from empower_core.launcher import srv_or_die
-from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
-from empower_core.etheraddress import EtherAddress
-from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
 from empower_core.ssid import SSID, WIFI_NWID_MAXSIZE
+from empower_core.etheraddress import EtherAddress
+from empower.managers.ranmanager.lvapp.txpolicy import TxPolicy
+from empower.managers.ranmanager.lvapp.resourcepool import ResourceBlock
 from empower.managers.ranmanager.lvapp.lvap import LVAP, PROCESS_RUNNING
 from empower.managers.ranmanager.lvapp.vap import VAP
 from empower.managers.projectsmanager.project import T_BSSID_TYPE_SHARED
@@ -211,6 +211,8 @@ class LVAPPConnection(RANConnection):
         self.log.debug("Sending %s message to %s seq %u",
                        parser.name, addr[0], msg.seq)
 
+        # Dirty patch to work around seg fault in the agent
+        time.sleep(0.001)
         self.stream.write(parser.build(msg))
 
         if callback:

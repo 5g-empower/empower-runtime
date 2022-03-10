@@ -140,7 +140,7 @@ class TestTestbed(BaseTest):
 
         # Alerts
         data = {
-            'alert': "Alert message"
+            'message': 'Alert message'
         }
         params = ("root", "root",
                   "/alerts/52313ecb-9d00-4b7d-b873-b55d3d9ada26")

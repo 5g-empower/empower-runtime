@@ -21,14 +21,13 @@ import math
 
 from empower_core.service import EService
 from empower_core.etheraddress import EtherAddress
+from empower_core.ssid import WIFI_NWID_MAXSIZE
 
 from empower.managers.alertsmanager.alert import Alert
 from empower.managers.alertsmanager.alertshandler import AlertsHandler
 from empower.managers.alertsmanager.alertssubscriptionshandler \
     import AlertsSubscriptionsHandler
 from empower.managers.alertsmanager.alertswtpshandler import AlertsWTPsHandler
-
-WIFI_NWID_MAXSIZE = 32
 
 
 class AlertsManager(EService):
