@@ -211,8 +211,6 @@ class LVAPPConnection(RANConnection):
         self.log.debug("Sending %s message to %s seq %u",
                        parser.name, addr[0], msg.seq)
 
-        # Dirty patch to work around seg fault in the agent
-        time.sleep(0.001)
         self.stream.write(parser.build(msg))
 
         if callback:
