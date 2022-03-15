@@ -59,6 +59,11 @@ class LVAPPConnection(RANConnection):
 
         hdr = self.proto.HEADER.parse(self.buffer)
 
+        if hdr.version != 0:
+            self.log.warning("Invalid version, expected 0 got %u", hdr.version)
+            self.stream.close()
+            return
+
         if len(self.buffer) < hdr.length:
             remaining = hdr.length - len(self.buffer)
             future = self.stream.read_bytes(remaining)
